@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#__next {
+  height: 100%;
+}
+
+body {
+  @apply bg-black text-gray-100 antialiased;
+}
+
+.btn-primary {
+  @apply rounded-full bg-primary px-4 py-2 text-sm font-semibold text-black shadow hover:bg-amber-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed;
+}
+
+.card {
+  @apply rounded-2xl bg-slate-900/80 border border-slate-800 shadow-lg;
+}
+

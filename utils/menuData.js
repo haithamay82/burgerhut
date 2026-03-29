@@ -1,0 +1,291 @@
+export const CATEGORIES = [
+  { id: "burgers" },
+  { id: "crispy" },
+  { id: "sides" },
+  { id: "drinks" },
+];
+
+/** סלטים בחינם — לכל מנה */
+export const FREE_SALADS = [
+  { id: "salad_lettuce", image: "/menu/salad-lettuce.png" },
+  { id: "salad_tomato", image: "/menu/salad-tomato.png" },
+  { id: "salad_pickles", image: "/menu/salad-pickles.png" },
+  { id: "salad_onion", image: "/menu/salad-onion.png" },
+];
+
+/** תוספות לבורגר / לעוף (לפי התפריט המודפס) */
+export const BURGER_TOPPINGS = [
+  { id: "cheddar", price: 5, image: "/menu/topping-cheddar.png" },
+  { id: "gouda", price: 5, image: "/menu/topping-gouda.png" },
+  { id: "fried_egg", price: 5, image: "/menu/topping-fried-egg.png" },
+  { id: "jalapeno", price: 5, image: "/menu/topping-jalapeno.png" },
+  { id: "caramel_mushrooms", price: 5, image: "/menu/topping-caramel-mushrooms.png" },
+  { id: "caramel_onion", price: 5, image: "/menu/topping-caramel-onion.png" },
+  { id: "lamb_bacon", price: 10, image: "/menu/topping-lamb-bacon.png" },
+  { id: "veal_corned", price: 10, image: "/menu/topping-veal-corned.png" },
+  { id: "pulled_asado", price: 15, image: "/menu/topping-pulled-asado.png" },
+];
+
+/** תוספות שלא מוצעות במנות קריספי (ביצת עין, בייקון טלה, קורנדביף עגל, אסאדו מפורק) */
+const CRISPY_EXCLUDED_TOPPING_IDS = new Set([
+  "fried_egg",
+  "lamb_bacon",
+  "veal_corned",
+  "pulled_asado",
+]);
+
+/** תוספות לבורגר המוצגות גם במנות קריספי צ'יקן */
+export const CRISPY_MEAL_TOPPINGS = BURGER_TOPPINGS.filter(
+  (row) => !CRISPY_EXCLUDED_TOPPING_IDS.has(row.id)
+);
+
+/** בורגר קריספי מבוגרים — אופציית «בלי» בלבד */
+export const CRISPY_CHICKEN_BURGER_PRODUCT_ID = "crispy-chicken-burger";
+
+/** מזהה מנת ילדים — בחירת עגולה / טורטיה / בלי */
+export const CRISPY_CHICKEN_KIDS_PRODUCT_ID = "crispy-chicken-burger-kids";
+
+export const KIDS_CRISPY_BREAD_CHOICES = [
+  { id: "round" },
+  { id: "small_tortilla" },
+  { id: "none" },
+];
+
+/** תוספות רטבים (מחיר בפועל ב-computeSaucesCharge) */
+export const EXTRA_SAUCES = [
+  { id: "sauce_house_regular", image: "/menu/sauce-house-regular.png" },
+  { id: "sauce_house_spicy", image: "/menu/sauce-house-spicy.png" },
+  { id: "sauce_bbq", image: "/menu/sauce-bbq.png" },
+  { id: "sauce_sweet_chili", image: "/menu/sauce-sweet-chili.png" },
+  { id: "sauce_hot_chili", image: "/menu/sauce-hot-chili.png" },
+  { id: "sauce_garlic", image: "/menu/sauce-garlic.png" },
+  { id: "sauce_cheddar", image: "/menu/sauce-cheddar.png" },
+];
+
+const IMG_BURGER =
+  "https://images.pexels.com/photos/1639562/pexels-photo-1639562.jpeg?auto=compress&cs=tinysrgb&w=800";
+const IMG_BURGER2 =
+  "https://images.pexels.com/photos/1639557/pexels-photo-1639557.jpeg?auto=compress&cs=tinysrgb&w=800";
+const IMG_SMASH_240 = "/menu/smash-burger-240.png";
+const IMG_KIDS_BURGER_120 = "/menu/kids-burger-120.png";
+const IMG_BURGER_160 = "/menu/burger-160.png";
+const IMG_BURGER_200 = "/menu/burger-200.png";
+const IMG_BURGER_320 = "/menu/burger-320.png";
+/** תמונה משותפת לבורגר כפול 360ג׳ / 400ג׳ */
+const IMG_BURGER_DOUBLE_LARGE = "/menu/burger-double-large.png";
+const IMG_CHICKEN =
+  "https://images.pexels.com/photos/1639559/pexels-photo-1639559.jpeg?auto=compress&cs=tinysrgb&w=800";
+const IMG_CRISPY_CHICKEN_BURGER_ADULT = "/menu/crispy-chicken-burger.png";
+const IMG_CRISPY_CHICKEN_BURGER_KIDS = "/menu/crispy-chicken-burger-kids.png";
+const IMG_ONION =
+  "https://images.pexels.com/photos/4109134/pexels-photo-4109134.jpeg?auto=compress&cs=tinysrgb&w=800";
+const IMG_DRINK =
+  "https://images.pexels.com/photos/7255352/pexels-photo-7255352.jpeg?auto=compress&cs=tinysrgb&w=800";
+const IMG_DRINK_COLA = "/menu/drink-cola-can.png";
+const IMG_DRINK_ZERO = "/menu/drink-zero.png";
+const IMG_DRINK_SPRITE = "/menu/drink-sprite.png";
+const IMG_DRINK_FANTA = "/menu/drink-fanta.png";
+const IMG_DRINK_TAPUZINA_GRAPE = "/menu/drink-tapuzina-grape.png";
+const IMG_DRINK_STRAWBERRY_BANANA = "/menu/drink-strawberry-banana.png";
+const IMG_DRINK_SODA = "/menu/drink-soda.png";
+const IMG_DRINK_WATER_SMALL = "/menu/drink-water-small.png";
+const IMG_DRINK_COLA_15L = "/menu/drink-cola-15l.png";
+const IMG_DRINK_ZERO_15L = "/menu/drink-zero-15l.png";
+const IMG_DRINK_XL = "/menu/drink-xl.png";
+const IMG_DRINK_XL_TEN = "/menu/drink-xl-ten.png";
+const IMG_DRINK_FRESH_STRAWBERRY = "/menu/drink-fresh-strawberry.png";
+const IMG_SIDE_MIX = "/menu/side-mix.png";
+const IMG_SIDE_FRIES = "/menu/side-fries.png";
+const IMG_SIDE_SWEET_POTATO = "/menu/side-sweet-potato.png";
+const IMG_SIDE_ONION_RINGS = "/menu/side-onion-rings.png";
+const IMG_SIDE_MASHED_BALLS = "/menu/side-mashed-balls.png";
+const IMG_SIDE_CHIPS_CHEDDAR_SYMPHONY =
+  "/menu/side-chips-cheddar-symphony.png";
+
+export const MENU_ITEMS = [
+  {
+    id: "kids-burger-120",
+    basePrice: 45,
+    category: "burgers",
+    image: IMG_KIDS_BURGER_120,
+  },
+  {
+    id: "burger-160",
+    basePrice: 50,
+    category: "burgers",
+    image: IMG_BURGER_160,
+  },
+  {
+    id: "burger-200",
+    basePrice: 58,
+    category: "burgers",
+    image: IMG_BURGER_200,
+  },
+  {
+    id: "smash-burger-240",
+    basePrice: 68,
+    category: "burgers",
+    image: IMG_SMASH_240,
+  },
+  {
+    id: "burger-320",
+    basePrice: 70,
+    category: "burgers",
+    image: IMG_BURGER_320,
+  },
+  {
+    id: "burger-360",
+    basePrice: 75,
+    category: "burgers",
+    image: IMG_BURGER_DOUBLE_LARGE,
+  },
+  {
+    id: "burger-400",
+    basePrice: 80,
+    category: "burgers",
+    image: IMG_BURGER_DOUBLE_LARGE,
+  },
+  {
+    id: "crispy-chicken-burger",
+    basePrice: 45,
+    category: "crispy",
+    image: IMG_CRISPY_CHICKEN_BURGER_ADULT,
+  },
+  {
+    id: "crispy-chicken-burger-kids",
+    basePrice: 40,
+    category: "crispy",
+    image: IMG_CRISPY_CHICKEN_BURGER_KIDS,
+  },
+  {
+    id: "crispy-chicken-tortilla-large",
+    basePrice: 50,
+    category: "crispy",
+    image: IMG_CRISPY_CHICKEN_BURGER_KIDS,
+  },
+  {
+    id: "side-fries",
+    basePrice: 12,
+    category: "sides",
+    image: IMG_SIDE_FRIES,
+  },
+  {
+    id: "side-sweet-potato",
+    basePrice: 15,
+    category: "sides",
+    image: IMG_SIDE_SWEET_POTATO,
+  },
+  {
+    id: "side-onion-rings",
+    basePrice: 15,
+    category: "sides",
+    image: IMG_SIDE_ONION_RINGS,
+  },
+  {
+    id: "side-mashed-balls",
+    basePrice: 15,
+    category: "sides",
+    image: IMG_SIDE_MASHED_BALLS,
+  },
+  {
+    id: "side-mix",
+    basePrice: 15,
+    category: "sides",
+    image: IMG_SIDE_MIX,
+  },
+  {
+    id: "side-chips-cheddar-symphony",
+    basePrice: 25,
+    category: "sides",
+    image: IMG_SIDE_CHIPS_CHEDDAR_SYMPHONY,
+  },
+  {
+    id: "drink-cola",
+    basePrice: 8,
+    category: "drinks",
+    image: IMG_DRINK_COLA,
+  },
+  {
+    id: "drink-zero",
+    basePrice: 8,
+    category: "drinks",
+    image: IMG_DRINK_ZERO,
+  },
+  {
+    id: "drink-sprite",
+    basePrice: 8,
+    category: "drinks",
+    image: IMG_DRINK_SPRITE,
+  },
+  {
+    id: "drink-fanta",
+    basePrice: 8,
+    category: "drinks",
+    image: IMG_DRINK_FANTA,
+  },
+  {
+    id: "drink-tapuzina-grape",
+    basePrice: 8,
+    category: "drinks",
+    image: IMG_DRINK_TAPUZINA_GRAPE,
+  },
+  {
+    id: "drink-strawberry-banana",
+    basePrice: 8,
+    category: "drinks",
+    image: IMG_DRINK_STRAWBERRY_BANANA,
+  },
+  {
+    id: "drink-xl",
+    basePrice: 6,
+    category: "drinks",
+    image: IMG_DRINK_XL,
+  },
+  {
+    id: "drink-xl-ten",
+    basePrice: 6,
+    category: "drinks",
+    image: IMG_DRINK_XL_TEN,
+  },
+  {
+    id: "drink-soda",
+    basePrice: 6,
+    category: "drinks",
+    image: IMG_DRINK_SODA,
+  },
+  {
+    id: "drink-water-small",
+    basePrice: 6,
+    category: "drinks",
+    image: IMG_DRINK_WATER_SMALL,
+  },
+  {
+    id: "drink-fresh-strawberry",
+    basePrice: 6,
+    category: "drinks",
+    image: IMG_DRINK_FRESH_STRAWBERRY,
+  },
+  {
+    id: "drink-cola-15l",
+    basePrice: 14,
+    category: "drinks",
+    image: IMG_DRINK_COLA_15L,
+  },
+  {
+    id: "drink-zero-15l",
+    basePrice: 14,
+    category: "drinks",
+    image: IMG_DRINK_ZERO_15L,
+  },
+];
+
+/** מנות עיקריות (בורגרים + קריספי) לניהול מלאי */
+const MAIN_MEAL_CATEGORIES = new Set(["burgers", "crispy"]);
+
+export const MAIN_MENU_ITEMS = MENU_ITEMS.filter((row) =>
+  MAIN_MEAL_CATEGORIES.has(row.category)
+);
+
+export const MAIN_MENU_PRODUCT_IDS = new Set(
+  MAIN_MENU_ITEMS.map((row) => row.id)
+);

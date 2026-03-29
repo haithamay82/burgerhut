@@ -1,0 +1,33 @@
+# dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# env (secrets — never commit)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+
+# Local order log (do not commit customer data)
+data/orders.json
+
+# Promo uploads (manager videos)
+public/uploads/*
+!public/uploads/.gitkeep

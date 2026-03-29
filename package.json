@@ -1,0 +1,33 @@
+{
+  "name": "burger-hut-ordering",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/run-next-dev.js",
+    "build": "next build",
+    "start": "node scripts/run-next-start.js",
+    "lint": "next lint",
+    "clean": "node scripts/clean-next.js",
+    "clean:win": "node scripts/free-port-win.js && node scripts/clean-next.js",
+    "rebuild": "npm run clean && npm run build",
+    "rebuild:win": "npm run clean:win && npm run build",
+    "fresh": "npm run rebuild && npm run dev",
+    "fresh:win": "npm run rebuild:win && npm run dev",
+    "fresh:prod": "npm run rebuild && npm run start",
+    "fresh:prod:win": "npm run rebuild:win && npm run start"
+  },
+  "dependencies": {
+    "formidable": "^3.5.2",
+    "leaflet": "^1.9.4",
+    "next": "14.2.5",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.19",
+    "eslint": "8.57.0",
+    "eslint-config-next": "14.2.5",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.3"
+  }
+}
