@@ -28,7 +28,8 @@ const DeliveryMapPicker = dynamic(
 function buildCheckoutDraftSnapshot(form, geo, deliveryMapPoint) {
   return {
     form: {
-      name: form.name,
+      firstName: form.firstName,
+      lastName: form.lastName,
       phone: form.phone,
       orderType: form.orderType,
       payment: form.payment,
@@ -61,7 +62,8 @@ export default function CheckoutPage() {
   const { isUnavailable, refresh: refreshInventory } = useInventory();
 
   const [form, setForm] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     phone: "",
     orderType: "delivery",
     payment: "cash",
@@ -94,7 +96,17 @@ export default function CheckoutPage() {
     try {
       const d = JSON.parse(raw);
       if (d.form && typeof d.form === "object") {
-        setForm((prev) => ({ ...prev, ...d.form }));
+        const merged = { ...d.form };
+        if (
+          merged.name &&
+          !merged.firstName &&
+          !merged.lastName
+        ) {
+          const parts = String(merged.name).trim().split(/\s+/);
+          merged.firstName = parts[0] || "";
+          merged.lastName = parts.slice(1).join(" ") || "";
+        }
+        setForm((prev) => ({ ...prev, ...merged }));
       }
       if (d.geo && typeof d.geo === "object") {
         setGeo({
@@ -311,8 +323,13 @@ export default function CheckoutPage() {
   };
 
   const buildCustomer = () => {
+    const firstName = form.firstName.trim();
+    const lastName = form.lastName.trim();
+    const name = [firstName, lastName].filter(Boolean).join(" ");
     const base = {
-      name: form.name.trim(),
+      firstName,
+      lastName,
+      name,
       phone: form.phone.trim(),
       orderType: form.orderType,
     };
@@ -360,7 +377,8 @@ export default function CheckoutPage() {
 
   const validate = () => {
     const newErrors = {};
-    if (!form.name.trim()) newErrors.name = t("err.name");
+    if (!form.firstName.trim()) newErrors.firstName = t("err.firstName");
+    if (!form.lastName.trim()) newErrors.lastName = t("err.lastName");
     if (!form.phone.trim()) newErrors.phone = t("err.phone");
     if (!items.length) newErrors.cart = t("err.cart");
     if (items.some((line) => lineHasUnavailableInventory(line, isUnavailable))) {
@@ -775,18 +793,41 @@ export default function CheckoutPage() {
         <div className="space-y-2">
           <div>
             <label className="mb-1 block text-[11px] text-gray-300">
-              {t("checkout.fullName")}
+              {t("checkout.firstName")}
             </label>
             <input
               type="text"
-              name="name"
-              value={form.name}
+              name="firstName"
+              value={form.firstName}
               onChange={handleChange}
               className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs outline-none focus:border-primary"
-              placeholder={t("checkout.namePh")}
+              placeholder={t("checkout.firstNamePh")}
+              autoComplete="given-name"
             />
-            {errors.name && (
-              <p className="mt-1 text-[11px] text-red-400">{errors.name}</p>
+            {errors.firstName && (
+              <p className="mt-1 text-[11px] text-red-400">
+                {errors.firstName}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="mb-1 block text-[11px] text-gray-300">
+              {t("checkout.lastName")}
+            </label>
+            <input
+              type="text"
+              name="lastName"
+              value={form.lastName}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs outline-none focus:border-primary"
+              placeholder={t("checkout.lastNamePh")}
+              autoComplete="family-name"
+            />
+            {errors.lastName && (
+              <p className="mt-1 text-[11px] text-red-400">
+                {errors.lastName}
+              </p>
             )}
           </div>
 

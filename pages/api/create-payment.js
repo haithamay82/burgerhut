@@ -66,6 +66,10 @@ export default async function handler(req, res) {
     return res.status(400).json({ ok: false, error: "invalid_total" });
   }
 
+  const firstName =
+    typeof body.firstName === "string" ? body.firstName.trim() : "";
+  const lastName =
+    typeof body.lastName === "string" ? body.lastName.trim() : "";
   const customerName =
     typeof body.customerName === "string" ? body.customerName.trim() : "";
   const phone = typeof body.phone === "string" ? body.phone.trim() : "";
@@ -89,6 +93,11 @@ export default async function handler(req, res) {
     .filter(Boolean)
     .join(" ");
 
+  const displayName =
+    firstName || lastName
+      ? [firstName, lastName].filter(Boolean).join(" ")
+      : customerName;
+
   const signOpts = {
     host: getHypPayBase(),
     masof: getHypMasofForPay(),
@@ -98,8 +107,9 @@ export default async function handler(req, res) {
     info: infoBits || ORDER_DESCRIPTION,
     amountNis: totalAmount,
     pageLang: lang,
-    customerName:
-      [customerName, phone].filter(Boolean).join(" ") || customerName,
+    clientFirstName: firstName,
+    clientLastName: lastName,
+    customerName: displayName,
     phone,
   };
 

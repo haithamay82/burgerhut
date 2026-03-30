@@ -62,6 +62,8 @@ export default function CardPayPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           totalAmount,
+          firstName: pending.customer?.firstName || "",
+          lastName: pending.customer?.lastName || "",
           customerName: pending.customer?.name || "",
           phone: pending.customer?.phone || "",
           orderDetails: buildCardOrderDetailsFromItems(pending.items),
