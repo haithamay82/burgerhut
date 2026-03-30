@@ -14,6 +14,17 @@ export function cartLineProductId(item) {
   );
 }
 
+/** מנה עיקרית או תוספת בורגר שסומנה כלא זמינה במלאי */
+export function lineHasUnavailableInventory(line, isUnavailable) {
+  const pid = cartLineProductId(line);
+  if (pid && isUnavailable(pid)) return true;
+  const tops = line.toppings;
+  if (!Array.isArray(tops)) return false;
+  return tops.some(
+    (top) => typeof top?.id === "string" && isUnavailable(top.id)
+  );
+}
+
 /** Same dish + same meal options → one cart row (quantity). Any difference → new row. */
 export function customizationKey(item) {
   const pid = cartLineProductId(item);

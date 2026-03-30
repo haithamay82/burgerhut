@@ -1,5 +1,5 @@
 import { getUnavailableIds, setUnavailableIds } from "@/lib/inventoryStore";
-import { MAIN_MENU_PRODUCT_IDS } from "@/utils/menuData";
+import { MANAGED_INVENTORY_IDS } from "@/utils/menuData";
 
 function authorize(req) {
   const secret = process.env.ADMIN_ORDERS_SECRET;
@@ -9,8 +9,8 @@ function authorize(req) {
   return { ok: true };
 }
 
-function filterToMainMenu(ids) {
-  return [...new Set(ids)].filter((id) => MAIN_MENU_PRODUCT_IDS.has(id));
+function filterManaged(ids) {
+  return [...new Set(ids)].filter((id) => MANAGED_INVENTORY_IDS.has(id));
 }
 
 export default async function handler(req, res) {
@@ -35,7 +35,7 @@ export default async function handler(req, res) {
     if (!Array.isArray(raw)) {
       return res.status(400).json({ ok: false, error: "invalid_body" });
     }
-    const filtered = filterToMainMenu(raw);
+    const filtered = filterManaged(raw);
     await setUnavailableIds(filtered);
     return res.status(200).json({ ok: true, unavailableIds: filtered });
   }

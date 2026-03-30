@@ -19,7 +19,7 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
   const { t } = useLocale();
   const { orderingAllowed } = useOrderingHours();
   const { addItem } = useCart();
-  const { isUnavailable } = useInventory();
+  const { isUnavailable, unavailableIds } = useInventory();
 
   const [selectedSalads, setSelectedSalads] = useState([]);
   const [selectedToppings, setSelectedToppings] = useState([]);
@@ -48,12 +48,6 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
     () => computeSaucesCharge(selectedSauces),
     [selectedSauces]
   );
-
-  const sauceChargeById = useMemo(() => {
-    const m = {};
-    for (const row of sauceChargeDetails) m[row.id] = row.charge;
-    return m;
-  }, [sauceChargeDetails]);
 
   const unitPrice = item
     ? (Number(item.basePrice) || 0) + toppingsPrice + saucesPrice
@@ -91,6 +85,20 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [open, handleClose]);
 
+  useEffect(() => {
+    if (!open) return;
+    setSelectedToppings((prev) => prev.filter((id) => !isUnavailable(id)));
+  }, [open, unavailableIds, isUnavailable]);
+
+  const toggleToppingChoice = (id) => {
+    if (blocked) return;
+    const unavail = isUnavailable(id);
+    if (unavail && !selectedToppings.includes(id)) return;
+    setSelectedToppings((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
   const toggleInList = (id, list, setList) => {
     if (blocked) return;
     setList((prev) =>
@@ -98,16 +106,28 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
     );
   };
 
-  const sauceChipSuffix = (sauceId) => {
-    if (selectedSauces.includes(sauceId)) {
-      const charge = sauceChargeById[sauceId] ?? 0;
-      if (charge === 0) return "";
-      return `${t("ui.saucePlus")}${charge}`;
-    }
+  /** מחיר היחידה הבאה אם לוחצים + (לפי סדר הרשימה הנוכחי). */
+  const sauceNextUnitSuffix = (sauceId) => {
     const marginal = marginalSauceCharge(sauceId, selectedSauces);
-    if (marginal === null) return "";
     if (marginal === 0) return "";
     return `${t("ui.saucePlus")}${marginal}`;
+  };
+
+  const sauceCount = (sauceId) =>
+    selectedSauces.filter((s) => s === sauceId).length;
+
+  const addSauce = (id) => {
+    if (blocked) return;
+    setSelectedSauces((prev) => [...prev, id]);
+  };
+
+  const removeSauce = (id) => {
+    if (blocked) return;
+    setSelectedSauces((prev) => {
+      const idx = prev.lastIndexOf(id);
+      if (idx === -1) return prev;
+      return prev.filter((_, i) => i !== idx);
+    });
   };
 
   const handleAdd = () => {
@@ -285,42 +305,52 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
             {t("ui.burgerToppings")}
           </h3>
           <div className="grid grid-cols-2 gap-2">
-            {toppingChoices.map((x) => (
-              <label
-                key={x.id}
-                className={`flex cursor-pointer items-center justify-between gap-1.5 rounded-full border px-2 py-1.5 text-[11px] ${
-                  selectedToppings.includes(x.id)
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-slate-700 text-gray-300"
-                }`}
-              >
-                {x.image ? (
-                  <img
-                    src={x.image}
-                    alt={t(`topping.${x.id}`)}
-                    className="h-8 w-8 shrink-0 rounded-md border border-slate-700 object-cover"
+            {toppingChoices.map((x) => {
+              const topUnavail = isUnavailable(x.id);
+              const selected = selectedToppings.includes(x.id);
+              const rowBlocked = topUnavail && !selected;
+              return (
+                <label
+                  key={x.id}
+                  className={`flex items-center justify-between gap-1.5 rounded-full border px-2 py-1.5 text-[11px] ${
+                    rowBlocked
+                      ? "cursor-not-allowed border-slate-800 text-gray-500 opacity-60"
+                      : "cursor-pointer"
+                  } ${
+                    selected
+                      ? "border-primary bg-primary/10 text-primary"
+                      : rowBlocked
+                        ? ""
+                        : "border-slate-700 text-gray-300"
+                  }`}
+                >
+                  {x.image ? (
+                    <img
+                      src={x.image}
+                      alt={t(`topping.${x.id}`)}
+                      className="h-8 w-8 shrink-0 rounded-md border border-slate-700 object-cover"
+                    />
+                  ) : null}
+                  <span className="min-w-0 flex-1 pr-1 leading-snug">
+                    {t(`topping.${x.id}`)}
+                    {topUnavail ? (
+                      <span className="mr-1 text-[10px] text-amber-600/90">
+                        ({t("ui.soldOutShort")})
+                      </span>
+                    ) : null}
+                  </span>
+                  <input
+                    type="checkbox"
+                    className="hidden"
+                    checked={selected}
+                    onChange={() => toggleToppingChoice(x.id)}
                   />
-                ) : null}
-                <span className="min-w-0 flex-1 pr-1 leading-snug">
-                  {t(`topping.${x.id}`)}
-                </span>
-                <input
-                  type="checkbox"
-                  className="hidden"
-                  checked={selectedToppings.includes(x.id)}
-                  onChange={() =>
-                    toggleInList(
-                      x.id,
-                      selectedToppings,
-                      setSelectedToppings
-                    )
-                  }
-                />
-                <span className="shrink-0 text-[10px] text-gray-400">
-                  +₪{x.price}
-                </span>
-              </label>
-            ))}
+                  <span className="shrink-0 text-[10px] text-gray-400">
+                    +₪{x.price}
+                  </span>
+                </label>
+              );
+            })}
           </div>
         </section>
 
@@ -332,38 +362,61 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
             {t("ui.saucePricingHint")}
           </p>
           <div className="grid grid-cols-2 gap-2">
-            {EXTRA_SAUCES.map((x) => (
-              <label
-                key={x.id}
-                className={`flex cursor-pointer items-center justify-between gap-1.5 rounded-full border px-2 py-1.5 text-[11px] ${
-                  selectedSauces.includes(x.id)
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-slate-700 text-gray-300"
-                }`}
-              >
-                {x.image ? (
-                  <img
-                    src={x.image}
-                    alt={t(`sauce.${x.id}`)}
-                    className="h-8 w-8 shrink-0 rounded-md border border-slate-700 object-cover"
-                  />
-                ) : null}
-                <span className="min-w-0 flex-1 pr-1 leading-snug">
-                  {t(`sauce.${x.id}`)}
-                </span>
-                <input
-                  type="checkbox"
-                  className="hidden"
-                  checked={selectedSauces.includes(x.id)}
-                  onChange={() =>
-                    toggleInList(x.id, selectedSauces, setSelectedSauces)
-                  }
-                />
-                <span className="shrink-0 text-[10px] text-gray-400">
-                  {sauceChipSuffix(x.id)}
-                </span>
-              </label>
-            ))}
+            {EXTRA_SAUCES.map((x) => {
+              const cnt = sauceCount(x.id);
+              return (
+                <div
+                  key={x.id}
+                  className={`flex items-center justify-between gap-1 rounded-full border px-1.5 py-1.5 text-[11px] ${
+                    cnt > 0
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-slate-700 text-gray-300"
+                  }`}
+                >
+                  <div className="flex min-w-0 flex-1 items-center gap-1.5">
+                    {x.image ? (
+                      <img
+                        src={x.image}
+                        alt=""
+                        className="h-8 w-8 shrink-0 rounded-md border border-slate-700 object-cover"
+                      />
+                    ) : null}
+                    <span className="min-w-0 flex-1 leading-snug">
+                      {t(`sauce.${x.id}`)}
+                    </span>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-0.5">
+                    <button
+                      type="button"
+                      disabled={blocked || cnt === 0}
+                      onClick={() => removeSauce(x.id)}
+                      className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-600 text-sm leading-none text-gray-200 hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-30"
+                      aria-label={t("ui.sauceRemoveOne")}
+                    >
+                      −
+                    </button>
+                    <span
+                      className="min-w-[1.25rem] text-center text-[12px] font-semibold tabular-nums"
+                      aria-live="polite"
+                    >
+                      {cnt}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={blocked}
+                      onClick={() => addSauce(x.id)}
+                      className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-600 text-sm leading-none text-gray-200 hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
+                      aria-label={t("ui.sauceAddOne")}
+                    >
+                      +
+                    </button>
+                    <span className="w-9 shrink-0 text-end text-[10px] text-gray-400">
+                      {sauceNextUnitSuffix(x.id)}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </section>
 

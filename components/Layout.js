@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
 import FloatingWhatsAppButton from "./FloatingWhatsAppButton";
 import CurrentDateTime from "./CurrentDateTime";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -39,64 +38,44 @@ export default function Layout({ children }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-black text-gray-100">
-      <header className="sticky top-0 z-30 border-b border-slate-800 bg-black/80 backdrop-blur">
-        <div className="mx-auto grid max-w-4xl grid-cols-[auto_1fr_auto] items-start gap-2 px-4 py-3">
-          <div className="flex items-center pt-1">
-            <LanguageSwitcher />
-          </div>
-
-          <div className="flex min-w-0 flex-col items-center text-center">
-            <div className="h-[4.2rem] w-[4.2rem] shrink-0 overflow-hidden rounded-full bg-white ring-1 ring-white/15">
-              <img
-                src="/logo-burger-hut.png"
-                alt="Burger Hut logo icon"
-                width={132}
-                height={132}
-                className="h-full w-full object-contain object-center"
-              />
-            </div>
-            <h1 className="inline-flex items-center gap-1 whitespace-nowrap text-base font-extrabold tracking-tight text-primary sm:text-xl">
-              <span dir="ltr">Burger Hut</span>
-              <span dir="rtl">{t("header.brandSecondary")}</span>
-            </h1>
-            <p className="whitespace-nowrap text-[11px] text-gray-400 sm:text-xs">
-              {t("header.tagline")}
-            </p>
-          </div>
-
-          <div className="flex min-w-0 flex-col items-end gap-0.5 pt-1 text-[11px] text-gray-400">
-            <Link
-              href="/admin/orders"
-              className="mb-0.5 text-xs font-semibold text-primary underline-offset-4 hover:text-amber-400 hover:underline"
-            >
-              {t("header.admin")}
-            </Link>
-            <a
-              href={`tel:${t("home.contactPhoneValue")}`}
-              className="inline-flex items-center gap-1 text-sky-400 hover:text-sky-300"
-              aria-label={`${t("home.contactPhoneLabel")}: ${t("home.contactPhoneValue")}`}
-            >
-              <span className="inline-flex h-4 w-4 shrink-0 overflow-hidden rounded-md ring-1 ring-white/15">
+      <header className="sticky top-0 z-30 w-full border-b border-slate-800 bg-black/80 backdrop-blur">
+        <div className="relative w-full px-4 py-2 sm:py-2.5">
+          <div className="pointer-events-none absolute left-1/2 top-2 z-[5] flex -translate-x-1/2 justify-center sm:top-2.5">
+            <div className="pointer-events-auto flex max-w-[calc(100vw-4.5rem)] flex-col items-center text-center">
+              <div className="h-[4.2rem] w-[4.2rem] shrink-0 overflow-hidden rounded-full bg-white ring-1 ring-white/15">
                 <img
-                  src="/phone-icon.png"
-                  alt=""
-                  width={32}
-                  height={32}
-                  className="h-full w-full scale-110 object-cover"
-                  draggable={false}
+                  src="/logo-burger-hut.png"
+                  alt="Burger Hut logo icon"
+                  width={132}
+                  height={132}
+                  className="h-full w-full object-contain object-center"
                 />
-              </span>
-              <span className="underline decoration-sky-400 underline-offset-2">
-                {t("home.contactPhoneValue")}
-              </span>
-            </a>
-            <span>
-              {t("home.contactAddressLabel")}: {t("home.contactAddressValue")}
-            </span>
-            <CurrentDateTime className="text-[9px] leading-tight text-gray-500" />
+              </div>
+              <h1 className="mb-0.5 inline-flex flex-wrap items-center justify-center gap-x-1 gap-y-0 text-base font-extrabold tracking-tight text-primary sm:text-xl">
+                <span dir="ltr">Burger Hut</span>
+                <span dir="rtl">{t("header.brandSecondary")}</span>
+              </h1>
+              <p className="mb-0 whitespace-nowrap text-[11px] leading-tight text-gray-400 sm:text-xs">
+                {t("header.tagline")}
+              </p>
+            </div>
           </div>
 
-          <div className="relative col-span-3 mt-2 flex min-h-[2.75rem] w-full items-center justify-center">
+          <div className="relative z-10 mx-auto min-h-[6.85rem] max-w-4xl sm:min-h-[7.25rem]">
+            <div className="flex items-start justify-between gap-2 pt-1">
+              <div className="flex shrink-0 items-center">
+                <LanguageSwitcher />
+              </div>
+              <div className="flex min-w-0 max-w-[42%] flex-col items-end gap-0.5 text-right text-[11px] text-gray-400 sm:max-w-[38%]">
+                <span>
+                  {t("home.contactAddressLabel")}: {t("home.contactAddressValue")}
+                </span>
+                <CurrentDateTime className="text-[9px] leading-tight text-gray-500" />
+              </div>
+            </div>
+          </div>
+
+          <div className="relative mx-auto flex min-h-[2.25rem] w-full max-w-4xl items-center justify-center">
             <a
               href={wazeUrl}
               target="_blank"
@@ -121,6 +100,21 @@ export default function Layout({ children }) {
             >
               {t("home.hoursButton")}
             </button>
+            <a
+              href={`tel:${String(t("home.contactPhoneValue")).replace(/\s/g, "")}`}
+              className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center overflow-hidden rounded-full bg-transparent p-1 shadow-sm ring-1 ring-white/10 transition-opacity hover:opacity-90 sm:h-12 sm:w-12 sm:p-1.5"
+              aria-label={t("home.callPhoneAria")}
+              title={t("home.callPhoneAria")}
+            >
+              <img
+                src="/phone-icon.png"
+                alt=""
+                width={48}
+                height={48}
+                className="max-h-full max-w-full object-contain"
+                draggable={false}
+              />
+            </a>
           </div>
         </div>
       </header>

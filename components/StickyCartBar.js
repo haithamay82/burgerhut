@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useCart, cartLineProductId } from "@/hooks/useCart";
+import {
+  useCart,
+  cartLineProductId,
+  lineHasUnavailableInventory,
+} from "@/hooks/useCart";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useInventory } from "@/contexts/InventoryContext";
 import { useOrderingHours } from "@/contexts/OrderingHoursContext";
@@ -53,7 +57,7 @@ export default function StickyCartBar() {
             <div className="space-y-2">
               {items.map((item, index) => {
                 const pid = cartLineProductId(item);
-                const lineOos = isUnavailable(pid);
+                const lineOos = lineHasUnavailableInventory(item, isUnavailable);
                 return (
                 <div
                   key={`${item.id}-${index}`}

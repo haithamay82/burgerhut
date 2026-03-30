@@ -17,16 +17,25 @@ for (const name of Object.keys(nets)) {
 }
 
 console.log("");
-console.log("  BurgerHut — open on phone (same Wi-Fi):");
+console.log("  BurgerHut — מהטלפון (אותה רשת Wi‑Fi כמו המחשב):");
 if (!v4.length) {
-  console.log("  (no external IPv4 found)");
+  console.log("  (לא נמצאה כתובת IPv4 חיצונית)");
 } else {
   for (const { name, address } of v4) {
     console.log(`    http://${address}:${port}    [${name}]`);
   }
 }
 console.log("");
-console.log("  Binding server to 0.0.0.0 (all IPv4 interfaces).");
+console.log("  חשוב:");
+console.log("    • כתובת חייבת נקודתיים לפני הפורט — http://IP:3000  (לא /3000)");
+console.log("    • הטלפון והמחשב באותה רשת (אותו טווח, למשל 192.168.1.x)");
+console.log("    • אם לא נטען: Windows Firewall — הרשה Node.js או פורט " + port + " נכנס");
+console.log("      (הרץ PowerShell כמנהל):");
+console.log(
+  `      netsh advfirewall firewall add rule name="Next dev ${port}" dir=in action=allow protocol=TCP localport=${port}`
+);
+console.log("");
+console.log("  Binding: 0.0.0.0 (כל ממשקי IPv4) — rebuild לא נדרש לזה.");
 console.log("");
 
 const child = spawn(

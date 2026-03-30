@@ -3,7 +3,11 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import Layout from "@/components/Layout";
-import { useCart, cartLineProductId } from "@/hooks/useCart";
+import {
+  useCart,
+  cartLineProductId,
+  lineHasUnavailableInventory,
+} from "@/hooks/useCart";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useInventory } from "@/contexts/InventoryContext";
 import { useOrderingHours } from "@/contexts/OrderingHoursContext";
@@ -359,7 +363,7 @@ export default function CheckoutPage() {
     if (!form.name.trim()) newErrors.name = t("err.name");
     if (!form.phone.trim()) newErrors.phone = t("err.phone");
     if (!items.length) newErrors.cart = t("err.cart");
-    if (items.some((line) => isUnavailable(cartLineProductId(line)))) {
+    if (items.some((line) => lineHasUnavailableInventory(line, isUnavailable))) {
       newErrors.unavailable = t("err.unavailable");
     }
     if (!orderingAllowed) {
@@ -610,7 +614,7 @@ export default function CheckoutPage() {
           <div className="space-y-2">
             {items.map((item, index) => {
               const pid = cartLineProductId(item);
-              const lineOos = isUnavailable(pid);
+              const lineOos = lineHasUnavailableInventory(item, isUnavailable);
               return (
                 <div
                   key={`${item.id}-${index}`}

@@ -32,9 +32,13 @@ export function computeSaucesCharge(selectedOrder) {
   return { total, details };
 }
 
-/** מחיר שיתווסף אם מוסיפים את הרוטב בסוף הרשימה הנוכחית (להצגה על הכפתור). */
+/**
+ * מחיר יחידה נוספת אם מוסיפים מנה אחת של הרוטב בסוף הרשימה (סדר הבחירה).
+ * @param {string} id
+ * @param {string[]} currentOrder
+ * @returns {number}
+ */
 export function marginalSauceCharge(id, currentOrder) {
-  if (currentOrder.includes(id)) return null;
   const next = [...currentOrder, id];
   const { details } = computeSaucesCharge(next);
   const row = details[details.length - 1];

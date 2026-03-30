@@ -1,3 +1,4 @@
+import Link from "next/link";
 import PromoVideoOverlay from "@/components/PromoVideoOverlay";
 import CurrentDateTime from "@/components/CurrentDateTime";
 import StickyCartBar from "@/components/StickyCartBar";
@@ -149,6 +150,14 @@ export default function HomeMain() {
             referrerPolicy="no-referrer-when-downgrade"
             className="h-56 w-full border-0"
           />
+        </div>
+        <div className="mt-3 flex justify-center border-t border-slate-800/80 pt-3">
+          <Link
+            href="/admin/orders"
+            className="text-xs font-semibold text-primary underline-offset-4 hover:text-amber-400 hover:underline"
+          >
+            {t("header.admin")}
+          </Link>
         </div>
       </section>
 

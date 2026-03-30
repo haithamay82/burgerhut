@@ -289,3 +289,12 @@ export const MAIN_MENU_ITEMS = MENU_ITEMS.filter((row) =>
 export const MAIN_MENU_PRODUCT_IDS = new Set(
   MAIN_MENU_ITEMS.map((row) => row.id)
 );
+
+/** תוספות בורגר (לניהול מלאי) */
+export const BURGER_TOPPING_IDS = new Set(BURGER_TOPPINGS.map((r) => r.id));
+
+/** כל מה שניתן לסמן כלא זמין במלאי */
+export const MANAGED_INVENTORY_IDS = new Set([
+  ...MAIN_MENU_PRODUCT_IDS,
+  ...BURGER_TOPPING_IDS,
+]);

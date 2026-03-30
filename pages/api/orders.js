@@ -1,6 +1,6 @@
 import { appendOrder, deleteOrderById, listOrders } from "@/lib/ordersStore";
 import { getUnavailableIds } from "@/lib/inventoryStore";
-import { MAIN_MENU_PRODUCT_IDS } from "@/utils/menuData";
+import { BURGER_TOPPING_IDS, MAIN_MENU_PRODUCT_IDS } from "@/utils/menuData";
 import { isOrderingAllowedAt } from "@/utils/orderingHours";
 import { getBusinessHours } from "@/lib/businessHoursStore";
 
@@ -68,6 +68,19 @@ export default async function handler(req, res) {
       const pid = lineProductId(line);
       if (MAIN_MENU_PRODUCT_IDS.has(pid) && unavailable.has(pid)) {
         return res.status(400).json({ ok: false, error: "item_unavailable" });
+      }
+      const tops = line.toppings;
+      if (Array.isArray(tops)) {
+        for (const top of tops) {
+          const tid = top?.id;
+          if (
+            typeof tid === "string" &&
+            BURGER_TOPPING_IDS.has(tid) &&
+            unavailable.has(tid)
+          ) {
+            return res.status(400).json({ ok: false, error: "item_unavailable" });
+          }
+        }
       }
     }
 

@@ -3,7 +3,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useLocale } from "@/contexts/LocaleContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
-import { MAIN_MENU_ITEMS } from "@/utils/menuData";
+import { BURGER_TOPPINGS, MAIN_MENU_ITEMS } from "@/utils/menuData";
 import { getDefaultBusinessSchedule } from "@/utils/businessHoursDefaults";
 
 const INVENTORY_CATEGORIES = ["burgers", "crispy"];
@@ -577,6 +577,35 @@ export default function AdminOrdersPage() {
                         </div>
                       );
                     })}
+                    <div>
+                      <h3 className="mb-2 text-xs font-semibold text-primary">
+                        {t("admin.inventoryBurgerToppings")}
+                      </h3>
+                      <ul className="space-y-2">
+                        {BURGER_TOPPINGS.map((row) => {
+                          const available = !unavailableIds.includes(row.id);
+                          return (
+                            <li key={row.id}>
+                              <label className="flex cursor-pointer items-start gap-2 text-xs text-gray-300">
+                                <input
+                                  type="checkbox"
+                                  checked={available}
+                                  disabled={invSaving}
+                                  onChange={(e) =>
+                                    toggleMainItemAvailable(
+                                      row.id,
+                                      e.target.checked
+                                    )
+                                  }
+                                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-600 bg-slate-900 text-primary focus:ring-primary"
+                                />
+                                <span>{t(`topping.${row.id}`)}</span>
+                              </label>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
                   </div>
                 </section>
               ) : null}
