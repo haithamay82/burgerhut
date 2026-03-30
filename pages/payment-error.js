@@ -1,9 +1,21 @@
 import Link from "next/link";
+import { useRouter } from "next/router";
 import Layout from "@/components/Layout";
 import { useLocale } from "@/contexts/LocaleContext";
+import { useCart } from "@/hooks/useCart";
+import { consumePendingOrderForCheckoutResume } from "@/utils/checkoutResumeFromPending";
 
 export default function PaymentErrorPage() {
   const { t } = useLocale();
+  const router = useRouter();
+  const { replaceCart } = useCart();
+
+  const backToCheckout = () => {
+    if (typeof window === "undefined") return;
+    const { items } = consumePendingOrderForCheckoutResume();
+    if (items.length) replaceCart(items);
+    router.push("/checkout");
+  };
 
   return (
     <Layout>
@@ -16,9 +28,9 @@ export default function PaymentErrorPage() {
           {t("paymentError.desc")}
         </p>
         <div className="flex flex-col gap-2 sm:flex-row">
-          <Link href="/checkout" className="btn-primary">
+          <button type="button" onClick={backToCheckout} className="btn-primary">
             {t("paymentError.backCheckout")}
-          </Link>
+          </button>
           <Link
             href="/"
             className="rounded-xl border border-slate-600 px-4 py-2 text-sm text-gray-300"

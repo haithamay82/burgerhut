@@ -5,10 +5,10 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { useCart } from "@/hooks/useCart";
 import {
   PENDING_ORDER_KEY,
-  CHECKOUT_RESUME_KEY,
   CARD_SUCCESS_SNAPSHOT_KEY,
 } from "@/utils/checkoutSessionKeys";
 import { buildCardOrderDetailsFromItems } from "@/utils/cardOrderDetails";
+import { consumePendingOrderForCheckoutResume } from "@/utils/checkoutResumeFromPending";
 
 export default function CardPayPage() {
   const router = useRouter();
@@ -46,24 +46,8 @@ export default function CardPayPage() {
 
   const backToCheckout = () => {
     if (typeof window === "undefined") return;
-    const raw = window.sessionStorage.getItem(PENDING_ORDER_KEY);
-    if (raw) {
-      try {
-        const p = JSON.parse(raw);
-        if (Array.isArray(p.items) && p.items.length) {
-          replaceCart(p.items);
-        }
-        if (p.checkoutDraft && typeof p.checkoutDraft === "object") {
-          window.sessionStorage.setItem(
-            CHECKOUT_RESUME_KEY,
-            JSON.stringify(p.checkoutDraft)
-          );
-        }
-      } catch {
-        /* ignore */
-      }
-      window.sessionStorage.removeItem(PENDING_ORDER_KEY);
-    }
+    const { items } = consumePendingOrderForCheckoutResume();
+    if (items.length) replaceCart(items);
     router.push("/checkout");
   };
 
@@ -177,7 +161,7 @@ export default function CardPayPage() {
       } catch {
         /* ignore */
       }
-      window.sessionStorage.removeItem(PENDING_ORDER_KEY);
+      /* PENDING_ORDER_KEY נשמר עד חזרה מוצלחת מהסולק — כדי לאפשר שחזר עגלה מ-payment-error */
       window.location.href = paymentUrl;
     } catch {
       setPayError(t("card.paymentStartFailed"));

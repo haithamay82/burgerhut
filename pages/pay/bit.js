@@ -4,10 +4,8 @@ import Layout from "@/components/Layout";
 import { buildWhatsAppUrl, openWhatsAppComposeUrl } from "@/utils/whatsapp";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useCart } from "@/hooks/useCart";
-import {
-  PENDING_ORDER_KEY,
-  CHECKOUT_RESUME_KEY,
-} from "@/utils/checkoutSessionKeys";
+import { PENDING_ORDER_KEY } from "@/utils/checkoutSessionKeys";
+import { consumePendingOrderForCheckoutResume } from "@/utils/checkoutResumeFromPending";
 
 function normalizeIsraeliPhone(phone) {
   const p = String(phone || "").replace(/[^\d]/g, "");
@@ -68,24 +66,8 @@ export default function BitPayPage() {
 
   const backToCheckout = () => {
     if (typeof window === "undefined") return;
-    const raw = window.sessionStorage.getItem(PENDING_ORDER_KEY);
-    if (raw) {
-      try {
-        const p = JSON.parse(raw);
-        if (Array.isArray(p.items) && p.items.length) {
-          replaceCart(p.items);
-        }
-        if (p.checkoutDraft && typeof p.checkoutDraft === "object") {
-          window.sessionStorage.setItem(
-            CHECKOUT_RESUME_KEY,
-            JSON.stringify(p.checkoutDraft)
-          );
-        }
-      } catch {
-        /* ignore */
-      }
-      window.sessionStorage.removeItem(PENDING_ORDER_KEY);
-    }
+    const { items } = consumePendingOrderForCheckoutResume();
+    if (items.length) replaceCart(items);
     router.push("/checkout");
   };
 

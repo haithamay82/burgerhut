@@ -4,7 +4,10 @@ import Link from "next/link";
 import Layout from "@/components/Layout";
 import { useLocale } from "@/contexts/LocaleContext";
 import { buildWhatsAppUrl } from "@/utils/whatsapp";
-import { CARD_SUCCESS_SNAPSHOT_KEY } from "@/utils/checkoutSessionKeys";
+import {
+  CARD_SUCCESS_SNAPSHOT_KEY,
+  PENDING_ORDER_KEY,
+} from "@/utils/checkoutSessionKeys";
 
 export default function SuccessPage() {
   const router = useRouter();
@@ -21,6 +24,13 @@ export default function SuccessPage() {
 
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
+    if (hypReturn) {
+      try {
+        window.sessionStorage.removeItem(PENDING_ORDER_KEY);
+      } catch {
+        /* ignore */
+      }
+    }
     if (!hypReturn && method !== "card") return;
     try {
       const raw = window.sessionStorage.getItem(CARD_SUCCESS_SNAPSHOT_KEY);
