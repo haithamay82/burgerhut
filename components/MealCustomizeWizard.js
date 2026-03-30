@@ -361,19 +361,19 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
           <p className="text-[10px] leading-snug text-gray-500">
             {t("ui.saucePricingHint")}
           </p>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2">
             {EXTRA_SAUCES.map((x) => {
               const cnt = sauceCount(x.id);
               return (
                 <div
                   key={x.id}
-                  className={`flex items-center justify-between gap-1 rounded-full border px-1.5 py-1.5 text-[11px] ${
+                  className={`grid w-full grid-cols-[1fr_auto_1fr] items-center gap-x-2 rounded-full border px-1.5 py-1.5 text-[11px] ${
                     cnt > 0
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-slate-700 text-gray-300"
                   }`}
                 >
-                  <div className="flex min-w-0 flex-1 items-center gap-1.5">
+                  <div className="flex min-w-0 items-center gap-1.5 justify-self-start">
                     {x.image ? (
                       <img
                         src={x.image}
@@ -381,26 +381,11 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
                         className="h-8 w-8 shrink-0 rounded-md border border-slate-700 object-cover"
                       />
                     ) : null}
-                    <span className="min-w-0 flex-1 leading-snug">
+                    <span className="min-w-0 text-end leading-snug">
                       {t(`sauce.${x.id}`)}
                     </span>
                   </div>
-                  <div className="flex shrink-0 items-center gap-0.5">
-                    <button
-                      type="button"
-                      disabled={blocked || cnt === 0}
-                      onClick={() => removeSauce(x.id)}
-                      className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-600 text-sm leading-none text-gray-200 hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-30"
-                      aria-label={t("ui.sauceRemoveOne")}
-                    >
-                      −
-                    </button>
-                    <span
-                      className="min-w-[1.25rem] text-center text-[12px] font-semibold tabular-nums"
-                      aria-live="polite"
-                    >
-                      {cnt}
-                    </span>
+                  <div className="flex shrink-0 items-center gap-0.5 justify-self-center">
                     <button
                       type="button"
                       disabled={blocked}
@@ -410,7 +395,24 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
                     >
                       +
                     </button>
-                    <span className="w-9 shrink-0 text-end text-[10px] text-gray-400">
+                    <span
+                      className="min-w-[1.25rem] text-center text-[12px] font-semibold tabular-nums"
+                      aria-live="polite"
+                    >
+                      {cnt}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={blocked || cnt === 0}
+                      onClick={() => removeSauce(x.id)}
+                      className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-600 text-sm leading-none text-gray-200 hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-30"
+                      aria-label={t("ui.sauceRemoveOne")}
+                    >
+                      −
+                    </button>
+                  </div>
+                  <div className="flex min-h-[1.25rem] min-w-0 items-center justify-self-end">
+                    <span className="w-full min-w-[2.25rem] text-end text-[10px] leading-tight text-gray-400">
                       {sauceNextUnitSuffix(x.id)}
                     </span>
                   </div>

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import Layout from "@/components/Layout";
-import { buildWhatsAppUrl } from "@/utils/whatsapp";
+import { buildWhatsAppUrl, openWhatsAppComposeUrl } from "@/utils/whatsapp";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useCart } from "@/hooks/useCart";
 import {
@@ -137,10 +137,12 @@ export default function BitPayPage() {
       orderNumber,
       locale: waLocale,
     });
-    window.open(waUrl, "_blank");
     window.sessionStorage.removeItem(PENDING_ORDER_KEY);
+    const how = openWhatsAppComposeUrl(waUrl);
     setIsSendingWa(false);
-    router.push("/success?method=bit");
+    if (how === "new_tab") {
+      router.push("/success?method=bit");
+    }
   };
 
   return (

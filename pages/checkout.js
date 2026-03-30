@@ -12,7 +12,7 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { useInventory } from "@/contexts/InventoryContext";
 import { useOrderingHours } from "@/contexts/OrderingHoursContext";
 import { PAYMENT_METHODS } from "@/utils/payment";
-import { buildWhatsAppUrl } from "@/utils/whatsapp";
+import { buildWhatsAppUrl, openWhatsAppComposeUrl } from "@/utils/whatsapp";
 import { formatIls, lineTotal, safePrice } from "@/utils/cartMoney";
 import { RESTAURANT_COORDS } from "@/utils/deliveryPricing";
 import {
@@ -468,11 +468,15 @@ export default function CheckoutPage() {
           orderNumber: savedOrder?.orderNumber,
           locale,
         });
-        if (typeof window !== "undefined") {
-          window.open(waUrl, "_blank");
-        }
         clearCart();
-        router.push("/success?method=cash");
+        if (typeof window !== "undefined") {
+          const how = openWhatsAppComposeUrl(waUrl);
+          if (how === "new_tab") {
+            router.push("/success?method=cash");
+          }
+        } else {
+          router.push("/success?method=cash");
+        }
         return;
       }
 

@@ -3,7 +3,7 @@ import { getTranslator, t as tFn } from "@/utils/i18n";
 import { formatIls, lineTotal } from "@/utils/cartMoney";
 
 /** @param {'he'|'ar'} locale */
-export function formatPaymentLabel(payment, locale = "ar") {
+export function formatPaymentLabel(payment, locale = "he") {
   return tFn(locale, `payment.${payment}`) || payment;
 }
 
@@ -24,7 +24,7 @@ export function buildWhatsAppOrderText({
   total,
   payment,
   orderNumber,
-  locale = "ar",
+  locale = "he",
 }) {
   const tr = getTranslator(locale);
   const lines = [];
@@ -143,8 +143,34 @@ export function buildWhatsAppMessage(params) {
 }
 
 export function buildWhatsAppUrl(params) {
-  const locale = params.locale || "ar";
+  const locale = params.locale || "he";
   const message = buildWhatsAppMessage({ ...params, locale });
   const phone = "972504847599";
   return `https://wa.me/${phone}?text=${message}`;
+}
+
+/**
+ * Open wa.me after async work (e.g. POST order). iOS Safari blocks `window.open`
+ * when it is not in the same synchronous turn as the user tap — use full navigation.
+ * @param {string} url
+ * @returns {"same_tab" | "new_tab"} Use `same_tab` to skip client navigation (page is leaving).
+ */
+export function openWhatsAppComposeUrl(url) {
+  if (typeof window === "undefined") return "new_tab";
+  const ua = window.navigator.userAgent || "";
+  const isIOS =
+    /iPad|iPhone|iPod/.test(ua) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  if (isIOS) {
+    window.location.assign(url);
+    return "same_tab";
+  }
+
+  const popup = window.open(url, "_blank", "noopener,noreferrer");
+  if (popup == null) {
+    window.location.assign(url);
+    return "same_tab";
+  }
+  return "new_tab";
 }

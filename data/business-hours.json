@@ -10,7 +10,7 @@
       "weekday": 1,
       "enabled": true,
       "open": "16:00",
-      "close": "22:00"
+      "close": "23:59"
     },
     {
       "weekday": 2,

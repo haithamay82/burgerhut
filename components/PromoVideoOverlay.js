@@ -9,7 +9,7 @@ export default function PromoVideoOverlay() {
   const [show, setShow] = useState(false);
   const [src, setSrc] = useState(null);
   const [version, setVersion] = useState(0);
-  /** Must start muted or browsers block autoplay; tap video to turn sound on. */
+  /** Must start muted or browsers block autoplay; tap screen to turn sound on. */
   const [muted, setMuted] = useState(true);
 
   useEffect(() => {

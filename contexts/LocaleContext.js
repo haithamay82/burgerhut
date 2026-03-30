@@ -12,7 +12,7 @@ const LocaleContext = createContext(null);
 const STORAGE_KEY = "burgerhut-locale";
 
 export function LocaleProvider({ children }) {
-  const [locale, setLocaleState] = useState("ar");
+  const [locale, setLocaleState] = useState("he");
   const [ready, setReady] = useState(false);
 
   useEffect(() => {

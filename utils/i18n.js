@@ -132,7 +132,7 @@ const HE = {
   "ui.kidsCrispyBread.small_tortilla": "טורטיה קטנה",
   "ui.kidsCrispyBread.none": "בלי לחם",
   "ui.saucePricingHint":
-    "רוטב סטנדרטי ראשון בחינם. מרוטב שני — ₪4 לכל רוטב. רוטב צ׳דר ₪8.",
+    "בחר רוטב אחד ללא עלות. מרוטב שני ₪4 לכל רוטב. רוטב צ׳דר ₪8.",
   "ui.saucePlus": "+₪",
   "ui.sauceAddOne": "הוספת מנת רוטב",
   "ui.sauceRemoveOne": "הפחתת מנת רוטב",
@@ -582,7 +582,7 @@ const AR = {
   "ui.kidsCrispyBread.small_tortilla": "تورتيلا صغيرة",
   "ui.kidsCrispyBread.none": "بدون خبز",
   "ui.saucePricingHint":
-    "أول صلصة عادية مجاناً. من الثانية — 4₪ لكل صلصة. صلصة الشيدر 8₪.",
+    "اختر صلصة واحدة دون تكلفة. من الصلصة الثانية 4₪ لكل صلصة. صلصة الشيدر 8₪.",
   "ui.saucePlus": "+₪",
   "ui.sauceAddOne": "إضافة حصة صلصة",
   "ui.sauceRemoveOne": "تقليل حصة صلصة",
@@ -911,7 +911,7 @@ export const STRINGS = { he: HE, ar: AR };
  * @param {string} key
  */
 export function t(locale, key) {
-  const L = STRINGS[locale] || STRINGS.ar;
+  const L = STRINGS[locale] || STRINGS.he;
   return L[key] ?? STRINGS.ar[key] ?? key;
 }
 
