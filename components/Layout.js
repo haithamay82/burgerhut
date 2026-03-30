@@ -3,9 +3,12 @@ import FloatingWhatsAppButton from "./FloatingWhatsAppButton";
 import CurrentDateTime from "./CurrentDateTime";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useLocale } from "@/contexts/LocaleContext";
+import { useOrderingHours } from "@/contexts/OrderingHoursContext";
 
 export default function Layout({ children }) {
   const { t } = useLocale();
+  const { orderingAllowed, todayScheduledOpen } = useOrderingHours();
+  const showAsOpen = orderingAllowed && todayScheduledOpen;
   const [hoursOpen, setHoursOpen] = useState(false);
   const [businessHours, setBusinessHours] = useState(null);
   const wazeUrl = "https://waze.com/ul?q=%D7%99%D7%A8%D7%9B%D7%90%20137&navigate=yes";
@@ -93,13 +96,36 @@ export default function Layout({ children }) {
                 draggable={false}
               />
             </a>
-            <button
-              type="button"
-              onClick={() => setHoursOpen(true)}
-              className="rounded-full border border-slate-600/80 bg-slate-900/40 px-3 py-1 text-[10px] font-semibold text-primary transition-colors hover:border-primary/60 hover:bg-slate-800/50"
+            <div
+              className="flex flex-row items-center justify-center gap-2"
+              dir="ltr"
             >
-              {t("home.hoursButton")}
-            </button>
+              <p
+                className="flex max-w-[min(42vw,11rem)] items-center gap-1.5 text-[9px] font-medium leading-tight text-gray-300 sm:max-w-none sm:text-[10px]"
+                dir="rtl"
+                role="status"
+                aria-live="polite"
+              >
+                <span
+                  className={`h-2 w-2 shrink-0 rounded-full ${
+                    showAsOpen ? "bg-emerald-500" : "bg-red-500"
+                  }`}
+                  aria-hidden
+                />
+                <span>
+                  {showAsOpen
+                    ? t("home.restaurantOpen")
+                    : t("home.restaurantClosed")}
+                </span>
+              </p>
+              <button
+                type="button"
+                onClick={() => setHoursOpen(true)}
+                className="shrink-0 rounded-full border border-slate-600/80 bg-slate-900/40 px-3 py-1 text-[10px] font-semibold text-primary transition-colors hover:border-primary/60 hover:bg-slate-800/50"
+              >
+                {t("home.hoursButton")}
+              </button>
+            </div>
             <a
               href={`tel:${String(t("home.contactPhoneValue")).replace(/\s/g, "")}`}
               className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center overflow-hidden rounded-full bg-transparent p-1 shadow-sm ring-1 ring-white/10 transition-opacity hover:opacity-90 sm:h-12 sm:w-12 sm:p-1.5"

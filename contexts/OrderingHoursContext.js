@@ -5,12 +5,25 @@ import {
   useMemo,
   useState,
 } from "react";
-import { isOrderingAllowedAt } from "@/utils/orderingHours";
+import {
+  getJerusalemWeekday,
+  isOrderingAllowedAt,
+} from "@/utils/orderingHours";
 
 const OrderingHoursContext = createContext(null);
 
+/** לפי לוח הניהול: היום הנוכחי מסומן כפתוח (V) */
+function isTodayEnabledInSchedule(days) {
+  if (!Array.isArray(days)) return true;
+  const wd = getJerusalemWeekday(new Date());
+  const row = days.find((d) => d.weekday === wd);
+  if (!row) return true;
+  return Boolean(row.enabled);
+}
+
 export function OrderingHoursProvider({ children }) {
   const [orderingAllowed, setOrderingAllowed] = useState(true);
+  const [todayScheduledOpen, setTodayScheduledOpen] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -20,12 +33,15 @@ export function OrderingHoursProvider({ children }) {
         const data = await r.json().catch(() => ({}));
         if (cancelled) return;
         if (data?.ok && Array.isArray(data.days)) {
+          setTodayScheduledOpen(isTodayEnabledInSchedule(data.days));
           setOrderingAllowed(isOrderingAllowedAt(new Date(), data.days));
         } else {
+          setTodayScheduledOpen(true);
           setOrderingAllowed(isOrderingAllowedAt(new Date(), null));
         }
       } catch {
         if (!cancelled) {
+          setTodayScheduledOpen(true);
           setOrderingAllowed(isOrderingAllowedAt(new Date(), null));
         }
       }
@@ -38,7 +54,10 @@ export function OrderingHoursProvider({ children }) {
     };
   }, []);
 
-  const value = useMemo(() => ({ orderingAllowed }), [orderingAllowed]);
+  const value = useMemo(
+    () => ({ orderingAllowed, todayScheduledOpen }),
+    [orderingAllowed, todayScheduledOpen]
+  );
 
   return (
     <OrderingHoursContext.Provider value={value}>

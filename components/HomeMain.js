@@ -11,7 +11,7 @@ import { useState } from "react";
 
 export default function HomeMain() {
   const { t } = useLocale();
-  const { orderingAllowed } = useOrderingHours();
+  const { orderingAllowed, todayScheduledOpen } = useOrderingHours();
   const [activeCategory, setActiveCategory] = useState("burgers");
   const [mealWizardItem, setMealWizardItem] = useState(null);
   const mapQuery = encodeURIComponent("ירכא 137");
@@ -29,10 +29,18 @@ export default function HomeMain() {
     <>
       {!orderingAllowed ? (
         <p
-          className="mb-4 rounded-xl border border-amber-800/60 bg-amber-950/40 p-3 text-sm font-medium leading-snug text-amber-100"
+          className={
+            todayScheduledOpen
+              ? "mb-4 rounded-xl border-2 border-blue-500 bg-blue-950/80 p-3 text-sm font-bold leading-snug text-white shadow-[0_0_24px_-4px_rgba(59,130,246,0.45)]"
+              : "mb-4 rounded-xl border-2 border-red-600 bg-red-950/70 p-3 text-sm font-bold leading-snug text-red-100 shadow-[0_0_24px_-4px_rgba(220,38,38,0.45)]"
+          }
           role="status"
         >
-          {t("home.orderingClosedBanner")}
+          {t(
+            todayScheduledOpen
+              ? "home.orderingClosedBannerOpenDay"
+              : "home.orderingClosedBannerDayOff"
+          )}
         </p>
       ) : null}
       <section className="mb-4">
