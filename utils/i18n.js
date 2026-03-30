@@ -2,7 +2,8 @@
 
 const HE = {
   "header.tagline":
-    "מסעדת בורגר וקריספי משלוחים ואיסוף עצמי בלבד",
+    "מסעדת בורגר וקריספי משלוחים ואיסוף עצמי ירכא והסביבה",
+  "header.brandSecondary": "בורגרהאט",
   "header.admin": "ניהול",
   "lang.switch": "שפה",
   "lang.he": "עברית",
@@ -283,7 +284,7 @@ const HE = {
   "card.errorTechnical": "פרט טכני",
   "card.errorHypCode": "קוד תשובה מהסולק",
   "card.hintDnsNotFound":
-    "שם השרת ב-HYP_RELAY_BASE שגוי: הדומיין לא קיים באינטרנט. יש להעתיק בדיוק את «כתובת הבסיס ל-API» מהמייל/מסמכים שקיבלתם מ-Hyp (לא להמציא כתובת). לתמיכה: cg-support@hyp.co.il",
+    "בעיית רשת/DNS לשרת Hyp Pay (pay.hyp.co.il). בדקו חיבור לאינטרנט, או את HYP_PAY_BASE אם שיניתם אותו.",
   "card.errNoSession":
     "אין נתוני תשלום. חזרו לעגלה והשלימו את ההזמנה מחדש.",
 
@@ -446,7 +447,8 @@ const HE = {
 
 const AR = {
   "header.tagline":
-    "مطعم برجر وكرسبي — توصيل أو استلام من المحل فقط",
+    "مطعم برجر وكرسبي — توصيلات واستلام ذاتي في يركا والمناطق المحيطة",
+  "header.brandSecondary": "برجرهات",
   "header.admin": "إدارة",
   "lang.switch": "اللغة",
   "lang.he": "עברית",
@@ -727,7 +729,7 @@ const AR = {
   "card.errorTechnical": "تفاصيل تقنية",
   "card.errorHypCode": "رمز الاستجابة من البوابة",
   "card.hintDnsNotFound":
-    "اسم المضيف في HYP_RELAY_BASE غير صحيح — النطاق غير موجود. استخدموا عنوان الـ API بالضبط كما أرسلته Hyp. الدعم: cg-support@hyp.co.il",
+    "مشكلة شبكة/DNS للوصول إلى Hyp Pay (pay.hyp.co.il). تحققوا من الإنترنت أو من HYP_PAY_BASE إن كان قد تغيّر.",
   "card.errNoSession":
     "لا توجد بيانات دفع. ارجعوا للسلة وأكملوا الطلب من جديد.",
 

@@ -90,55 +90,42 @@ export default function CardPayPage() {
         }),
       });
       const data = await res.json().catch(() => ({}));
-        if (!res.ok || !data?.payment_url) {
-          const lines = [t("card.paymentStartFailed")];
-          if (data?.error === "hyp_not_configured") {
-            lines[0] = t("checkout.cardHypNotConfigured");
-            if (Array.isArray(data.missing) && data.missing.length) {
-              lines.push(
-                `${t("checkout.cardHypMissingLine")}: ${data.missing.join(", ")}`
-              );
-            }
-          } else if (data?.error === "hyp_relay_host_invalid") {
-            lines[0] = t("card.hintDnsNotFound");
-            if (data.host) {
-              lines.push(`${t("card.errorTechnical")}: ${data.host}`);
-            }
-            if (data.hint) lines.push(data.hint);
-          } else if (data?.error === "missing_public_origin") {
-            lines[0] = t("checkout.cardMissingSiteUrl");
-          } else if (data?.error === "relay_unreachable" && data?.message) {
-            lines.push(`${t("card.errorTechnical")}: ${data.message}`);
-            if (String(data.message).includes("ENOTFOUND")) {
-              lines.push(t("card.hintDnsNotFound"));
-            }
-            if (data.hint) {
-              lines.push(data.hint);
-            }
-          } else if (data?.error === "relay_http_error") {
+      if (!res.ok || !data?.payment_url) {
+        const lines = [t("card.paymentStartFailed")];
+        if (data?.error === "hyp_not_configured") {
+          lines[0] = t("checkout.cardHypNotConfigured");
+          if (Array.isArray(data.missing) && data.missing.length) {
             lines.push(
-              `HTTP ${data.httpStatus ?? "?"}${
-                data.message ? ` — ${data.message}` : ""
-              }`
+              `${t("checkout.cardHypMissingLine")}: ${data.missing.join(", ")}`
             );
-          } else if (data?.error === "hyp_relay_error") {
-            if (data.hypResult != null && `${data.hypResult}` !== "") {
-              lines.push(`${t("card.errorHypCode")}: ${data.hypResult}`);
-            }
-            if (data.hypUserMessage) {
-              lines.push(data.hypUserMessage);
-            } else if (data.hypMessage && data.hypMessage !== "relay_rejected") {
-              lines.push(data.hypMessage);
-            }
-            if (data.bodyPreview) {
-              lines.push(`${t("card.errorTechnical")}: ${data.bodyPreview}`);
-            }
-          } else if (data?.message) {
+          }
+          if (data.hint) lines.push(data.hint);
+        } else if (data?.error === "hyp_api_key_invalid") {
+          lines[0] = t("checkout.cardHypNotConfigured");
+          if (data.reason) lines.push(data.reason);
+          if (data.hint) lines.push(data.hint);
+        } else if (data?.error === "hyp_apisign_error") {
+          if (data.message) {
             lines.push(`${t("card.errorTechnical")}: ${data.message}`);
           }
-          setPayError(lines.join("\n"));
-          return;
+          if (data.hint) lines.push(data.hint);
+        } else if (
+          data?.error === "hyp_pay_unreachable" ||
+          data?.error === "hyp_pay_http_error"
+        ) {
+          if (data.message) {
+            lines.push(`${t("card.errorTechnical")}: ${data.message}`);
+          }
+          if (String(data.message || "").includes("ENOTFOUND")) {
+            lines.push(t("card.hintDnsNotFound"));
+          }
+          if (data.hint) lines.push(data.hint);
+        } else if (data?.message) {
+          lines.push(`${t("card.errorTechnical")}: ${data.message}`);
         }
+        setPayError(lines.join("\n"));
+        return;
+      }
 
       try {
         window.sessionStorage.setItem(

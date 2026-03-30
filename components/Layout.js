@@ -40,62 +40,87 @@ export default function Layout({ children }) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-black text-gray-100">
       <header className="sticky top-0 z-30 border-b border-slate-800 bg-black/80 backdrop-blur">
-        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3">
-          <div className="flex items-center gap-3">
-            <div className="h-14 w-14 overflow-hidden">
+        <div className="mx-auto grid max-w-4xl grid-cols-[auto_1fr_auto] items-start gap-2 px-4 py-3">
+          <div className="flex items-center pt-1">
+            <LanguageSwitcher />
+          </div>
+
+          <div className="flex min-w-0 flex-col items-center text-center">
+            <div className="h-[4.2rem] w-[4.2rem] shrink-0 overflow-hidden rounded-full bg-white ring-1 ring-white/15">
               <img
-                src="/logo-burger-hut-transparent.png"
+                src="/logo-burger-hut.png"
                 alt="Burger Hut logo icon"
-                width={110}
-                height={110}
-                className="h-full w-full object-contain"
+                width={132}
+                height={132}
+                className="h-full w-full object-contain object-center"
               />
             </div>
-            <div>
-              <h1 className="text-xl font-extrabold tracking-tight text-primary">
-                Burger Hut برجرهات
-              </h1>
-              <p className="text-xs text-gray-400">{t("header.tagline")}</p>
-            </div>
+            <h1 className="inline-flex items-center gap-1 whitespace-nowrap text-base font-extrabold tracking-tight text-primary sm:text-xl">
+              <span dir="ltr">Burger Hut</span>
+              <span dir="rtl">{t("header.brandSecondary")}</span>
+            </h1>
+            <p className="whitespace-nowrap text-[11px] text-gray-400 sm:text-xs">
+              {t("header.tagline")}
+            </p>
           </div>
-          <div className="flex shrink-0 flex-col items-end gap-1">
-            <div className="flex items-center gap-2">
-              <LanguageSwitcher />
-              <Link
-                href="/admin/orders"
-                className="text-xs font-semibold text-primary underline-offset-4 hover:text-amber-400 hover:underline"
-              >
-                {t("header.admin")}
-              </Link>
-            </div>
-            <div className="flex flex-row items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setHoursOpen(true)}
-                className="shrink-0 self-center rounded-full border border-slate-600/80 bg-slate-900/40 px-2.5 py-0.5 text-[10px] font-semibold text-primary transition-colors hover:border-primary/60 hover:bg-slate-800/50"
-              >
-                {t("home.hoursButton")}
-              </button>
-              <div className="flex min-w-0 flex-col items-end gap-0.5 text-[11px] text-gray-400">
-                <a href={`tel:${t("home.contactPhoneValue")}`} className="hover:text-primary">
-                  {t("home.contactPhoneLabel")}: {t("home.contactPhoneValue")}
-                </a>
-                <span>
-                  {t("home.contactAddressLabel")}: {t("home.contactAddressValue")}
-                </span>
-                <div className="flex flex-col items-end gap-0.5">
-                  <a
-                    href={wazeUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-primary underline-offset-2 hover:underline"
-                  >
-                    {t("home.openWaze")}
-                  </a>
-                  <CurrentDateTime className="text-[9px] leading-tight text-gray-500" />
-                </div>
-              </div>
-            </div>
+
+          <div className="flex min-w-0 flex-col items-end gap-0.5 pt-1 text-[11px] text-gray-400">
+            <Link
+              href="/admin/orders"
+              className="mb-0.5 text-xs font-semibold text-primary underline-offset-4 hover:text-amber-400 hover:underline"
+            >
+              {t("header.admin")}
+            </Link>
+            <a
+              href={`tel:${t("home.contactPhoneValue")}`}
+              className="inline-flex items-center gap-1 text-sky-400 hover:text-sky-300"
+              aria-label={`${t("home.contactPhoneLabel")}: ${t("home.contactPhoneValue")}`}
+            >
+              <span className="inline-flex h-4 w-4 shrink-0 overflow-hidden rounded-md ring-1 ring-white/15">
+                <img
+                  src="/phone-icon.png"
+                  alt=""
+                  width={32}
+                  height={32}
+                  className="h-full w-full scale-110 object-cover"
+                  draggable={false}
+                />
+              </span>
+              <span className="underline decoration-sky-400 underline-offset-2">
+                {t("home.contactPhoneValue")}
+              </span>
+            </a>
+            <span>
+              {t("home.contactAddressLabel")}: {t("home.contactAddressValue")}
+            </span>
+            <CurrentDateTime className="text-[9px] leading-tight text-gray-500" />
+          </div>
+
+          <div className="relative col-span-3 mt-2 flex min-h-[2.75rem] w-full items-center justify-center">
+            <a
+              href={wazeUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="absolute left-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center overflow-hidden rounded-full bg-transparent p-1 shadow-sm ring-1 ring-white/10 transition-opacity hover:opacity-90 sm:h-12 sm:w-12 sm:p-1.5"
+              aria-label={t("home.openWaze")}
+              title={t("home.openWaze")}
+            >
+              <img
+                src="/waze-icon.png"
+                alt=""
+                width={48}
+                height={48}
+                className="max-h-full max-w-full object-contain"
+                draggable={false}
+              />
+            </a>
+            <button
+              type="button"
+              onClick={() => setHoursOpen(true)}
+              className="rounded-full border border-slate-600/80 bg-slate-900/40 px-3 py-1 text-[10px] font-semibold text-primary transition-colors hover:border-primary/60 hover:bg-slate-800/50"
+            >
+              {t("home.hoursButton")}
+            </button>
           </div>
         </div>
       </header>

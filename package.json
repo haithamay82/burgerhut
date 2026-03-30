@@ -14,7 +14,8 @@
     "fresh": "npm run rebuild && npm run dev",
     "fresh:win": "npm run rebuild:win && npm run dev",
     "fresh:prod": "npm run rebuild && npm run start",
-    "fresh:prod:win": "npm run rebuild:win && npm run start"
+    "fresh:prod:win": "npm run rebuild:win && npm run start",
+    "vercel:prod": "npx --yes vercel deploy --prod"
   },
   "dependencies": {
     "formidable": "^3.5.2",

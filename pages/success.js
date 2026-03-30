@@ -15,7 +15,8 @@ export default function SuccessPage() {
     router.query.uniqueID ||
     router.query.uniqueid ||
     router.query.txId ||
-    router.query.cgUid;
+    router.query.cgUid ||
+    router.query.Id;
   const [cardWaUrl, setCardWaUrl] = useState("");
 
   useEffect(() => {
