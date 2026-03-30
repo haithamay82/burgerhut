@@ -105,7 +105,7 @@ const IMG_SIDE_CHIPS_CHEDDAR_SYMPHONY =
 export const MENU_ITEMS = [
   {
     id: "kids-burger-120",
-    basePrice: 1,
+    basePrice: 5,
     category: "burgers",
     image: IMG_KIDS_BURGER_120,
   },
