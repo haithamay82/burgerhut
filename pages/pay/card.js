@@ -127,6 +127,41 @@ export default function CardPayPage() {
         return;
       }
 
+      const paymentUrl = data.payment_url;
+
+      console.log("=== HYP DEBUG START ===");
+      if (process.env.NODE_ENV === "development") {
+        console.log("payment_url:", paymentUrl);
+      } else {
+        console.log("payment_url: [omitted in production — use dev build to print full URL]");
+      }
+      try {
+        const url = new URL(paymentUrl);
+        console.log("hostname:", url.hostname);
+        console.log("pathname:", url.pathname);
+        console.log("has signature:", url.searchParams.has("signature"));
+        console.log("query params count:", [...url.searchParams.keys()].length);
+      } catch (e) {
+        console.error("Invalid payment_url:", e);
+      }
+      console.log("=== HYP DEBUG END ===");
+
+      let signatureOk = false;
+      try {
+        signatureOk = new URL(paymentUrl).searchParams.has("signature");
+      } catch {
+        signatureOk = false;
+      }
+      if (
+        !paymentUrl ||
+        typeof paymentUrl !== "string" ||
+        !signatureOk
+      ) {
+        console.error("❌ Invalid payment URL — missing signature");
+        window.alert("Payment failed. Please try again.");
+        return;
+      }
+
       try {
         window.sessionStorage.setItem(
           CARD_SUCCESS_SNAPSHOT_KEY,
@@ -143,7 +178,7 @@ export default function CardPayPage() {
         /* ignore */
       }
       window.sessionStorage.removeItem(PENDING_ORDER_KEY);
-      window.location.href = data.payment_url;
+      window.location.href = paymentUrl;
     } catch {
       setPayError(t("card.paymentStartFailed"));
     } finally {

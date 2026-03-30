@@ -1,16 +1,32 @@
 import {
   getHypEnvDebugSnapshot,
   shouldLogHypEnvDebug,
+  shouldLogHypDevRequestDetails,
   getHypPayBase,
   getHypMasofForPay,
   getHypApiKey,
   getHypPayPassP,
   validateHypPayEnv,
+  resolveHypIntegrationMode,
+  getHypSafeDebugSnapshot,
 } from "@/lib/hypConfig";
-import { buildApiSignUrl, parseApiSignResponse } from "@/lib/hypPayProtocol";
+import {
+  buildApiSignUrl,
+  parseApiSignResponse,
+  describeApiSignRequestForLog,
+  payProtocolSignFieldPresence,
+} from "@/lib/hypPayProtocol";
 import { formatFetchErrorDetail } from "@/lib/fetchErrorDetail";
 
 const ORDER_DESCRIPTION = "Burger Hut order";
+
+/** הסרת ערך signature מהלוג — לא לחשוף טוקן חתימה */
+function redactHypResponseForLog(text) {
+  return String(text ?? "")
+    .replace(/(^|[&?])signature=[^&]*/gi, "$1signature=[REDACTED]")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -73,7 +89,7 @@ export default async function handler(req, res) {
     .filter(Boolean)
     .join(" ");
 
-  const apiSignUrl = buildApiSignUrl({
+  const signOpts = {
     host: getHypPayBase(),
     masof: getHypMasofForPay(),
     key: getHypApiKey(),
@@ -85,7 +101,29 @@ export default async function handler(req, res) {
     customerName:
       [customerName, phone].filter(Boolean).join(" ") || customerName,
     phone,
-  });
+  };
+
+  const apiSignUrl = buildApiSignUrl(signOpts);
+
+  if (shouldLogHypDevRequestDetails()) {
+    console.log(
+      "[api/create-payment][dev] integration:",
+      resolveHypIntegrationMode(),
+      "(Pay Protocol APISign GET — not Relay /xpo/Relay)"
+    );
+    console.log(
+      "[api/create-payment][dev] safe env snapshot:",
+      JSON.stringify(getHypSafeDebugSnapshot(), null, 2)
+    );
+    console.log(
+      "[api/create-payment][dev] field presence:",
+      JSON.stringify(payProtocolSignFieldPresence(signOpts), null, 2)
+    );
+    console.log(
+      "[api/create-payment][dev] outbound APISign:",
+      JSON.stringify(describeApiSignRequestForLog(apiSignUrl), null, 2)
+    );
+  }
 
   let payRes;
   try {
@@ -111,6 +149,29 @@ export default async function handler(req, res) {
   }
 
   const payText = await payRes.text();
+
+  if (process.env.NODE_ENV === "development") {
+    console.log("=== HYP RESPONSE DEBUG ===");
+    console.log("httpStatus:", payRes.status, payRes.ok ? "ok" : "not ok");
+    console.log("raw response:", redactHypResponseForLog(payText));
+
+    const cleaned = String(payText ?? "").trim().replace(/^\?/, "");
+    const sp = new URLSearchParams(cleaned);
+    const hasSignature = Boolean(sp.get("signature"));
+    const cCode = sp.get("CCode") || sp.get("ccode");
+    const errMsg =
+      sp.get("errMsg") || sp.get("error") || sp.get("message") || null;
+
+    console.log("CCode:", cCode ?? "(none)");
+    console.log("errMsg:", errMsg ?? "(none)");
+    console.log("signature:", hasSignature ? "present" : "missing");
+
+    if (!hasSignature) {
+      console.log("❌ HYP did not return signature — APISign failed");
+    }
+    console.log("=== HYP RESPONSE DEBUG END ===");
+  }
+
   if (!payRes.ok) {
     const preview = payText.replace(/\s+/g, " ").trim().slice(0, 280);
     return res.status(502).json({
