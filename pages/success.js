@@ -94,7 +94,7 @@ export default function SuccessPage() {
             href={cardWaUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-primary mb-4"
+            className="btn-primary mb-4 max-w-xs whitespace-pre-line px-4 py-3 text-center leading-snug"
           >
             {t("success.waAfterCard")}
           </a>

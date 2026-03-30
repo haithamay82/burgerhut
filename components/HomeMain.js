@@ -39,7 +39,6 @@ export default function HomeMain() {
         <h2 className="mb-1 text-lg font-bold">
           {titleWithoutHeart} <span className="text-red-600">❤</span>
         </h2>
-        <p className="text-xs text-gray-400">{t("home.subtitle")}</p>
         <p className="mt-2 rounded-xl border border-amber-900/40 bg-amber-950/30 p-3 text-[11px] leading-relaxed text-amber-100/90">
           {t("home.mealInfo")}
         </p>
@@ -99,13 +98,13 @@ export default function HomeMain() {
         <h3 className="mb-2 text-sm font-semibold">{t("home.contactTitle")}</h3>
         <div className="mb-3 space-y-1 text-xs text-gray-300">
           <p className="inline-flex flex-wrap items-center gap-1">
-            <span className="inline-flex h-4 w-4 shrink-0 overflow-hidden rounded-md ring-1 ring-white/10">
+            <span className="inline-flex h-4 w-4 shrink-0 overflow-hidden rounded-full ring-1 ring-white/10">
               <img
                 src="/phone-icon.png"
                 alt=""
                 width={32}
                 height={32}
-                className="h-full w-full scale-110 object-cover"
+                className="h-full w-full object-cover"
                 draggable={false}
               />
             </span>
@@ -138,7 +137,7 @@ export default function HomeMain() {
               >
                 {t("home.openWaze")}
               </a>
-              <CurrentDateTime className="text-[10px] leading-tight text-gray-500" />
+              <CurrentDateTime className="leading-tight" />
             </div>
           </div>
         </div>

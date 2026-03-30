@@ -70,7 +70,7 @@ export default function Layout({ children }) {
                 <span>
                   {t("home.contactAddressLabel")}: {t("home.contactAddressValue")}
                 </span>
-                <CurrentDateTime className="text-[9px] leading-tight text-gray-500" />
+                <CurrentDateTime className="leading-tight" />
               </div>
             </div>
           </div>
@@ -87,8 +87,8 @@ export default function Layout({ children }) {
               <img
                 src="/waze-icon.png"
                 alt=""
-                width={48}
-                height={48}
+                width={494}
+                height={505}
                 className="max-h-full max-w-full object-contain"
                 draggable={false}
               />
@@ -109,8 +109,8 @@ export default function Layout({ children }) {
               <img
                 src="/phone-icon.png"
                 alt=""
-                width={48}
-                height={48}
+                width={494}
+                height={505}
                 className="max-h-full max-w-full object-contain"
                 draggable={false}
               />

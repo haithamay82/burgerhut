@@ -10,7 +10,6 @@ const HE = {
   "lang.ar": "العربية",
 
   "home.title": "רעבים? הזמינו עכשיו ואנחנו נכין לכם באהבה ❤",
-  "home.subtitle": "הזמנה מהירה — המחירים לפי התפריט בחנות.",
   "home.contactTitle": "יצירת קשר ומיקום",
   "home.contactPhoneLabel": "טלפון",
   "home.contactAddressLabel": "כתובת",
@@ -53,10 +52,10 @@ const HE = {
   "menu.burger-360.desc": "בורגר — 360 גרם.",
   "menu.burger-400.name": "בורגר 400 גר׳",
   "menu.burger-400.desc": "בורגר — 400 גרם.",
-  "menu.crispy-chicken-burger.name": "קריספי צ׳יקן בורגר (עגולה/בלי)",
+  "menu.crispy-chicken-burger.name": "קריספי צ׳יקן בורגר (עגולה/בלי עגולה)",
   "menu.crispy-chicken-burger.desc": "קריספי בעגולה או בלי עגולה.",
   "menu.crispy-chicken-burger-kids.name":
-    "קריספי צ׳יקן בורגר ילדים (עגולה/טורטיה קטנה)",
+    "קריספי צ׳יקן ילדים (עגולה/טורטיה קטנה)",
   "menu.crispy-chicken-burger-kids.desc": "קריספי בעגולה/טורטיה.",
   "menu.crispy-chicken-tortilla-large.name": "קריספי צ׳יקן טורטיה גדולה",
   "menu.crispy-chicken-tortilla-large.desc": "טורטיה עם עוף קריספי — מנה גדולה.",
@@ -303,7 +302,8 @@ const HE = {
     "תודה! ההזמנה נרשמה. אם נפתח ווטסאפ — עברו על ההודעה ושלחו לחנות.",
   "success.descCard":
     "תודה! התשלום התקבל וההזמנה נרשמה במערכת.",
-  "success.waAfterCard": "שליחת פירוט הזמנה בווטסאפ",
+  "success.waAfterCard":
+    "שלח פירוט הזמנה בווטסאפ\nותאם עם המסעדה זמן קבלת ההזמנה",
   "success.back": "חזרה לתפריט",
 
   "cancel.title": "התשלום בוטל",
@@ -460,7 +460,6 @@ const AR = {
   "lang.ar": "العربية",
 
   "home.title": "جائعون؟ اطلبوا الآن ونحضّر لكم بمحبة ❤",
-  "home.subtitle": "طلب سريع — الأسعار حسب قائمة المحل.",
   "home.contactTitle": "التواصل والموقع",
   "home.contactPhoneLabel": "الهاتف",
   "home.contactAddressLabel": "العنوان",
@@ -503,10 +502,10 @@ const AR = {
   "menu.burger-360.desc": "برجر — 360 غرام.",
   "menu.burger-400.name": "برجر 400غ",
   "menu.burger-400.desc": "برجر — 400 غرام.",
-  "menu.crispy-chicken-burger.name": "برجر كريسبي تشيكن (مدورة/بدون)",
+  "menu.crispy-chicken-burger.name": "برجر كريسبي تشيكن (مدورة/بدون مدورة)",
   "menu.crispy-chicken-burger.desc": "كريسبي — بخبز مدور أو بدون.",
   "menu.crispy-chicken-burger-kids.name":
-    "برجر كريسبي تشيكن أطفال (مدورة/تورتيلا صغيرة)",
+    "كريسبي تشيكن أطفال (مدورة/تورتيلا صغيرة)",
   "menu.crispy-chicken-burger-kids.desc": "كريسبي — مدورة أو تورتيلا.",
   "menu.crispy-chicken-tortilla-large.name": "كريسبي تشيكن تورتيلا كبيرة",
   "menu.crispy-chicken-tortilla-large.desc": "تورتيلا بدجاج مقرمش — حجم كبير.",
@@ -754,7 +753,8 @@ const AR = {
     "شكراً! تم تسجيل الطلب في النظام. إذا فتح واتساب — راجِع الرسالة وأرسلها للمتجر.",
   "success.descCard":
     "شكراً! تم استلام الدفع وتسجيل الطلب.",
-  "success.waAfterCard": "إرسال تفاصيل الطلب عبر واتساب",
+  "success.waAfterCard":
+    "أرسل تفاصيل الطلب عبر واتساب\nونسّق مع المطعم وقت استلام الطلب",
   "success.back": "العودة للقائمة",
 
   "cancel.title": "تم إلغاء الدفع",
