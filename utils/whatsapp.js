@@ -96,7 +96,10 @@ export function buildWhatsAppOrderText({
       .filter(Boolean)
       .join(" · ");
     const lineSuffix = lineExtras ? ` — ${lineExtras}` : "";
-    lines.push(`${index + 1}. ${item.name} x${item.quantity}${lineSuffix}`);
+    const qty = Number(item.quantity);
+    const quantitySuffix =
+      Number.isFinite(qty) && qty > 1 ? ` x${qty}` : "";
+    lines.push(`${index + 1}. ${item.name}${quantitySuffix}${lineSuffix}`);
     if (item.salads?.length) {
       lines.push(
         `   ${tr("wa.salads")}: ${item.salads.map((x) => x.label).join(", ")}`
