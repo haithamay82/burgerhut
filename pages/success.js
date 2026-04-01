@@ -60,7 +60,9 @@ export default function SuccessPage() {
         0
       );
       setCardOrder({
-        orderId: String(snap.orderNumber ?? orderFromQuery ?? hypReturn ?? ""),
+        orderId: String(
+          snap.cardUniqueId ?? snap.orderNumber ?? orderFromQuery ?? hypReturn ?? ""
+        ),
         amount:
           (Number.isFinite(amountFromSnap) && amountFromSnap > 0
             ? amountFromSnap

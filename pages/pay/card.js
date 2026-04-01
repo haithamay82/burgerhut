@@ -156,6 +156,10 @@ export default function CardPayPage() {
             items: pending.items,
             payment: pending.payment,
             orderNumber: pending.orderNumber,
+            cardUniqueId:
+              typeof pending.cardUniqueId === "string"
+                ? pending.cardUniqueId
+                : String(orderId || ""),
             locale: pending.locale,
             waGrandTotal: pending.waGrandTotal,
           })

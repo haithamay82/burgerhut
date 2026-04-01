@@ -43,7 +43,16 @@ export default async function handler(req, res) {
     if (existingCode) {
       const existingCoupon = await redis.get(`coupon:${existingCode}`);
       if (existingCoupon) {
-        return res.status(200).json({ ok: true, coupon: existingCoupon });
+        const existingAmount = Number(existingCoupon.baseAmount);
+        const existingPct = Number(existingCoupon.percentage);
+        const isSameCalcBase =
+          Number.isFinite(existingAmount) &&
+          Math.abs(existingAmount - amount) < 0.01 &&
+          Number.isFinite(existingPct) &&
+          Math.abs(existingPct - couponPct) < 0.001;
+        if (isSameCalcBase) {
+          return res.status(200).json({ ok: true, coupon: existingCoupon });
+        }
       }
     }
 
