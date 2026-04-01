@@ -188,6 +188,18 @@ export default function SuccessPage() {
     if (!blob) return;
 
     const filename = `coupon-${coupon.code}.png`;
+    const isIOS = isIOSDevice();
+
+    // iOS Safari is flaky with programmatic file sharing/downloading.
+    // Open image in a new tab and let user save it to Photos/Files.
+    if (isIOS) {
+      const objectUrl = URL.createObjectURL(blob);
+      const win = window.open(objectUrl, "_blank", "noopener,noreferrer");
+      if (!win) window.location.href = objectUrl;
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+      return "manual";
+    }
+
     const file = new File([blob], filename, { type: "image/png" });
     const canUseShare =
       typeof navigator !== "undefined" &&
@@ -204,14 +216,6 @@ export default function SuccessPage() {
     }
 
     const objectUrl = URL.createObjectURL(blob);
-    const isIOS = isIOSDevice();
-
-    if (isIOS) {
-      const win = window.open(objectUrl, "_blank", "noopener,noreferrer");
-      if (!win) window.location.href = objectUrl;
-      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
-      return "manual";
-    }
 
     const a = document.createElement("a");
     a.href = objectUrl;
@@ -239,8 +243,13 @@ export default function SuccessPage() {
       setCouponManualStepReady(false);
       openWhatsAppNow();
     } catch {
-      setCouponManualStepReady(false);
-      setCouponNotice(t("success.couponShareCancelled"));
+      if (isIOSDevice()) {
+        setCouponManualStepReady(true);
+        setCouponNotice(t("success.couponSaveThenContinue"));
+      } else {
+        setCouponManualStepReady(false);
+        setCouponNotice(t("success.couponShareCancelled"));
+      }
     } finally {
       setCouponActionBusy(false);
     }
