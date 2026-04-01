@@ -175,7 +175,21 @@ export default function SuccessPage() {
     }
   };
 
-  const downloadCouponImage = async () => {
+  const openCouponDraftWindow = () => {
+    try {
+      const w = window.open("about:blank", "_blank");
+      if (w && w.document) {
+        w.document.write(
+          "<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1' /></head><body style='font-family:system-ui;padding:16px;background:#0b1220;color:#fff;'>מכין קופון…</body></html>"
+        );
+      }
+      return w;
+    } catch {
+      return null;
+    }
+  };
+
+  const downloadCouponImage = async ({ iosWindow = null } = {}) => {
     if (!couponCaptureRef.current || !coupon?.code) return;
     const { default: html2canvas } = await import("html2canvas");
     const canvas = await html2canvas(couponCaptureRef.current, {
@@ -194,8 +208,12 @@ export default function SuccessPage() {
     // Open image in a new tab and let user save it to Photos/Files.
     if (isIOS) {
       const objectUrl = URL.createObjectURL(blob);
-      const win = window.open(objectUrl, "_blank", "noopener,noreferrer");
-      if (!win) window.location.href = objectUrl;
+      if (iosWindow && !iosWindow.closed) {
+        iosWindow.location.href = objectUrl;
+      } else {
+        const win = window.open(objectUrl, "_blank", "noopener,noreferrer");
+        if (!win) window.location.href = objectUrl;
+      }
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
       return "manual";
     }
@@ -231,9 +249,11 @@ export default function SuccessPage() {
     if (!cardWaUrl || couponActionBusy) return;
     setCouponNotice("");
     setCouponActionBusy(true);
+    const iosWindow =
+      isIOSDevice() && coupon?.code ? openCouponDraftWindow() : null;
     try {
       if (coupon?.code) {
-        const dlResult = await downloadCouponImage();
+        const dlResult = await downloadCouponImage({ iosWindow });
         if (isIOSDevice() && dlResult === "manual") {
           setCouponManualStepReady(true);
           setCouponNotice(t("success.couponSaveThenContinue"));
