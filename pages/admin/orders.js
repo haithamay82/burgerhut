@@ -1121,7 +1121,7 @@ export default function AdminOrdersPage() {
                     ) : coupons.length === 0 ? (
                       <p className="text-xs text-gray-500">{t("admin.couponsEmpty")}</p>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="max-h-[26rem] space-y-2 overflow-y-auto pl-1">
                         {coupons.map((c) => {
                           const expired =
                             Number.isFinite(Number(c.expiresAt)) &&
