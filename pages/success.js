@@ -24,6 +24,8 @@ export default function SuccessPage() {
   const [cardOrder, setCardOrder] = useState(null);
   const [coupon, setCoupon] = useState(null);
   const [couponActionBusy, setCouponActionBusy] = useState(false);
+  const [couponNotice, setCouponNotice] = useState("");
+  const [couponManualStepReady, setCouponManualStepReady] = useState(false);
   const couponCaptureRef = useRef(null);
 
   useEffect(() => {
@@ -161,6 +163,18 @@ export default function SuccessPage() {
     }).format(d);
   };
 
+  const isIOSDevice = () =>
+    /iPad|iPhone|iPod/.test(window.navigator.userAgent || "") ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  const openWhatsAppNow = () => {
+    if (!cardWaUrl) return;
+    const win = window.open(cardWaUrl, "_blank", "noopener,noreferrer");
+    if (!win) {
+      window.location.href = cardWaUrl;
+    }
+  };
+
   const downloadCouponImage = async () => {
     if (!couponCaptureRef.current || !coupon?.code) return;
     const { default: html2canvas } = await import("html2canvas");
@@ -186,19 +200,17 @@ export default function SuccessPage() {
         files: [file],
         title: "Burger Hut Coupon",
       });
-      return;
+      return "shared";
     }
 
     const objectUrl = URL.createObjectURL(blob);
-    const isIOS =
-      /iPad|iPhone|iPod/.test(window.navigator.userAgent || "") ||
-      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const isIOS = isIOSDevice();
 
     if (isIOS) {
       const win = window.open(objectUrl, "_blank", "noopener,noreferrer");
       if (!win) window.location.href = objectUrl;
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
-      return;
+      return "manual";
     }
 
     const a = document.createElement("a");
@@ -208,21 +220,27 @@ export default function SuccessPage() {
     a.click();
     a.remove();
     URL.revokeObjectURL(objectUrl);
+    return "shared";
   };
 
   const handleWaWithCoupon = async () => {
     if (!cardWaUrl || couponActionBusy) return;
+    setCouponNotice("");
     setCouponActionBusy(true);
     try {
       if (coupon?.code) {
-        await downloadCouponImage();
+        const dlResult = await downloadCouponImage();
+        if (isIOSDevice() && dlResult === "manual") {
+          setCouponManualStepReady(true);
+          setCouponNotice(t("success.couponSaveThenContinue"));
+          return;
+        }
       }
-      const win = window.open(cardWaUrl, "_blank", "noopener,noreferrer");
-      if (!win) {
-        window.location.href = cardWaUrl;
-      }
+      setCouponManualStepReady(false);
+      openWhatsAppNow();
     } catch {
-      window.location.href = cardWaUrl;
+      setCouponManualStepReady(false);
+      setCouponNotice(t("success.couponShareCancelled"));
     } finally {
       setCouponActionBusy(false);
     }
@@ -242,14 +260,35 @@ export default function SuccessPage() {
           </p>
         ) : null}
         {(hypReturn || method === "card") && cardWaUrl ? (
-          <button
-            type="button"
-            onClick={handleWaWithCoupon}
-            disabled={couponActionBusy}
-            className="btn-primary mb-4 max-w-xs whitespace-pre-line px-4 py-3 text-center leading-snug"
-          >
-            {couponActionBusy ? t("success.couponDownloadBusy") : waBtnText}
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={handleWaWithCoupon}
+              disabled={couponActionBusy}
+              className="btn-primary mb-2 max-w-xs whitespace-pre-line px-4 py-3 text-center leading-snug"
+            >
+              {couponActionBusy ? t("success.couponDownloadBusy") : waBtnText}
+            </button>
+            {couponNotice ? (
+              <p className="mb-2 max-w-xs text-[11px] text-amber-200/90">
+                {couponNotice}
+              </p>
+            ) : null}
+            {couponManualStepReady ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setCouponManualStepReady(false);
+                  openWhatsAppNow();
+                }}
+                className="mb-4 rounded-full border border-primary/60 bg-slate-900/50 px-4 py-2 text-xs font-semibold text-primary"
+              >
+                {t("success.couponContinueWa")}
+              </button>
+            ) : (
+              <div className="mb-2" />
+            )}
+          </>
         ) : null}
         <Link href="/" className="btn-primary">
           {t("success.back")}

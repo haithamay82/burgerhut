@@ -347,6 +347,11 @@ const HE = {
   "success.couponCopied": "הקוד הועתק",
   "success.couponDownload": "הורדה כתמונה",
   "success.couponDownloadBusy": "מכין הורדה…",
+  "success.couponSaveThenContinue":
+    "שמור את הקופון ב-Photos/Files ואז לחץ המשך לווטסאפ.",
+  "success.couponContinueWa": "המשך לווטסאפ אחרי שמירה",
+  "success.couponShareCancelled":
+    "השמירה בוטלה או נכשלה. שמור קופון ואז נסה שוב.",
   "success.back": "חזרה לתפריט",
 
   "cancel.title": "התשלום בוטל",
@@ -875,6 +880,11 @@ const AR = {
   "success.couponCopied": "تم نسخ الرمز",
   "success.couponDownload": "تنزيل كصورة",
   "success.couponDownloadBusy": "جاري تجهيز الصورة…",
+  "success.couponSaveThenContinue":
+    "احفظ الكوبون في Photos/Files ثم اضغط متابعة إلى واتساب.",
+  "success.couponContinueWa": "متابعة إلى واتساب بعد الحفظ",
+  "success.couponShareCancelled":
+    "تم إلغاء الحفظ أو فشل. احفظ الكوبون ثم أعد المحاولة.",
   "success.back": "العودة للقائمة",
 
   "cancel.title": "تم إلغاء الدفع",
