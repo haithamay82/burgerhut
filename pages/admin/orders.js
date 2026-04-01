@@ -17,6 +17,19 @@ function formatTime(iso, locale) {
   });
 }
 
+function formatCouponDateTime(ts, locale) {
+  if (!Number.isFinite(Number(ts)) || Number(ts) <= 0) return "—";
+  const loc = locale === "ar" ? "ar" : "he-IL";
+  return new Date(Number(ts)).toLocaleString(loc, {
+    timeZone: "Asia/Jerusalem",
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 function daySalesTotal(dayOrders) {
   return dayOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
 }
@@ -113,6 +126,11 @@ export default function AdminOrdersPage() {
   const [promoUploading, setPromoUploading] = useState(false);
   const [promoSaving, setPromoSaving] = useState(false);
   const [promoMsg, setPromoMsg] = useState("");
+  const [coupons, setCoupons] = useState([]);
+  const [couponsLoading, setCouponsLoading] = useState(false);
+  const [couponDeleteCode, setCouponDeleteCode] = useState("");
+  const [couponMsg, setCouponMsg] = useState("");
+  const [couponPanelOpen, setCouponPanelOpen] = useState(false);
   const promoFileRef = useRef(null);
 
   const [selectedDayKey, setSelectedDayKey] = useState(null);
@@ -154,6 +172,7 @@ export default function AdminOrdersPage() {
         setHoursDraft(null);
         setDiscountDraft(null);
         setPromo(null);
+        setCoupons([]);
         setError(
           data.error === "admin_not_configured"
             ? t("admin.errConfig")
@@ -165,6 +184,7 @@ export default function AdminOrdersPage() {
       setLoaded(true);
       setHoursMsg("");
       setDiscountMsg("");
+      setCouponMsg("");
       const todayK = jerusalemDayKey();
       const { y: ty, m: tm } = parseDayKey(todayK);
       setSelectedDayKey(todayK);
@@ -234,14 +254,62 @@ export default function AdminOrdersPage() {
       } catch {
         setPromo(null);
       }
+      try {
+        setCouponsLoading(true);
+        const cr = await fetch("/api/coupons", {
+          headers: { "x-admin-secret": secret.trim() },
+        });
+        const cd = await cr.json().catch(() => ({}));
+        if (cr.ok && cd?.ok && Array.isArray(cd.coupons)) {
+          setCoupons(cd.coupons);
+        } else {
+          setCoupons([]);
+        }
+      } catch {
+        setCoupons([]);
+      } finally {
+        setCouponsLoading(false);
+      }
     } catch {
       setError(t("admin.errNet"));
       setLoaded(false);
       setHoursDraft(null);
       setDiscountDraft(null);
       setPromo(null);
+      setCoupons([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const deleteCoupon = async (code) => {
+    if (!secret.trim() || !code) return;
+    if (typeof window !== "undefined" && !window.confirm(t("admin.couponDeleteConfirm"))) {
+      return;
+    }
+    setError("");
+    setCouponMsg("");
+    setCouponDeleteCode(code);
+    try {
+      const r = await fetch(`/api/coupons?code=${encodeURIComponent(code)}`, {
+        method: "DELETE",
+        headers: { "x-admin-secret": secret.trim() },
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setError(
+          d.error === "admin_not_configured"
+            ? t("admin.errConfig")
+            : t("admin.couponDeleteErr")
+        );
+        return;
+      }
+      setCoupons((prev) => prev.filter((c) => c.code !== code));
+      setCouponMsg(t("admin.couponDeleted"));
+    } catch {
+      setError(t("admin.errNet"));
+    } finally {
+      setCouponDeleteCode("");
     }
   };
 
@@ -539,6 +607,7 @@ export default function AdminOrdersPage() {
   }
   const selectedDayOrders =
     selectedDayKey != null ? ordersByDay.get(selectedDayKey) ?? [] : [];
+  const nowTs = Date.now();
 
   return (
     <>
@@ -1019,6 +1088,106 @@ export default function AdminOrdersPage() {
                   ) : null}
                 </>
               ) : null}
+
+              <>
+                <button
+                  type="button"
+                  onClick={() => setCouponPanelOpen((v) => !v)}
+                  aria-expanded={couponPanelOpen}
+                  className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-right text-sm font-bold text-gray-100 transition-colors hover:border-primary/50 hover:bg-slate-800/60"
+                >
+                  <span className="min-w-0 flex-1 leading-snug">
+                    {t("admin.couponsTitle")}
+                  </span>
+                  <span
+                    className="shrink-0 text-lg leading-none text-primary"
+                    aria-hidden
+                  >
+                    {couponPanelOpen ? "▾" : "▶"}
+                  </span>
+                </button>
+                {couponPanelOpen ? (
+                  <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
+                    <p className="mb-4 text-[11px] leading-relaxed text-gray-500">
+                      {t("admin.couponsHint")}
+                    </p>
+                    {couponMsg ? (
+                      <p className="mb-3 text-xs font-medium text-emerald-400/95">
+                        {couponMsg}
+                      </p>
+                    ) : null}
+                    {couponsLoading ? (
+                      <p className="text-xs text-gray-400">{t("admin.loading")}</p>
+                    ) : coupons.length === 0 ? (
+                      <p className="text-xs text-gray-500">{t("admin.couponsEmpty")}</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {coupons.map((c) => {
+                          const expired =
+                            Number.isFinite(Number(c.expiresAt)) &&
+                            Number(c.expiresAt) > 0 &&
+                            Number(c.expiresAt) < nowTs;
+                          const used = Boolean(c.used);
+                          return (
+                            <article
+                              key={c.code}
+                              className="rounded-xl border border-slate-800 bg-slate-950/50 p-3"
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="space-y-1 text-xs">
+                                  <p className="font-bold text-primary">
+                                    {t("admin.couponCode")}: {c.code}
+                                  </p>
+                                  <p className="text-gray-300">
+                                    {t("admin.couponValue")}: ₪
+                                    {Number(c.value || 0).toFixed(2)}
+                                  </p>
+                                  <p
+                                    className={
+                                      expired ? "text-red-300" : "text-emerald-300"
+                                    }
+                                  >
+                                    {t("admin.couponExpiryStatus")}:{" "}
+                                    {expired
+                                      ? t("admin.couponExpired")
+                                      : t("admin.couponValid")}
+                                  </p>
+                                  <p
+                                    className={used ? "text-amber-300" : "text-cyan-300"}
+                                  >
+                                    {t("admin.couponUsedStatus")}:{" "}
+                                    {used
+                                      ? t("admin.couponUsed")
+                                      : t("admin.couponNotUsed")}
+                                  </p>
+                                  <p className="text-[11px] text-gray-500">
+                                    {t("admin.couponCreatedAt")}:{" "}
+                                    {formatCouponDateTime(c.createdAt, locale)}
+                                  </p>
+                                  <p className="text-[11px] text-gray-500">
+                                    {t("admin.couponExpiresAt")}:{" "}
+                                    {formatCouponDateTime(c.expiresAt, locale)}
+                                  </p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => deleteCoupon(c.code)}
+                                  disabled={couponDeleteCode === c.code}
+                                  className="rounded-lg border border-red-900/50 bg-red-950/20 px-2 py-1 text-[11px] text-red-300 hover:bg-red-950/40 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                  {couponDeleteCode === c.code
+                                    ? t("admin.deleting")
+                                    : t("admin.couponDelete")}
+                                </button>
+                              </div>
+                            </article>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </section>
+                ) : null}
+              </>
             </div>
 
               <section
