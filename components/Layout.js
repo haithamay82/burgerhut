@@ -51,7 +51,7 @@ export default function Layout({ children }) {
                   alt="Burger Hut logo icon"
                   width={132}
                   height={132}
-                  className="h-full w-full scale-125 object-cover object-center"
+                  className="h-full w-full scale-115 object-cover object-center"
                 />
               </div>
               <h1 className="mb-0.5 inline-flex flex-wrap items-center justify-center gap-x-1 gap-y-0 text-base font-extrabold tracking-tight text-primary sm:text-xl">
