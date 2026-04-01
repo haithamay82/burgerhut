@@ -1216,6 +1216,21 @@ export default function AdminOrdersPage() {
                                       : ""}
                               </p>
                             ) : null}
+                            {Number(o.customer?.discountAmountNis) > 0 ? (
+                              <p className="mb-1 text-[11px] text-emerald-300/90">
+                                {t("wa.discount")}: -₪
+                                {Number(o.customer.discountAmountNis).toFixed(2)}
+                              </p>
+                            ) : null}
+                            {Number(o.customer?.couponDiscountNis) > 0 ? (
+                              <p className="mb-1 text-[11px] text-cyan-300/90">
+                                {t("wa.coupon")}
+                                {o.customer?.couponCode
+                                  ? ` (${String(o.customer.couponCode).toUpperCase()})`
+                                  : ""}
+                                : -₪{Number(o.customer.couponDiscountNis).toFixed(2)}
+                              </p>
+                            ) : null}
                             <ul className="space-y-2 border-t border-slate-800 pt-2 text-xs text-gray-300">
                               {(o.items || []).map((it, index) => {
                                 const qty = Number(it.quantity) || 1;

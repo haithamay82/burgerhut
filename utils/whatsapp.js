@@ -134,16 +134,35 @@ export function buildWhatsAppOrderText({
 
   lines.push("");
   const foodSubtotal = cart.items.reduce((s, item) => s + lineTotal(item), 0);
+  const promoDiscount = Number(customer?.discountAmountNis);
+  const couponDiscount = Number(customer?.couponDiscountNis);
+  const couponCode = String(customer?.couponCode || "").trim().toUpperCase();
   if (
     customer.orderType === "delivery" &&
     customer.deliveryFeeNis != null &&
     Number.isFinite(Number(customer.deliveryFeeNis))
   ) {
     lines.push(`${tr("wa.foodSubtotal")}: ₪${formatIls(foodSubtotal)}`);
+    if (Number.isFinite(promoDiscount) && promoDiscount > 0) {
+      lines.push(`${tr("wa.discount")}: -₪${formatIls(promoDiscount)}`);
+    }
+    if (Number.isFinite(couponDiscount) && couponDiscount > 0) {
+      lines.push(
+        `${tr("wa.coupon")}${couponCode ? ` (${couponCode})` : ""}: -₪${formatIls(couponDiscount)}`
+      );
+    }
     lines.push(
       `${tr("wa.totalWithDelivery")}: *₪${formatIls(total)}*`
     );
   } else {
+    if (Number.isFinite(promoDiscount) && promoDiscount > 0) {
+      lines.push(`${tr("wa.discount")}: -₪${formatIls(promoDiscount)}`);
+    }
+    if (Number.isFinite(couponDiscount) && couponDiscount > 0) {
+      lines.push(
+        `${tr("wa.coupon")}${couponCode ? ` (${couponCode})` : ""}: -₪${formatIls(couponDiscount)}`
+      );
+    }
     lines.push(`${tr("wa.total")}: *₪${formatIls(total)}*`);
   }
 

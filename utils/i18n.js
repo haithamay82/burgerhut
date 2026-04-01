@@ -232,9 +232,15 @@ const HE = {
   "checkout.couponApply": "בדיקה",
   "checkout.couponChecking": "בודק…",
   "checkout.couponApplied": "הקופון תקין והופעל.",
-  "checkout.couponInvalid": "קוד קופון לא תקין / פג תוקף / כבר נוצל.",
+  "checkout.couponInvalid": "קוד קופון לא תקין.",
+  "checkout.couponExpired": "קוד קופון פג תוקף.",
+  "checkout.couponUsed": "קוד קופון כבר נוצל.",
   "checkout.couponInvalidSubmit":
-    "הקופון לא תקין יותר (ייתכן שנוצל או פג תוקף). הסירו/עדכנו קופון ונסו שוב.",
+    "קוד קופון לא תקין. הסירו/עדכנו קופון ונסו שוב.",
+  "checkout.couponExpiredSubmit":
+    "קוד קופון פג תוקף. הסירו/עדכנו קופון ונסו שוב.",
+  "checkout.couponUsedSubmit":
+    "קוד קופון כבר נוצל. הסירו/עדכנו קופון ונסו שוב.",
   "checkout.couponLine": "קופון",
   "checkout.deliveryPayHow": "תשלום עבור המשלוח",
   "checkout.payRestaurantAll": "לשלם למסעדה (מזון + משלוח)",
@@ -402,6 +408,8 @@ const HE = {
   "wa.sellerNotes": "הערות למוכר",
   "wa.total": "סה״כ",
   "wa.foodSubtotal": "סה״כ מנות",
+  "wa.discount": "הנחת מבצע",
+  "wa.coupon": "קופון",
   "wa.totalWithDelivery": "סה״כ כולל משלוח",
   "wa.deliveryArea": "אזור משלוח",
   "wa.zoneYarka": "ירכא",
@@ -734,9 +742,15 @@ const AR = {
   "checkout.couponApply": "فحص",
   "checkout.couponChecking": "جارٍ الفحص…",
   "checkout.couponApplied": "الكوبون صالح وتم تطبيقه.",
-  "checkout.couponInvalid": "رمز كوبون غير صالح / منتهي / مستخدم سابقاً.",
+  "checkout.couponInvalid": "رمز الكوبون غير صالح.",
+  "checkout.couponExpired": "رمز الكوبون منتهي الصلاحية.",
+  "checkout.couponUsed": "رمز الكوبون مستخدم سابقاً.",
   "checkout.couponInvalidSubmit":
-    "الكوبون لم يعد صالحاً (قد يكون استُخدم أو انتهت صلاحيته). حدّث/أزل الكوبون ثم أعد المحاولة.",
+    "رمز الكوبون غير صالح. حدّث/أزل الكوبون ثم أعد المحاولة.",
+  "checkout.couponExpiredSubmit":
+    "رمز الكوبون منتهي الصلاحية. حدّث/أزل الكوبون ثم أعد المحاولة.",
+  "checkout.couponUsedSubmit":
+    "رمز الكوبون مستخدم سابقاً. حدّث/أزل الكوبون ثم أعد المحاولة.",
   "checkout.couponLine": "كوبون",
   "checkout.deliveryPayHow": "دفع أجور التوصيل",
   "checkout.payRestaurantAll": "الدفع للمطعم (الطعام + التوصيل)",
@@ -907,6 +921,8 @@ const AR = {
   "wa.sellerNotes": "ملاحظات للبائع",
   "wa.total": "المجموع الكلي",
   "wa.foodSubtotal": "مجموع الأصناف",
+  "wa.discount": "خصم العرض",
+  "wa.coupon": "كوبون",
   "wa.totalWithDelivery": "المجموع مع التوصيل",
   "wa.deliveryArea": "منطقة التوصيل",
   "wa.zoneYarka": "يركا",

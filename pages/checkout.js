@@ -343,7 +343,14 @@ export default function CheckoutPage() {
       const d = await r.json().catch(() => ({}));
       if (!r.ok || !d?.ok || !d?.coupon) {
         setAppliedCoupon(null);
-        setCouponMsg(t("checkout.couponInvalid"));
+        const err = String(d?.error || "");
+        if (err === "already_used") {
+          setCouponMsg(t("checkout.couponUsed"));
+        } else if (err === "expired") {
+          setCouponMsg(t("checkout.couponExpired"));
+        } else {
+          setCouponMsg(t("checkout.couponInvalid"));
+        }
         return;
       }
       setAppliedCoupon({
@@ -639,7 +646,12 @@ export default function CheckoutPage() {
         ) {
           setErrors((prev) => ({
             ...prev,
-            submit: t("checkout.couponInvalidSubmit"),
+            submit:
+              poErr === "coupon_used"
+                ? t("checkout.couponUsedSubmit")
+                : poErr === "coupon_expired"
+                  ? t("checkout.couponExpiredSubmit")
+                  : t("checkout.couponInvalidSubmit"),
           }));
           return;
         }
@@ -688,7 +700,12 @@ export default function CheckoutPage() {
         ) {
           setErrors((prev) => ({
             ...prev,
-            submit: t("checkout.couponInvalidSubmit"),
+            submit:
+              poErr === "coupon_used"
+                ? t("checkout.couponUsedSubmit")
+                : poErr === "coupon_expired"
+                  ? t("checkout.couponExpiredSubmit")
+                  : t("checkout.couponInvalidSubmit"),
           }));
           return;
         }
@@ -748,7 +765,12 @@ export default function CheckoutPage() {
       ) {
         setErrors((prev) => ({
           ...prev,
-          submit: t("checkout.couponInvalidSubmit"),
+          submit:
+            cardPoErr === "coupon_used"
+              ? t("checkout.couponUsedSubmit")
+              : cardPoErr === "coupon_expired"
+                ? t("checkout.couponExpiredSubmit")
+                : t("checkout.couponInvalidSubmit"),
         }));
         return;
       }
