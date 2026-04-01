@@ -74,6 +74,44 @@ export default function Layout({ children }) {
                   {t("home.contactAddressLabel")}: {t("home.contactAddressValue")}
                 </span>
                 <CurrentDateTime className="leading-tight" />
+                <div className="mt-1 inline-flex items-center gap-1.5" dir="ltr">
+                  <a
+                    href={t("home.instagramUrl")}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={t("home.instagramAria")}
+                    title={t("home.instagramAria")}
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-slate-900/50 text-pink-300 transition-colors hover:border-pink-300/70 hover:text-pink-200"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="15"
+                      height="15"
+                      fill="currentColor"
+                      aria-hidden
+                    >
+                      <path d="M7.5 2h9A5.5 5.5 0 0 1 22 7.5v9a5.5 5.5 0 0 1-5.5 5.5h-9A5.5 5.5 0 0 1 2 16.5v-9A5.5 5.5 0 0 1 7.5 2Zm0 1.8A3.7 3.7 0 0 0 3.8 7.5v9a3.7 3.7 0 0 0 3.7 3.7h9a3.7 3.7 0 0 0 3.7-3.7v-9a3.7 3.7 0 0 0-3.7-3.7h-9Zm9.3 1.6a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.8a3.2 3.2 0 1 0 0 6.4 3.2 3.2 0 0 0 0-6.4Z" />
+                    </svg>
+                  </a>
+                  <a
+                    href={t("home.tiktokUrl")}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={t("home.tiktokAria")}
+                    title={t("home.tiktokAria")}
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-slate-900/50 text-cyan-300 transition-colors hover:border-cyan-300/70 hover:text-cyan-200"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="15"
+                      height="15"
+                      fill="currentColor"
+                      aria-hidden
+                    >
+                      <path d="M14.8 2h2a5.6 5.6 0 0 0 3.2 3.2v2.2a7.7 7.7 0 0 1-3.2-.8v6.6A6.2 6.2 0 1 1 10.6 7v2.4a3.8 3.8 0 1 0 3.9 3.8V2Z" />
+                    </svg>
+                  </a>
+                </div>
               </div>
             </div>
           </div>

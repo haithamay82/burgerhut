@@ -36,7 +36,8 @@ export function customizationKey(item) {
   const variant = item.variantLabel ?? "";
   const size = item.sizeLabel ?? "";
   const notes = String(item.sellerNotes ?? "").trim();
-  return `${pid}|${size}|${variant}|${salads}|${tops}|${extras}|${notes}`;
+  const requestedDrink = String(item.requestedDrinkId ?? "").trim();
+  return `${pid}|${size}|${variant}|${salads}|${tops}|${extras}|${requestedDrink}|${notes}`;
 }
 
 function newCartLineId(productId) {

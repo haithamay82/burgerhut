@@ -100,6 +100,15 @@ export function buildWhatsAppOrderText({
     const quantitySuffix =
       Number.isFinite(qty) && qty > 1 ? ` x${qty}` : "";
     lines.push(`${index + 1}. ${item.name}${quantitySuffix}${lineSuffix}`);
+    if (item.requestedDrinkLabel && String(item.requestedDrinkLabel).trim()) {
+      const drinkPrice =
+        Number.isFinite(Number(item.requestedDrinkPrice))
+          ? ` (+₪${formatIls(Number(item.requestedDrinkPrice))})`
+          : "";
+      lines.push(
+        `   ${tr("wa.drink")}: ${String(item.requestedDrinkLabel).trim()}${drinkPrice}`
+      );
+    }
     if (item.salads?.length) {
       lines.push(
         `   ${tr("wa.salads")}: ${item.salads.map((x) => x.label).join(", ")}`

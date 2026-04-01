@@ -102,9 +102,13 @@ export default function AdminOrdersPage() {
   const [hoursDraft, setHoursDraft] = useState(null);
   const [hoursSaving, setHoursSaving] = useState(false);
   const [hoursMsg, setHoursMsg] = useState("");
+  const [discountDraft, setDiscountDraft] = useState(null);
+  const [discountSaving, setDiscountSaving] = useState(false);
+  const [discountMsg, setDiscountMsg] = useState("");
   const [inventoryOpen, setInventoryOpen] = useState(false);
   const [promoOpen, setPromoOpen] = useState(false);
   const [hoursPanelOpen, setHoursPanelOpen] = useState(false);
+  const [discountPanelOpen, setDiscountPanelOpen] = useState(false);
   const [promo, setPromo] = useState(null);
   const [promoUploading, setPromoUploading] = useState(false);
   const [promoSaving, setPromoSaving] = useState(false);
@@ -148,6 +152,7 @@ export default function AdminOrdersPage() {
         setOrders([]);
         setLoaded(false);
         setHoursDraft(null);
+        setDiscountDraft(null);
         setPromo(null);
         setError(
           data.error === "admin_not_configured"
@@ -159,6 +164,7 @@ export default function AdminOrdersPage() {
       setOrders(data.orders || []);
       setLoaded(true);
       setHoursMsg("");
+      setDiscountMsg("");
       const todayK = jerusalemDayKey();
       const { y: ty, m: tm } = parseDayKey(todayK);
       setSelectedDayKey(todayK);
@@ -186,6 +192,32 @@ export default function AdminOrdersPage() {
         setHoursDraft(getDefaultBusinessSchedule());
       }
       try {
+        const dr = await fetch("/api/discount");
+        const dd = await dr.json().catch(() => ({}));
+        if (dr.ok && dd.ok) {
+          setDiscountDraft({
+            enabled: Boolean(dd.enabled),
+            percent: Number(dd.percent) || 0,
+            minOrderTotal: Number(dd.minOrderTotal) || 0,
+            reason: String(dd.reason ?? ""),
+          });
+        } else {
+          setDiscountDraft({
+            enabled: false,
+            percent: 0,
+            minOrderTotal: 0,
+            reason: "",
+          });
+        }
+      } catch {
+        setDiscountDraft({
+          enabled: false,
+          percent: 0,
+          minOrderTotal: 0,
+          reason: "",
+        });
+      }
+      try {
         const pr = await fetch("/api/promo");
         const pd = await pr.json().catch(() => ({}));
         if (pr.ok && pd.ok) {
@@ -200,6 +232,7 @@ export default function AdminOrdersPage() {
       setError(t("admin.errNet"));
       setLoaded(false);
       setHoursDraft(null);
+      setDiscountDraft(null);
       setPromo(null);
     } finally {
       setLoading(false);
@@ -278,6 +311,10 @@ export default function AdminOrdersPage() {
           )
         : null
     );
+  };
+
+  const updateDiscountDraft = (patch) => {
+    setDiscountDraft((prev) => (prev ? { ...prev, ...patch } : prev));
   };
 
   const togglePromoPanel = async () => {
@@ -413,6 +450,48 @@ export default function AdminOrdersPage() {
       setError(t("admin.errNet"));
     } finally {
       setHoursSaving(false);
+    }
+  };
+
+  const saveDiscountConfig = async () => {
+    if (!secret.trim() || !discountDraft) return;
+    setError("");
+    setDiscountMsg("");
+    setDiscountSaving(true);
+    try {
+      const r = await fetch("/api/discount", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-secret": secret.trim(),
+        },
+        body: JSON.stringify({
+          enabled: Boolean(discountDraft.enabled),
+          percent: Number(discountDraft.percent) || 0,
+          minOrderTotal: Number(discountDraft.minOrderTotal) || 0,
+          reason: String(discountDraft.reason ?? ""),
+        }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setError(
+          d.error === "admin_not_configured"
+            ? t("admin.errConfig")
+            : t("admin.discountErr")
+        );
+        return;
+      }
+      setDiscountDraft({
+        enabled: Boolean(d.enabled),
+        percent: Number(d.percent) || 0,
+        minOrderTotal: Number(d.minOrderTotal) || 0,
+        reason: String(d.reason ?? ""),
+      });
+      setDiscountMsg(t("admin.discountSaved"));
+    } catch {
+      setError(t("admin.errNet"));
+    } finally {
+      setDiscountSaving(false);
     }
   };
 
@@ -800,6 +879,108 @@ export default function AdminOrdersPage() {
                   ) : null}
                 </>
               ) : null}
+
+              {discountDraft ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setDiscountPanelOpen((v) => !v)}
+                    aria-expanded={discountPanelOpen}
+                    className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-right text-sm font-bold text-gray-100 transition-colors hover:border-primary/50 hover:bg-slate-800/60"
+                  >
+                    <span className="min-w-0 flex-1 leading-snug">
+                      {t("admin.discountTitle")}
+                    </span>
+                    <span
+                      className="shrink-0 text-lg leading-none text-primary"
+                      aria-hidden
+                    >
+                      {discountPanelOpen ? "▾" : "▶"}
+                    </span>
+                  </button>
+                  {discountPanelOpen ? (
+                    <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
+                      <p className="mb-4 text-[11px] leading-relaxed text-gray-500">
+                        {t("admin.discountHint")}
+                      </p>
+                      {discountMsg ? (
+                        <p className="mb-3 text-xs font-medium text-emerald-400/95">
+                          {discountMsg}
+                        </p>
+                      ) : null}
+                      <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-950/30 p-3">
+                        <label className="flex cursor-pointer items-center gap-2 text-xs text-gray-300">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(discountDraft.enabled)}
+                            disabled={discountSaving}
+                            onChange={(e) =>
+                              updateDiscountDraft({ enabled: e.target.checked })
+                            }
+                            className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-primary focus:ring-primary"
+                          />
+                          {t("admin.discountEnabled")}
+                        </label>
+                        <label className="flex flex-col gap-1 text-xs text-gray-400">
+                          <span>{t("admin.discountPercent")}</span>
+                          <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            step="0.1"
+                            value={discountDraft.percent}
+                            disabled={discountSaving}
+                            onChange={(e) =>
+                              updateDiscountDraft({ percent: e.target.value })
+                            }
+                            className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-gray-100 disabled:opacity-40"
+                          />
+                        </label>
+                        <label className="flex flex-col gap-1 text-xs text-gray-400">
+                          <span>{t("admin.discountMinOrder")}</span>
+                          <input
+                            type="number"
+                            min={0}
+                            step="1"
+                            value={discountDraft.minOrderTotal}
+                            disabled={discountSaving}
+                            onChange={(e) =>
+                              updateDiscountDraft({
+                                minOrderTotal: e.target.value,
+                              })
+                            }
+                            className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-gray-100 disabled:opacity-40"
+                          />
+                        </label>
+                        <label className="flex flex-col gap-1 text-xs text-gray-400">
+                          <span>{t("admin.discountReason")}</span>
+                          <input
+                            type="text"
+                            maxLength={180}
+                            value={discountDraft.reason || ""}
+                            disabled={discountSaving}
+                            onChange={(e) =>
+                              updateDiscountDraft({ reason: e.target.value })
+                            }
+                            placeholder={t("admin.discountReasonPh")}
+                            className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-gray-100 disabled:opacity-40"
+                          />
+                        </label>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={saveDiscountConfig}
+                        disabled={discountSaving || !secret.trim()}
+                        className="btn-primary mt-4 text-sm disabled:opacity-50"
+                      >
+                        {discountSaving
+                          ? t("admin.discountSaving")
+                          : t("admin.discountSave")}
+                      </button>
+                    </section>
+                  ) : null}
+                </>
+              ) : null}
             </div>
 
               <section
@@ -1049,6 +1230,19 @@ export default function AdminOrdersPage() {
                                         {it.extras
                                           .map((x) => x.label)
                                           .join(", ")}
+                                      </p>
+                                    ) : null}
+                                    {it.requestedDrinkLabel ? (
+                                      <p className="text-[11px] text-sky-200/90">
+                                        {t("wa.drink")}:{" "}
+                                        {it.requestedDrinkLabel}
+                                        {Number.isFinite(
+                                          Number(it.requestedDrinkPrice)
+                                        )
+                                          ? ` (+₪${Number(
+                                              it.requestedDrinkPrice
+                                            ).toFixed(0)})`
+                                          : ""}
                                       </p>
                                     ) : null}
                                     {it.sellerNotes ? (

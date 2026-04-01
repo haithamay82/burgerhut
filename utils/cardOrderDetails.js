@@ -16,6 +16,12 @@ export function buildCardOrderDetailsFromItems(items) {
       salads: sals,
       extras: exs,
       lineTotal: lineTotal(item),
+      requestedDrinkLabel: item.requestedDrinkLabel
+        ? String(item.requestedDrinkLabel).trim() || undefined
+        : undefined,
+      requestedDrinkPrice: Number.isFinite(Number(item.requestedDrinkPrice))
+        ? Number(item.requestedDrinkPrice)
+        : undefined,
       sellerNotes: item.sellerNotes
         ? String(item.sellerNotes).trim() || undefined
         : undefined,

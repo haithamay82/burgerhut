@@ -7,6 +7,7 @@ import {
   EXTRA_SAUCES,
   FREE_SALADS,
   KIDS_CRISPY_BREAD_CHOICES,
+  MENU_ITEMS,
 } from "@/utils/menuData";
 import { formatIls } from "@/utils/cartMoney";
 import { computeSaucesCharge, marginalSauceCharge } from "@/utils/saucePricing";
@@ -29,6 +30,8 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
   const [kidsBreadChoice, setKidsBreadChoice] = useState("round");
   const [adultCrispyBli, setAdultCrispyBli] = useState(false);
   const [sellerNotes, setSellerNotes] = useState("");
+  const [requestedDrinkId, setRequestedDrinkId] = useState("");
+  const [drinkMenuOpen, setDrinkMenuOpen] = useState(false);
 
   const isOutOfStock = item ? isUnavailable(item.id) : false;
   const orderingClosed = !orderingAllowed;
@@ -52,6 +55,25 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
   const unitPrice = item
     ? (Number(item.basePrice) || 0) + toppingsPrice + saucesPrice
     : 0;
+  const drinkOptions = useMemo(
+    () =>
+      MENU_ITEMS.filter((row) => row.category === "drinks").map((row) => ({
+        id: row.id,
+        label: t(`menu.${row.id}.name`),
+        price: Number(row.basePrice) || 0,
+        image: row.image,
+      })),
+    [t]
+  );
+  const requestedDrinkPrice = useMemo(() => {
+    if (!requestedDrinkId) return 0;
+    return drinkOptions.find((d) => d.id === requestedDrinkId)?.price || 0;
+  }, [requestedDrinkId, drinkOptions]);
+  const selectedDrink = useMemo(
+    () => drinkOptions.find((d) => d.id === requestedDrinkId) || null,
+    [drinkOptions, requestedDrinkId]
+  );
+  const finalUnitPrice = unitPrice + requestedDrinkPrice;
 
   useEffect(() => {
     if (!open || !item) return;
@@ -62,6 +84,8 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
     setKidsBreadChoice("round");
     setAdultCrispyBli(false);
     setSellerNotes("");
+    setRequestedDrinkId("");
+    setDrinkMenuOpen(false);
     setIsAdding(false);
   }, [open, item?.id]);
 
@@ -157,6 +181,9 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
     }
 
     const notesTrim = sellerNotes.trim();
+    const requestedDrinkLabel = requestedDrinkId
+      ? t(`menu.${requestedDrinkId}.name`)
+      : "";
     addItem({
       productId: item.id,
       name,
@@ -164,8 +191,11 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
       toppings,
       extras,
       quantity,
-      price: unitPrice,
+      price: finalUnitPrice,
       ...(variantLabel ? { variantLabel } : {}),
+      ...(requestedDrinkId
+        ? { requestedDrinkId, requestedDrinkLabel, requestedDrinkPrice }
+        : {}),
       ...(notesTrim ? { sellerNotes: notesTrim } : {}),
     });
     setTimeout(() => {
@@ -424,6 +454,74 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
 
         <div className="mb-4 space-y-1.5">
           <label
+            htmlFor="meal-requested-drink"
+            className="block text-[11px] font-semibold text-gray-300"
+          >
+            {t("ui.addDrinkQuestion")}
+          </label>
+          <div id="meal-requested-drink" className="relative">
+            <button
+              type="button"
+              disabled={blocked}
+              onClick={() => setDrinkMenuOpen((v) => !v)}
+              className="flex w-full items-center justify-between rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 text-xs text-gray-100 outline-none transition-colors hover:border-primary disabled:opacity-50"
+            >
+              <span className="truncate">
+                {selectedDrink
+                  ? `${selectedDrink.label} (+₪${formatIls(selectedDrink.price)})`
+                  : t("ui.addDrinkSelectPlaceholder")}
+              </span>
+              <span className="text-[10px] text-gray-400">
+                {drinkMenuOpen ? "▲" : "▼"}
+              </span>
+            </button>
+            {drinkMenuOpen ? (
+              <div className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-slate-700 bg-slate-950/95 shadow-xl">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRequestedDrinkId("");
+                    setDrinkMenuOpen(false);
+                  }}
+                  className="flex w-full items-center justify-between border-b border-slate-800 px-3 py-2 text-xs text-gray-300 hover:bg-slate-900"
+                >
+                  <span>{t("ui.addDrinkSelectPlaceholder")}</span>
+                </button>
+                {drinkOptions.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => {
+                      setRequestedDrinkId(opt.id);
+                      setDrinkMenuOpen(false);
+                    }}
+                    className={`flex w-full items-center justify-between px-3 py-2 text-xs hover:bg-slate-900 ${
+                      requestedDrinkId === opt.id
+                        ? "bg-primary/10 text-primary"
+                        : "text-gray-100"
+                    }`}
+                  >
+                    <span className="text-[11px] text-gray-300">
+                      +₪{formatIls(opt.price)}
+                    </span>
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span className="truncate">{opt.label}</span>
+                      <img
+                        src={opt.image}
+                        alt=""
+                        className="h-7 w-7 shrink-0 rounded-md border border-slate-700 object-cover"
+                        loading="lazy"
+                      />
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="mb-4 space-y-1.5">
+          <label
             htmlFor="meal-seller-notes"
             className="block text-[11px] font-semibold text-gray-300"
           >
@@ -444,12 +542,12 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
         <p className="mb-4 text-sm text-gray-400">
           {t("ui.wizardPriceLine")}{" "}
           <span className="font-bold text-primary">
-            ₪{formatIls(unitPrice)}
+            ₪{formatIls(finalUnitPrice)}
           </span>
           {quantity > 1 ? (
             <span className="mr-1 text-gray-500">
               {" "}
-              × {quantity} = ₪{formatIls(unitPrice * quantity)}
+              × {quantity} = ₪{formatIls(finalUnitPrice * quantity)}
             </span>
           ) : null}
         </p>

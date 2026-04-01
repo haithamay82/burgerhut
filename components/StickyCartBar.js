@@ -95,6 +95,14 @@ export default function StickyCartBar() {
                         {item.extras.map((x) => x.label).join(", ")}
                       </p>
                     ) : null}
+                    {item.requestedDrinkLabel ? (
+                      <p className="text-[11px] text-sky-200/90">
+                        {t("wa.drink")}: {item.requestedDrinkLabel}
+                        {Number.isFinite(Number(item.requestedDrinkPrice))
+                          ? ` (+₪${formatIls(Number(item.requestedDrinkPrice))})`
+                          : ""}
+                      </p>
+                    ) : null}
                     {item.sellerNotes ? (
                       <p className="mt-1 text-[11px] text-amber-200/90">
                         {t("ui.sellerNotes")}: {item.sellerNotes}

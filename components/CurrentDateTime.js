@@ -1,13 +1,8 @@
 import { useEffect, useState } from "react";
-import { useLocale } from "@/contexts/LocaleContext";
 
 const TZ = "Asia/Jerusalem";
 
-/**
- * Live date + time for the active UI locale (he-IL / ar-IL), Jerusalem TZ.
- */
 export default function CurrentDateTime({ className = "" }) {
-  const { locale } = useLocale();
   const [now, setNow] = useState(null);
 
   useEffect(() => {
@@ -18,13 +13,14 @@ export default function CurrentDateTime({ className = "" }) {
 
   if (!now) return null;
 
-  const tag = locale === "he" ? "he-IL" : "ar-IL";
-  const line = new Intl.DateTimeFormat(tag, {
+  const dateLine = new Intl.DateTimeFormat("en-GB", {
     timeZone: TZ,
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+  }).format(now);
+  const timeLine = new Intl.DateTimeFormat("en-GB", {
+    timeZone: TZ,
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
@@ -32,8 +28,9 @@ export default function CurrentDateTime({ className = "" }) {
   }).format(now);
 
   return (
-    <span className={`inline-block whitespace-nowrap tabular-nums ${className}`}>
-      {line}
+    <span className={`inline-flex flex-col tabular-nums ${className}`}>
+      <span className="whitespace-nowrap">{dateLine}</span>
+      <span className="whitespace-nowrap">{timeLine}</span>
     </span>
   );
 }

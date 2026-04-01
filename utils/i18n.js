@@ -16,6 +16,10 @@ const HE = {
   "home.contactPhoneValue": "0504847599",
   "home.callPhoneAria": "התקשר למסעדה",
   "home.contactAddressValue": "ירכא 137",
+  "home.instagramAria": "אינסטגרם של המסעדה",
+  "home.tiktokAria": "טיקטוק של המסעדה",
+  "home.instagramUrl": "https://www.instagram.com/burger._.hut?igsh=c3UwZzliZDBtNXQz",
+  "home.tiktokUrl": "https://www.tiktok.com/@burger._.hut?_r=1&_t=ZS-95A2cZnTFdV",
   "home.openMap": "פתיחה במפות",
   "home.openWaze": "waze למסעדה",
   "home.hoursButton": "זמני עבודה",
@@ -30,6 +34,10 @@ const HE = {
   "home.orderingClosedBannerOpenDay":
     "המסעדה תיפתח בשעה 16:00 — ניתן לעשות הזמנה משעה 10:00 עד שעת הסגירה באותו יום.",
   "home.orderingClosedBannerDayOff": "המסעדה סגורה היום",
+  "home.discountAnnounceWithReason":
+    "עקב {reason} מחכה לכם הנחה של {percent}% בקניה מעל {min}.",
+  "home.discountAnnounceNoReason":
+    "מחכה לכם הנחה של {percent}% בקניה מעל {min}.",
   "home.categoryBannerAria": "בחירת קטגוריית תפריט",
   "home.mealInfo":
     "מנת בורגר / קריספי צ׳יקן כוללת: מיקס צ׳יפס (צ׳יפס זיגזג, פוטטו, טבעות בצל, כדורי פירה). מיונז, קטשופ, ורוטב אחד כלול",
@@ -156,6 +164,8 @@ const HE = {
   "ui.wizardPriceLine": "מחיר ליחידה (לפי הבחירה):",
   "ui.wizardAllOnOneScreen":
     "כל האפשרויות למטה — גללו, בחרו והוסיפו לעגלה בתחתית המסך.",
+  "ui.addDrinkQuestion": "להוסיף שתיה?",
+  "ui.addDrinkSelectPlaceholder": "בחרו משקה מהרשימה",
   "ui.sellerNotes": "הערות למוכר",
   "ui.sellerNotesPh": "למשל: בלי רטבים, אריזה נפרדת…",
 
@@ -216,6 +226,7 @@ const HE = {
   "checkout.geocodeFail": "לא נמצאה כתובת. נסו לפרט עיר ורחוב.",
   "checkout.deliveryFeeLine": "דמי משלוח",
   "checkout.foodSubtotal": "סה״כ מנות",
+  "checkout.discountLine": "הנחה",
   "checkout.deliveryPayHow": "תשלום עבור המשלוח",
   "checkout.payRestaurantAll": "לשלם למסעדה (מזון + משלוח)",
   "checkout.payCourierDeliveryFoodPrefix": "לשלם למסעדה עלות המזון (",
@@ -352,7 +363,7 @@ const HE = {
 
   "float.wa": "יצירת קשר בווטסאפ",
 
-  "wa.brand": "*Burger Hut ברגר האט*",
+  "wa.brand": "*Burger Hut בורגר האט*",
   "wa.newOrder": "הזמנה חדשה:",
   "wa.orderNumber": "מספר הזמנה",
   "wa.name": "שם",
@@ -367,6 +378,7 @@ const HE = {
   "wa.salads": "סלטים",
   "wa.sauces": "תוספות רטבים",
   "wa.linePrice": "מחיר",
+  "wa.drink": "שתיה",
   "wa.sellerNotes": "הערות למוכר",
   "wa.total": "סה״כ",
   "wa.foodSubtotal": "סה״כ מנות",
@@ -424,6 +436,18 @@ const HE = {
   "admin.hoursSaving": "שומר…",
   "admin.hoursSaved": "הזמנים נשמרו.",
   "admin.hoursErr": "לא ניתן היה לשמור את זמני העבודה.",
+  "admin.discountTitle": "מבצעים והנחות",
+  "admin.discountHint":
+    "הגדירו הנחה באחוזים עבור הזמנות מעל סכום מסוים. ההנחה חלה על עלות המנות בלבד (ללא משלוח), וניתן להפעיל/לכבות בכל עת.",
+  "admin.discountEnabled": "להפעיל הנחה",
+  "admin.discountPercent": "אחוז הנחה (%)",
+  "admin.discountMinOrder": "החל מסכום הזמנה (₪)",
+  "admin.discountReason": "סיבת ההנחה",
+  "admin.discountReasonPh": "למשל: מבצע סוף שבוע / פתיחה חגיגית",
+  "admin.discountSave": "שמור הנחה",
+  "admin.discountSaving": "שומר הנחה…",
+  "admin.discountSaved": "ההנחה נשמרה.",
+  "admin.discountErr": "לא ניתן היה לשמור את ההנחה.",
   "admin.promoTitle": "פרסום — סרטון בדף הבית",
   "admin.promoHint":
     "העלה קובץ וידאו (עד כ־80MB). בכניסה לאתר הסרטון יוצג במסך מלא; הלקוח יכול ללחוץ «דלג». אחרי דילוג באותו ביקור הסרטון לא יופיע שוב; סרטון חדש יוצג שוב אוטומטית.",
@@ -472,6 +496,10 @@ const AR = {
   "home.contactPhoneValue": "0504847599",
   "home.callPhoneAria": "اتصال بالمطعم",
   "home.contactAddressValue": "يركا 137",
+  "home.instagramAria": "انستغرام المطعم",
+  "home.tiktokAria": "تيك توك المطعم",
+  "home.instagramUrl": "https://www.instagram.com/burger._.hut?igsh=c3UwZzliZDBtNXQz",
+  "home.tiktokUrl": "https://www.tiktok.com/@burger._.hut?_r=1&_t=ZS-95A2cZnTFdV",
   "home.openMap": "فتح في الخرائط",
   "home.openWaze": "waze للمطعم",
   "home.hoursButton": "ساعات العمل",
@@ -486,6 +514,10 @@ const AR = {
   "home.orderingClosedBannerOpenDay":
     "يفتح المطعم الساعة 16:00 — يمكن تقديم الطلب من الساعة 10:00 حتى وقت الإغلاق في ذلك اليوم.",
   "home.orderingClosedBannerDayOff": "المطعم مغلق اليوم",
+  "home.discountAnnounceWithReason":
+    "بسبب {reason} يمكنكم الحصول على خصم بنسبة {percent}% عند الشراء فوق {min}.",
+  "home.discountAnnounceNoReason":
+    "يمكنكم الحصول على خصم بنسبة {percent}% عند الشراء فوق {min}.",
   "home.categoryBannerAria": "اختيار فئة القائمة",
   "home.mealInfo":
     "وجبة برجر / تشيكن كرسبي تشمل: ميكس بطاطا (بطاطا متموجة، بطاطا، حلقات بصل، كرات بوريه). مايونيز، كاتشاب، وصلصة واحدة مشمولة.",
@@ -612,6 +644,8 @@ const AR = {
   "ui.wizardPriceLine": "سعر الوحدة (حسب اختيارك):",
   "ui.wizardAllOnOneScreen":
     "كل الخيارات أدناه — مرّروا واختاروا، ثم أضيفوا للسلة في الأسفل.",
+  "ui.addDrinkQuestion": "إضافة مشروب؟",
+  "ui.addDrinkSelectPlaceholder": "اختروا مشروباً من القائمة",
   "ui.sellerNotes": "ملاحظات للبائع",
   "ui.sellerNotesPh": "مثلاً: بدون صلصات، تغليف منفصل…",
 
@@ -672,6 +706,7 @@ const AR = {
   "checkout.geocodeFail": "لم يُعثر على العنوان. جرّب تفاصيل أوضح.",
   "checkout.deliveryFeeLine": "أجور التوصيل",
   "checkout.foodSubtotal": "مجموع الأصناف",
+  "checkout.discountLine": "خصم",
   "checkout.deliveryPayHow": "دفع أجور التوصيل",
   "checkout.payRestaurantAll": "الدفع للمطعم (الطعام + التوصيل)",
   "checkout.payCourierDeliveryFoodPrefix": "الدفع للمطعم ثمن الطعام (",
@@ -826,6 +861,7 @@ const AR = {
   "wa.salads": "سلطة",
   "wa.sauces": "صلصات إضافية",
   "wa.linePrice": "السعر",
+  "wa.drink": "مشروب",
   "wa.sellerNotes": "ملاحظات للبائع",
   "wa.total": "المجموع الكلي",
   "wa.foodSubtotal": "مجموع الأصناف",
@@ -883,6 +919,18 @@ const AR = {
   "admin.hoursSaving": "جارٍ الحفظ…",
   "admin.hoursSaved": "تم حفظ الأوقات.",
   "admin.hoursErr": "تعذّر حفظ أوقات العمل.",
+  "admin.discountTitle": "العروض والخصومات",
+  "admin.discountHint":
+    "حدّدوا نسبة خصم للطلبات التي تتجاوز مبلغاً معيناً. الخصم يُطبّق على تكلفة الطعام فقط (بدون التوصيل)، ويمكن تشغيله أو إيقافه في أي وقت.",
+  "admin.discountEnabled": "تفعيل الخصم",
+  "admin.discountPercent": "نسبة الخصم (%)",
+  "admin.discountMinOrder": "ابتداءً من مبلغ طلب (₪)",
+  "admin.discountReason": "سبب الخصم",
+  "admin.discountReasonPh": "مثلاً: عرض نهاية أسبوع / افتتاح",
+  "admin.discountSave": "حفظ الخصم",
+  "admin.discountSaving": "جارٍ حفظ الخصم…",
+  "admin.discountSaved": "تم حفظ الخصم.",
+  "admin.discountErr": "تعذّر حفظ الخصم.",
   "admin.promoTitle": "إعلان — فيديو في الصفحة الرئيسية",
   "admin.promoHint":
     "ارفع ملف فيديو (حتى نحو 80MB). عند الدخول للموقع يُعرض بملء الشاشة؛ يمكن للعميل الضغط «تخطي». بعد التخطي في نفس الجلسة لن يظهر مرة أخرى؛ فيديو جديد يُعرض تلقائياً.",

@@ -7,13 +7,20 @@ import MenuItemCard from "@/components/MenuItemCard";
 import MealCustomizeWizard from "@/components/MealCustomizeWizard";
 import { CATEGORIES, MENU_ITEMS } from "@/utils/menuData";
 import { useLocale } from "@/contexts/LocaleContext";
-import { useState } from "react";
+import { formatIls } from "@/utils/cartMoney";
+import { useEffect, useState } from "react";
 
 export default function HomeMain() {
   const { t } = useLocale();
   const { orderingAllowed, todayScheduledOpen } = useOrderingHours();
   const [activeCategory, setActiveCategory] = useState("burgers");
   const [mealWizardItem, setMealWizardItem] = useState(null);
+  const [discountCfg, setDiscountCfg] = useState({
+    enabled: false,
+    percent: 0,
+    minOrderTotal: 0,
+    reason: "",
+  });
   const mapQuery = encodeURIComponent("ירכא 137");
   const mapEmbedSrc = `https://www.google.com/maps?q=${mapQuery}&output=embed`;
   const mapOpenUrl = `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
@@ -24,6 +31,33 @@ export default function HomeMain() {
   ).sort((a, b) => a.basePrice - b.basePrice);
   const homeTitle = t("home.title");
   const titleWithoutHeart = homeTitle.replace("❤", "").trim();
+  const discountActive =
+    discountCfg.enabled &&
+    Number(discountCfg.percent) > 0 &&
+    Number(discountCfg.minOrderTotal) >= 0;
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadDiscount = async () => {
+      try {
+        const r = await fetch("/api/discount");
+        const d = await r.json().catch(() => ({}));
+        if (cancelled || !r.ok || !d?.ok) return;
+        setDiscountCfg({
+          enabled: Boolean(d.enabled),
+          percent: Number(d.percent) || 0,
+          minOrderTotal: Number(d.minOrderTotal) || 0,
+          reason: String(d.reason ?? ""),
+        });
+      } catch {
+        /* ignore */
+      }
+    };
+    loadDiscount();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <>
@@ -42,6 +76,25 @@ export default function HomeMain() {
               : "home.orderingClosedBannerDayOff"
           )}
         </p>
+      ) : null}
+      {discountActive ? (
+        <section className="promo-banner-shimmer mb-4 rounded-2xl border-2 border-amber-300/70 bg-gradient-to-r from-fuchsia-900/70 via-violet-900/60 to-amber-900/70 p-3 shadow-[0_0_30px_-8px_rgba(251,191,36,0.75)] ring-1 ring-fuchsia-300/40">
+          <p className="text-sm font-extrabold leading-snug text-amber-100 drop-shadow-[0_1px_0_rgba(0,0,0,0.45)]">
+            {(discountCfg.reason
+              ? t("home.discountAnnounceWithReason")
+              : t("home.discountAnnounceNoReason")
+            )
+              .replace("{reason}", discountCfg.reason || "")
+              .replace(
+                "{percent}",
+                Number(discountCfg.percent).toFixed(2).replace(/\.00$/, "")
+              )
+              .replace(
+                "{min}",
+                `₪${formatIls(Number(discountCfg.minOrderTotal) || 0)}`
+              )}
+          </p>
+        </section>
       ) : null}
       <section className="mb-4">
         <h2 className="mb-1 text-lg font-bold">

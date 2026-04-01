@@ -20,3 +20,22 @@ body {
   @apply rounded-2xl bg-slate-900/80 border border-slate-800 shadow-lg;
 }
 
+@keyframes promoGlowPulse {
+  0% {
+    filter: saturate(1) brightness(1);
+    box-shadow: 0 0 22px -10px rgba(251, 191, 36, 0.55);
+  }
+  50% {
+    filter: saturate(1.15) brightness(1.08);
+    box-shadow: 0 0 34px -8px rgba(251, 191, 36, 0.9);
+  }
+  100% {
+    filter: saturate(1) brightness(1);
+    box-shadow: 0 0 22px -10px rgba(251, 191, 36, 0.55);
+  }
+}
+
+.promo-banner-shimmer {
+  animation: promoGlowPulse 2s ease-in-out infinite;
+}
+

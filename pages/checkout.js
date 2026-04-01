@@ -86,6 +86,11 @@ export default function CheckoutPage() {
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [discountCfg, setDiscountCfg] = useState({
+    enabled: false,
+    percent: 0,
+    minOrderTotal: 0,
+  });
 
   const foodTotal = total;
 
@@ -130,6 +135,28 @@ export default function CheckoutPage() {
     }
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    const loadDiscount = async () => {
+      try {
+        const r = await fetch("/api/discount");
+        const d = await r.json().catch(() => ({}));
+        if (cancelled || !r.ok || !d?.ok) return;
+        setDiscountCfg({
+          enabled: Boolean(d.enabled),
+          percent: Number(d.percent) || 0,
+          minOrderTotal: Number(d.minOrderTotal) || 0,
+        });
+      } catch {
+        /* ignore */
+      }
+    };
+    loadDiscount();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const deliveryFeeNis = useMemo(() => {
     if (form.orderType !== "delivery") return 0;
     if (
@@ -149,24 +176,39 @@ export default function CheckoutPage() {
     deliveryMapPoint,
   ]);
 
+  const discountAmountNis = useMemo(() => {
+    if (!discountCfg.enabled) return 0;
+    const p = Number(discountCfg.percent);
+    const min = Number(discountCfg.minOrderTotal);
+    if (!Number.isFinite(p) || p <= 0) return 0;
+    if (!Number.isFinite(min) || foodTotal < min) return 0;
+    const raw = (foodTotal * p) / 100;
+    return Math.max(0, Math.round(raw * 100) / 100);
+  }, [discountCfg.enabled, discountCfg.percent, discountCfg.minOrderTotal, foodTotal]);
+
+  const discountedFoodTotal = useMemo(
+    () => Math.max(0, foodTotal - discountAmountNis),
+    [foodTotal, discountAmountNis]
+  );
+
   const grandTotal = useMemo(() => {
-    if (form.orderType !== "delivery") return foodTotal;
-    if (deliveryFeeNis == null) return foodTotal;
-    return foodTotal + deliveryFeeNis;
-  }, [foodTotal, form.orderType, deliveryFeeNis]);
+    if (form.orderType !== "delivery") return discountedFoodTotal;
+    if (deliveryFeeNis == null) return discountedFoodTotal;
+    return discountedFoodTotal + deliveryFeeNis;
+  }, [discountedFoodTotal, form.orderType, deliveryFeeNis]);
 
   /** סכום לביט / אשראי אונליין: מלא או מזון בלבד אם משלמים דמי משלוח לשליח בנפרד */
   const onlinePayAmount = useMemo(() => {
     if (form.orderType !== "delivery" || deliveryFeeNis == null) {
       return grandTotal;
     }
-    if (form.deliveryPayTo === "courier_delivery") return foodTotal;
+    if (form.deliveryPayTo === "courier_delivery") return discountedFoodTotal;
     return grandTotal;
   }, [
     form.orderType,
     form.deliveryPayTo,
     deliveryFeeNis,
-    foodTotal,
+    discountedFoodTotal,
     grandTotal,
   ]);
 
@@ -371,7 +413,15 @@ export default function CheckoutPage() {
             ? "courier_all_cash"
             : form.deliveryPayTo || undefined
           : undefined,
-      foodTotalNis: foodTotal,
+      foodTotalBeforeDiscountNis: foodTotal,
+      discountAmountNis: discountAmountNis || undefined,
+      discountPercent:
+        discountAmountNis > 0 ? Number(discountCfg.percent) || undefined : undefined,
+      discountMinOrderTotal:
+        discountAmountNis > 0
+          ? Number(discountCfg.minOrderTotal) || undefined
+          : undefined,
+      foodTotalNis: discountedFoodTotal,
     };
   };
 
@@ -672,6 +722,14 @@ export default function CheckoutPage() {
                         {item.extras.map((x) => x.label).join(", ")}
                       </p>
                     ) : null}
+                    {item.requestedDrinkLabel ? (
+                      <p className="text-[11px] text-sky-200/90">
+                        {t("wa.drink")}: {item.requestedDrinkLabel}
+                        {Number.isFinite(Number(item.requestedDrinkPrice))
+                          ? ` (+₪${formatIls(Number(item.requestedDrinkPrice))})`
+                          : ""}
+                      </p>
+                    ) : null}
                     {item.sellerNotes ? (
                       <p className="mt-1 text-[11px] text-amber-200/90">
                         {t("ui.sellerNotes")}: {item.sellerNotes}
@@ -735,6 +793,17 @@ export default function CheckoutPage() {
                 ₪{formatIls(foodTotal)}
               </span>
             </div>
+            {discountAmountNis > 0 ? (
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-emerald-300/90">
+                  {t("checkout.discountLine")} (
+                  {Number(discountCfg.percent).toFixed(2).replace(/\.00$/, "")}%)
+                </span>
+                <span className="text-sm font-semibold text-emerald-300/90">
+                  -₪{formatIls(discountAmountNis)}
+                </span>
+              </div>
+            ) : null}
             {form.orderType === "delivery" && deliveryFeeNis != null ? (
               <>
                 <div className="flex items-center justify-between">
@@ -1077,7 +1146,7 @@ export default function CheckoutPage() {
                   <p className="text-[10px] leading-snug text-amber-200/85">
                     <span>{t("checkout.onlinePayFoodOnlyLabel")}</span>{" "}
                     <span className="font-semibold text-amber-100">
-                      ₪{formatIls(foodTotal)}
+                      ₪{formatIls(discountedFoodTotal)}
                     </span>
                     . {t("checkout.onlinePayDeliveryToCourier")}
                   </p>
