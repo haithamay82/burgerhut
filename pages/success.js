@@ -168,13 +168,46 @@ export default function SuccessPage() {
       backgroundColor: "#0b1220",
       scale: 2,
     });
-    const dataUrl = canvas.toDataURL("image/png");
+    const blob = await new Promise((resolve) =>
+      canvas.toBlob(resolve, "image/png", 1)
+    );
+    if (!blob) return;
+
+    const filename = `coupon-${coupon.code}.png`;
+    const file = new File([blob], filename, { type: "image/png" });
+    const canUseShare =
+      typeof navigator !== "undefined" &&
+      typeof navigator.share === "function" &&
+      typeof navigator.canShare === "function" &&
+      navigator.canShare({ files: [file] });
+
+    if (canUseShare) {
+      await navigator.share({
+        files: [file],
+        title: "Burger Hut Coupon",
+      });
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(blob);
+    const isIOS =
+      /iPad|iPhone|iPod/.test(window.navigator.userAgent || "") ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+    if (isIOS) {
+      const win = window.open(objectUrl, "_blank", "noopener,noreferrer");
+      if (!win) window.location.href = objectUrl;
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+      return;
+    }
+
     const a = document.createElement("a");
-    a.href = dataUrl;
-    a.download = `coupon-${coupon.code}.png`;
+    a.href = objectUrl;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     a.remove();
+    URL.revokeObjectURL(objectUrl);
   };
 
   const handleWaWithCoupon = async () => {
