@@ -4,12 +4,6 @@ import { getPromoMeta, setPromoMeta } from "@/lib/promoStore";
 
 const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
 function getAdminSecret() {
   return String(process.env.ADMIN_ORDERS_SECRET || "");
 }
@@ -33,10 +27,16 @@ export default async function handler(req, res) {
   if (!secret) {
     return res.status(503).json({ ok: false, error: "admin_not_configured" });
   }
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    return res.status(503).json({ ok: false, error: "blob_not_configured" });
+  }
 
   try {
+    const body =
+      req.body && typeof req.body === "object" ? req.body : undefined;
+
     const jsonResponse = await handleUpload({
-      body: req.body,
+      body,
       request: req,
       onBeforeGenerateToken: async (_pathname, clientPayload) => {
         const payload = parsePayload(clientPayload);
@@ -82,6 +82,8 @@ export default async function handler(req, res) {
     ) {
       return res.status(503).json({ ok: false, error: "blob_not_configured" });
     }
-    return res.status(400).json({ ok: false, error: "upload_failed" });
+    return res
+      .status(400)
+      .json({ ok: false, error: "upload_failed", detail: msg.slice(0, 240) });
   }
 }
