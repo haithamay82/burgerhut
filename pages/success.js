@@ -194,7 +194,7 @@ export default function SuccessPage() {
                 {t("success.couponRedeemSite")}
               </p>
             </div>
-            <p className="mt-2 text-center text-[11px] text-amber-100/95">
+            <p className="mt-2 text-center text-xs font-extrabold text-red-400">
               {t("success.couponScreenshotHint")}
             </p>
           </section>
