@@ -223,8 +223,15 @@ export default function SuccessPage() {
           <div className="pointer-events-none fixed -left-[9999px] top-0">
             <div
               ref={couponCaptureRef}
-              className="w-[390px] rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-900 via-slate-950 to-cyan-950 p-6 text-right text-white"
+              className="relative w-[390px] rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-900 via-slate-950 to-cyan-950 p-6 pt-14 text-right text-white"
             >
+              <img
+                src="/logo-burger-hut.png"
+                alt="Burger Hut"
+                width={44}
+                height={44}
+                className="absolute left-4 top-4 h-11 w-11 rounded-full border border-white/30 bg-white/95 p-0.5 object-cover shadow-[0_4px_18px_-6px_rgba(0,0,0,0.85)]"
+              />
               <p className="mb-3 text-3xl font-extrabold">{t("success.couponTitle")}</p>
               <p className="text-xl font-bold">
                 {t("success.couponValue").replace(
