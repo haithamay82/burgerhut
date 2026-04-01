@@ -321,6 +321,8 @@ const HE = {
     "תודה! התשלום התקבל וההזמנה נרשמה במערכת.",
   "success.waAfterCard":
     "שלח פירוט הזמנה בווטסאפ\nותאם עם המסעדה זמן קבלת ההזמנה",
+  "success.waAfterCardWithCoupon":
+    "קיבלתי קופון על סך ₪{value} לקניה בפעם הבאה\nהורד את הקופון ושלח פירוט הזמנה בווטסאפ\nותאם עם המסעדה זמן קבלת ההזמנה",
   "success.couponTitle": "🎁 קיבלת קופון!",
   "success.couponValue": "💰 ₪{value} הנחה",
   "success.couponCode": "🔢 קוד: {code}",
@@ -812,6 +814,8 @@ const AR = {
     "شكراً! تم استلام الدفع وتسجيل الطلب.",
   "success.waAfterCard":
     "أرسل تفاصيل الطلب عبر واتساب\nونسّق مع المطعم وقت استلام الطلب",
+  "success.waAfterCardWithCoupon":
+    "حصلت على كوبون بقيمة ₪{value} للطلب القادم\nنزّل الكوبون وأرسل تفاصيل الطلب عبر واتساب\nونسّق مع المطعم وقت استلام الطلب",
   "success.couponTitle": "🎁 حصلت على كوبون!",
   "success.couponValue": "💰 خصم ₪{value}",
   "success.couponCode": "🔢 الرمز: {code}",

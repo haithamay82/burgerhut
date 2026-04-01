@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import Layout from "@/components/Layout";
 import { useLocale } from "@/contexts/LocaleContext";
 import { buildWhatsAppUrl } from "@/utils/whatsapp";
-import CouponCard from "@/components/CouponCard";
 import {
   CARD_SUCCESS_SNAPSHOT_KEY,
   PENDING_ORDER_KEY,
@@ -24,6 +23,8 @@ export default function SuccessPage() {
   const [cardWaUrl, setCardWaUrl] = useState("");
   const [cardOrder, setCardOrder] = useState(null);
   const [coupon, setCoupon] = useState(null);
+  const [couponActionBusy, setCouponActionBusy] = useState(false);
+  const couponCaptureRef = useRef(null);
 
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
@@ -52,9 +53,18 @@ export default function SuccessPage() {
         locale: snap.locale || locale,
       });
       setCardWaUrl(url);
+      const amountFromSnap = Number(snap.waGrandTotal);
+      const amountFromItems = (snap.items || []).reduce(
+        (sum, item) =>
+          sum + (Number(item?.price) || 0) * (Number(item?.quantity) || 1),
+        0
+      );
       setCardOrder({
-        orderId: String(snap.orderNumber ?? orderFromQuery ?? ""),
-        amount: Number(snap.waGrandTotal) || 0,
+        orderId: String(snap.orderNumber ?? orderFromQuery ?? hypReturn ?? ""),
+        amount:
+          (Number.isFinite(amountFromSnap) && amountFromSnap > 0
+            ? amountFromSnap
+            : amountFromItems) || 0,
       });
     } catch {
       /* ignore */
@@ -131,6 +141,58 @@ export default function SuccessPage() {
             ? t("success.descCash")
             : t("success.descCard");
 
+  const waBtnText =
+    coupon?.code && Number(coupon?.value) > 0
+      ? t("success.waAfterCardWithCoupon").replace(
+          "{value}",
+          String(Number(coupon.value) || 0)
+        )
+      : t("success.waAfterCard");
+
+  const formatCouponDate = (ts) => {
+    const d = new Date(Number(ts) || Date.now());
+    const intlLocale = locale === "ar" ? "ar-EG" : "he-IL";
+    return new Intl.DateTimeFormat(intlLocale, {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+    }).format(d);
+  };
+
+  const downloadCouponImage = async () => {
+    if (!couponCaptureRef.current || !coupon?.code) return;
+    const { default: html2canvas } = await import("html2canvas");
+    const canvas = await html2canvas(couponCaptureRef.current, {
+      backgroundColor: "#0b1220",
+      scale: 2,
+    });
+    const dataUrl = canvas.toDataURL("image/png");
+    const a = document.createElement("a");
+    a.href = dataUrl;
+    a.download = `coupon-${coupon.code}.png`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
+  const handleWaWithCoupon = async () => {
+    if (!cardWaUrl || couponActionBusy) return;
+    setCouponActionBusy(true);
+    try {
+      if (coupon?.code) {
+        await downloadCouponImage();
+      }
+      const win = window.open(cardWaUrl, "_blank", "noopener,noreferrer");
+      if (!win) {
+        window.location.href = cardWaUrl;
+      }
+    } catch {
+      window.location.href = cardWaUrl;
+    } finally {
+      setCouponActionBusy(false);
+    }
+  };
+
   return (
     <Layout>
       <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
@@ -144,22 +206,44 @@ export default function SuccessPage() {
             #{String(orderFromQuery)}
           </p>
         ) : null}
-        {(hypReturn || method === "card") && coupon?.code ? (
-          <CouponCard coupon={coupon} />
-        ) : null}
         {(hypReturn || method === "card") && cardWaUrl ? (
-          <a
-            href={cardWaUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            onClick={handleWaWithCoupon}
+            disabled={couponActionBusy}
             className="btn-primary mb-4 max-w-xs whitespace-pre-line px-4 py-3 text-center leading-snug"
           >
-            {t("success.waAfterCard")}
-          </a>
+            {couponActionBusy ? t("success.couponDownloadBusy") : waBtnText}
+          </button>
         ) : null}
         <Link href="/" className="btn-primary">
           {t("success.back")}
         </Link>
+        {coupon?.code ? (
+          <div className="pointer-events-none fixed -left-[9999px] top-0">
+            <div
+              ref={couponCaptureRef}
+              className="w-[390px] rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-900 via-slate-950 to-cyan-950 p-6 text-right text-white"
+            >
+              <p className="mb-3 text-3xl font-extrabold">{t("success.couponTitle")}</p>
+              <p className="text-xl font-bold">
+                {t("success.couponValue").replace(
+                  "{value}",
+                  String(Number(coupon.value) || 0)
+                )}
+              </p>
+              <p className="mt-2 text-lg font-semibold">
+                {t("success.couponCode").replace("{code}", String(coupon.code || ""))}
+              </p>
+              <p className="mt-2 text-sm text-slate-200">
+                {t("success.couponExpiry").replace(
+                  "{date}",
+                  formatCouponDate(coupon.expiresAt)
+                )}
+              </p>
+            </div>
+          </div>
+        ) : null}
       </div>
     </Layout>
   );
