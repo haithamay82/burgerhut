@@ -352,6 +352,8 @@ const HE = {
   "success.couponContinueWa": "המשך לווטסאפ אחרי שמירה",
   "success.couponShareCancelled":
     "השמירה בוטלה או נכשלה. שמור קופון ואז נסה שוב.",
+  "success.couponScreenshotHint":
+    "צלם מסך ושמור את הקופון לפני מעבר לווטסאפ.",
   "success.back": "חזרה לתפריט",
 
   "cancel.title": "התשלום בוטל",
@@ -885,6 +887,8 @@ const AR = {
   "success.couponContinueWa": "متابعة إلى واتساب بعد الحفظ",
   "success.couponShareCancelled":
     "تم إلغاء الحفظ أو فشل. احفظ الكوبون ثم أعد المحاولة.",
+  "success.couponScreenshotHint":
+    "التقط لقطة شاشة واحفظ الكوبون قبل الانتقال إلى واتساب.",
   "success.back": "العودة للقائمة",
 
   "cancel.title": "تم إلغاء الدفع",

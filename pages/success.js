@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import Layout from "@/components/Layout";
@@ -23,10 +23,6 @@ export default function SuccessPage() {
   const [cardWaUrl, setCardWaUrl] = useState("");
   const [cardOrder, setCardOrder] = useState(null);
   const [coupon, setCoupon] = useState(null);
-  const [couponActionBusy, setCouponActionBusy] = useState(false);
-  const [couponNotice, setCouponNotice] = useState("");
-  const [couponManualStepReady, setCouponManualStepReady] = useState(false);
-  const couponCaptureRef = useRef(null);
 
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
@@ -145,14 +141,6 @@ export default function SuccessPage() {
             ? t("success.descCash")
             : t("success.descCard");
 
-  const waBtnText =
-    coupon?.code && Number(coupon?.value) > 0
-      ? t("success.waAfterCardWithCoupon").replace(
-          "{value}",
-          String(Number(coupon.value) || 0)
-        )
-      : t("success.waAfterCard");
-
   const formatCouponDate = (ts) => {
     const d = new Date(Number(ts) || Date.now());
     const intlLocale = locale === "ar" ? "ar-EG" : "he-IL";
@@ -161,118 +149,6 @@ export default function SuccessPage() {
       month: "2-digit",
       year: "2-digit",
     }).format(d);
-  };
-
-  const isIOSDevice = () =>
-    /iPad|iPhone|iPod/.test(window.navigator.userAgent || "") ||
-    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-
-  const openWhatsAppNow = () => {
-    if (!cardWaUrl) return;
-    const win = window.open(cardWaUrl, "_blank", "noopener,noreferrer");
-    if (!win) {
-      window.location.href = cardWaUrl;
-    }
-  };
-
-  const openCouponDraftWindow = () => {
-    try {
-      const w = window.open("about:blank", "_blank");
-      if (w && w.document) {
-        w.document.write(
-          "<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1' /></head><body style='font-family:system-ui;padding:16px;background:#0b1220;color:#fff;'>מכין קופון…</body></html>"
-        );
-      }
-      return w;
-    } catch {
-      return null;
-    }
-  };
-
-  const downloadCouponImage = async ({ iosWindow = null } = {}) => {
-    if (!couponCaptureRef.current || !coupon?.code) return;
-    const { default: html2canvas } = await import("html2canvas");
-    const canvas = await html2canvas(couponCaptureRef.current, {
-      backgroundColor: "#0b1220",
-      scale: 2,
-    });
-    const blob = await new Promise((resolve) =>
-      canvas.toBlob(resolve, "image/png", 1)
-    );
-    if (!blob) return;
-
-    const filename = `coupon-${coupon.code}.png`;
-    const isIOS = isIOSDevice();
-
-    // iOS Safari is flaky with programmatic file sharing/downloading.
-    // Open image in a new tab and let user save it to Photos/Files.
-    if (isIOS) {
-      const objectUrl = URL.createObjectURL(blob);
-      if (iosWindow && !iosWindow.closed) {
-        iosWindow.location.href = objectUrl;
-      } else {
-        const win = window.open(objectUrl, "_blank", "noopener,noreferrer");
-        if (!win) window.location.href = objectUrl;
-      }
-      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
-      return "manual";
-    }
-
-    const file = new File([blob], filename, { type: "image/png" });
-    const canUseShare =
-      typeof navigator !== "undefined" &&
-      typeof navigator.share === "function" &&
-      typeof navigator.canShare === "function" &&
-      navigator.canShare({ files: [file] });
-
-    if (canUseShare) {
-      await navigator.share({
-        files: [file],
-        title: "Burger Hut Coupon",
-      });
-      return "shared";
-    }
-
-    const objectUrl = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = objectUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(objectUrl);
-    return "shared";
-  };
-
-  const handleWaWithCoupon = async () => {
-    if (!cardWaUrl || couponActionBusy) return;
-    setCouponNotice("");
-    setCouponActionBusy(true);
-    const iosWindow =
-      isIOSDevice() && coupon?.code ? openCouponDraftWindow() : null;
-    try {
-      if (coupon?.code) {
-        const dlResult = await downloadCouponImage({ iosWindow });
-        if (isIOSDevice() && dlResult === "manual") {
-          setCouponManualStepReady(true);
-          setCouponNotice(t("success.couponSaveThenContinue"));
-          return;
-        }
-      }
-      setCouponManualStepReady(false);
-      openWhatsAppNow();
-    } catch {
-      if (isIOSDevice()) {
-        setCouponManualStepReady(true);
-        setCouponNotice(t("success.couponSaveThenContinue"));
-      } else {
-        setCouponManualStepReady(false);
-        setCouponNotice(t("success.couponShareCancelled"));
-      }
-    } finally {
-      setCouponActionBusy(false);
-    }
   };
 
   return (
@@ -288,75 +164,59 @@ export default function SuccessPage() {
             #{String(orderFromQuery)}
           </p>
         ) : null}
-        {(hypReturn || method === "card") && cardWaUrl ? (
-          <>
-            <button
-              type="button"
-              onClick={handleWaWithCoupon}
-              disabled={couponActionBusy}
-              className="btn-primary mb-2 max-w-xs whitespace-pre-line px-4 py-3 text-center leading-snug"
-            >
-              {couponActionBusy ? t("success.couponDownloadBusy") : waBtnText}
-            </button>
-            {couponNotice ? (
-              <p className="mb-2 max-w-xs text-[11px] text-amber-200/90">
-                {couponNotice}
-              </p>
-            ) : null}
-            {couponManualStepReady ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setCouponManualStepReady(false);
-                  openWhatsAppNow();
-                }}
-                className="mb-4 rounded-full border border-primary/60 bg-slate-900/50 px-4 py-2 text-xs font-semibold text-primary"
-              >
-                {t("success.couponContinueWa")}
-              </button>
-            ) : (
-              <div className="mb-2" />
-            )}
-          </>
-        ) : null}
-        <Link href="/" className="btn-primary">
-          {t("success.back")}
-        </Link>
-        {coupon?.code ? (
-          <div className="pointer-events-none fixed -left-[9999px] top-0">
-            <div
-              ref={couponCaptureRef}
-              className="relative w-[390px] rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-900 via-slate-950 to-cyan-950 p-6 pt-14 text-right text-white"
-            >
+        {(hypReturn || method === "card") && coupon?.code ? (
+          <section className="mb-3 w-full max-w-sm rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-900 via-slate-950 to-cyan-950 p-4 text-right text-white">
+            <div className="relative rounded-xl border border-white/10 bg-slate-950/70 p-3 pt-10">
               <img
                 src="/logo-burger-hut.png"
                 alt="Burger Hut"
-                width={44}
-                height={44}
-                className="absolute left-4 top-4 h-11 w-11 rounded-full border border-white/30 bg-white/95 p-0.5 object-cover shadow-[0_4px_18px_-6px_rgba(0,0,0,0.85)]"
+                width={36}
+                height={36}
+                className="absolute left-3 top-3 h-9 w-9 rounded-full border border-white/30 bg-white/95 p-0.5 object-cover"
               />
-              <p className="mb-3 text-3xl font-extrabold">{t("success.couponTitle")}</p>
-              <p className="text-xl font-bold">
+              <p className="text-lg font-extrabold">{t("success.couponTitle")}</p>
+              <p className="mt-1 text-sm font-bold">
                 {t("success.couponValue").replace(
                   "{value}",
                   String(Number(coupon.value) || 0)
                 )}
               </p>
-              <p className="mt-2 text-lg font-semibold">
+              <p className="mt-1 text-sm font-semibold">
                 {t("success.couponCode").replace("{code}", String(coupon.code || ""))}
               </p>
-              <p className="mt-2 text-sm text-slate-200">
+              <p className="mt-1 text-xs text-slate-200">
                 {t("success.couponExpiry").replace(
                   "{date}",
                   formatCouponDate(coupon.expiresAt)
                 )}
               </p>
-              <p className="mt-2 text-xs text-cyan-200/90">
+              <p className="mt-1 text-[11px] text-cyan-200/90">
                 {t("success.couponRedeemSite")}
               </p>
             </div>
-          </div>
+            <p className="mt-2 text-center text-[11px] text-amber-100/95">
+              {t("success.couponScreenshotHint")}
+            </p>
+          </section>
         ) : null}
+        {(hypReturn || method === "card") && cardWaUrl ? (
+          <a
+            href={cardWaUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-primary mb-4 max-w-xs whitespace-pre-line px-4 py-3 text-center leading-snug"
+          >
+            {coupon?.code && Number(coupon?.value) > 0
+              ? t("success.waAfterCardWithCoupon").replace(
+                  "{value}",
+                  String(Number(coupon.value) || 0)
+                )
+              : t("success.waAfterCard")}
+          </a>
+        ) : null}
+        <Link href="/" className="btn-primary">
+          {t("success.back")}
+        </Link>
       </div>
     </Layout>
   );
