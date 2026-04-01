@@ -250,6 +250,9 @@ export default function SuccessPage() {
                   formatCouponDate(coupon.expiresAt)
                 )}
               </p>
+              <p className="mt-2 text-xs text-cyan-200/90">
+                {t("success.couponRedeemSite")}
+              </p>
             </div>
           </div>
         ) : null}

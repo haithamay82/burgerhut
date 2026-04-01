@@ -95,6 +95,10 @@ export default function CheckoutPage() {
     percent: 0,
     minOrderTotal: 0,
   });
+  const [couponCodeInput, setCouponCodeInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponBusy, setCouponBusy] = useState(false);
+  const [couponMsg, setCouponMsg] = useState("");
 
   const rawFoodTotal = total;
 
@@ -239,24 +243,38 @@ export default function CheckoutPage() {
     [foodTotal, discountAmountNis]
   );
 
-  const grandTotal = useMemo(() => {
+  const baseGrandTotal = useMemo(() => {
     if (form.orderType !== "delivery") return discountedFoodTotal;
     if (deliveryFeeNis == null) return discountedFoodTotal;
     return discountedFoodTotal + deliveryFeeNis;
   }, [discountedFoodTotal, form.orderType, deliveryFeeNis]);
+
+  const couponDiscountNis = useMemo(() => {
+    const v = Number(appliedCoupon?.value);
+    if (!Number.isFinite(v) || v <= 0) return 0;
+    return Math.max(0, Math.min(v, baseGrandTotal));
+  }, [appliedCoupon, baseGrandTotal]);
+
+  const grandTotal = useMemo(
+    () => Math.max(0, baseGrandTotal - couponDiscountNis),
+    [baseGrandTotal, couponDiscountNis]
+  );
 
   /** סכום לביט / אשראי אונליין: מלא או מזון בלבד אם משלמים דמי משלוח לשליח בנפרד */
   const onlinePayAmount = useMemo(() => {
     if (form.orderType !== "delivery" || deliveryFeeNis == null) {
       return grandTotal;
     }
-    if (form.deliveryPayTo === "courier_delivery") return discountedFoodTotal;
+    if (form.deliveryPayTo === "courier_delivery") {
+      return Math.max(0, discountedFoodTotal - couponDiscountNis);
+    }
     return grandTotal;
   }, [
     form.orderType,
     form.deliveryPayTo,
     deliveryFeeNis,
     discountedFoodTotal,
+    couponDiscountNis,
     grandTotal,
   ]);
 
@@ -306,6 +324,41 @@ export default function CheckoutPage() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const applyCoupon = async () => {
+    const code = String(couponCodeInput || "").trim().toUpperCase();
+    setCouponMsg("");
+    if (!code) {
+      setAppliedCoupon(null);
+      return;
+    }
+    setCouponBusy(true);
+    try {
+      const r = await fetch("/api/coupon/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || !d?.ok || !d?.coupon) {
+        setAppliedCoupon(null);
+        setCouponMsg(t("checkout.couponInvalid"));
+        return;
+      }
+      setAppliedCoupon({
+        code: String(d.coupon.code || code),
+        value: Number(d.coupon.value) || 0,
+        expiresAt: Number(d.coupon.expiresAt) || 0,
+      });
+      setCouponCodeInput(String(d.coupon.code || code));
+      setCouponMsg(t("checkout.couponApplied"));
+    } catch {
+      setAppliedCoupon(null);
+      setCouponMsg(t("checkout.couponInvalid"));
+    } finally {
+      setCouponBusy(false);
+    }
   };
 
   const setZone = (zone) => {
@@ -470,6 +523,8 @@ export default function CheckoutPage() {
           ? Number(discountCfg.minOrderTotal) || undefined
           : undefined,
       foodTotalNis: discountedFoodTotal,
+      couponCode: appliedCoupon?.code || undefined,
+      couponDiscountNis: couponDiscountNis || undefined,
     };
   };
 
@@ -542,6 +597,7 @@ export default function CheckoutPage() {
             total: persistTotal,
             payment: form.payment,
             channel,
+            couponCode: appliedCoupon?.code || undefined,
           }),
         });
         const data = await response.json().catch(() => ({}));
@@ -573,6 +629,17 @@ export default function CheckoutPage() {
           setErrors((prev) => ({
             ...prev,
             orderingClosed: t("err.orderingClosed"),
+          }));
+          return;
+        }
+        if (
+          poErr === "coupon_invalid" ||
+          poErr === "coupon_expired" ||
+          poErr === "coupon_used"
+        ) {
+          setErrors((prev) => ({
+            ...prev,
+            submit: t("checkout.couponInvalidSubmit"),
           }));
           return;
         }
@@ -611,6 +678,17 @@ export default function CheckoutPage() {
           setErrors((prev) => ({
             ...prev,
             orderingClosed: t("err.orderingClosed"),
+          }));
+          return;
+        }
+        if (
+          poErr === "coupon_invalid" ||
+          poErr === "coupon_expired" ||
+          poErr === "coupon_used"
+        ) {
+          setErrors((prev) => ({
+            ...prev,
+            submit: t("checkout.couponInvalidSubmit"),
           }));
           return;
         }
@@ -660,6 +738,17 @@ export default function CheckoutPage() {
         setErrors((prev) => ({
           ...prev,
           orderingClosed: t("err.orderingClosed"),
+        }));
+        return;
+      }
+      if (
+        cardPoErr === "coupon_invalid" ||
+        cardPoErr === "coupon_expired" ||
+        cardPoErr === "coupon_used"
+      ) {
+        setErrors((prev) => ({
+          ...prev,
+          submit: t("checkout.couponInvalidSubmit"),
         }));
         return;
       }
@@ -849,6 +938,17 @@ export default function CheckoutPage() {
                 </span>
                 <span className="text-sm font-semibold text-emerald-300/90">
                   -₪{formatIls(discountAmountNis)}
+                </span>
+              </div>
+            ) : null}
+            {couponDiscountNis > 0 ? (
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-cyan-300/90">
+                  {t("checkout.couponLine")}
+                  {appliedCoupon?.code ? ` (${appliedCoupon.code})` : ""}
+                </span>
+                <span className="text-sm font-semibold text-cyan-300/90">
+                  -₪{formatIls(couponDiscountNis)}
                 </span>
               </div>
             ) : null}
@@ -1112,6 +1212,40 @@ export default function CheckoutPage() {
         </div>
 
         <div className="mt-2 border-t border-slate-800 pt-3">
+          <h3 className="mb-2 text-sm font-semibold">{t("checkout.couponTitle")}</h3>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={couponCodeInput}
+              onChange={(e) => {
+                setCouponCodeInput(e.target.value.toUpperCase());
+                if (appliedCoupon) setAppliedCoupon(null);
+                if (couponMsg) setCouponMsg("");
+              }}
+              className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs uppercase outline-none focus:border-primary"
+              placeholder={t("checkout.couponPh")}
+            />
+            <button
+              type="button"
+              onClick={applyCoupon}
+              disabled={couponBusy}
+              className="rounded-full border border-primary/60 px-3 py-2 text-[11px] font-semibold text-primary disabled:opacity-50"
+            >
+              {couponBusy ? t("checkout.couponChecking") : t("checkout.couponApply")}
+            </button>
+          </div>
+          {couponMsg ? (
+            <p
+              className={`mt-1 text-[11px] ${
+                appliedCoupon ? "text-emerald-300/90" : "text-red-400"
+              }`}
+            >
+              {couponMsg}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="mt-2 border-t border-slate-800 pt-3">
           <h3 className="mb-2 text-sm font-semibold">{t("checkout.payment")}</h3>
           <div className="grid grid-cols-3 gap-2">
             {PAYMENT_METHODS.map((m) => (
@@ -1194,7 +1328,7 @@ export default function CheckoutPage() {
                   <p className="text-[10px] leading-snug text-amber-200/85">
                     <span>{t("checkout.onlinePayFoodOnlyLabel")}</span>{" "}
                     <span className="font-semibold text-amber-100">
-                      ₪{formatIls(discountedFoodTotal)}
+                      ₪{formatIls(Math.max(0, discountedFoodTotal - couponDiscountNis))}
                     </span>
                     . {t("checkout.onlinePayDeliveryToCourier")}
                   </p>

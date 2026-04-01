@@ -3,6 +3,7 @@ import { getUnavailableIds } from "@/lib/inventoryStore";
 import { BURGER_TOPPING_IDS, MAIN_MENU_PRODUCT_IDS } from "@/utils/menuData";
 import { isOrderingAllowedAt } from "@/utils/orderingHours";
 import { getBusinessHours } from "@/lib/businessHoursStore";
+import { redis, isRedisConfigured } from "@/lib/redis";
 
 function lineProductId(line) {
   return (
@@ -49,7 +50,8 @@ export default async function handler(req, res) {
   }
 
   if (req.method === "POST") {
-    const { customer, items, payment, total, channel, meta } = req.body || {};
+    const { customer, items, payment, total, channel, meta, couponCode } =
+      req.body || {};
 
     if (!customer || typeof customer !== "object") {
       return res.status(400).json({ ok: false, error: "invalid_customer" });
@@ -84,6 +86,25 @@ export default async function handler(req, res) {
       }
     }
 
+    let couponToConsume = null;
+    const code = String(couponCode || "").trim().toUpperCase();
+    if (code) {
+      if (!isRedisConfigured() || !redis) {
+        return res.status(503).json({ ok: false, error: "coupon_invalid" });
+      }
+      try {
+        const coupon = await redis.get(`coupon:${code}`);
+        if (!coupon) return res.status(400).json({ ok: false, error: "coupon_invalid" });
+        if (coupon.used) return res.status(400).json({ ok: false, error: "coupon_used" });
+        if (Date.now() > Number(coupon.expiresAt || 0)) {
+          return res.status(400).json({ ok: false, error: "coupon_expired" });
+        }
+        couponToConsume = coupon;
+      } catch {
+        return res.status(400).json({ ok: false, error: "coupon_invalid" });
+      }
+    }
+
     const computed = sumTotal(items);
     const clientTotal = Number(total);
     const row = await appendOrder({
@@ -94,6 +115,21 @@ export default async function handler(req, res) {
       channel: channel || "checkout",
       meta: meta || {},
     });
+
+    if (couponToConsume && redis) {
+      try {
+        const nextCoupon = {
+          ...couponToConsume,
+          used: true,
+          usedAt: Date.now(),
+        };
+        await redis.set(`coupon:${String(couponToConsume.code || "").toUpperCase()}`, nextCoupon, {
+          ex: 60 * 60 * 24 * 30,
+        });
+      } catch {
+        /* ignore coupon write failure after order creation */
+      }
+    }
 
     return res.status(201).json({ ok: true, order: row });
   }
