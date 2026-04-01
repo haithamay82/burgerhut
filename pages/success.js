@@ -4,6 +4,7 @@ import Link from "next/link";
 import Layout from "@/components/Layout";
 import { useLocale } from "@/contexts/LocaleContext";
 import { buildWhatsAppUrl } from "@/utils/whatsapp";
+import CouponCard from "@/components/CouponCard";
 import {
   CARD_SUCCESS_SNAPSHOT_KEY,
   PENDING_ORDER_KEY,
@@ -21,6 +22,8 @@ export default function SuccessPage() {
     router.query.cgUid ||
     router.query.Id;
   const [cardWaUrl, setCardWaUrl] = useState("");
+  const [cardOrder, setCardOrder] = useState(null);
+  const [coupon, setCoupon] = useState(null);
 
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
@@ -49,10 +52,62 @@ export default function SuccessPage() {
         locale: snap.locale || locale,
       });
       setCardWaUrl(url);
+      setCardOrder({
+        orderId: String(snap.orderNumber ?? orderFromQuery ?? ""),
+        amount: Number(snap.waGrandTotal) || 0,
+      });
     } catch {
       /* ignore */
     }
   }, [router.isReady, hypReturn, method, locale, orderFromQuery]);
+
+  useEffect(() => {
+    if (!router.isReady || typeof window === "undefined") return;
+    if (!(hypReturn || method === "card")) return;
+    if (!cardOrder?.orderId || !cardOrder?.amount) return;
+
+    const sessionKey = `bh_coupon_created_${cardOrder.orderId}`;
+    try {
+      const cached = window.sessionStorage.getItem(sessionKey);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed?.code) {
+          setCoupon(parsed);
+          return;
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+
+    let active = true;
+    (async () => {
+      try {
+        const r = await fetch("/api/coupon/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId: cardOrder.orderId,
+            amount: cardOrder.amount,
+          }),
+        });
+        const d = await r.json().catch(() => ({}));
+        if (!active || !r.ok || !d?.ok || !d?.coupon?.code) return;
+        setCoupon(d.coupon);
+        try {
+          window.sessionStorage.setItem(sessionKey, JSON.stringify(d.coupon));
+        } catch {
+          /* ignore */
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [router.isReady, hypReturn, method, cardOrder]);
 
   const title = hypReturn
     ? t("success.paymentCompleted")
@@ -88,6 +143,9 @@ export default function SuccessPage() {
           <p className="mb-4 text-xs text-gray-500">
             #{String(orderFromQuery)}
           </p>
+        ) : null}
+        {(hypReturn || method === "card") && coupon?.code ? (
+          <CouponCard coupon={coupon} />
         ) : null}
         {(hypReturn || method === "card") && cardWaUrl ? (
           <a

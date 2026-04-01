@@ -1,7 +1,9 @@
 {
-  "enabled": true,
+  "enabled": false,
   "percent": 5,
   "minOrderTotal": 200,
   "reason": "השקת האתר",
-  "updatedAt": 1775000254040
+  "couponEnabled": true,
+  "couponPercent": 5,
+  "updatedAt": 1775071755066
 }

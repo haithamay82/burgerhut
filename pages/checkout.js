@@ -15,6 +15,7 @@ import { PAYMENT_METHODS } from "@/utils/payment";
 import { buildWhatsAppUrl, openWhatsAppComposeUrl } from "@/utils/whatsapp";
 import { formatIls, lineTotal, safePrice } from "@/utils/cartMoney";
 import { RESTAURANT_COORDS } from "@/utils/deliveryPricing";
+import { MAIN_MENU_PRODUCT_IDS } from "@/utils/menuData";
 import {
   PENDING_ORDER_KEY,
   CHECKOUT_RESUME_KEY,
@@ -24,6 +25,9 @@ const DeliveryMapPicker = dynamic(
   () => import("@/components/DeliveryMapPicker"),
   { ssr: false }
 );
+
+const CHEDDAR_SAUCE_ID = "sauce_cheddar";
+const STANDARD_SAUCE_EXTRA_PRICE = 4;
 
 function buildCheckoutDraftSnapshot(form, geo, deliveryMapPoint) {
   return {
@@ -92,7 +96,51 @@ export default function CheckoutPage() {
     minOrderTotal: 0,
   });
 
-  const foodTotal = total;
+  const rawFoodTotal = total;
+
+  /**
+   * כלל גלובלי לרוטבים:
+   * לכל מנה עיקרית יש זכאות לרוטב סטנדרטי אחד בחינם, גם אם לא נבחר באותה מנה.
+   * צ'דר תמיד בתשלום מלא.
+   * אם תמחור שורת עגלה "גבה יותר" מהכלל הגלובלי — מפחיתים כאן מהסכום הסופי.
+   */
+  const saucePolicyCreditNis = useMemo(() => {
+    let eligibleDishUnits = 0;
+    let selectedStandardSauceUnits = 0;
+    let chargedStandardSauceNis = 0;
+
+    for (const item of items) {
+      const qty = Math.max(1, Number(item?.quantity) || 1);
+      const pid = cartLineProductId(item);
+      if (MAIN_MENU_PRODUCT_IDS.has(pid)) {
+        eligibleDishUnits += qty;
+      }
+      if (!Array.isArray(item?.extras)) continue;
+      for (const ex of item.extras) {
+        const exId = String(ex?.id || "");
+        if (!exId || exId === CHEDDAR_SAUCE_ID) continue;
+        selectedStandardSauceUnits += qty;
+        const p = Number(ex?.price);
+        if (Number.isFinite(p) && p > 0) {
+          chargedStandardSauceNis += p * qty;
+        }
+      }
+    }
+
+    const shouldChargeStandardSauceNis =
+      Math.max(0, selectedStandardSauceUnits - eligibleDishUnits) *
+      STANDARD_SAUCE_EXTRA_PRICE;
+    const credit = Math.max(
+      0,
+      chargedStandardSauceNis - shouldChargeStandardSauceNis
+    );
+    return Math.round(credit * 100) / 100;
+  }, [items]);
+
+  const foodTotal = useMemo(
+    () => Math.max(0, rawFoodTotal - saucePolicyCreditNis),
+    [rawFoodTotal, saucePolicyCreditNis]
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") return;

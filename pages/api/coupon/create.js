@@ -1,0 +1,67 @@
+import { generateCoupon } from "@/lib/coupon";
+import { redis, isRedisConfigured } from "@/lib/redis";
+import { getDiscountConfig } from "@/lib/discountStore";
+
+const TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
+
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
+    return res.status(405).json({ ok: false, error: "method_not_allowed" });
+  }
+  if (!isRedisConfigured() || !redis) {
+    return res.status(503).json({ ok: false, error: "redis_not_configured" });
+  }
+
+  const body = req.body || {};
+  const orderId = String(body.orderId || "").trim();
+  const amount = Number(body.amount);
+  if (!orderId) return res.status(400).json({ ok: false, error: "missing_order_id" });
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return res.status(400).json({ ok: false, error: "invalid_amount" });
+  }
+
+  const discountCfg = await getDiscountConfig();
+  const couponEnabled = Boolean(discountCfg?.couponEnabled);
+  const couponPct = Number(discountCfg?.couponPercent) || 0;
+  if (!couponEnabled || couponPct <= 0) {
+    return res.status(200).json({
+      ok: true,
+      coupon: null,
+      enabled: false,
+    });
+  }
+
+  try {
+    const existing = await redis.get(`coupon:order:${orderId}`);
+    const existingCode =
+      typeof existing === "string"
+        ? existing
+        : typeof existing?.code === "string"
+          ? existing.code
+          : "";
+    if (existingCode) {
+      const existingCoupon = await redis.get(`coupon:${existingCode}`);
+      if (existingCoupon) {
+        return res.status(200).json({ ok: true, coupon: existingCoupon });
+      }
+    }
+
+    const coupon = generateCoupon({
+      orderId,
+      amount,
+      percentage: couponPct,
+    });
+
+    await redis.set(`coupon:${coupon.code}`, coupon, { ex: TTL_SECONDS });
+    await redis.set(`coupon:order:${orderId}`, coupon.code, { ex: TTL_SECONDS });
+
+    return res.status(200).json({ ok: true, coupon });
+  } catch (e) {
+    return res.status(500).json({
+      ok: false,
+      error: "coupon_create_failed",
+      message: e instanceof Error ? e.message : "unknown",
+    });
+  }
+}

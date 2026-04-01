@@ -200,6 +200,8 @@ export default function AdminOrdersPage() {
             percent: Number(dd.percent) || 0,
             minOrderTotal: Number(dd.minOrderTotal) || 0,
             reason: String(dd.reason ?? ""),
+            couponEnabled: Boolean(dd.couponEnabled),
+            couponPercent: Number(dd.couponPercent) || 0,
           });
         } else {
           setDiscountDraft({
@@ -207,6 +209,8 @@ export default function AdminOrdersPage() {
             percent: 0,
             minOrderTotal: 0,
             reason: "",
+            couponEnabled: false,
+            couponPercent: 0,
           });
         }
       } catch {
@@ -215,6 +219,8 @@ export default function AdminOrdersPage() {
           percent: 0,
           minOrderTotal: 0,
           reason: "",
+          couponEnabled: false,
+          couponPercent: 0,
         });
       }
       try {
@@ -470,6 +476,8 @@ export default function AdminOrdersPage() {
           percent: Number(discountDraft.percent) || 0,
           minOrderTotal: Number(discountDraft.minOrderTotal) || 0,
           reason: String(discountDraft.reason ?? ""),
+          couponEnabled: Boolean(discountDraft.couponEnabled),
+          couponPercent: Number(discountDraft.couponPercent) || 0,
         }),
       });
       const d = await r.json().catch(() => ({}));
@@ -486,6 +494,8 @@ export default function AdminOrdersPage() {
         percent: Number(d.percent) || 0,
         minOrderTotal: Number(d.minOrderTotal) || 0,
         reason: String(d.reason ?? ""),
+        couponEnabled: Boolean(d.couponEnabled),
+        couponPercent: Number(d.couponPercent) || 0,
       });
       setDiscountMsg(t("admin.discountSaved"));
     } catch {
@@ -920,6 +930,34 @@ export default function AdminOrdersPage() {
                             className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-primary focus:ring-primary"
                           />
                           {t("admin.discountEnabled")}
+                        </label>
+                        <div className="my-2 border-t border-slate-800" />
+                        <label className="flex cursor-pointer items-center gap-2 text-xs text-gray-300">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(discountDraft.couponEnabled)}
+                            disabled={discountSaving}
+                            onChange={(e) =>
+                              updateDiscountDraft({ couponEnabled: e.target.checked })
+                            }
+                            className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-primary focus:ring-primary"
+                          />
+                          {t("admin.couponEnabled")}
+                        </label>
+                        <label className="flex flex-col gap-1 text-xs text-gray-400">
+                          <span>{t("admin.couponPercent")}</span>
+                          <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            step="0.1"
+                            value={discountDraft.couponPercent}
+                            disabled={discountSaving}
+                            onChange={(e) =>
+                              updateDiscountDraft({ couponPercent: e.target.value })
+                            }
+                            className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-gray-100 disabled:opacity-40"
+                          />
                         </label>
                         <label className="flex flex-col gap-1 text-xs text-gray-400">
                           <span>{t("admin.discountPercent")}</span>
