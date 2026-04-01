@@ -7,6 +7,7 @@ import { buildWhatsAppUrl } from "@/utils/whatsapp";
 import {
   CARD_SUCCESS_SNAPSHOT_KEY,
   PENDING_ORDER_KEY,
+  SUCCESS_WA_SNAPSHOT_KEY,
 } from "@/utils/checkoutSessionKeys";
 
 export default function SuccessPage() {
@@ -33,12 +34,14 @@ export default function SuccessPage() {
         /* ignore */
       }
     }
-    if (!hypReturn && method !== "card") return;
+    if (!hypReturn && method !== "card" && method !== "cash") return;
     try {
-      const raw = window.sessionStorage.getItem(CARD_SUCCESS_SNAPSHOT_KEY);
+      const snapshotKey =
+        method === "cash" ? SUCCESS_WA_SNAPSHOT_KEY : CARD_SUCCESS_SNAPSHOT_KEY;
+      const raw = window.sessionStorage.getItem(snapshotKey);
       if (!raw) return;
       const snap = JSON.parse(raw);
-      window.sessionStorage.removeItem(CARD_SUCCESS_SNAPSHOT_KEY);
+      window.sessionStorage.removeItem(snapshotKey);
       if (!snap?.customer || !Array.isArray(snap.items) || !snap.items.length) {
         return;
       }
@@ -73,7 +76,7 @@ export default function SuccessPage() {
 
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
-    if (!(hypReturn || method === "card")) return;
+    if (!(hypReturn || method === "card" || method === "cash")) return;
     if (!cardOrder?.orderId || !cardOrder?.amount) return;
 
     const sessionKey = `bh_coupon_created_${cardOrder.orderId}`;
@@ -164,7 +167,7 @@ export default function SuccessPage() {
             #{String(orderFromQuery)}
           </p>
         ) : null}
-        {(hypReturn || method === "card") && coupon?.code ? (
+        {(hypReturn || method === "card" || method === "cash") && coupon?.code ? (
           <section className="mb-3 w-full max-w-sm rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-900 via-slate-950 to-cyan-950 p-4 text-right text-white">
             <div className="relative rounded-xl border border-white/10 bg-slate-950/70 p-3 pt-10">
               <img
@@ -199,7 +202,7 @@ export default function SuccessPage() {
             </p>
           </section>
         ) : null}
-        {(hypReturn || method === "card") && cardWaUrl ? (
+        {(hypReturn || method === "card" || method === "cash") && cardWaUrl ? (
           <a
             href={cardWaUrl}
             target="_blank"

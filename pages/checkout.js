@@ -12,13 +12,13 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { useInventory } from "@/contexts/InventoryContext";
 import { useOrderingHours } from "@/contexts/OrderingHoursContext";
 import { PAYMENT_METHODS } from "@/utils/payment";
-import { buildWhatsAppUrl, openWhatsAppComposeUrl } from "@/utils/whatsapp";
 import { formatIls, lineTotal, safePrice } from "@/utils/cartMoney";
 import { RESTAURANT_COORDS } from "@/utils/deliveryPricing";
 import { MAIN_MENU_PRODUCT_IDS } from "@/utils/menuData";
 import {
   PENDING_ORDER_KEY,
   CHECKOUT_RESUME_KEY,
+  SUCCESS_WA_SNAPSHOT_KEY,
 } from "@/utils/checkoutSessionKeys";
 
 const DeliveryMapPicker = dynamic(
@@ -655,23 +655,25 @@ export default function CheckoutPage() {
           }));
           return;
         }
-        const waUrl = buildWhatsAppUrl({
-          customer,
-          cart: { items },
-          total: persistTotal,
-          payment: form.payment,
-          orderNumber: savedOrder?.orderNumber,
-          locale,
-        });
-        clearCart();
         if (typeof window !== "undefined") {
-          const how = openWhatsAppComposeUrl(waUrl);
-          if (how === "new_tab") {
-            router.push("/success?method=cash");
+          try {
+            window.sessionStorage.setItem(
+              SUCCESS_WA_SNAPSHOT_KEY,
+              JSON.stringify({
+                customer,
+                items,
+                payment: form.payment,
+                orderNumber: savedOrder?.orderNumber,
+                locale,
+                waGrandTotal: persistTotal,
+              })
+            );
+          } catch {
+            /* ignore */
           }
-        } else {
-          router.push("/success?method=cash");
         }
+        clearCart();
+        router.push("/success?method=cash");
         return;
       }
 
