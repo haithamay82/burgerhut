@@ -420,6 +420,7 @@ export default function AdminOrdersPage() {
     setPromoUploading(true);
     try {
       let uploadedWithBlob = false;
+      let blobUploadError = "";
       try {
         await uploadToBlob(`promo-${Date.now()}-${file.name}`, file, {
           access: "public",
@@ -430,6 +431,7 @@ export default function AdminOrdersPage() {
         uploadedWithBlob = true;
       } catch (blobErr) {
         const msg = String(blobErr?.message || "");
+        blobUploadError = msg;
         const isBlobDisabled =
           msg.includes("blob_not_configured") ||
           msg.includes("BLOB_READ_WRITE_TOKEN");
@@ -437,7 +439,19 @@ export default function AdminOrdersPage() {
           setError(t("admin.promoErrBlobConfig"));
           return;
         }
-        // Fallback for local/dev where direct blob upload may be unavailable.
+      }
+
+      const isLocalHost =
+        typeof window !== "undefined" &&
+        ["localhost", "127.0.0.1"].includes(window.location.hostname);
+
+      if (!uploadedWithBlob && !isLocalHost) {
+        setError(
+          `${t("admin.promoErrBlobUpload")}${
+            blobUploadError ? ` (${blobUploadError})` : ""
+          }`
+        );
+        return;
       }
 
       if (!uploadedWithBlob) {

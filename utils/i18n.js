@@ -524,6 +524,8 @@ const HE = {
     "הקובץ גדול מדי להעלאה מהפאנל בפרודקשן (Vercel, בדרך כלל עד ~4MB). דחס/הקטן את הווידאו או העלה דרך אחסון חיצוני.",
   "admin.promoErrBlobConfig":
     "חסר חיבור ל-Vercel Blob (BLOB_READ_WRITE_TOKEN). חבר Blob לפרויקט ב-Vercel ואז נסה שוב.",
+  "admin.promoErrBlobUpload":
+    "העלאת Blob נכשלה בפרודקשן. בדוק שה-Blob מחובר לפרויקט הנכון, שהטוקן מוגדר ב-Production, ושבוצע Redeploy.",
   "admin.promoErrMissing": "בחר קובץ לפני ההעלאה.",
   "admin.promoErrSave": "לא ניתן היה לשמור את הקובץ.",
   "admin.promoLoadEmpty":
@@ -1065,6 +1067,8 @@ const AR = {
     "الملف كبير جداً للرفع من لوحة الإدارة في الإنتاج (Vercel، غالباً حتى ~4MB). قم بضغط الفيديو أو استخدم تخزيناً خارجياً.",
   "admin.promoErrBlobConfig":
     "اتصال Vercel Blob غير مفعّل (BLOB_READ_WRITE_TOKEN). اربط Blob بالمشروع في Vercel ثم أعد المحاولة.",
+  "admin.promoErrBlobUpload":
+    "فشل رفع Blob في الإنتاج. تحقق من ربط Blob بالمشروع الصحيح، وضبط التوكن في Production، وإعادة النشر.",
   "admin.promoErrMissing": "اختر ملفاً قبل الرفع.",
   "admin.promoErrSave": "تعذّر حفظ الملف.",
   "admin.promoLoadEmpty":

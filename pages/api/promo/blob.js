@@ -4,6 +4,12 @@ import { getPromoMeta, setPromoMeta } from "@/lib/promoStore";
 
 const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
 
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 function getAdminSecret() {
   return String(process.env.ADMIN_ORDERS_SECRET || "");
 }
