@@ -103,8 +103,12 @@ export default async function handler(req, res) {
 
     await fs.mkdir(UPLOAD_DIR, { recursive: true });
 
+    const maxUploadBytes = process.env.VERCEL
+      ? 4 * 1024 * 1024
+      : 80 * 1024 * 1024;
+
     const form = formidable({
-      maxFileSize: 80 * 1024 * 1024,
+      maxFileSize: maxUploadBytes,
       uploadDir: UPLOAD_DIR,
       keepExtensions: true,
     });
@@ -114,8 +118,16 @@ export default async function handler(req, res) {
       [, files] = await form.parse(req);
     } catch (e) {
       const msg = e?.message || "";
-      if (msg.includes("maxFileSize") || e?.httpCode === 413) {
-        return res.status(413).json({ ok: false, error: "file_too_large" });
+      if (
+        msg.includes("maxFileSize") ||
+        e?.httpCode === 413 ||
+        e?.code === 413
+      ) {
+        return res.status(413).json({
+          ok: false,
+          error: "file_too_large",
+          maxMb: Math.floor(maxUploadBytes / (1024 * 1024)),
+        });
       }
       return res.status(400).json({ ok: false, error: "parse_failed" });
     }
@@ -124,6 +136,18 @@ export default async function handler(req, res) {
     const file = Array.isArray(raw) ? raw[0] : raw;
     if (!file || !file.filepath) {
       return res.status(400).json({ ok: false, error: "missing_file" });
+    }
+    if (Number(file.size) > maxUploadBytes) {
+      try {
+        await fs.unlink(file.filepath);
+      } catch {
+        /* ignore */
+      }
+      return res.status(413).json({
+        ok: false,
+        error: "file_too_large",
+        maxMb: Math.floor(maxUploadBytes / (1024 * 1024)),
+      });
     }
 
     const mime = String(file.mimetype || "").toLowerCase();
@@ -153,7 +177,7 @@ export default async function handler(req, res) {
       }
     }
 
-    await setPromoMeta({ enabled: true, filename });
+    await setPromoMeta({ enabled: true, filename, externalUrl: null });
 
     const state = await getPromoPublicState();
 

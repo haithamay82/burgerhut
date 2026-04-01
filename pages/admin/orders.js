@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
+import { upload as uploadToBlob } from "@vercel/blob/client";
 import { useLocale } from "@/contexts/LocaleContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { BURGER_TOPPINGS, MAIN_MENU_ITEMS } from "@/utils/menuData";
@@ -418,39 +419,67 @@ export default function AdminOrdersPage() {
     setPromoMsg("");
     setPromoUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("video", file);
-      const r = await fetch("/api/promo", {
-        method: "POST",
-        headers: { "x-admin-secret": secret.trim() },
-        body: fd,
-      });
-      const d = await r.json().catch(() => ({}));
-      if (!r.ok) {
-        if (d.error === "admin_not_configured") {
-          setError(t("admin.errConfig"));
-        } else if (d.error === "unauthorized") {
-          setError(t("admin.errAuth"));
-        } else if (d.error === "file_too_large") {
-          setError(t("admin.promoErrTooLarge"));
-        } else if (d.error === "invalid_type") {
-          setError(t("admin.promoErrInvalidType"));
-        } else if (d.error === "save_failed") {
-          setError(t("admin.promoErrSave"));
-        } else {
-          setError(t("admin.promoErrUpload"));
+      let uploadedWithBlob = false;
+      try {
+        await uploadToBlob(`promo-${Date.now()}-${file.name}`, file, {
+          access: "public",
+          handleUploadUrl: "/api/promo/blob",
+          clientPayload: JSON.stringify({ adminSecret: secret.trim() }),
+          multipart: true,
+        });
+        uploadedWithBlob = true;
+      } catch (blobErr) {
+        const msg = String(blobErr?.message || "");
+        const isBlobDisabled =
+          msg.includes("blob_not_configured") ||
+          msg.includes("BLOB_READ_WRITE_TOKEN");
+        if (isBlobDisabled) {
+          setError(t("admin.promoErrBlobConfig"));
+          return;
         }
-        return;
+        // Fallback for local/dev where direct blob upload may be unavailable.
+      }
+
+      if (!uploadedWithBlob) {
+        const fd = new FormData();
+        fd.append("video", file);
+        const r = await fetch("/api/promo", {
+          method: "POST",
+          headers: { "x-admin-secret": secret.trim() },
+          body: fd,
+        });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          if (d.error === "admin_not_configured") {
+            setError(t("admin.errConfig"));
+          } else if (d.error === "unauthorized") {
+            setError(t("admin.errAuth"));
+          } else if (d.error === "file_too_large" || r.status === 413) {
+            const maxMb = Number(d?.maxMb) || 0;
+            if (maxMb > 0 && maxMb <= 5) {
+              setError(t("admin.promoErrTooLargeVercel"));
+            } else {
+              setError(t("admin.promoErrTooLarge"));
+            }
+          } else if (d.error === "parse_failed") {
+            setError(t("admin.promoErrTooLarge"));
+          } else if (d.error === "invalid_type") {
+            setError(t("admin.promoErrInvalidType"));
+          } else if (d.error === "save_failed") {
+            setError(t("admin.promoErrSave"));
+          } else {
+            setError(t("admin.promoErrUpload"));
+          }
+          return;
+        }
+      }
+
+      const fresh = await fetch("/api/promo");
+      const freshData = await fresh.json().catch(() => ({}));
+      if (fresh.ok && freshData?.ok) {
+        setPromo(freshData);
       }
       if (promoFileRef.current) promoFileRef.current.value = "";
-      setPromo({
-        ok: true,
-        active: Boolean(d.active),
-        videoUrl: d.videoUrl ?? null,
-        version: d.version ?? 0,
-        enabled: true,
-        hasFile: true,
-      });
       setPromoMsg(t("admin.promoUploaded"));
     } catch {
       setError(t("admin.errNet"));

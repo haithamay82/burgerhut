@@ -504,7 +504,7 @@ const HE = {
   "admin.couponDeleteErr": "לא ניתן היה למחוק את הקופון.",
   "admin.promoTitle": "פרסום — סרטון בדף הבית",
   "admin.promoHint":
-    "העלה קובץ וידאו (עד כ־80MB). בכניסה לאתר הסרטון יוצג במסך מלא; הלקוח יכול ללחוץ «דלג». אחרי דילוג באותו ביקור הסרטון לא יופיע שוב; סרטון חדש יוצג שוב אוטומטית.",
+    "העלה קובץ וידאו באיכות מקור. כש-Blob מחובר לפרויקט אין מגבלת ~4MB של פונקציית Vercel. בכניסה לאתר הסרטון יוצג במסך מלא; הלקוח יכול ללחוץ «דלג». אחרי דילוג באותו ביקור הסרטון לא יופיע שוב; סרטון חדש יוצג שוב אוטומטית.",
   "admin.promoStatusOn": "מוצג ללקוחות (כשיש קובץ)",
   "admin.promoStatusOff": "מושבת — לא מוצג ללקוחות",
   "admin.promoNoFile": "אין קובץ וידאו. בחר קובץ והעלה.",
@@ -520,6 +520,10 @@ const HE = {
   "admin.promoErrUpload": "העלאה נכשלה.",
   "admin.promoErrInvalidType": "יש להעלות קובץ וידאו בלבד.",
   "admin.promoErrTooLarge": "הקובץ גדול מדי (מקסימום כ־80MB).",
+  "admin.promoErrTooLargeVercel":
+    "הקובץ גדול מדי להעלאה מהפאנל בפרודקשן (Vercel, בדרך כלל עד ~4MB). דחס/הקטן את הווידאו או העלה דרך אחסון חיצוני.",
+  "admin.promoErrBlobConfig":
+    "חסר חיבור ל-Vercel Blob (BLOB_READ_WRITE_TOKEN). חבר Blob לפרויקט ב-Vercel ואז נסה שוב.",
   "admin.promoErrMissing": "בחר קובץ לפני ההעלאה.",
   "admin.promoErrSave": "לא ניתן היה לשמור את הקובץ.",
   "admin.promoLoadEmpty":
@@ -1041,7 +1045,7 @@ const AR = {
   "admin.couponDeleteErr": "تعذّر حذف الكوبون.",
   "admin.promoTitle": "إعلان — فيديو في الصفحة الرئيسية",
   "admin.promoHint":
-    "ارفع ملف فيديو (حتى نحو 80MB). عند الدخول للموقع يُعرض بملء الشاشة؛ يمكن للعميل الضغط «تخطي». بعد التخطي في نفس الجلسة لن يظهر مرة أخرى؛ فيديو جديد يُعرض تلقائياً.",
+    "ارفع ملف فيديو بجودة أصلية. عند ربط Blob بالمشروع لا تبقى مقيّداً بحد ~4MB الخاص بدوال Vercel. عند الدخول للموقع يُعرض بملء الشاشة؛ يمكن للعميل الضغط «تخطي». بعد التخطي في نفس الجلسة لن يظهر مرة أخرى؛ فيديو جديد يُعرض تلقائياً.",
   "admin.promoStatusOn": "يُعرض للعملاء (عند وجود ملف)",
   "admin.promoStatusOff": "معطّل — لا يُعرض للعملاء",
   "admin.promoNoFile": "لا يوجد ملف فيديو. اختر ملفاً وارفعه.",
@@ -1057,6 +1061,10 @@ const AR = {
   "admin.promoErrUpload": "فشل الرفع.",
   "admin.promoErrInvalidType": "يجب رفع ملف فيديو فقط.",
   "admin.promoErrTooLarge": "الملف كبير جداً (الحد نحو 80MB).",
+  "admin.promoErrTooLargeVercel":
+    "الملف كبير جداً للرفع من لوحة الإدارة في الإنتاج (Vercel، غالباً حتى ~4MB). قم بضغط الفيديو أو استخدم تخزيناً خارجياً.",
+  "admin.promoErrBlobConfig":
+    "اتصال Vercel Blob غير مفعّل (BLOB_READ_WRITE_TOKEN). اربط Blob بالمشروع في Vercel ثم أعد المحاولة.",
   "admin.promoErrMissing": "اختر ملفاً قبل الرفع.",
   "admin.promoErrSave": "تعذّر حفظ الملف.",
   "admin.promoLoadEmpty":
