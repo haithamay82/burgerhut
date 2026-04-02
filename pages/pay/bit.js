@@ -1,10 +1,13 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import Layout from "@/components/Layout";
 import { buildWhatsAppUrl, openWhatsAppComposeUrl } from "@/utils/whatsapp";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useCart } from "@/hooks/useCart";
-import { PENDING_ORDER_KEY } from "@/utils/checkoutSessionKeys";
+import {
+  BIT_PAY_WA_SENT_ORDER_KEY,
+  PENDING_ORDER_KEY,
+} from "@/utils/checkoutSessionKeys";
 import { consumePendingOrderForCheckoutResume } from "@/utils/checkoutResumeFromPending";
 
 function normalizeIsraeliPhone(phone) {
@@ -34,6 +37,35 @@ export default function BitPayPage() {
   const { amount, to } = router.query;
   const [status, setStatus] = useState("");
   const [isSendingWa, setIsSendingWa] = useState(false);
+  /** יש הזמנה ממתינה עם פריטים — רק אז מציגים בלוק ווטסאפ */
+  const [waPendingOk, setWaPendingOk] = useState(false);
+  /** כבר נלחץ «שלח לווטסאפ» להזמנה הזו */
+  const [waOrderComposeDone, setWaOrderComposeDone] = useState(false);
+
+  useEffect(() => {
+    if (!router.isReady || typeof window === "undefined") return;
+    const raw = window.sessionStorage.getItem(PENDING_ORDER_KEY);
+    if (!raw) {
+      setWaPendingOk(false);
+      return;
+    }
+    try {
+      const p = JSON.parse(raw);
+      if (!Array.isArray(p?.items) || !p.items.length) {
+        setWaPendingOk(false);
+        return;
+      }
+      const on = p.orderNumber;
+      const sentFor =
+        on != null && on !== ""
+          ? window.sessionStorage.getItem(BIT_PAY_WA_SENT_ORDER_KEY)
+          : null;
+      setWaPendingOk(true);
+      setWaOrderComposeDone(sentFor === String(on));
+    } catch {
+      setWaPendingOk(false);
+    }
+  }, [router.isReady]);
 
   const phone = useMemo(() => normalizeIsraeliPhone(to || "0504847599"), [to]);
   const total = useMemo(() => String(amount || ""), [amount]);
@@ -120,6 +152,18 @@ export default function BitPayPage() {
       locale: waLocale,
     });
     window.sessionStorage.removeItem(PENDING_ORDER_KEY);
+    setWaPendingOk(false);
+    try {
+      if (orderNumber != null && `${orderNumber}`.trim()) {
+        window.sessionStorage.setItem(
+          BIT_PAY_WA_SENT_ORDER_KEY,
+          String(orderNumber)
+        );
+      }
+    } catch {
+      /* ignore */
+    }
+    setWaOrderComposeDone(true);
     const how = openWhatsAppComposeUrl(waUrl);
     setIsSendingWa(false);
     if (how === "new_tab") {
@@ -199,17 +243,19 @@ export default function BitPayPage() {
           </ol>
         </div>
 
-        <div className="border-t border-slate-800 pt-3">
-          <p className="mb-2 text-[11px] text-gray-400">{t("bit.waHint")}</p>
-          <button
-            type="button"
-            onClick={sendOrderWhatsApp}
-            disabled={isSendingWa}
-            className="btn-primary inline-flex w-full items-center justify-center disabled:opacity-60"
-          >
-            {isSendingWa ? t("bit.waOpening") : t("bit.waBtn")}
-          </button>
-        </div>
+        {waPendingOk && !waOrderComposeDone ? (
+          <div className="border-t border-slate-800 pt-3">
+            <p className="mb-2 text-[11px] text-gray-400">{t("bit.waHint")}</p>
+            <button
+              type="button"
+              onClick={sendOrderWhatsApp}
+              disabled={isSendingWa}
+              className="btn-primary inline-flex w-full items-center justify-center disabled:opacity-60"
+            >
+              {isSendingWa ? t("bit.waOpening") : t("bit.waBtn")}
+            </button>
+          </div>
+        ) : null}
 
         {status ? (
           <p className="text-center text-[11px] text-gray-400">{status}</p>

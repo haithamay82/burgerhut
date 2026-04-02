@@ -7,3 +7,16 @@ export const CARD_SUCCESS_SNAPSHOT_KEY = "burgerhut_card_success_snapshot";
 export const SUCCESS_WA_SNAPSHOT_KEY = "burgerhut_success_wa_snapshot";
 /** שחזור כפתור ווטסאפ אחרי ריענון/חזרה ממצלמה או מאפליקציה אחרת */
 export const SUCCESS_WA_RESTORE_KEY = "burgerhut_success_wa_restore";
+/** המשתמש כבר פתח את ה-composer של ווטסאפ למסך success (מזומן/אשראי) — מניעת שליחה כפולה */
+export const SUCCESS_WA_SENT_KEY = "burgerhut_success_wa_sent";
+/** מספר הזמנה שכבר נלחץ עליה «שלח לווטסאפ» מעמוד ביט */
+export const BIT_PAY_WA_SENT_ORDER_KEY = "burgerhut_bit_pay_wa_sent_order";
+
+/**
+ * מפתח יציב לעמוד success (תואם ל-SUCCESS_WA_RESTORE_KEY.matchKey).
+ * @param {{ method?: string, orderOn?: string, hypReturn?: string }} p
+ */
+export function buildSuccessPageMatchKey(p) {
+  const methodStr = String(p?.method || "");
+  return `${methodStr}\u0001${String(p?.orderOn || "")}\u0001${String(p?.hypReturn || "")}`;
+}

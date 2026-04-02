@@ -5,9 +5,11 @@ import Layout from "@/components/Layout";
 import { useLocale } from "@/contexts/LocaleContext";
 import { buildWhatsAppUrl } from "@/utils/whatsapp";
 import {
+  buildSuccessPageMatchKey,
   CARD_SUCCESS_SNAPSHOT_KEY,
   PENDING_ORDER_KEY,
   SUCCESS_WA_RESTORE_KEY,
+  SUCCESS_WA_SENT_KEY,
   SUCCESS_WA_SNAPSHOT_KEY,
 } from "@/utils/checkoutSessionKeys";
 
@@ -27,6 +29,7 @@ export default function SuccessPage() {
   const [cardWaUrl, setCardWaUrl] = useState("");
   const [cardOrder, setCardOrder] = useState(null);
   const [coupon, setCoupon] = useState(null);
+  const [waComposeAlreadyUsed, setWaComposeAlreadyUsed] = useState(false);
 
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
@@ -44,7 +47,11 @@ export default function SuccessPage() {
       methodStr === "cash" ? SUCCESS_WA_SNAPSHOT_KEY : CARD_SUCCESS_SNAPSHOT_KEY;
 
     const buildMatchKey = () =>
-      `${methodStr}\u0001${String(orderFromQuery || "")}\u0001${String(hypReturn || "")}`;
+      buildSuccessPageMatchKey({
+        method: methodStr,
+        orderOn: orderFromQuery,
+        hypReturn,
+      });
 
     const RESTORE_MAX_AGE_MS = 48 * 3600 * 1000;
 
@@ -126,6 +133,35 @@ export default function SuccessPage() {
       /* ignore */
     }
   }, [router.isReady, hypReturn, method, locale, orderFromQuery]);
+
+  useEffect(() => {
+    if (!router.isReady || typeof window === "undefined") return;
+    if (!(hypReturn || method === "card" || method === "cash")) return;
+    const mk = buildSuccessPageMatchKey({
+      method,
+      orderOn: orderFromQuery,
+      hypReturn,
+    });
+    const RESTORE_MAX_AGE_MS = 48 * 3600 * 1000;
+    let used = false;
+    try {
+      const rawSent = window.sessionStorage.getItem(SUCCESS_WA_SENT_KEY);
+      if (rawSent) {
+        const sent = JSON.parse(rawSent);
+        const age = Date.now() - Number(sent?.savedAt || 0);
+        if (
+          sent?.matchKey === mk &&
+          age >= 0 &&
+          age <= RESTORE_MAX_AGE_MS
+        ) {
+          used = true;
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+    setWaComposeAlreadyUsed(used);
+  }, [router.isReady, hypReturn, method, orderFromQuery]);
 
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
@@ -255,11 +291,29 @@ export default function SuccessPage() {
             </p>
           </section>
         ) : null}
-        {(hypReturn || method === "card" || method === "cash") && cardWaUrl ? (
+        {(hypReturn || method === "card" || method === "cash") &&
+        cardWaUrl &&
+        !waComposeAlreadyUsed ? (
           <a
             href={cardWaUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => {
+              const mk = buildSuccessPageMatchKey({
+                method,
+                orderOn: orderFromQuery,
+                hypReturn,
+              });
+              try {
+                window.sessionStorage.setItem(
+                  SUCCESS_WA_SENT_KEY,
+                  JSON.stringify({ matchKey: mk, savedAt: Date.now() })
+                );
+              } catch {
+                /* ignore */
+              }
+              setWaComposeAlreadyUsed(true);
+            }}
             className="btn-primary mb-4 max-w-xs whitespace-pre-line px-4 py-3 text-center leading-snug"
           >
             {coupon?.code && Number(coupon?.value) > 0

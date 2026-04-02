@@ -2,6 +2,14 @@ import { getTranslator, t as tFn } from "@/utils/i18n";
 
 import { formatIls, lineTotal } from "@/utils/cartMoney";
 
+/** כותרת/תווית בווטסאפ — *מודגש* (לא כופלים אם כבר עטוף ב־*) */
+function waBoldLabel(text) {
+  const s = String(text ?? "").trim();
+  if (!s) return s;
+  if (/^\*[\s\S]*\*$/.test(s)) return s;
+  return `*${s}*`;
+}
+
 /** @param {'he'|'ar'} locale */
 export function formatPaymentLabel(payment, locale = "he") {
   return tFn(locale, `payment.${payment}`) || payment;
@@ -29,27 +37,27 @@ export function buildWhatsAppOrderText({
   const tr = getTranslator(locale);
   const lines = [];
   lines.push(tr("wa.brand"));
-  lines.push(tr("wa.newOrder"));
+  lines.push(waBoldLabel(tr("wa.newOrder")));
   if (orderNumber !== undefined && orderNumber !== null && `${orderNumber}`.trim()) {
-    lines.push(`${tr("wa.orderNumber")}: #${orderNumber}`);
+    lines.push(`${waBoldLabel(tr("wa.orderNumber"))}: #${orderNumber}`);
   }
   lines.push("");
-  lines.push(`${tr("wa.name")}: ${customer.name}`);
-  lines.push(`${tr("wa.phone")}: ${customer.phone}`);
+  lines.push(`${waBoldLabel(tr("wa.name"))}: ${customer.name}`);
+  lines.push(`${waBoldLabel(tr("wa.phone"))}: ${customer.phone}`);
   if (customer.address) {
-    lines.push(`${tr("wa.address")}: ${customer.address}`);
+    lines.push(`${waBoldLabel(tr("wa.address"))}: ${customer.address}`);
   }
   lines.push(
-    `${tr("wa.orderType")}: ${
+    `${waBoldLabel(tr("wa.orderType"))}: ${
       customer.orderType === "pickup" ? tr("wa.pickup") : tr("wa.delivery")
     }`
   );
   if (customer.orderType === "delivery") {
     const z = customer.deliveryZone;
     if (z === "yarka") {
-      lines.push(`${tr("wa.deliveryArea")}: ${tr("wa.zoneYarka")}`);
+      lines.push(`${waBoldLabel(tr("wa.deliveryArea"))}: ${tr("wa.zoneYarka")}`);
     } else if (z === "outside") {
-      lines.push(`${tr("wa.deliveryArea")}: ${tr("wa.zoneOutside")}`);
+      lines.push(`${waBoldLabel(tr("wa.deliveryArea"))}: ${tr("wa.zoneOutside")}`);
     }
     if (
       customer.deliveryDistanceKm != null &&
@@ -62,7 +70,7 @@ export function buildWhatsAppOrderText({
             ? tr("wa.airDistance")
             : tr("wa.deliveryDistanceApprox");
       lines.push(
-        `${distLabel}: ${Number(customer.deliveryDistanceKm).toFixed(1)} km`
+        `${waBoldLabel(distLabel)}: ${Number(customer.deliveryDistanceKm).toFixed(1)} km`
       );
     }
     if (
@@ -70,26 +78,30 @@ export function buildWhatsAppOrderText({
       Number.isFinite(Number(customer.deliveryFeeNis))
     ) {
       lines.push(
-        `${tr("wa.deliveryFee")}: ₪${formatIls(Number(customer.deliveryFeeNis))}`
+        `${waBoldLabel(tr("wa.deliveryFee"))}: ₪${formatIls(Number(customer.deliveryFeeNis))}`
       );
     }
     if (customer.deliveryPayTo === "restaurant_all") {
-      lines.push(tr("wa.payRestaurantInclDelivery"));
+      lines.push(waBoldLabel(tr("wa.payRestaurantInclDelivery")));
     } else if (customer.deliveryPayTo === "courier_delivery") {
       const mid =
         payment === "bit" || payment === "card"
           ? formatPaymentLabel(payment, locale)
           : formatPaymentLabel("card", locale);
       lines.push(
-        `${tr("checkout.payCourierDeliveryFoodPrefix")}${mid}${tr("checkout.payCourierDeliveryFoodSuffix")}`
+        waBoldLabel(
+          `${tr("checkout.payCourierDeliveryFoodPrefix")}${mid}${tr("checkout.payCourierDeliveryFoodSuffix")}`
+        )
       );
     } else if (customer.deliveryPayTo === "courier_all_cash") {
-      lines.push(tr("wa.payCourierCashFull"));
+      lines.push(waBoldLabel(tr("wa.payCourierCashFull")));
     }
   }
-  lines.push(`${tr("wa.payment")}: ${formatPaymentLabel(payment, locale)}`);
+  lines.push(
+    `${waBoldLabel(tr("wa.payment"))}: ${formatPaymentLabel(payment, locale)}`
+  );
   lines.push("");
-  lines.push(`${tr("wa.details")}:`);
+  lines.push(`${waBoldLabel(tr("wa.details"))}:`);
 
   cart.items.forEach((item, index) => {
     const lineExtras = [item.sizeLabel, item.variantLabel]
@@ -99,41 +111,45 @@ export function buildWhatsAppOrderText({
     const qty = Number(item.quantity);
     const quantitySuffix =
       Number.isFinite(qty) && qty > 1 ? ` x${qty}` : "";
-    lines.push(`${index + 1}. ${item.name}${quantitySuffix}${lineSuffix}`);
+    lines.push(
+      `*${index + 1}. ${item.name}${quantitySuffix}*${lineSuffix}`
+    );
     if (item.requestedDrinkLabel && String(item.requestedDrinkLabel).trim()) {
       const drinkPrice =
         Number.isFinite(Number(item.requestedDrinkPrice))
           ? ` (+₪${formatIls(Number(item.requestedDrinkPrice))})`
           : "";
       lines.push(
-        `   ${tr("wa.drink")}: ${String(item.requestedDrinkLabel).trim()}${drinkPrice}`
+        `   ${waBoldLabel(tr("wa.drink"))}: ${String(item.requestedDrinkLabel).trim()}${drinkPrice}`
       );
     }
     if (item.salads?.length) {
       lines.push(
-        `   ${tr("wa.salads")}: ${item.salads.map((x) => x.label).join(", ")}`
+        `   ${waBoldLabel(tr("wa.salads"))}: ${item.salads.map((x) => x.label).join(", ")}`
       );
     }
     if (item.burgerDoneness?.label) {
       lines.push(
-        `   ${tr("wa.doneness")}: ${String(item.burgerDoneness.label).trim()}`
+        `   ${waBoldLabel(tr("wa.doneness"))}: ${String(item.burgerDoneness.label).trim()}`
       );
     }
     if (item.toppings?.length) {
       lines.push(
-        `   ${tr("wa.toppings")}: ${item.toppings.map((x) => x.label).join(", ")}`
+        `   ${waBoldLabel(tr("wa.toppings"))}: ${item.toppings.map((x) => x.label).join(", ")}`
       );
     }
     if (item.extras?.length) {
       lines.push(
-        `   ${tr("wa.sauces")}: ${item.extras.map((x) => x.label).join(", ")}`
+        `   ${waBoldLabel(tr("wa.sauces"))}: ${item.extras.map((x) => x.label).join(", ")}`
       );
     }
     if (item.sellerNotes && String(item.sellerNotes).trim()) {
-      lines.push(`   ${tr("wa.sellerNotes")}: ${String(item.sellerNotes).trim()}`);
+      lines.push(
+        `   ${waBoldLabel(tr("wa.sellerNotes"))}: ${String(item.sellerNotes).trim()}`
+      );
     }
     lines.push(
-      `   ${tr("wa.linePrice")}: ₪${formatIls(lineTotal(item))}`
+      `   ${waBoldLabel(tr("wa.linePrice"))}: ₪${formatIls(lineTotal(item))}`
     );
   });
 
@@ -147,31 +163,39 @@ export function buildWhatsAppOrderText({
     customer.deliveryFeeNis != null &&
     Number.isFinite(Number(customer.deliveryFeeNis))
   ) {
-    lines.push(`${tr("wa.foodSubtotal")}: ₪${formatIls(foodSubtotal)}`);
+    lines.push(
+      `${waBoldLabel(tr("wa.foodSubtotal"))}: ₪${formatIls(foodSubtotal)}`
+    );
     if (Number.isFinite(promoDiscount) && promoDiscount > 0) {
-      lines.push(`${tr("wa.discount")}: -₪${formatIls(promoDiscount)}`);
+      lines.push(
+        `${waBoldLabel(tr("wa.discount"))}: -₪${formatIls(promoDiscount)}`
+      );
     }
     if (Number.isFinite(couponDiscount) && couponDiscount > 0) {
       lines.push(
-        `${tr("wa.coupon")}${couponCode ? ` (${couponCode})` : ""}: -₪${formatIls(couponDiscount)}`
+        `${waBoldLabel(`${tr("wa.coupon")}${couponCode ? ` (${couponCode})` : ""}`)}: -₪${formatIls(couponDiscount)}`
       );
     }
     lines.push(
-      `${tr("wa.deliveryFee")}: ₪${formatIls(Number(customer.deliveryFeeNis))}`
+      `${waBoldLabel(tr("wa.deliveryFee"))}: ₪${formatIls(Number(customer.deliveryFeeNis))}`
     );
     lines.push(
-      `${tr("wa.totalWithDelivery")}: *₪${formatIls(total)}*`
+      `${waBoldLabel(tr("wa.totalWithDelivery"))}: *₪${formatIls(total)}*`
     );
   } else {
     if (Number.isFinite(promoDiscount) && promoDiscount > 0) {
-      lines.push(`${tr("wa.discount")}: -₪${formatIls(promoDiscount)}`);
+      lines.push(
+        `${waBoldLabel(tr("wa.discount"))}: -₪${formatIls(promoDiscount)}`
+      );
     }
     if (Number.isFinite(couponDiscount) && couponDiscount > 0) {
       lines.push(
-        `${tr("wa.coupon")}${couponCode ? ` (${couponCode})` : ""}: -₪${formatIls(couponDiscount)}`
+        `${waBoldLabel(`${tr("wa.coupon")}${couponCode ? ` (${couponCode})` : ""}`)}: -₪${formatIls(couponDiscount)}`
       );
     }
-    lines.push(`${tr("wa.total")}: *₪${formatIls(total)}*`);
+    lines.push(
+      `${waBoldLabel(tr("wa.total"))}: *₪${formatIls(total)}*`
+    );
   }
 
   return lines.join("\n");
