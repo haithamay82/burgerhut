@@ -365,7 +365,7 @@ const HE = {
   "success.couponValue": "💰 ₪{value} הנחה",
   "success.couponCode": "🔢 קוד: {code}",
   "success.couponExpiry": "⏳ בתוקף עד: {date}",
-  "success.couponRedeemSite": "למימוש כנס ל burgerhut.co.il",
+  "success.couponRedeemSite": "למימוש כנסו ל־burgerhut.co.il",
   "success.couponCopy": "העתקת קוד",
   "success.couponCopied": "הקוד הועתק",
   "success.couponDownload": "הורדה כתמונה",

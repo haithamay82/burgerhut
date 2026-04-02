@@ -289,25 +289,43 @@ export default function SuccessPage() {
                 height={36}
                 className="absolute left-3 top-3 h-9 w-9 rounded-full border border-white/30 bg-white/95 p-0.5 object-cover"
               />
-              <p className="text-lg font-extrabold">{t("success.couponTitle")}</p>
-              <p className="mt-1 text-sm font-bold">
-                {t("success.couponValue").replace(
-                  "{value}",
-                  String(Number(coupon.value) || 0)
-                )}
-              </p>
-              <p className="mt-1 text-sm font-semibold">
-                {t("success.couponCode").replace("{code}", String(coupon.code || ""))}
-              </p>
-              <p className="mt-1 text-xs text-slate-200">
-                {t("success.couponExpiry").replace(
-                  "{date}",
-                  formatCouponDate(coupon.expiresAt)
-                )}
-              </p>
-              <p className="mt-1 text-[11px] text-cyan-200/90">
-                {t("success.couponRedeemSite")}
-              </p>
+              <div className="mt-1 grid grid-cols-1 items-center gap-3 sm:grid-cols-2 sm:gap-4">
+                <div className="min-w-0 space-y-1 text-right">
+                  <p className="text-lg font-extrabold">
+                    {t("success.couponTitle")}
+                  </p>
+                  <p className="text-sm font-bold">
+                    {t("success.couponValue").replace(
+                      "{value}",
+                      String(Number(coupon.value) || 0)
+                    )}
+                  </p>
+                  <p className="text-sm font-semibold">
+                    {t("success.couponCode").replace(
+                      "{code}",
+                      String(coupon.code || "")
+                    )}
+                  </p>
+                  <p className="text-xs text-slate-200">
+                    {t("success.couponExpiry").replace(
+                      "{date}",
+                      formatCouponDate(coupon.expiresAt)
+                    )}
+                  </p>
+                  <p className="text-[11px] text-cyan-200/90">
+                    {t("success.couponRedeemSite")}
+                  </p>
+                </div>
+                <div className="flex justify-center sm:justify-center">
+                  <img
+                    src="/home-category-banner.png"
+                    alt=""
+                    width={640}
+                    height={360}
+                    className="h-auto max-h-44 w-full max-w-[220px] rounded-lg border border-white/15 object-cover object-center shadow-md sm:max-h-52 sm:max-w-[260px]"
+                  />
+                </div>
+              </div>
             </div>
             <p className="mt-2 text-center text-xs font-extrabold text-red-400">
               {t("success.couponScreenshotHint")}
