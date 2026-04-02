@@ -14,10 +14,15 @@ const HomeMain = dynamic(() => import("@/components/HomeMain"), {
   ),
 });
 
+const PWAInstallPopup = dynamic(() => import("@/components/PWAInstallPopup"), {
+  ssr: false,
+});
+
 export default function HomePage() {
   return (
     <Layout>
       <HomeMain />
+      <PWAInstallPopup />
     </Layout>
   );
 }
