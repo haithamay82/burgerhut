@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/router";
 import { useLocale } from "@/contexts/LocaleContext";
 
@@ -96,7 +97,7 @@ export default function PWAInstallLauncher() {
   };
 
   if (!mounted) {
-    return <span className="h-9 w-9 shrink-0" aria-hidden />;
+    return <span className="inline-block h-9 w-9 shrink-0" aria-hidden />;
   }
 
   if (
@@ -106,6 +107,57 @@ export default function PWAInstallLauncher() {
   ) {
     return null;
   }
+
+  const modal =
+    confirmOpen && typeof document !== "undefined"
+      ? createPortal(
+          <div
+            className="fixed inset-0 z-[220] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+            role="presentation"
+            onClick={() => setConfirmOpen(false)}
+          >
+            <div
+              className="w-full max-w-sm rounded-2xl border-2 border-[#f5a623] bg-black p-5 shadow-2xl"
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="pwa-confirm-title"
+              aria-describedby="pwa-confirm-desc"
+              dir="rtl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2
+                id="pwa-confirm-title"
+                className="mb-2 text-center text-base font-bold text-[#f5a623]"
+              >
+                {t("pwa.confirmTitle")}
+              </h2>
+              <p
+                id="pwa-confirm-desc"
+                className="mb-5 text-center text-sm leading-relaxed text-gray-200"
+              >
+                {t("pwa.confirmBody")}
+              </p>
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  className="w-full rounded-xl bg-[#f5a623] py-3 text-sm font-bold text-black transition-opacity hover:opacity-90"
+                  onClick={() => void runInstall()}
+                >
+                  {t("pwa.confirmInstall")}
+                </button>
+                <button
+                  type="button"
+                  className="w-full rounded-xl border-2 border-[#f5a623] py-3 text-sm font-semibold text-white transition-colors hover:bg-white/5"
+                  onClick={() => setConfirmOpen(false)}
+                >
+                  {t("pwa.confirmCancel")}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )
+      : null;
 
   return (
     <>
@@ -132,53 +184,7 @@ export default function PWAInstallLauncher() {
           <path d="M5 21h14" />
         </svg>
       </button>
-
-      {confirmOpen ? (
-        <div
-          className="fixed inset-0 z-[220] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
-          role="presentation"
-          onClick={() => setConfirmOpen(false)}
-        >
-          <div
-            className="w-full max-w-sm rounded-2xl border-2 border-[#f5a623] bg-black p-5 shadow-2xl"
-            role="alertdialog"
-            aria-modal="true"
-            aria-labelledby="pwa-confirm-title"
-            aria-describedby="pwa-confirm-desc"
-            dir="rtl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2
-              id="pwa-confirm-title"
-              className="mb-2 text-center text-base font-bold text-[#f5a623]"
-            >
-              {t("pwa.confirmTitle")}
-            </h2>
-            <p
-              id="pwa-confirm-desc"
-              className="mb-5 text-center text-sm leading-relaxed text-gray-200"
-            >
-              {t("pwa.confirmBody")}
-            </p>
-            <div className="flex flex-col gap-2">
-              <button
-                type="button"
-                className="w-full rounded-xl bg-[#f5a623] py-3 text-sm font-bold text-black transition-opacity hover:opacity-90"
-                onClick={() => void runInstall()}
-              >
-                {t("pwa.confirmInstall")}
-              </button>
-              <button
-                type="button"
-                className="w-full rounded-xl border-2 border-[#f5a623] py-3 text-sm font-semibold text-white transition-colors hover:bg-white/5"
-                onClick={() => setConfirmOpen(false)}
-              >
-                {t("pwa.confirmCancel")}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      {modal}
     </>
   );
 }

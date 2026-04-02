@@ -1,15 +1,17 @@
 import dynamic from "next/dynamic";
 import { useState, useEffect, useCallback } from "react";
 import FloatingWhatsAppButton from "./FloatingWhatsAppButton";
-
-const PWAInstallLauncher = dynamic(() => import("./PWAInstallLauncher"), {
-  ssr: false,
-  loading: () => <span className="h-9 w-9 shrink-0" aria-hidden />,
-});
 import CurrentDateTime from "./CurrentDateTime";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useOrderingHours } from "@/contexts/OrderingHoursContext";
+
+const PWAInstallLauncher = dynamic(() => import("./PWAInstallLauncher"), {
+  ssr: false,
+  loading: () => (
+    <span className="inline-block h-9 w-9 shrink-0" aria-hidden />
+  ),
+});
 
 export default function Layout({ children }) {
   const { t } = useLocale();
@@ -49,14 +51,16 @@ export default function Layout({ children }) {
     <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-black text-gray-100">
       <header className="sticky top-0 z-30 w-full border-b border-slate-800 bg-black/80 backdrop-blur">
         <div className="relative w-full px-4 py-2 sm:py-2.5">
-          <div className="pointer-events-none absolute left-1/2 top-2 z-[5] flex -translate-x-1/2 justify-center sm:top-2.5">
+          <div className="pointer-events-none absolute left-1/2 top-2 z-20 flex -translate-x-1/2 justify-center sm:top-2.5">
             <div className="pointer-events-auto flex max-w-[calc(100vw-4.5rem)] flex-col items-center text-center">
-              <div
-                className="flex flex-row items-center justify-center gap-2"
-                dir="ltr"
-              >
-                <PWAInstallLauncher />
-                <div className="h-[4.2rem] w-[4.2rem] shrink-0 overflow-hidden rounded-full bg-white ring-1 ring-white/15">
+              <div className="relative inline-flex flex-shrink-0 justify-center">
+                <div
+                  className="absolute right-full top-1/2 z-[1] -translate-y-1/2 pr-2"
+                  dir="ltr"
+                >
+                  <PWAInstallLauncher />
+                </div>
+                <div className="relative z-[2] h-[4.2rem] w-[4.2rem] shrink-0 overflow-hidden rounded-full bg-white ring-1 ring-white/15">
                   <img
                     src="/logo-burger-hut.png"
                     alt="Burger Hut logo icon"
