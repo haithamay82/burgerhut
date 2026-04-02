@@ -1,5 +1,11 @@
+import dynamic from "next/dynamic";
 import { useState, useEffect, useCallback } from "react";
 import FloatingWhatsAppButton from "./FloatingWhatsAppButton";
+
+const PWAInstallLauncher = dynamic(() => import("./PWAInstallLauncher"), {
+  ssr: false,
+  loading: () => <span className="h-9 w-9 shrink-0" aria-hidden />,
+});
 import CurrentDateTime from "./CurrentDateTime";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -45,14 +51,20 @@ export default function Layout({ children }) {
         <div className="relative w-full px-4 py-2 sm:py-2.5">
           <div className="pointer-events-none absolute left-1/2 top-2 z-[5] flex -translate-x-1/2 justify-center sm:top-2.5">
             <div className="pointer-events-auto flex max-w-[calc(100vw-4.5rem)] flex-col items-center text-center">
-              <div className="h-[4.2rem] w-[4.2rem] shrink-0 overflow-hidden rounded-full bg-white ring-1 ring-white/15">
-                <img
-                  src="/logo-burger-hut.png"
-                  alt="Burger Hut logo icon"
-                  width={132}
-                  height={132}
-                  className="h-full w-full scale-115 object-cover object-center"
-                />
+              <div
+                className="flex flex-row items-center justify-center gap-2"
+                dir="ltr"
+              >
+                <PWAInstallLauncher />
+                <div className="h-[4.2rem] w-[4.2rem] shrink-0 overflow-hidden rounded-full bg-white ring-1 ring-white/15">
+                  <img
+                    src="/logo-burger-hut.png"
+                    alt="Burger Hut logo icon"
+                    width={132}
+                    height={132}
+                    className="h-full w-full scale-115 object-cover object-center"
+                  />
+                </div>
               </div>
               <h1 className="mb-0.5 inline-flex flex-wrap items-center justify-center gap-x-1 gap-y-0 text-base font-extrabold tracking-tight text-primary sm:text-xl">
                 <span dir="ltr">Burger Hut</span>
