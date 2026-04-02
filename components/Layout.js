@@ -81,12 +81,12 @@ export default function Layout({ children }) {
             </div>
           </div>
 
-          <div className="relative z-30 mx-auto min-h-[6.85rem] max-w-4xl sm:min-h-[7.25rem]">
+          <div className="pointer-events-none relative z-30 mx-auto min-h-[6.85rem] max-w-4xl sm:min-h-[7.25rem]">
             <div className="flex items-start justify-between gap-2 pt-1">
-              <div className="relative flex min-h-[44px] shrink-0 items-center">
+              <div className="pointer-events-auto relative flex min-h-[44px] shrink-0 items-center">
                 <LanguageSwitcher />
               </div>
-              <div className="flex min-w-0 max-w-[42%] flex-col items-end gap-0.5 text-right text-[11px] text-gray-400 sm:max-w-[38%]">
+              <div className="pointer-events-auto flex min-w-0 max-w-[42%] flex-col items-end gap-0.5 text-right text-[11px] text-gray-400 sm:max-w-[38%]">
                 <span>
                   {t("home.contactAddressLabel")}: {t("home.contactAddressValue")}
                 </span>
@@ -133,12 +133,12 @@ export default function Layout({ children }) {
             </div>
           </div>
 
-          <div className="relative z-30 mx-auto flex min-h-[2.25rem] w-full max-w-4xl items-center justify-center">
+          <div className="pointer-events-none relative z-30 mx-auto flex min-h-[2.25rem] w-full max-w-4xl items-center justify-center">
             <a
               href={wazeUrl}
               target="_blank"
               rel="noreferrer"
-              className="absolute left-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center overflow-hidden rounded-full bg-transparent p-1 shadow-sm ring-1 ring-white/10 transition-opacity hover:opacity-90 sm:h-12 sm:w-12 sm:p-1.5"
+              className="pointer-events-auto absolute left-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center overflow-hidden rounded-full bg-transparent p-1 shadow-sm ring-1 ring-white/10 transition-opacity hover:opacity-90 sm:h-12 sm:w-12 sm:p-1.5"
               aria-label={t("home.openWaze")}
               title={t("home.openWaze")}
             >
@@ -152,7 +152,7 @@ export default function Layout({ children }) {
               />
             </a>
             <div
-              className="flex flex-row items-center justify-center gap-2"
+              className="pointer-events-auto flex flex-row items-center justify-center gap-2"
               dir="ltr"
             >
               <p
@@ -183,7 +183,7 @@ export default function Layout({ children }) {
             </div>
             <a
               href={`tel:${String(t("home.contactPhoneValue")).replace(/\s/g, "")}`}
-              className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center overflow-hidden rounded-full bg-transparent p-1 shadow-sm ring-1 ring-white/10 transition-opacity hover:opacity-90 sm:h-12 sm:w-12 sm:p-1.5"
+              className="pointer-events-auto absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center overflow-hidden rounded-full bg-transparent p-1 shadow-sm ring-1 ring-white/10 transition-opacity hover:opacity-90 sm:h-12 sm:w-12 sm:p-1.5"
               aria-label={t("home.callPhoneAria")}
               title={t("home.callPhoneAria")}
             >
