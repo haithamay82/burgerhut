@@ -29,6 +29,8 @@ export default function SuccessPage() {
   const [cardWaUrl, setCardWaUrl] = useState("");
   const [cardOrder, setCardOrder] = useState(null);
   const [coupon, setCoupon] = useState(null);
+  /** אחרי ניסיון טעינת קופון (או מטמון) — מאפשר ווטסאפ גם אם לא נוצר קופון */
+  const [couponFetchSettled, setCouponFetchSettled] = useState(false);
   const [waComposeAlreadyUsed, setWaComposeAlreadyUsed] = useState(false);
 
   useEffect(() => {
@@ -165,8 +167,13 @@ export default function SuccessPage() {
 
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
-    if (!(hypReturn || method === "card" || method === "cash")) return;
-    if (!cardOrder?.orderId || !cardOrder?.amount) return;
+    if (!(hypReturn || method === "card" || method === "cash")) {
+      setCouponFetchSettled(true);
+      return;
+    }
+    if (!cardOrder?.orderId || !cardOrder?.amount) {
+      return;
+    }
 
     const sessionKey = `bh_coupon_created_${cardOrder.orderId}`;
     try {
@@ -175,6 +182,7 @@ export default function SuccessPage() {
         const parsed = JSON.parse(cached);
         if (parsed?.code) {
           setCoupon(parsed);
+          setCouponFetchSettled(true);
           return;
         }
       }
@@ -182,6 +190,7 @@ export default function SuccessPage() {
       /* ignore */
     }
 
+    setCouponFetchSettled(false);
     let active = true;
     (async () => {
       try {
@@ -194,15 +203,18 @@ export default function SuccessPage() {
           }),
         });
         const d = await r.json().catch(() => ({}));
-        if (!active || !r.ok || !d?.ok || !d?.coupon?.code) return;
-        setCoupon(d.coupon);
-        try {
-          window.sessionStorage.setItem(sessionKey, JSON.stringify(d.coupon));
-        } catch {
-          /* ignore */
+        if (active && r.ok && d?.ok && d?.coupon?.code) {
+          setCoupon(d.coupon);
+          try {
+            window.sessionStorage.setItem(sessionKey, JSON.stringify(d.coupon));
+          } catch {
+            /* ignore */
+          }
         }
       } catch {
         /* ignore */
+      } finally {
+        if (active) setCouponFetchSettled(true);
       }
     })();
 
@@ -242,6 +254,17 @@ export default function SuccessPage() {
       year: "2-digit",
     }).format(d);
   };
+
+  /** פעיל רק כשבלוק הקופון מוצג (יש קוד) */
+  const waLinkActive = Boolean(coupon?.code);
+
+  const waLinkLabel =
+    coupon?.code && Number(coupon?.value) > 0
+      ? t("success.waAfterCardWithCoupon").replace(
+          "{value}",
+          String(Number(coupon.value) || 0)
+        )
+      : t("success.waAfterCard");
 
   return (
     <Layout>
@@ -294,35 +317,48 @@ export default function SuccessPage() {
         {(hypReturn || method === "card" || method === "cash") &&
         cardWaUrl &&
         !waComposeAlreadyUsed ? (
-          <a
-            href={cardWaUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => {
-              const mk = buildSuccessPageMatchKey({
-                method,
-                orderOn: orderFromQuery,
-                hypReturn,
-              });
-              try {
-                window.sessionStorage.setItem(
-                  SUCCESS_WA_SENT_KEY,
-                  JSON.stringify({ matchKey: mk, savedAt: Date.now() })
-                );
-              } catch {
-                /* ignore */
-              }
-              setWaComposeAlreadyUsed(true);
-            }}
-            className="btn-primary mb-4 max-w-xs whitespace-pre-line px-4 py-3 text-center leading-snug"
-          >
-            {coupon?.code && Number(coupon?.value) > 0
-              ? t("success.waAfterCardWithCoupon").replace(
-                  "{value}",
-                  String(Number(coupon.value) || 0)
-                )
-              : t("success.waAfterCard")}
-          </a>
+          <div className="mb-4 w-full max-w-xs">
+            {waLinkActive ? (
+              <a
+                href={cardWaUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => {
+                  const mk = buildSuccessPageMatchKey({
+                    method,
+                    orderOn: orderFromQuery,
+                    hypReturn,
+                  });
+                  try {
+                    window.sessionStorage.setItem(
+                      SUCCESS_WA_SENT_KEY,
+                      JSON.stringify({ matchKey: mk, savedAt: Date.now() })
+                    );
+                  } catch {
+                    /* ignore */
+                  }
+                  setWaComposeAlreadyUsed(true);
+                }}
+                className="btn-primary block whitespace-pre-line px-4 py-3 text-center leading-snug"
+              >
+                {waLinkLabel}
+              </a>
+            ) : (
+              <>
+                <span
+                  className="btn-primary block cursor-not-allowed whitespace-pre-line px-4 py-3 text-center leading-snug opacity-45 pointer-events-none select-none"
+                  aria-disabled="true"
+                >
+                  {waLinkLabel}
+                </span>
+                <p className="mt-2 text-[11px] leading-snug text-gray-500">
+                  {couponFetchSettled
+                    ? t("success.waNoCouponLoaded")
+                    : t("success.waWaitForCoupon")}
+                </p>
+              </>
+            )}
+          </div>
         ) : null}
         <Link
           href="/"
