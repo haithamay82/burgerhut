@@ -29,8 +29,6 @@ export const BURGER_TOPPINGS = [
 /** גבינות שניתן לבחור פעמיים (דבל) במנה אחת */
 export const DOUBLE_CHEESE_TOPPING_IDS = new Set(["cheddar", "gouda"]);
 
-export const MAX_DOUBLE_CHEESE_PER_MEAL = 2;
-
 /** תוספות שלא מוצעות במנות קריספי (ביצת עין, בייקון טלה, קורנדביף עגל, אסאדו מפורק) */
 const CRISPY_EXCLUDED_TOPPING_IDS = new Set([
   "fried_egg",

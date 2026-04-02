@@ -29,7 +29,14 @@ export function lineHasUnavailableInventory(line, isUnavailable) {
 export function customizationKey(item) {
   const pid = cartLineProductId(item);
   const salads = [...(item.salads?.map((s) => s.id) || [])].sort().join(",");
-  const tops = [...(item.toppings?.map((s) => s.id) || [])].sort().join(",");
+  const tops = [
+    ...(item.toppings?.map((s) =>
+      s?.layers === 2 ? `${s.id}:2` : s?.id
+    ) || []),
+  ]
+    .filter(Boolean)
+    .sort()
+    .join(",");
   const extras = [...(item.extras?.map((s) => `${s.id}:${s.price}`) || [])]
     .sort()
     .join(",");

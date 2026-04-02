@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import {
   BURGER_DONENESS_OPTIONS,
   BURGER_TOPPINGS,
@@ -10,7 +10,6 @@ import {
   EXTRA_SAUCES,
   FREE_SALADS,
   KIDS_CRISPY_BREAD_CHOICES,
-  MAX_DOUBLE_CHEESE_PER_MEAL,
   MENU_ITEMS,
 } from "@/utils/menuData";
 import { formatIls } from "@/utils/cartMoney";
@@ -19,6 +18,9 @@ import { useCart } from "@/hooks/useCart";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useInventory } from "@/contexts/InventoryContext";
 import { useOrderingHours } from "@/contexts/OrderingHoursContext";
+
+/** סימון ב-history.state כדי שכפתור «חזור» במכשיר יסגור את הוויזארד */
+const MEAL_WIZARD_HISTORY_KEY = "__burgerhutMealWizard";
 
 export default function MealCustomizeWizard({ item, open, onClose }) {
   const { t } = useLocale();
@@ -37,6 +39,13 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
   const [requestedDrinkId, setRequestedDrinkId] = useState("");
   const [drinkMenuOpen, setDrinkMenuOpen] = useState(false);
   const [donenessId, setDonenessId] = useState(DEFAULT_BURGER_DONENESS_ID);
+  /** cheddar/gouda: 1 = שכבה אחת, 2 = דבל */
+  const [cheeseMode, setCheeseMode] = useState({});
+
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  /** true אחרי pushState — עד ש-popstate (חזור) או ניקוי אחרי סגירה מ-X */
+  const wizardHistoryPending = useRef(false);
 
   const isOutOfStock = item ? isUnavailable(item.id) : false;
   const orderingClosed = !orderingAllowed;
@@ -47,11 +56,18 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
     item?.category === "crispy" ? CRISPY_MEAL_TOPPINGS : BURGER_TOPPINGS;
   const isBeefBurgerMeal = item?.category === "burgers";
 
-  const toppingsPrice = selectedToppings.reduce(
-    (sum, id) =>
-      sum + (toppingChoices.find((x) => x.id === id)?.price || 0),
-    0
-  );
+  const toppingsPrice =
+    selectedToppings.reduce(
+      (sum, id) =>
+        sum + (toppingChoices.find((x) => x.id === id)?.price || 0),
+      0
+    ) +
+    [...DOUBLE_CHEESE_TOPPING_IDS].reduce((sum, cheeseId) => {
+      const layers = cheeseMode[cheeseId];
+      if (!layers) return sum;
+      const p = toppingChoices.find((x) => x.id === cheeseId)?.price || 0;
+      return sum + p * layers;
+    }, 0);
 
   const { total: saucesPrice, details: sauceChargeDetails } = useMemo(
     () => computeSaucesCharge(selectedSauces),
@@ -94,6 +110,7 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
     setDrinkMenuOpen(false);
     setIsAdding(false);
     setDonenessId(DEFAULT_BURGER_DONENESS_ID);
+    setCheeseMode({});
   }, [open, item?.id]);
 
   useEffect(() => {
@@ -104,6 +121,37 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
       document.body.style.overflow = prev;
     };
   }, [open]);
+
+  useEffect(() => {
+    if (!open || !item || typeof window === "undefined") return;
+
+    const onPopState = () => {
+      wizardHistoryPending.current = false;
+      onCloseRef.current();
+    };
+
+    const prevState = window.history.state;
+    const merged =
+      prevState != null &&
+      typeof prevState === "object" &&
+      !Array.isArray(prevState)
+        ? { ...prevState, [MEAL_WIZARD_HISTORY_KEY]: 1 }
+        : { [MEAL_WIZARD_HISTORY_KEY]: 1 };
+    window.history.pushState(merged, "");
+    wizardHistoryPending.current = true;
+    window.addEventListener("popstate", onPopState);
+
+    return () => {
+      window.removeEventListener("popstate", onPopState);
+      if (
+        wizardHistoryPending.current &&
+        window.history.state?.[MEAL_WIZARD_HISTORY_KEY]
+      ) {
+        wizardHistoryPending.current = false;
+        window.history.back();
+      }
+    };
+  }, [open, item?.id]);
 
   const handleClose = useCallback(() => onClose(), [onClose]);
 
@@ -119,10 +167,14 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
   useEffect(() => {
     if (!open) return;
     setSelectedToppings((prev) => prev.filter((id) => !isUnavailable(id)));
+    setCheeseMode((prev) => {
+      const next = { ...prev };
+      for (const id of DOUBLE_CHEESE_TOPPING_IDS) {
+        if (isUnavailable(id)) delete next[id];
+      }
+      return next;
+    });
   }, [open, unavailableIds, isUnavailable]);
-
-  const toppingUnitCount = (id) =>
-    selectedToppings.filter((x) => x === id).length;
 
   const toggleToppingChoice = (id) => {
     if (blocked) return;
@@ -134,27 +186,28 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
     );
   };
 
-  const addToppingUnit = (id) => {
+  const toggleCheeseRow = (id) => {
     if (blocked) return;
     const unavail = isUnavailable(id);
-    const cnt = toppingUnitCount(id);
-    if (DOUBLE_CHEESE_TOPPING_IDS.has(id)) {
-      if (unavail && cnt === 0) return;
-      if (cnt >= MAX_DOUBLE_CHEESE_PER_MEAL) return;
-      setSelectedToppings((prev) => [...prev, id]);
-      return;
-    }
-    if (unavail && cnt === 0) return;
-    if (cnt >= 1) return;
-    setSelectedToppings((prev) => [...prev, id]);
+    setCheeseMode((prev) => {
+      const cur = prev[id];
+      if (!cur) {
+        if (unavail) return prev;
+        return { ...prev, [id]: 1 };
+      }
+      const { [id]: _removed, ...rest } = prev;
+      return rest;
+    });
   };
 
-  const removeToppingUnit = (id) => {
+  const toggleCheeseDouble = (id, e) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (blocked) return;
-    setSelectedToppings((prev) => {
-      const idx = prev.lastIndexOf(id);
-      if (idx === -1) return prev;
-      return prev.filter((_, i) => i !== idx);
+    setCheeseMode((prev) => {
+      const cur = prev[id];
+      if (!cur) return prev;
+      return { ...prev, [id]: cur === 2 ? 1 : 2 };
     });
   };
 
@@ -198,11 +251,28 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
       label: t(`salad.${id}`),
       price: 0,
     }));
-    const toppings = selectedToppings.map((id) => ({
-      id,
-      label: t(`topping.${id}`),
-      price: toppingChoices.find((x) => x.id === id)?.price,
-    }));
+    const doubleWord = t("ui.doubleWord");
+    const toppings = [];
+    for (const cheeseId of DOUBLE_CHEESE_TOPPING_IDS) {
+      const layers = cheeseMode[cheeseId];
+      if (!layers) continue;
+      const p = toppingChoices.find((x) => x.id === cheeseId)?.price || 0;
+      const baseLabel = t(`topping.${cheeseId}`);
+      toppings.push({
+        id: cheeseId,
+        label:
+          layers === 2 ? `${baseLabel} ${doubleWord}` : baseLabel,
+        price: p * layers,
+        ...(layers === 2 ? { layers: 2 } : {}),
+      });
+    }
+    for (const id of selectedToppings) {
+      toppings.push({
+        id,
+        label: t(`topping.${id}`),
+        price: toppingChoices.find((x) => x.id === id)?.price,
+      });
+    }
     const extras = sauceChargeDetails.map((row) => ({
       id: row.id,
       label: t(`sauce.${row.id}`),
@@ -406,75 +476,61 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
             {toppingChoices.map((x) => {
               const topUnavail = isUnavailable(x.id);
               const dbl = DOUBLE_CHEESE_TOPPING_IDS.has(x.id);
-              const cnt = toppingUnitCount(x.id);
-              const selected = cnt > 0;
+              const cheeseLayers = cheeseMode[x.id] || 0;
+              const selected = dbl ? cheeseLayers > 0 : selectedToppings.includes(x.id);
               const rowBlocked = topUnavail && !selected;
 
               if (dbl) {
                 return (
                   <div
                     key={x.id}
-                    className={`col-span-2 grid w-full grid-cols-[1fr_auto_1fr] items-center gap-x-2 rounded-full border px-1.5 py-1.5 text-[11px] ${
-                      cnt > 0
+                    className={`flex w-full min-w-0 items-center gap-1 rounded-full border px-1.5 py-1.5 text-[11px] ${
+                      cheeseLayers > 0
                         ? "border-primary bg-primary/10 text-primary"
                         : rowBlocked
-                          ? "cursor-not-allowed border-slate-800 text-gray-500 opacity-60"
+                          ? "border-slate-800 text-gray-500 opacity-60"
                           : "border-slate-700 text-gray-300"
                     }`}
                   >
-                    <div className="flex min-w-0 items-center gap-1.5 justify-self-start">
+                    <button
+                      type="button"
+                      disabled={blocked || rowBlocked}
+                      onClick={() => toggleCheeseRow(x.id)}
+                      className="flex min-w-0 flex-1 items-center gap-1 rounded-md text-start disabled:cursor-not-allowed"
+                    >
                       {x.image ? (
                         <img
                           src={x.image}
-                          alt={t(`topping.${x.id}`)}
+                          alt=""
                           className="h-8 w-8 shrink-0 rounded-md border border-slate-700 object-cover"
                         />
                       ) : null}
-                      <span className="min-w-0 text-end leading-snug">
+                      <span className="min-w-0 truncate leading-snug">
                         {t(`topping.${x.id}`)}
-                        <span className="mr-1 block text-[9px] font-normal text-gray-500">
-                          {t("ui.doubleCheeseHint")}
-                        </span>
                         {topUnavail ? (
                           <span className="mr-1 text-[10px] text-amber-600/90">
                             ({t("ui.soldOutShort")})
                           </span>
                         ) : null}
                       </span>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-0.5 justify-self-center">
+                    </button>
+                    {cheeseLayers > 0 ? (
                       <button
                         type="button"
-                        disabled={blocked || cnt === 0}
-                        onClick={() => removeToppingUnit(x.id)}
-                        className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-600 text-sm leading-none text-gray-200 hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-30"
-                        aria-label={t("ui.toppingRemoveOne")}
+                        disabled={blocked}
+                        onClick={(e) => toggleCheeseDouble(x.id, e)}
+                        className={`shrink-0 rounded border px-1 py-0.5 text-[9px] font-semibold leading-none transition-colors ${
+                          cheeseLayers === 2
+                            ? "border-primary bg-primary/20 text-primary"
+                            : "border-slate-600 text-gray-400 hover:border-slate-500 hover:text-gray-200"
+                        } disabled:opacity-50`}
                       >
-                        −
+                        {t("ui.doubleWord")}
                       </button>
-                      <span
-                        className="min-w-[1.25rem] text-center text-[12px] font-semibold tabular-nums"
-                        aria-live="polite"
-                      >
-                        {cnt}
-                      </span>
-                      <button
-                        type="button"
-                        disabled={
-                          blocked ||
-                          cnt >= MAX_DOUBLE_CHEESE_PER_MEAL ||
-                          (topUnavail && cnt === 0)
-                        }
-                        onClick={() => addToppingUnit(x.id)}
-                        className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-600 text-sm leading-none text-gray-200 hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
-                        aria-label={t("ui.toppingAddOne")}
-                      >
-                        +
-                      </button>
-                    </div>
-                    <span className="justify-self-end text-[10px] text-gray-400">
-                      {cnt > 0
-                        ? `+₪${formatIls(x.price * cnt)}`
+                    ) : null}
+                    <span className="shrink-0 text-[10px] text-gray-400 tabular-nums">
+                      {cheeseLayers > 0
+                        ? `+₪${formatIls(x.price * cheeseLayers)}`
                         : `+₪${formatIls(x.price)}`}
                     </span>
                   </div>
