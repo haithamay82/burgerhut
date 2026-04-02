@@ -115,7 +115,7 @@ const HE = {
     "משקה אנרגיה מוגז ללא סוכר — פחית 250 מ״ל (10 קלוריות).",
   "menu.drink-soda.name": "סודה",
   "menu.drink-soda.desc": "Schweppes — מי סודה מוגז.",
-  "menu.drink-water-small.name": "מים קטן",
+  "menu.drink-water-small.name": "מיי עדן",
   "menu.drink-water-small.desc": "",
   "menu.drink-fresh-strawberry.name": "fresh תות",
   "menu.drink-fresh-strawberry.desc":
@@ -682,7 +682,7 @@ const AR = {
     "مشروب طاقة فوّار بدون سكر، علبة 250 مل (10 سعرات).",
   "menu.drink-soda.name": "صودا",
   "menu.drink-soda.desc": "Schweppes — مياه صودا فوّارة.",
-  "menu.drink-water-small.name": "ماء صغير",
+  "menu.drink-water-small.name": "ماي عدن",
   "menu.drink-water-small.desc": "",
   "menu.drink-fresh-strawberry.name": "فريش فراولة",
   "menu.drink-fresh-strawberry.desc":
