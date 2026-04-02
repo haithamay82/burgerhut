@@ -5,12 +5,11 @@ import CurrentDateTime from "./CurrentDateTime";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useOrderingHours } from "@/contexts/OrderingHoursContext";
-import { isOvernightSpan } from "@/utils/orderingHours";
 
 const PWAInstallLauncher = dynamic(() => import("./PWAInstallLauncher"), {
   ssr: false,
   loading: () => (
-    <span className="inline-block h-9 w-9 shrink-0" aria-hidden />
+    <span className="inline-block h-[3.25rem] w-10 shrink-0" aria-hidden />
   ),
 });
 
@@ -232,38 +231,33 @@ export default function Layout({ children }) {
                 ×
               </button>
             </div>
-            {businessHours ? (
-              (() => {
-                const openDays = businessHours.filter((d) => d.enabled);
-                if (!openDays.length) {
-                  return (
-                    <p className="text-sm text-amber-200/90">
-                      {t("home.hoursNoOpenDays")}
-                    </p>
-                  );
-                }
-                return (
-                  <ul className="space-y-2 text-sm text-gray-100">
-                    {openDays.map((d) => (
-                      <li key={d.weekday} className="leading-snug">
-                        <span className="font-semibold text-gray-200">
-                          {t(`weekday.${d.weekday}`)}
-                        </span>
-                        <span className="text-gray-400">: </span>
-                        <span className="font-medium tabular-nums text-primary">
-                          {d.open} – {d.close}
-                          {isOvernightSpan(d.open, d.close) ? (
-                            <span className="text-gray-500">
-                              {" "}
-                              {t("home.hoursCloseNextDay")}
-                            </span>
-                          ) : null}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                );
-              })()
+            {businessHours && businessHours.length ? (
+              <ul className="space-y-2 text-sm text-gray-100">
+                {[...businessHours]
+                  .sort((a, b) => a.weekday - b.weekday)
+                  .map((d) => (
+                    <li key={d.weekday} className="leading-snug">
+                      <span className="font-semibold text-gray-200">
+                        {t(`weekday.${d.weekday}`)}
+                      </span>
+                      {d.enabled ? (
+                        <>
+                          <span className="text-gray-400">: </span>
+                          <span className="font-medium tabular-nums text-primary">
+                            {d.open} – {d.close}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-gray-400"> — </span>
+                          <span className="font-medium text-gray-400">
+                            {t("home.restaurantClosed")}
+                          </span>
+                        </>
+                      )}
+                    </li>
+                  ))}
+              </ul>
             ) : (
               <>
                 <p className="text-sm text-gray-200">{t("home.hoursDays")}</p>
