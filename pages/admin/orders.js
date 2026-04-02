@@ -1491,6 +1491,12 @@ export default function AdminOrdersPage() {
                                           .join(", ")}
                                       </p>
                                     ) : null}
+                                    {it.burgerDoneness?.label ? (
+                                      <p className="text-[11px] text-gray-400">
+                                        {t("checkout.donenessPrefix")}:{" "}
+                                        {it.burgerDoneness.label}
+                                      </p>
+                                    ) : null}
                                     {it.toppings?.length ? (
                                       <p className="text-[11px] text-gray-400">
                                         {t("checkout.toppingsPrefix")}:{" "}

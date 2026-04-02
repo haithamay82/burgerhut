@@ -1,9 +1,11 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import {
+  BURGER_DONENESS_OPTIONS,
   BURGER_TOPPINGS,
   CRISPY_CHICKEN_BURGER_PRODUCT_ID,
   CRISPY_CHICKEN_KIDS_PRODUCT_ID,
   CRISPY_MEAL_TOPPINGS,
+  DEFAULT_BURGER_DONENESS_ID,
   EXTRA_SAUCES,
   FREE_SALADS,
   KIDS_CRISPY_BREAD_CHOICES,
@@ -32,6 +34,7 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
   const [sellerNotes, setSellerNotes] = useState("");
   const [requestedDrinkId, setRequestedDrinkId] = useState("");
   const [drinkMenuOpen, setDrinkMenuOpen] = useState(false);
+  const [donenessId, setDonenessId] = useState(DEFAULT_BURGER_DONENESS_ID);
 
   const isOutOfStock = item ? isUnavailable(item.id) : false;
   const orderingClosed = !orderingAllowed;
@@ -40,6 +43,7 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
   const isAdultCrispyBurger = item?.id === CRISPY_CHICKEN_BURGER_PRODUCT_ID;
   const toppingChoices =
     item?.category === "crispy" ? CRISPY_MEAL_TOPPINGS : BURGER_TOPPINGS;
+  const isBeefBurgerMeal = item?.category === "burgers";
 
   const toppingsPrice = selectedToppings.reduce(
     (sum, id) =>
@@ -87,6 +91,7 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
     setRequestedDrinkId("");
     setDrinkMenuOpen(false);
     setIsAdding(false);
+    setDonenessId(DEFAULT_BURGER_DONENESS_ID);
   }, [open, item?.id]);
 
   useEffect(() => {
@@ -192,6 +197,14 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
       extras,
       quantity,
       price: finalUnitPrice,
+      ...(isBeefBurgerMeal
+        ? {
+            burgerDoneness: {
+              id: donenessId,
+              label: t(`ui.doneness.${donenessId}`),
+            },
+          }
+        : {}),
       ...(variantLabel ? { variantLabel } : {}),
       ...(requestedDrinkId
         ? { requestedDrinkId, requestedDrinkLabel, requestedDrinkPrice }
@@ -329,6 +342,31 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
             ))}
           </div>
         </section>
+
+        {isBeefBurgerMeal ? (
+          <section className="mb-6 space-y-2 text-xs">
+            <h3 className="text-[11px] font-semibold text-gray-300">
+              {t("ui.donenessTitle")}
+            </h3>
+            <div className="flex flex-wrap gap-1.5">
+              {BURGER_DONENESS_OPTIONS.map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  disabled={blocked}
+                  onClick={() => setDonenessId(opt.id)}
+                  className={`rounded-full border px-2.5 py-2 text-[11px] ${
+                    donenessId === opt.id
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-slate-700 text-gray-300"
+                  }`}
+                >
+                  {t(`ui.doneness.${opt.id}`)}
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         <section className="mb-6 space-y-2 text-xs">
           <h3 className="text-[11px] font-semibold text-gray-300">

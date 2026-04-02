@@ -39,6 +39,16 @@ export const CRISPY_MEAL_TOPPINGS = BURGER_TOPPINGS.filter(
   (row) => !CRISPY_EXCLUDED_TOPPING_IDS.has(row.id)
 );
 
+/** מידת עשייה לבשר — רק לבורגרים (לא קריספי) */
+export const BURGER_DONENESS_OPTIONS = [
+  { id: "rare" },
+  { id: "medium" },
+  { id: "medium_well" },
+  { id: "well_done" },
+];
+
+export const DEFAULT_BURGER_DONENESS_ID = "medium_well";
+
 /** בורגר קריספי מבוגרים — אופציית «בלי» בלבד */
 export const CRISPY_CHICKEN_BURGER_PRODUCT_ID = "crispy-chicken-burger";
 

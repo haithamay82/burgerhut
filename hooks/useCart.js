@@ -35,9 +35,10 @@ export function customizationKey(item) {
     .join(",");
   const variant = item.variantLabel ?? "";
   const size = item.sizeLabel ?? "";
+  const doneness = String(item.burgerDoneness?.id ?? "").trim();
   const notes = String(item.sellerNotes ?? "").trim();
   const requestedDrink = String(item.requestedDrinkId ?? "").trim();
-  return `${pid}|${size}|${variant}|${salads}|${tops}|${extras}|${requestedDrink}|${notes}`;
+  return `${pid}|${size}|${variant}|${doneness}|${salads}|${tops}|${extras}|${requestedDrink}|${notes}`;
 }
 
 function newCartLineId(productId) {

@@ -12,6 +12,9 @@ export function buildCardOrderDetailsFromItems(items) {
       quantity: item.quantity,
       sizeLabel: item.sizeLabel || undefined,
       variantLabel: item.variantLabel || undefined,
+      burgerDonenessLabel: item.burgerDoneness?.label
+        ? String(item.burgerDoneness.label).trim() || undefined
+        : undefined,
       toppings: tops,
       salads: sals,
       extras: exs,

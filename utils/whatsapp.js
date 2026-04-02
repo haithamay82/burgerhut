@@ -114,6 +114,11 @@ export function buildWhatsAppOrderText({
         `   ${tr("wa.salads")}: ${item.salads.map((x) => x.label).join(", ")}`
       );
     }
+    if (item.burgerDoneness?.label) {
+      lines.push(
+        `   ${tr("wa.doneness")}: ${String(item.burgerDoneness.label).trim()}`
+      );
+    }
     if (item.toppings?.length) {
       lines.push(
         `   ${tr("wa.toppings")}: ${item.toppings.map((x) => x.label).join(", ")}`

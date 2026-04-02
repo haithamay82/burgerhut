@@ -871,6 +871,12 @@ export default function CheckoutPage() {
                         {item.salads.map((x) => x.label).join(", ")}
                       </p>
                     ) : null}
+                    {item.burgerDoneness?.label ? (
+                      <p className="text-[11px] text-gray-400">
+                        {t("checkout.donenessPrefix")}:{" "}
+                        {item.burgerDoneness.label}
+                      </p>
+                    ) : null}
                     {item.toppings?.length ? (
                       <p className="text-[11px] text-gray-400">
                         {t("checkout.toppingsPrefix")}:{" "}
