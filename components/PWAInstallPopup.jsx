@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useLocale } from "@/contexts/LocaleContext";
 
 const STORAGE_KEY = "pwa-popup-dismissed";
 const DELAY_MS = 5000;
@@ -31,6 +32,7 @@ function isStandaloneDisplay() {
 }
 
 export default function PWAInstallPopup() {
+  const { t } = useLocale();
   const [visible, setVisible] = useState(false);
   const deferredPromptRef = useRef(null);
   const showTimerRef = useRef(null);
@@ -113,7 +115,9 @@ export default function PWAInstallPopup() {
       return;
     }
     if (isIOS()) {
-      window.alert("באייפון: לחץ על שיתוף → הוסף למסך הבית");
+      window.alert(t("pwa.iosInstallHint"));
+    } else {
+      window.alert(t("pwa.androidInstallHint"));
     }
   };
 

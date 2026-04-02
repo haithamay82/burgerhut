@@ -1,0 +1,26 @@
+{
+  "name": "Burger Hut — בורגר האט",
+  "short_name": "Burger Hut",
+  "description": "הזמנות Burger Hut — משלוח ואיסוף",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#f5a623",
+  "lang": "he",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/logo-burger-hut.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo-burger-hut.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

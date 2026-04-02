@@ -44,6 +44,10 @@ const HE = {
   "home.promoSkip": "דלג",
   "home.promoTapForSound": "לחץ להפעלת קול",
   "home.promoAria": "פרסום וידאו בדף הבית",
+  "pwa.iosInstallHint":
+    "באייפון: לחץ על שיתוף (□↑) → «הוסף למסך הבית».",
+  "pwa.androidInstallHint":
+    "אם לא נפתח חלון התקנה: לחץ על ⋮ בתפריט Chrome ובחר «התקן אפליקציה» או «הוסף למסך הבית».",
   "cat.burgers": "בורגרים",
   "cat.crispy": "קריספי צ׳יקן",
   "cat.sides": "תוספות צ׳יפס",
@@ -584,6 +588,10 @@ const AR = {
   "home.promoSkip": "تخطي",
   "home.promoTapForSound": "اضغط لتشغيل الصوت",
   "home.promoAria": "إعلان فيديو في الصفحة الرئيسية",
+  "pwa.iosInstallHint":
+    "على آيفون: اضغط مشاركة (□↑) ثم «إضافة إلى الشاشة الرئيسية».",
+  "pwa.androidInstallHint":
+    "إذا لم يظهر مربع التثبيت: اضغط ⋮ في قائمة Chrome واختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».",
   "cat.burgers": "برجر",
   "cat.crispy": "دجاج مقرمش",
   "cat.sides": "بطاطا وإضافات",

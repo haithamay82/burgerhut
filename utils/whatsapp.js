@@ -152,6 +152,9 @@ export function buildWhatsAppOrderText({
       );
     }
     lines.push(
+      `${tr("wa.deliveryFee")}: ₪${formatIls(Number(customer.deliveryFeeNis))}`
+    );
+    lines.push(
       `${tr("wa.totalWithDelivery")}: *₪${formatIls(total)}*`
     );
   } else {
