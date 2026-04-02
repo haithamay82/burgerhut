@@ -5,6 +5,7 @@ import CurrentDateTime from "./CurrentDateTime";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useOrderingHours } from "@/contexts/OrderingHoursContext";
+import { isOvernightSpan } from "@/utils/orderingHours";
 
 const PWAInstallLauncher = dynamic(() => import("./PWAInstallLauncher"), {
   ssr: false,
@@ -15,8 +16,9 @@ const PWAInstallLauncher = dynamic(() => import("./PWAInstallLauncher"), {
 
 export default function Layout({ children }) {
   const { t } = useLocale();
-  const { orderingAllowed, todayScheduledOpen } = useOrderingHours();
-  const showAsOpen = orderingAllowed && todayScheduledOpen;
+  const { orderingAllowed } = useOrderingHours();
+  /** Overnight shifts can extend past midnight; orderingAllowed already reflects that. */
+  const showAsOpen = orderingAllowed;
   const [hoursOpen, setHoursOpen] = useState(false);
   const [businessHours, setBusinessHours] = useState(null);
   const wazeUrl = "https://waze.com/ul?q=%D7%99%D7%A8%D7%9B%D7%90%20137&navigate=yes";
@@ -250,6 +252,12 @@ export default function Layout({ children }) {
                         <span className="text-gray-400">: </span>
                         <span className="font-medium tabular-nums text-primary">
                           {d.open} – {d.close}
+                          {isOvernightSpan(d.open, d.close) ? (
+                            <span className="text-gray-500">
+                              {" "}
+                              {t("home.hoursCloseNextDay")}
+                            </span>
+                          ) : null}
                         </span>
                       </li>
                     ))}

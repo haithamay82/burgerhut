@@ -1,5 +1,6 @@
 /**
  * Ordering window: each day's open–close (Asia/Jerusalem) from business-hours.json;
+ * supports overnight shifts (e.g. 22:00–02:00 = closes the next calendar day);
  * fallback 10:00–22:00 when schedule missing.
  */
 const TZ = "Asia/Jerusalem";
@@ -7,6 +8,11 @@ const TZ = "Asia/Jerusalem";
 /** Fallback when schedule missing (minutes from midnight). */
 const FALLBACK_START_MIN = 10 * 60;
 const FALLBACK_END_MIN = 22 * 60;
+
+function rowByWeekday(days, wd) {
+  if (!days || !Array.isArray(days)) return null;
+  return days.find((d) => d.weekday === wd) ?? days[wd] ?? null;
+}
 
 /**
  * @param {Date} [date]
@@ -57,6 +63,40 @@ export function parseCloseMinutes(closeStr) {
 }
 
 /**
+ * Same calendar day: close after open. Overnight: close time is "earlier" (next morning, e.g. 22:00–02:00).
+ * @param {string} openStr
+ * @param {string} closeStr
+ */
+export function isOvernightSpan(openStr, closeStr) {
+  const openM = parseHHmmToMinutes(openStr);
+  const closeM = parseHHmmToMinutes(closeStr);
+  if (openM === null || closeM === null) return false;
+  return closeM < openM;
+}
+
+function isInOvernightMorningTail(row, curMin) {
+  if (!row?.enabled) return false;
+  const openM = parseHHmmToMinutes(row.open);
+  const closeM = parseHHmmToMinutes(row.close);
+  if (openM === null || closeM === null) return false;
+  if (openM === closeM) return false;
+  if (closeM >= openM) return false;
+  return curMin <= closeM;
+}
+
+function isInTodayBusinessWindow(row, curMin) {
+  if (!row?.enabled) return false;
+  const openM = parseHHmmToMinutes(row.open);
+  const closeM = parseHHmmToMinutes(row.close);
+  if (openM === null || closeM === null) return false;
+  if (openM === closeM) return false;
+  if (closeM > openM) {
+    return curMin >= openM && curMin <= closeM;
+  }
+  return curMin >= openM;
+}
+
+/**
  * @param {Date} [date]
  * @param {{ weekday: number, enabled: boolean, open: string, close: string }[] | null | undefined} days
  * @returns {boolean}
@@ -67,13 +107,11 @@ export function isOrderingAllowedAt(date = new Date(), days) {
 
   if (days && Array.isArray(days) && days.length === 7) {
     const wd = getJerusalemWeekday(date);
-    const row = days.find((d) => d.weekday === wd);
-    if (!row || !row.enabled) return false;
-    const startMin =
-      parseHHmmToMinutes(row.open) ?? FALLBACK_START_MIN;
-    const closeMin = parseHHmmToMinutes(row.close);
-    if (closeMin === null || closeMin < startMin) return false;
-    return curMin >= startMin && curMin <= closeMin;
+    const prevWd = (wd - 1 + 7) % 7;
+    const prevRow = rowByWeekday(days, prevWd);
+    if (isInOvernightMorningTail(prevRow, curMin)) return true;
+    const todayRow = rowByWeekday(days, wd);
+    return isInTodayBusinessWindow(todayRow, curMin);
   }
 
   return curMin >= FALLBACK_START_MIN && curMin <= FALLBACK_END_MIN;
