@@ -6,9 +6,11 @@ import {
   CRISPY_CHICKEN_KIDS_PRODUCT_ID,
   CRISPY_MEAL_TOPPINGS,
   DEFAULT_BURGER_DONENESS_ID,
+  DOUBLE_CHEESE_TOPPING_IDS,
   EXTRA_SAUCES,
   FREE_SALADS,
   KIDS_CRISPY_BREAD_CHOICES,
+  MAX_DOUBLE_CHEESE_PER_MEAL,
   MENU_ITEMS,
 } from "@/utils/menuData";
 import { formatIls } from "@/utils/cartMoney";
@@ -119,13 +121,41 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
     setSelectedToppings((prev) => prev.filter((id) => !isUnavailable(id)));
   }, [open, unavailableIds, isUnavailable]);
 
+  const toppingUnitCount = (id) =>
+    selectedToppings.filter((x) => x === id).length;
+
   const toggleToppingChoice = (id) => {
     if (blocked) return;
+    if (DOUBLE_CHEESE_TOPPING_IDS.has(id)) return;
     const unavail = isUnavailable(id);
     if (unavail && !selectedToppings.includes(id)) return;
     setSelectedToppings((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
+  };
+
+  const addToppingUnit = (id) => {
+    if (blocked) return;
+    const unavail = isUnavailable(id);
+    const cnt = toppingUnitCount(id);
+    if (DOUBLE_CHEESE_TOPPING_IDS.has(id)) {
+      if (unavail && cnt === 0) return;
+      if (cnt >= MAX_DOUBLE_CHEESE_PER_MEAL) return;
+      setSelectedToppings((prev) => [...prev, id]);
+      return;
+    }
+    if (unavail && cnt === 0) return;
+    if (cnt >= 1) return;
+    setSelectedToppings((prev) => [...prev, id]);
+  };
+
+  const removeToppingUnit = (id) => {
+    if (blocked) return;
+    setSelectedToppings((prev) => {
+      const idx = prev.lastIndexOf(id);
+      if (idx === -1) return prev;
+      return prev.filter((_, i) => i !== idx);
+    });
   };
 
   const toggleInList = (id, list, setList) => {
@@ -375,8 +405,82 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
           <div className="grid grid-cols-2 gap-2">
             {toppingChoices.map((x) => {
               const topUnavail = isUnavailable(x.id);
-              const selected = selectedToppings.includes(x.id);
+              const dbl = DOUBLE_CHEESE_TOPPING_IDS.has(x.id);
+              const cnt = toppingUnitCount(x.id);
+              const selected = cnt > 0;
               const rowBlocked = topUnavail && !selected;
+
+              if (dbl) {
+                return (
+                  <div
+                    key={x.id}
+                    className={`col-span-2 grid w-full grid-cols-[1fr_auto_1fr] items-center gap-x-2 rounded-full border px-1.5 py-1.5 text-[11px] ${
+                      cnt > 0
+                        ? "border-primary bg-primary/10 text-primary"
+                        : rowBlocked
+                          ? "cursor-not-allowed border-slate-800 text-gray-500 opacity-60"
+                          : "border-slate-700 text-gray-300"
+                    }`}
+                  >
+                    <div className="flex min-w-0 items-center gap-1.5 justify-self-start">
+                      {x.image ? (
+                        <img
+                          src={x.image}
+                          alt={t(`topping.${x.id}`)}
+                          className="h-8 w-8 shrink-0 rounded-md border border-slate-700 object-cover"
+                        />
+                      ) : null}
+                      <span className="min-w-0 text-end leading-snug">
+                        {t(`topping.${x.id}`)}
+                        <span className="mr-1 block text-[9px] font-normal text-gray-500">
+                          {t("ui.doubleCheeseHint")}
+                        </span>
+                        {topUnavail ? (
+                          <span className="mr-1 text-[10px] text-amber-600/90">
+                            ({t("ui.soldOutShort")})
+                          </span>
+                        ) : null}
+                      </span>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-0.5 justify-self-center">
+                      <button
+                        type="button"
+                        disabled={blocked || cnt === 0}
+                        onClick={() => removeToppingUnit(x.id)}
+                        className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-600 text-sm leading-none text-gray-200 hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-30"
+                        aria-label={t("ui.toppingRemoveOne")}
+                      >
+                        −
+                      </button>
+                      <span
+                        className="min-w-[1.25rem] text-center text-[12px] font-semibold tabular-nums"
+                        aria-live="polite"
+                      >
+                        {cnt}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={
+                          blocked ||
+                          cnt >= MAX_DOUBLE_CHEESE_PER_MEAL ||
+                          (topUnavail && cnt === 0)
+                        }
+                        onClick={() => addToppingUnit(x.id)}
+                        className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-600 text-sm leading-none text-gray-200 hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
+                        aria-label={t("ui.toppingAddOne")}
+                      >
+                        +
+                      </button>
+                    </div>
+                    <span className="justify-self-end text-[10px] text-gray-400">
+                      {cnt > 0
+                        ? `+₪${formatIls(x.price * cnt)}`
+                        : `+₪${formatIls(x.price)}`}
+                    </span>
+                  </div>
+                );
+              }
+
               return (
                 <label
                   key={x.id}
