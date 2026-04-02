@@ -5,7 +5,7 @@ export default function LanguageSwitcher() {
 
   return (
     <div
-      className="flex rounded-full border border-slate-700 bg-slate-900/50 p-0.5"
+      className="relative z-[40] isolate flex rounded-full border border-slate-700 bg-slate-900/50 p-0.5"
       role="group"
       aria-label={t("lang.switch")}
     >

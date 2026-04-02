@@ -17,12 +17,24 @@ export function LocaleProvider({ children }) {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const saved = String(raw || "").trim();
       if (saved === "he" || saved === "ar") setLocaleState(saved);
     } catch {
       /* ignore */
     }
     setReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onStorage = (e) => {
+      if (e.key !== STORAGE_KEY || !e.newValue) return;
+      const v = String(e.newValue).trim();
+      if (v === "he" || v === "ar") setLocaleState(v);
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   useEffect(() => {
@@ -32,10 +44,11 @@ export function LocaleProvider({ children }) {
   }, [locale, ready]);
 
   const setLocale = useCallback((next) => {
-    if (next !== "he" && next !== "ar") return;
-    setLocaleState(next);
+    const v = String(next || "").trim();
+    if (v !== "he" && v !== "ar") return;
+    setLocaleState(v);
     try {
-      localStorage.setItem(STORAGE_KEY, next);
+      localStorage.setItem(STORAGE_KEY, v);
     } catch {
       /* ignore */
     }

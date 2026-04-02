@@ -53,8 +53,8 @@ export default function Layout({ children }) {
     <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-black text-gray-100">
       <header className="sticky top-0 z-30 w-full border-b border-slate-800 bg-black/80 backdrop-blur">
         <div className="relative w-full px-4 py-2 sm:py-2.5">
-          <div className="pointer-events-none absolute left-1/2 top-2 z-20 flex -translate-x-1/2 justify-center sm:top-2.5">
-            <div className="pointer-events-auto flex max-w-[calc(100vw-4.5rem)] flex-col items-center text-center">
+          <div className="pointer-events-none absolute left-1/2 top-2 z-20 flex w-max max-w-[calc(100vw-4.5rem)] -translate-x-1/2 justify-center sm:top-2.5">
+            <div className="pointer-events-auto flex w-max max-w-[calc(100vw-4.5rem)] flex-col items-center text-center">
               <div className="relative inline-flex flex-shrink-0 justify-center">
                 <div
                   className="absolute right-full top-1/2 z-[1] -translate-y-1/2 pr-2"
@@ -84,7 +84,7 @@ export default function Layout({ children }) {
 
           <div className="relative z-10 mx-auto min-h-[6.85rem] max-w-4xl sm:min-h-[7.25rem]">
             <div className="flex items-start justify-between gap-2 pt-1">
-              <div className="flex shrink-0 items-center">
+              <div className="relative z-[40] flex shrink-0 items-center">
                 <LanguageSwitcher />
               </div>
               <div className="flex min-w-0 max-w-[42%] flex-col items-end gap-0.5 text-right text-[11px] text-gray-400 sm:max-w-[38%]">
