@@ -349,6 +349,7 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
         </button>
       </header>
 
+      <div className="flex min-h-0 flex-1 flex-col">
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
         {isOutOfStock ? (
           <p className="mb-4 text-base font-extrabold text-red-500">
@@ -736,10 +737,16 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
             className="w-full resize-y rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 text-xs text-gray-100 outline-none placeholder:text-gray-600 focus:border-primary disabled:opacity-50"
           />
         </div>
+      </div>
 
-        <p className="mb-4 text-sm text-gray-400">
+      <div
+        className="shrink-0 border-t border-slate-800/90 bg-slate-950/98 px-4 py-2.5 shadow-[0_-6px_16px_-4px_rgba(0,0,0,0.45)] backdrop-blur-sm supports-[backdrop-filter]:bg-slate-950/90"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        <p className="text-center text-sm text-gray-400">
           {t("ui.wizardPriceLine")}{" "}
-          <span className="font-bold text-primary">
+          <span className="font-bold text-primary tabular-nums">
             ₪{formatIls(finalUnitPrice)}
           </span>
           {quantity > 1 ? (
@@ -749,6 +756,7 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
             </span>
           ) : null}
         </p>
+      </div>
       </div>
 
       <footer className="shrink-0 border-t border-slate-800 bg-slate-950/95 px-4 py-3">
