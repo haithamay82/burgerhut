@@ -31,6 +31,17 @@ function formatCouponDateTime(ts, locale) {
   });
 }
 
+/** כמו הרובלקה בכרטיס: פג תוקף → נוצל → לא נוצל */
+function couponDisplayStatus(c, nowTs) {
+  const expired =
+    Number.isFinite(Number(c.expiresAt)) &&
+    Number(c.expiresAt) > 0 &&
+    Number(c.expiresAt) < nowTs;
+  if (expired) return "expired";
+  if (Boolean(c.used)) return "used";
+  return "unused";
+}
+
 function daySalesTotal(dayOrders) {
   return dayOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
 }
@@ -132,6 +143,8 @@ export default function AdminOrdersPage() {
   const [couponDeleteCode, setCouponDeleteCode] = useState("");
   const [couponMsg, setCouponMsg] = useState("");
   const [couponPanelOpen, setCouponPanelOpen] = useState(false);
+  /** סינון רשימת קופונים: null = הכל */
+  const [couponStatusFilter, setCouponStatusFilter] = useState(null);
   const promoFileRef = useRef(null);
 
   const [selectedDayKey, setSelectedDayKey] = useState(null);
@@ -1174,26 +1187,83 @@ export default function AdminOrdersPage() {
                     ) : coupons.length === 0 ? (
                       <p className="text-xs text-gray-500">{t("admin.couponsEmpty")}</p>
                     ) : (
-                      <div className="max-h-[26rem] space-y-2 overflow-y-auto pl-1">
+                      <>
                         <div
                           className="mb-3 flex flex-wrap items-center gap-2 border-b border-slate-800/80 pb-3 text-[10px]"
                           role="group"
-                          aria-label={t("admin.couponBadgeLegend")}
+                          aria-label={t("admin.couponFilterLabel")}
                         >
                           <span className="shrink-0 text-gray-500">
-                            {t("admin.couponBadgeLegend")}
+                            {t("admin.couponFilterLabel")}
                           </span>
-                          <span className="inline-flex items-center rounded-full border border-cyan-700/55 bg-cyan-950/50 px-2.5 py-0.5 font-semibold text-cyan-200">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setCouponStatusFilter((prev) =>
+                                prev === "unused" ? null : "unused"
+                              )
+                            }
+                            aria-pressed={couponStatusFilter === "unused"}
+                            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                              couponStatusFilter === "unused"
+                                ? "border-cyan-400 bg-cyan-800/50 text-white ring-1 ring-cyan-400/80"
+                                : "border-cyan-700/55 bg-cyan-950/50 text-cyan-200 hover:bg-cyan-900/55"
+                            }`}
+                          >
                             {t("admin.couponNotUsed")}
-                          </span>
-                          <span className="inline-flex items-center rounded-full border border-amber-700/55 bg-amber-950/50 px-2.5 py-0.5 font-semibold text-amber-200">
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setCouponStatusFilter((prev) =>
+                                prev === "used" ? null : "used"
+                              )
+                            }
+                            aria-pressed={couponStatusFilter === "used"}
+                            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                              couponStatusFilter === "used"
+                                ? "border-amber-400 bg-amber-800/45 text-white ring-1 ring-amber-400/80"
+                                : "border-amber-700/55 bg-amber-950/50 text-amber-200 hover:bg-amber-900/55"
+                            }`}
+                          >
                             {t("admin.couponUsed")}
-                          </span>
-                          <span className="inline-flex items-center rounded-full border border-red-800/55 bg-red-950/45 px-2.5 py-0.5 font-semibold text-red-200">
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setCouponStatusFilter((prev) =>
+                                prev === "expired" ? null : "expired"
+                              )
+                            }
+                            aria-pressed={couponStatusFilter === "expired"}
+                            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                              couponStatusFilter === "expired"
+                                ? "border-red-400 bg-red-900/45 text-white ring-1 ring-red-400/80"
+                                : "border-red-800/55 bg-red-950/45 text-red-200 hover:bg-red-900/50"
+                            }`}
+                          >
                             {t("admin.couponExpired")}
-                          </span>
+                          </button>
                         </div>
-                        {coupons.map((c) => {
+                        {(() => {
+                          const filteredCoupons =
+                            couponStatusFilter == null
+                              ? coupons
+                              : coupons.filter(
+                                  (c) =>
+                                    couponDisplayStatus(c, nowTs) ===
+                                    couponStatusFilter
+                                );
+                          if (filteredCoupons.length === 0) {
+                            return (
+                              <p className="text-xs text-gray-500">
+                                {t("admin.couponFilterEmpty")}
+                              </p>
+                            );
+                          }
+                          return (
+                            <div className="max-h-[26rem] space-y-2 overflow-y-auto pl-1">
+                              {filteredCoupons.map((c) => {
                           const expired =
                             Number.isFinite(Number(c.expiresAt)) &&
                             Number(c.expiresAt) > 0 &&
@@ -1259,8 +1329,11 @@ export default function AdminOrdersPage() {
                               </div>
                             </article>
                           );
-                        })}
-                      </div>
+                              })}
+                            </div>
+                          );
+                        })()}
+                      </>
                     )}
                   </section>
                 ) : null}
