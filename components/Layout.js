@@ -52,7 +52,7 @@ export default function Layout({ children }) {
     <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-black text-gray-100">
       <header className="sticky top-0 z-30 w-full border-b border-slate-800 bg-black/80 backdrop-blur">
         <div className="relative w-full px-4 py-2 sm:py-2.5">
-          <div className="pointer-events-none absolute left-1/2 top-2 z-20 flex w-max max-w-[calc(100vw-4.5rem)] -translate-x-1/2 justify-center sm:top-2.5">
+          <div className="pointer-events-none absolute left-1/2 top-2 z-10 flex w-max max-w-[calc(100vw-4.5rem)] -translate-x-1/2 justify-center sm:top-2.5">
             <div className="pointer-events-auto flex w-max max-w-[calc(100vw-4.5rem)] flex-col items-center text-center">
               <div className="relative inline-flex flex-shrink-0 justify-center">
                 <div
@@ -81,9 +81,9 @@ export default function Layout({ children }) {
             </div>
           </div>
 
-          <div className="relative z-10 mx-auto min-h-[6.85rem] max-w-4xl sm:min-h-[7.25rem]">
+          <div className="relative z-30 mx-auto min-h-[6.85rem] max-w-4xl sm:min-h-[7.25rem]">
             <div className="flex items-start justify-between gap-2 pt-1">
-              <div className="relative z-[40] flex shrink-0 items-center">
+              <div className="relative flex min-h-[44px] shrink-0 items-center">
                 <LanguageSwitcher />
               </div>
               <div className="flex min-w-0 max-w-[42%] flex-col items-end gap-0.5 text-right text-[11px] text-gray-400 sm:max-w-[38%]">
@@ -133,7 +133,7 @@ export default function Layout({ children }) {
             </div>
           </div>
 
-          <div className="relative mx-auto flex min-h-[2.25rem] w-full max-w-4xl items-center justify-center">
+          <div className="relative z-30 mx-auto flex min-h-[2.25rem] w-full max-w-4xl items-center justify-center">
             <a
               href={wazeUrl}
               target="_blank"
