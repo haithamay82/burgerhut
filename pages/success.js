@@ -7,6 +7,7 @@ import { buildWhatsAppUrl } from "@/utils/whatsapp";
 import {
   CARD_SUCCESS_SNAPSHOT_KEY,
   PENDING_ORDER_KEY,
+  SUCCESS_WA_RESTORE_KEY,
   SUCCESS_WA_SNAPSHOT_KEY,
 } from "@/utils/checkoutSessionKeys";
 
@@ -14,7 +15,9 @@ export default function SuccessPage() {
   const router = useRouter();
   const { t, locale } = useLocale();
   const method = router.query.method || "";
-  const orderFromQuery = router.query.on;
+  const orderFromQuery = Array.isArray(router.query.on)
+    ? router.query.on[0]
+    : router.query.on;
   const hypReturn =
     router.query.uniqueID ||
     router.query.uniqueid ||
@@ -35,13 +38,48 @@ export default function SuccessPage() {
       }
     }
     if (!hypReturn && method !== "card" && method !== "cash") return;
+
+    const methodStr = String(method || "");
+    const snapshotKey =
+      methodStr === "cash" ? SUCCESS_WA_SNAPSHOT_KEY : CARD_SUCCESS_SNAPSHOT_KEY;
+
+    const buildMatchKey = () =>
+      `${methodStr}\u0001${String(orderFromQuery || "")}\u0001${String(hypReturn || "")}`;
+
+    const RESTORE_MAX_AGE_MS = 48 * 3600 * 1000;
+
     try {
-      const snapshotKey =
-        method === "cash" ? SUCCESS_WA_SNAPSHOT_KEY : CARD_SUCCESS_SNAPSHOT_KEY;
+      const rawRestore = window.sessionStorage.getItem(SUCCESS_WA_RESTORE_KEY);
+      if (rawRestore) {
+        const restored = JSON.parse(rawRestore);
+        const age = Date.now() - Number(restored?.savedAt || 0);
+        if (
+          restored?.waUrl &&
+          restored?.matchKey === buildMatchKey() &&
+          age >= 0 &&
+          age <= RESTORE_MAX_AGE_MS
+        ) {
+          setCardWaUrl(restored.waUrl);
+          if (
+            restored.cardOrder?.orderId != null &&
+            restored.cardOrder?.amount != null
+          ) {
+            setCardOrder({
+              orderId: String(restored.cardOrder.orderId),
+              amount: Number(restored.cardOrder.amount) || 0,
+            });
+          }
+          return;
+        }
+      }
+    } catch {
+      /* fall through to snapshot */
+    }
+
+    try {
       const raw = window.sessionStorage.getItem(snapshotKey);
       if (!raw) return;
       const snap = JSON.parse(raw);
-      window.sessionStorage.removeItem(snapshotKey);
       if (!snap?.customer || !Array.isArray(snap.items) || !snap.items.length) {
         return;
       }
@@ -53,14 +91,13 @@ export default function SuccessPage() {
         orderNumber: snap.orderNumber ?? orderFromQuery,
         locale: snap.locale || locale,
       });
-      setCardWaUrl(url);
       const amountFromSnap = Number(snap.waGrandTotal);
       const amountFromItems = (snap.items || []).reduce(
         (sum, item) =>
           sum + (Number(item?.price) || 0) * (Number(item?.quantity) || 1),
         0
       );
-      setCardOrder({
+      const nextCardOrder = {
         orderId: String(
           snap.cardUniqueId ?? snap.orderNumber ?? orderFromQuery ?? hypReturn ?? ""
         ),
@@ -68,7 +105,23 @@ export default function SuccessPage() {
           (Number.isFinite(amountFromSnap) && amountFromSnap > 0
             ? amountFromSnap
             : amountFromItems) || 0,
-      });
+      };
+      setCardWaUrl(url);
+      setCardOrder(nextCardOrder);
+      try {
+        window.sessionStorage.setItem(
+          SUCCESS_WA_RESTORE_KEY,
+          JSON.stringify({
+            matchKey: buildMatchKey(),
+            waUrl: url,
+            cardOrder: nextCardOrder,
+            savedAt: Date.now(),
+          })
+        );
+        window.sessionStorage.removeItem(snapshotKey);
+      } catch {
+        /* ignore */
+      }
     } catch {
       /* ignore */
     }
@@ -217,7 +270,17 @@ export default function SuccessPage() {
               : t("success.waAfterCard")}
           </a>
         ) : null}
-        <Link href="/" className="btn-primary">
+        <Link
+          href="/"
+          className="btn-primary"
+          onClick={() => {
+            try {
+              window.sessionStorage.removeItem(SUCCESS_WA_RESTORE_KEY);
+            } catch {
+              /* ignore */
+            }
+          }}
+        >
           {t("success.back")}
         </Link>
       </div>

@@ -673,7 +673,11 @@ export default function CheckoutPage() {
           }
         }
         clearCart();
-        router.push("/success?method=cash");
+        router.push(
+          `/success?method=cash&on=${encodeURIComponent(
+            String(savedOrder?.orderNumber ?? "")
+          )}`
+        );
         return;
       }
 
