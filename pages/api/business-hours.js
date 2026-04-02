@@ -33,7 +33,13 @@ export default async function handler(req, res) {
     if (!parsed.ok) {
       return res.status(400).json({ ok: false, error: parsed.error });
     }
-    await setBusinessHours(parsed.days);
+    const persisted = await setBusinessHours(parsed.days);
+    if (!persisted) {
+      return res.status(503).json({
+        ok: false,
+        error: "storage_failed",
+      });
+    }
     return res.status(200).json({ ok: true, days: parsed.days });
   }
 

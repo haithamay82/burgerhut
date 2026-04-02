@@ -552,11 +552,21 @@ export default function AdminOrdersPage() {
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) {
-        setError(
-          d.error === "admin_not_configured"
-            ? t("admin.errConfig")
-            : t("admin.hoursErr")
-        );
+        if (d.error === "admin_not_configured") {
+          setError(t("admin.errConfig"));
+        } else if (d.error === "unauthorized") {
+          setError(t("admin.errAuth"));
+        } else if (d.error === "invalid_time") {
+          setError(t("admin.hoursErrInvalidTime"));
+        } else if (d.error === "open_after_close") {
+          setError(t("admin.hoursErrCloseBeforeOpen"));
+        } else if (d.error === "invalid_days") {
+          setError(t("admin.hoursErrInvalidDays"));
+        } else if (d.error === "storage_failed") {
+          setError(t("admin.hoursErrStorage"));
+        } else {
+          setError(t("admin.hoursErr"));
+        }
         return;
       }
       if (Array.isArray(d.days)) {

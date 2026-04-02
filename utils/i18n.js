@@ -483,6 +483,11 @@ const HE = {
   "admin.hoursSaving": "שומר…",
   "admin.hoursSaved": "הזמנים נשמרו.",
   "admin.hoursErr": "לא ניתן היה לשמור את זמני העבודה.",
+  "admin.hoursErrInvalidTime": "שעת פתיחה או סגירה לא תקינה. בדקו שכל יום פתוח כולל שעות מלאות.",
+  "admin.hoursErrCloseBeforeOpen": "שעת הסגירה חייבת להיות אחרי שעת הפתיחה בכל יום.",
+  "admin.hoursErrInvalidDays": "נתוני הימים לא תקינים. רעננו את הדף ונסו שוב.",
+  "admin.hoursErrStorage":
+    "השרת לא הצליח לשמור (אחסון). ב-Vercel ודאו ש־KV מחובר וש־KV_REST_API_TOKEN הוא טוקן מלא, לא read-only בלבד.",
   "admin.discountTitle": "מבצעים והנחות",
   "admin.discountHint":
     "הגדירו הנחה באחוזים עבור הזמנות מעל סכום מסוים. ההנחה חלה על עלות המנות בלבד (ללא משלוח), וניתן להפעיל/לכבות בכל עת.",
@@ -1038,6 +1043,12 @@ const AR = {
   "admin.hoursSaving": "جارٍ الحفظ…",
   "admin.hoursSaved": "تم حفظ الأوقات.",
   "admin.hoursErr": "تعذّر حفظ أوقات العمل.",
+  "admin.hoursErrInvalidTime":
+    "وقت الفتح أو الإغلاق غير صالح. تأكّدوا أن كل يوم مفعّل فيه أوقات كاملة.",
+  "admin.hoursErrCloseBeforeOpen": "يجب أن يكون وقت الإغلاق بعد وقت الفتح لكل يوم.",
+  "admin.hoursErrInvalidDays": "بيانات الأيام غير صالحة. حدّثوا الصفحة وحاولوا مجدداً.",
+  "admin.hoursErrStorage":
+    "تعذّر الحفظ على الخادم (التخزين). في Vercel تأكّدوا من ربط KV وأن KV_REST_API_TOKEN رمز كامل وليس للقراءة فقط.",
   "admin.discountTitle": "العروض والخصومات",
   "admin.discountHint":
     "حدّدوا نسبة خصم للطلبات التي تتجاوز مبلغاً معيناً. الخصم يُطبّق على تكلفة الطعام فقط (بدون التوصيل)، ويمكن تشغيله أو إيقافه في أي وقت.",
