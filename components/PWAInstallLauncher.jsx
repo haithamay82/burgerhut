@@ -19,6 +19,16 @@ function isIOS() {
   return /iPhone|iPad|iPod/.test(navigator.userAgent);
 }
 
+/**
+ * Google app (G) and some in-app browsers — no reliable «Add to Home Screen».
+ * Chrome on iOS (CriOS) does support it; do not match CriOS here.
+ */
+function needsOpenInSafariOnIOS() {
+  if (!isIOS()) return false;
+  const ua = navigator.userAgent || "";
+  return /GSA\/|FBAN|FBAV|Instagram|Line\/|MicroMessenger|KAKAOTALK/i.test(ua);
+}
+
 function isMobileDevice() {
   if (typeof window === "undefined") return false;
   const ua = navigator.userAgent || "";
@@ -89,7 +99,11 @@ export default function PWAInstallLauncher() {
       return;
     }
     if (isIOS()) {
-      window.alert(t("pwa.iosInstallHint"));
+      window.alert(
+        needsOpenInSafariOnIOS()
+          ? t("pwa.iosUseSafariFirst")
+          : t("pwa.iosInstallHint")
+      );
     } else {
       window.alert(t("pwa.androidInstallHint"));
     }
