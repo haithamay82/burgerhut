@@ -15,7 +15,8 @@
     "fresh:win": "npm run rebuild:win && npm run dev",
     "fresh:prod": "npm run rebuild && npm run start",
     "fresh:prod:win": "npm run rebuild:win && npm run start",
-    "vercel:prod": "npx --yes vercel deploy --prod"
+    "vercel:prod": "npx --yes vercel deploy --prod",
+    "icons:pwa": "node scripts/generate-pwa-icons.js"
   },
   "dependencies": {
     "@upstash/redis": "^1.37.0",
