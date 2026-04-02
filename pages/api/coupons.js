@@ -26,7 +26,7 @@ export default async function handler(req, res) {
 
   if (req.method === "GET") {
     try {
-      const keys = await redis.keys("coupon:BH-*");
+      const keys = await redis.keys("coupon:BH*");
       const couponKeys = Array.isArray(keys) ? keys : [];
       const rowsRaw = await Promise.all(couponKeys.map((k) => redis.get(k)));
       const rows = rowsRaw
@@ -41,7 +41,7 @@ export default async function handler(req, res) {
           expiresAt: Number(x.expiresAt) || 0,
           usedAt: Number(x.usedAt) || 0,
         }))
-        .filter((x) => x.code.startsWith("BH-"))
+        .filter((x) => /^BH[A-Z0-9]{6}$/.test(x.code))
         .sort((a, b) => b.createdAt - a.createdAt);
       return res.status(200).json({ ok: true, coupons: rows });
     } catch (e) {

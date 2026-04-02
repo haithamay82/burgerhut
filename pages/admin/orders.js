@@ -1175,43 +1175,67 @@ export default function AdminOrdersPage() {
                       <p className="text-xs text-gray-500">{t("admin.couponsEmpty")}</p>
                     ) : (
                       <div className="max-h-[26rem] space-y-2 overflow-y-auto pl-1">
+                        <div
+                          className="mb-3 flex flex-wrap items-center gap-2 border-b border-slate-800/80 pb-3 text-[10px]"
+                          role="group"
+                          aria-label={t("admin.couponBadgeLegend")}
+                        >
+                          <span className="shrink-0 text-gray-500">
+                            {t("admin.couponBadgeLegend")}
+                          </span>
+                          <span className="inline-flex items-center rounded-full border border-cyan-700/55 bg-cyan-950/50 px-2.5 py-0.5 font-semibold text-cyan-200">
+                            {t("admin.couponNotUsed")}
+                          </span>
+                          <span className="inline-flex items-center rounded-full border border-amber-700/55 bg-amber-950/50 px-2.5 py-0.5 font-semibold text-amber-200">
+                            {t("admin.couponUsed")}
+                          </span>
+                          <span className="inline-flex items-center rounded-full border border-red-800/55 bg-red-950/45 px-2.5 py-0.5 font-semibold text-red-200">
+                            {t("admin.couponExpired")}
+                          </span>
+                        </div>
                         {coupons.map((c) => {
                           const expired =
                             Number.isFinite(Number(c.expiresAt)) &&
                             Number(c.expiresAt) > 0 &&
                             Number(c.expiresAt) < nowTs;
                           const used = Boolean(c.used);
+                          const badge = expired
+                            ? {
+                                label: t("admin.couponExpired"),
+                                className:
+                                  "border-red-800/55 bg-red-950/45 text-red-200",
+                              }
+                            : used
+                              ? {
+                                  label: t("admin.couponUsed"),
+                                  className:
+                                    "border-amber-700/55 bg-amber-950/50 text-amber-200",
+                                }
+                              : {
+                                  label: t("admin.couponNotUsed"),
+                                  className:
+                                    "border-cyan-700/55 bg-cyan-950/50 text-cyan-200",
+                                };
                           return (
                             <article
                               key={c.code}
                               className="rounded-xl border border-slate-800 bg-slate-950/50 p-3"
                             >
                               <div className="flex items-start justify-between gap-2">
-                                <div className="space-y-1 text-xs">
-                                  <p className="font-bold text-primary">
-                                    {t("admin.couponCode")}: {c.code}
-                                  </p>
+                                <div className="min-w-0 flex-1 space-y-1 text-xs">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <p className="font-bold text-primary">
+                                      {t("admin.couponCode")}: {c.code}
+                                    </p>
+                                    <span
+                                      className={`inline-flex shrink-0 items-center rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${badge.className}`}
+                                    >
+                                      {badge.label}
+                                    </span>
+                                  </div>
                                   <p className="text-gray-300">
                                     {t("admin.couponValue")}: ₪
                                     {Number(c.value || 0).toFixed(2)}
-                                  </p>
-                                  <p
-                                    className={
-                                      expired ? "text-red-300" : "text-emerald-300"
-                                    }
-                                  >
-                                    {t("admin.couponExpiryStatus")}:{" "}
-                                    {expired
-                                      ? t("admin.couponExpired")
-                                      : t("admin.couponValid")}
-                                  </p>
-                                  <p
-                                    className={used ? "text-amber-300" : "text-cyan-300"}
-                                  >
-                                    {t("admin.couponUsedStatus")}:{" "}
-                                    {used
-                                      ? t("admin.couponUsed")
-                                      : t("admin.couponNotUsed")}
                                   </p>
                                   <p className="text-[11px] text-gray-500">
                                     {t("admin.couponCreatedAt")}:{" "}

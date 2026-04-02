@@ -289,8 +289,20 @@ export default function SuccessPage() {
                 height={36}
                 className="absolute left-3 top-3 h-9 w-9 rounded-full border border-white/30 bg-white/95 p-0.5 object-cover"
               />
-              <div className="mt-1 grid grid-cols-1 items-center gap-3 sm:grid-cols-2 sm:gap-4">
-                <div className="min-w-0 space-y-1 text-right">
+              <div
+                className="mt-1 flex flex-row items-center gap-2.5 sm:gap-4"
+                dir="ltr"
+              >
+                <div className="flex shrink-0 justify-center">
+                  <img
+                    src="/home-category-banner.png"
+                    alt=""
+                    width={640}
+                    height={360}
+                    className="h-auto w-[min(38vw,7.5rem)] max-h-36 rounded-lg border border-white/15 object-cover object-center shadow-md sm:w-[min(42vw,13rem)] sm:max-h-44"
+                  />
+                </div>
+                <div className="min-w-0 flex-1 space-y-1 text-right" dir="rtl">
                   <p className="text-lg font-extrabold">
                     {t("success.couponTitle")}
                   </p>
@@ -315,15 +327,6 @@ export default function SuccessPage() {
                   <p className="text-[11px] text-cyan-200/90">
                     {t("success.couponRedeemSite")}
                   </p>
-                </div>
-                <div className="flex justify-center sm:justify-center">
-                  <img
-                    src="/home-category-banner.png"
-                    alt=""
-                    width={640}
-                    height={360}
-                    className="h-auto max-h-44 w-full max-w-[220px] rounded-lg border border-white/15 object-cover object-center shadow-md sm:max-h-52 sm:max-w-[260px]"
-                  />
                 </div>
               </div>
             </div>
