@@ -13,6 +13,14 @@ import {
   SUCCESS_WA_SNAPSHOT_KEY,
 } from "@/utils/checkoutSessionKeys";
 
+/** בסיס אחוז לקופון חדש: מזון בלי משלוח (אם קיים בשמירה); אחרת סכום ההזמנה המלא כבעבר */
+function couponCreateAmountFromCardOrder(cardOrder) {
+  if (!cardOrder) return 0;
+  const br = Number(cardOrder.couponRewardBaseNis);
+  if (Number.isFinite(br) && br >= 0) return br;
+  return Number(cardOrder.amount) || 0;
+}
+
 export default function SuccessPage() {
   const router = useRouter();
   const { t, locale } = useLocale();
@@ -71,12 +79,22 @@ export default function SuccessPage() {
           setCardWaUrl(restored.waUrl);
           if (
             restored.cardOrder?.orderId != null &&
-            restored.cardOrder?.amount != null
+            (restored.cardOrder?.amount != null ||
+              restored.cardOrder?.couponRewardBaseNis != null)
           ) {
-            setCardOrder({
+            const co = {
               orderId: String(restored.cardOrder.orderId),
               amount: Number(restored.cardOrder.amount) || 0,
-            });
+            };
+            const rb = restored.cardOrder.couponRewardBaseNis;
+            if (
+              rb != null &&
+              Number.isFinite(Number(rb)) &&
+              Number(rb) >= 0
+            ) {
+              co.couponRewardBaseNis = Number(rb);
+            }
+            setCardOrder(co);
           }
           return;
         }
@@ -106,15 +124,25 @@ export default function SuccessPage() {
           sum + (Number(item?.price) || 0) * (Number(item?.quantity) || 1),
         0
       );
+      const grand =
+        (Number.isFinite(amountFromSnap) && amountFromSnap > 0
+          ? amountFromSnap
+          : amountFromItems) || 0;
       const nextCardOrder = {
         orderId: String(
           snap.cardUniqueId ?? snap.orderNumber ?? orderFromQuery ?? hypReturn ?? ""
         ),
-        amount:
-          (Number.isFinite(amountFromSnap) && amountFromSnap > 0
-            ? amountFromSnap
-            : amountFromItems) || 0,
+        amount: grand,
       };
+      const rbSnap = snap.couponRewardBaseNis;
+      if (
+        rbSnap !== undefined &&
+        rbSnap !== null &&
+        Number.isFinite(Number(rbSnap)) &&
+        Number(rbSnap) >= 0
+      ) {
+        nextCardOrder.couponRewardBaseNis = Number(rbSnap);
+      }
       setCardWaUrl(url);
       setCardOrder(nextCardOrder);
       try {
@@ -171,7 +199,8 @@ export default function SuccessPage() {
       setCouponFetchSettled(true);
       return;
     }
-    if (!cardOrder?.orderId || !cardOrder?.amount) {
+    const couponCreateAmount = couponCreateAmountFromCardOrder(cardOrder);
+    if (!cardOrder?.orderId || couponCreateAmount <= 0) {
       return;
     }
 
@@ -199,7 +228,7 @@ export default function SuccessPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             orderId: cardOrder.orderId,
-            amount: cardOrder.amount,
+            amount: couponCreateAmount,
           }),
         });
         const d = await r.json().catch(() => ({}));

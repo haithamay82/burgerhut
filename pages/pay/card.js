@@ -162,6 +162,7 @@ export default function CardPayPage() {
                 : String(orderId || ""),
             locale: pending.locale,
             waGrandTotal: pending.waGrandTotal,
+            couponRewardBaseNis: pending.couponRewardBaseNis,
           })
         );
       } catch {

@@ -592,6 +592,15 @@ export default function CheckoutPage() {
     const orderId = Date.now().toString();
     const customer = buildCustomer();
     const persistTotal = grandTotal;
+    /** בסיס למימוש אחוז הקופון הבא: מזון אחרי מבצע, בלי משלוח; אחרי חלק הקופון שמשויך למזון */
+    const appliedCouponToFoodNis = Math.min(
+      couponDiscountNis,
+      discountedFoodTotal
+    );
+    const couponRewardBaseNis = Math.max(
+      0,
+      discountedFoodTotal - appliedCouponToFoodNis
+    );
 
     const persistOrder = async (channel) => {
       try {
@@ -666,6 +675,7 @@ export default function CheckoutPage() {
                 orderNumber: savedOrder?.orderNumber,
                 locale,
                 waGrandTotal: persistTotal,
+                couponRewardBaseNis,
               })
             );
           } catch {
@@ -726,6 +736,7 @@ export default function CheckoutPage() {
                 orderNumber: savedOrder?.orderNumber,
                 locale,
                 waGrandTotal: persistTotal,
+                couponRewardBaseNis,
                 checkoutDraft: buildCheckoutDraftSnapshot(
                   form,
                   geo,
@@ -791,6 +802,7 @@ export default function CheckoutPage() {
               orderNumber: savedCardOrder?.orderNumber,
               locale,
               waGrandTotal: persistTotal,
+              couponRewardBaseNis,
               cardOnlinePayAmount: onlinePayAmount,
               cardUniqueId: orderId,
               checkoutDraft: buildCheckoutDraftSnapshot(
