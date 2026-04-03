@@ -4,7 +4,13 @@
  * Overnight shifts (e.g. 22:00–02:00): pre-orders from 10:00 until evening `open`, then service until close next morning.
  * Fallback 10:00–22:00 when schedule missing.
  */
+import { coerceDayEnabled } from "@/utils/coerceDayEnabled";
+
 const TZ = "Asia/Jerusalem";
+
+function rowScheduleEnabled(row) {
+  return coerceDayEnabled(row?.enabled);
+}
 
 /** Earliest time (minutes from midnight) customers may place an order on an enabled day. */
 const ORDER_WINDOW_EARLIEST_MIN = 10 * 60;
@@ -15,7 +21,9 @@ const FALLBACK_END_MIN = 22 * 60;
 
 function rowByWeekday(days, wd) {
   if (!days || !Array.isArray(days)) return null;
-  return days.find((d) => d.weekday === wd) ?? days[wd] ?? null;
+  return (
+    days.find((d) => Number(d?.weekday) === wd) ?? days[wd] ?? null
+  );
 }
 
 const DEFAULT_OPEN_DISPLAY = "16:00";
@@ -30,7 +38,7 @@ export function getTodayOpenTimeDisplay(days, date = new Date()) {
     return DEFAULT_OPEN_DISPLAY;
   }
   const row = rowByWeekday(days, getJerusalemWeekday(date));
-  if (!row?.enabled) return DEFAULT_OPEN_DISPLAY;
+  if (!rowScheduleEnabled(row)) return DEFAULT_OPEN_DISPLAY;
   const s = typeof row.open === "string" ? row.open.trim() : "";
   return s || DEFAULT_OPEN_DISPLAY;
 }
@@ -96,7 +104,7 @@ export function isOvernightSpan(openStr, closeStr) {
 }
 
 function isInOvernightMorningTail(row, curMin) {
-  if (!row?.enabled) return false;
+  if (!rowScheduleEnabled(row)) return false;
   const openM = parseHHmmToMinutes(row.open);
   const closeM = parseHHmmToMinutes(row.close);
   if (openM === null || closeM === null) return false;
@@ -107,7 +115,7 @@ function isInOvernightMorningTail(row, curMin) {
 
 /** Admin-defined service window (kitchen open): between `open` and `close` only. */
 function isInTodayBusinessWindow(row, curMin) {
-  if (!row?.enabled) return false;
+  if (!rowScheduleEnabled(row)) return false;
   const openM = parseHHmmToMinutes(row.open);
   const closeM = parseHHmmToMinutes(row.close);
   if (openM === null || closeM === null) return false;
@@ -146,7 +154,7 @@ export function isRestaurantOpenAt(date = new Date(), days) {
  * Uses 10:00 as the earliest order time; upper bound is always the day's closing time (same calendar day or overnight tail via prevRow).
  */
 function isInTodayOrderingWindow(row, curMin) {
-  if (!row?.enabled) return false;
+  if (!rowScheduleEnabled(row)) return false;
   const openM = parseHHmmToMinutes(row.open);
   const closeM = parseHHmmToMinutes(row.close);
   if (openM === null || closeM === null) return false;

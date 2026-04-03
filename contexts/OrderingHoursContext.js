@@ -5,6 +5,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { coerceDayEnabled } from "@/utils/coerceDayEnabled";
 import {
   getJerusalemWeekday,
   getTodayOpenTimeDisplay,
@@ -18,9 +19,10 @@ const OrderingHoursContext = createContext(null);
 function isTodayEnabledInSchedule(days) {
   if (!Array.isArray(days)) return true;
   const wd = getJerusalemWeekday(new Date());
-  const row = days.find((d) => d.weekday === wd);
+  const row =
+    days.find((d) => Number(d?.weekday) === wd) ?? days[wd] ?? null;
   if (!row) return true;
-  return Boolean(row.enabled);
+  return coerceDayEnabled(row.enabled);
 }
 
 export function OrderingHoursProvider({ children }) {
