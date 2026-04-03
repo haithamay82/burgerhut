@@ -477,6 +477,16 @@ const HE = {
   "admin.daySalesTotal": "סה״כ מכירות ליום זה",
   "admin.salesCalendarTitle": "מכירות לפי יום",
   "admin.salesCalendarHint": "לפי תאריך בישראל (Asia/Jerusalem). לחצו על יום כדי לראות הזמנות.",
+  "admin.siteVisitsTitle": "ביקורים יומיים — אתר ואפליקציה",
+  "admin.siteVisitsHint":
+    "ספירה של ביקור אחד ליום לכל מכשיר (כניסה ראשונה ביום מ־burgerhut.co.il או מהאפליקציה שהותקנה למסך הבית). לפי יום בישראל (ירושלים).",
+  "admin.siteVisitsColDay": "יום",
+  "admin.siteVisitsColTotal": "סה״כ",
+  "admin.siteVisitsColWeb": "דפדפן",
+  "admin.siteVisitsColPwa": "אפליקציה",
+  "admin.siteVisitsRedisHint":
+    "אין נתונים: Redis לא מוגדר בשרת (נדרש לאיסוף ביקורים, כמו לקופונים).",
+  "admin.siteVisitsLoadErr": "לא ניתן לטעון את נתוני הביקורים.",
   "admin.calendarPrevMonth": "חודש קודם",
   "admin.calendarNextMonth": "חודש הבא",
   "admin.calendarTodayBtn": "היום",
@@ -1062,6 +1072,16 @@ const AR = {
   "admin.daySalesTotal": "إجمالي المبيعات لهذا اليوم",
   "admin.salesCalendarTitle": "المبيعات حسب اليوم",
   "admin.salesCalendarHint": "حسب التاريخ في إسرائيل (Asia/Jerusalem). انقر يوماً لعرض الطلبات.",
+  "admin.siteVisitsTitle": "زيارات يومية — الموقع والتطبيق",
+  "admin.siteVisitsHint":
+    "يُحتسب زيارة واحدة يومياً لكل جهاز (أول دخول في اليوم من الموقع أو من التطبيق المثبّت على الشاشة الرئيسية). حسب اليوم في إسرائيل (القدس).",
+  "admin.siteVisitsColDay": "اليوم",
+  "admin.siteVisitsColTotal": "الإجمالي",
+  "admin.siteVisitsColWeb": "متصفح",
+  "admin.siteVisitsColPwa": "تطبيق",
+  "admin.siteVisitsRedisHint":
+    "لا توجد بيانات: Redis غير مُعرّف على الخادم (مطلوب لجمع الزيارات، مثل الكوبونات).",
+  "admin.siteVisitsLoadErr": "تعذّر تحميل بيانات الزيارات.",
   "admin.calendarPrevMonth": "الشهر السابق",
   "admin.calendarNextMonth": "الشهر التالي",
   "admin.calendarTodayBtn": "اليوم",

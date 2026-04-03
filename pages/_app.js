@@ -4,17 +4,14 @@ import { CartProvider } from "@/hooks/useCart";
 import { LocaleProvider } from "@/contexts/LocaleContext";
 import { InventoryProvider } from "@/contexts/InventoryContext";
 import { OrderingHoursProvider } from "@/contexts/OrderingHoursContext";
+import { isStandalonePwaDisplay } from "@/utils/pwaDisplay";
 
-function isInstalledPwaDisplay() {
-  if (typeof window === "undefined") return false;
-  const mq = (mode) =>
-    window.matchMedia?.(`(display-mode: ${mode})`)?.matches ?? false;
-  return (
-    mq("standalone") ||
-    mq("fullscreen") ||
-    mq("minimal-ui") ||
-    window.navigator.standalone === true
-  );
+const SITE_VISIT_STORAGE_KEY = "bh_site_visit_v1";
+
+function jerusalemDayKeyClient() {
+  return new Date().toLocaleDateString("en-CA", {
+    timeZone: "Asia/Jerusalem",
+  });
 }
 
 export default function App({ Component, pageProps }) {
@@ -23,10 +20,38 @@ export default function App({ Component, pageProps }) {
     navigator.serviceWorker.register("/sw.js").catch(() => {});
   }, []);
 
+  /** ספירת ביקור יומית אחת למכשיר (אתר או אפליקציה מותקנת) — לדשבורד מנהל */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const today = jerusalemDayKeyClient();
+      if (window.localStorage.getItem(SITE_VISIT_STORAGE_KEY) === today) return;
+      const channel = isStandalonePwaDisplay() ? "pwa" : "web";
+      fetch("/api/site-visits", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ channel }),
+      })
+        .then((r) => r.json().catch(() => ({})))
+        .then((d) => {
+          if (
+            d?.ok &&
+            (d.recorded === true ||
+              d?.error === "redis_not_configured")
+          ) {
+            window.localStorage.setItem(SITE_VISIT_STORAGE_KEY, today);
+          }
+        })
+        .catch(() => {});
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   /** PWA מהמסך הבית: רענון כשחוזרים לחזית כדי לטעון גרסה/נתונים עדכניים */
   useEffect(() => {
     if (typeof document === "undefined") return;
-    if (!isInstalledPwaDisplay()) return;
+    if (!isStandalonePwaDisplay()) return;
 
     let sawHidden = false;
     const onVisibility = () => {

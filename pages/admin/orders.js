@@ -145,6 +145,9 @@ export default function AdminOrdersPage() {
   const [couponPanelOpen, setCouponPanelOpen] = useState(false);
   /** סינון רשימת קופונים: null = הכל */
   const [couponStatusFilter, setCouponStatusFilter] = useState(null);
+  /** ביקורים יומיים לאתר / PWA */
+  const [siteVisitsDays, setSiteVisitsDays] = useState([]);
+  const [siteVisitsErr, setSiteVisitsErr] = useState("");
   const promoFileRef = useRef(null);
 
   const [selectedDayKey, setSelectedDayKey] = useState(null);
@@ -187,6 +190,8 @@ export default function AdminOrdersPage() {
         setDiscountDraft(null);
         setPromo(null);
         setCoupons([]);
+        setSiteVisitsDays([]);
+        setSiteVisitsErr("");
         setError(
           data.error === "admin_not_configured"
             ? t("admin.errConfig")
@@ -284,6 +289,23 @@ export default function AdminOrdersPage() {
       } finally {
         setCouponsLoading(false);
       }
+      setSiteVisitsErr("");
+      setSiteVisitsDays([]);
+      try {
+        const vr = await fetch("/api/site-visits?days=31", {
+          headers: { "x-admin-secret": secret.trim() },
+        });
+        const vd = await vr.json().catch(() => ({}));
+        if (vr.ok && vd?.ok && Array.isArray(vd.days)) {
+          setSiteVisitsDays(vd.days);
+        } else if (vd?.error === "redis_not_configured") {
+          setSiteVisitsErr("redis");
+        } else if (!vr.ok) {
+          setSiteVisitsErr("load");
+        }
+      } catch {
+        setSiteVisitsErr("load");
+      }
     } catch {
       setError(t("admin.errNet"));
       setLoaded(false);
@@ -291,6 +313,8 @@ export default function AdminOrdersPage() {
       setDiscountDraft(null);
       setPromo(null);
       setCoupons([]);
+      setSiteVisitsDays([]);
+      setSiteVisitsErr("");
     } finally {
       setLoading(false);
     }
@@ -1339,6 +1363,69 @@ export default function AdminOrdersPage() {
                 ) : null}
               </>
             </div>
+
+              <section
+                className="mb-10 rounded-2xl border border-slate-800 bg-slate-900/40 p-4"
+                aria-label={t("admin.siteVisitsTitle")}
+              >
+                <h2 className="mb-2 text-base font-bold text-primary">
+                  {t("admin.siteVisitsTitle")}
+                </h2>
+                <p className="mb-4 text-[11px] leading-relaxed text-gray-500">
+                  {t("admin.siteVisitsHint")}
+                </p>
+                {siteVisitsErr === "redis" ? (
+                  <p className="text-sm text-amber-200/90">
+                    {t("admin.siteVisitsRedisHint")}
+                  </p>
+                ) : siteVisitsErr === "load" ? (
+                  <p className="text-sm text-gray-500">
+                    {t("admin.siteVisitsLoadErr")}
+                  </p>
+                ) : (
+                  <div className="overflow-x-auto rounded-xl border border-slate-800/80">
+                    <table className="w-full min-w-[280px] border-collapse text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-slate-800 bg-slate-950/60">
+                          <th className="px-3 py-2 font-semibold text-gray-300">
+                            {t("admin.siteVisitsColDay")}
+                          </th>
+                          <th className="px-3 py-2 text-center font-semibold text-gray-300">
+                            {t("admin.siteVisitsColTotal")}
+                          </th>
+                          <th className="px-3 py-2 text-center font-semibold text-gray-300">
+                            {t("admin.siteVisitsColWeb")}
+                          </th>
+                          <th className="px-3 py-2 text-center font-semibold text-gray-300">
+                            {t("admin.siteVisitsColPwa")}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {siteVisitsDays.map((row) => (
+                          <tr
+                            key={row.date}
+                            className="border-b border-slate-800/60 last:border-0"
+                          >
+                            <td className="px-3 py-2 text-gray-200">
+                              {formatDayHeading(row.date, locale)}
+                            </td>
+                            <td className="px-3 py-2 text-center font-semibold tabular-nums text-primary">
+                              {row.total}
+                            </td>
+                            <td className="px-3 py-2 text-center tabular-nums text-gray-300">
+                              {row.web}
+                            </td>
+                            <td className="px-3 py-2 text-center tabular-nums text-gray-300">
+                              {row.pwa}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </section>
 
               <section
                 className="mb-10 rounded-2xl border border-slate-800 bg-slate-900/40 p-4"
