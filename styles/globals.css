@@ -39,23 +39,20 @@ body {
   animation: promoGlowPulse 2s ease-in-out infinite;
 }
 
-/* עמוד success — הבהוב בולט ומהיר לכרטיס קופון ולכפתור שליחת ווטסאפ */
-@keyframes successAttentionPulse {
+/* עמוד success — הבהוב למשפט האדום «צלם את המסך»; כפתור ווטסאפ */
+@keyframes successScreenshotHintPulse {
   0%,
   100% {
     opacity: 1;
-    transform: scale(1);
-    box-shadow:
-      0 0 0 0 rgba(52, 211, 153, 0.2),
-      0 0 12px 0 rgba(34, 211, 238, 0.15);
+    color: rgb(248 113 113);
+    text-shadow: none;
   }
   50% {
-    opacity: 0.78;
-    transform: scale(1.03);
-    box-shadow:
-      0 0 0 3px rgba(52, 211, 153, 0.55),
-      0 0 40px 8px rgba(52, 211, 153, 0.5),
-      0 0 56px 12px rgba(34, 211, 238, 0.25);
+    opacity: 1;
+    color: rgb(254 226 226);
+    text-shadow:
+      0 0 10px rgba(248, 113, 113, 0.95),
+      0 0 22px rgba(239 68 68 / 0.65);
   }
 }
 
@@ -76,8 +73,8 @@ body {
   }
 }
 
-.success-coupon-attention {
-  animation: successAttentionPulse 0.85s ease-in-out infinite;
+.success-screenshot-hint-attention {
+  animation: successScreenshotHintPulse 0.75s ease-in-out infinite;
 }
 
 .success-wa-btn-attention {
@@ -85,12 +82,17 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .success-coupon-attention,
+  .success-screenshot-hint-attention,
   .success-wa-btn-attention {
     animation: none;
     box-shadow: none;
     transform: none;
+    text-shadow: none;
     opacity: 1;
+  }
+
+  .success-screenshot-hint-attention {
+    color: rgb(248 113 113);
   }
 }
 
