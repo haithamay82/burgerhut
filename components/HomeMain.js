@@ -68,8 +68,23 @@ export default function HomeMain() {
     };
   }, []);
 
+  const showClosedTodayFloat = !orderingAllowed && !todayScheduledOpen;
+
   return (
     <>
+      {showClosedTodayFloat ? (
+        <div
+          className="pointer-events-none fixed inset-x-0 top-[max(6rem,32vh)] z-[28] flex justify-center px-4"
+          aria-live="polite"
+        >
+          <p
+            className="max-w-md rounded-2xl border-2 border-red-500 bg-red-950/95 px-4 py-3.5 text-center text-sm font-extrabold leading-snug text-red-50 shadow-[0_8px_40px_-8px_rgba(0,0,0,0.85)] ring-1 ring-red-400/30 backdrop-blur-md"
+            role="status"
+          >
+            {t("home.orderingClosedBannerDayOff")}
+          </p>
+        </div>
+      ) : null}
       {showPreOrderInfoBanner ? (
         <p
           className="mb-4 rounded-xl border-2 border-blue-500 bg-blue-950/80 p-3 text-sm font-bold leading-snug text-white shadow-[0_0_24px_-4px_rgba(59,130,246,0.45)]"
@@ -81,20 +96,12 @@ export default function HomeMain() {
           )}
         </p>
       ) : null}
-      {!orderingAllowed ? (
+      {!orderingAllowed && todayScheduledOpen ? (
         <p
-          className={
-            todayScheduledOpen
-              ? "mb-4 rounded-xl border-2 border-blue-500 bg-blue-950/80 p-3 text-sm font-bold leading-snug text-white shadow-[0_0_24px_-4px_rgba(59,130,246,0.45)]"
-              : "mb-4 rounded-xl border-2 border-red-600 bg-red-950/70 p-3 text-sm font-bold leading-snug text-red-100 shadow-[0_0_24px_-4px_rgba(220,38,38,0.45)]"
-          }
+          className="mb-4 rounded-xl border-2 border-blue-500 bg-blue-950/80 p-3 text-sm font-bold leading-snug text-white shadow-[0_0_24px_-4px_rgba(59,130,246,0.45)]"
           role="status"
         >
-          {t(
-            todayScheduledOpen
-              ? "home.orderingClosedBannerOpenDay"
-              : "home.orderingClosedBannerDayOff"
-          )}
+          {t("home.orderingClosedBannerOpenDay")}
         </p>
       ) : null}
       {discountActive ? (
