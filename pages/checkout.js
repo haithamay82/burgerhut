@@ -614,6 +614,8 @@ export default function CheckoutPage() {
             payment: form.payment,
             channel,
             couponCode: appliedCoupon?.code || undefined,
+            deferCouponConsume:
+              channel === "checkout_bit" || channel === "checkout_card",
           }),
         });
         const data = await response.json().catch(() => ({}));

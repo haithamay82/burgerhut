@@ -11,6 +11,8 @@ export const SUCCESS_WA_RESTORE_KEY = "burgerhut_success_wa_restore";
 export const SUCCESS_WA_SENT_KEY = "burgerhut_success_wa_sent";
 /** מספר הזמנה שכבר נלחץ עליה «שלח לווטסאפ» מעמוד ביט */
 export const BIT_PAY_WA_SENT_ORDER_KEY = "burgerhut_bit_pay_wa_sent_order";
+/** אחרי שליחת הזמנה בווטסאפ מביט — לצריכת קופון דחויה בעמוד success */
+export const BIT_DEFERRED_COUPON_CLAIM_KEY = "burgerhut_bit_deferred_coupon_claim";
 
 /**
  * מפתח יציב לעמוד success (תואם ל-SUCCESS_WA_RESTORE_KEY.matchKey).

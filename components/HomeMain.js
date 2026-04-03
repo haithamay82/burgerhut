@@ -1,6 +1,5 @@
 import Link from "next/link";
 import PromoVideoOverlay from "@/components/PromoVideoOverlay";
-import CurrentDateTime from "@/components/CurrentDateTime";
 import StickyCartBar from "@/components/StickyCartBar";
 import { useOrderingHours } from "@/contexts/OrderingHoursContext";
 import MenuItemCard from "@/components/MenuItemCard";
@@ -216,17 +215,14 @@ export default function HomeMain() {
             >
               {t("home.openMap")}
             </a>
-            <div className="inline-flex flex-col gap-0.5">
-              <a
-                href={wazeOpenUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-block text-primary underline-offset-2 hover:underline"
-              >
-                {t("home.openWaze")}
-              </a>
-              <CurrentDateTime className="leading-tight" />
-            </div>
+            <a
+              href={wazeOpenUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-block text-primary underline-offset-2 hover:underline"
+            >
+              {t("home.openWaze")}
+            </a>
           </div>
         </div>
         <div className="overflow-hidden rounded-xl border border-slate-800">

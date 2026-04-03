@@ -5,6 +5,7 @@ import Layout from "@/components/Layout";
 import { useLocale } from "@/contexts/LocaleContext";
 import { buildWhatsAppUrl } from "@/utils/whatsapp";
 import {
+  BIT_DEFERRED_COUPON_CLAIM_KEY,
   buildSuccessPageMatchKey,
   CARD_SUCCESS_SNAPSHOT_KEY,
   PENDING_ORDER_KEY,
@@ -12,6 +13,45 @@ import {
   SUCCESS_WA_SENT_KEY,
   SUCCESS_WA_SNAPSHOT_KEY,
 } from "@/utils/checkoutSessionKeys";
+
+function deferredCouponClaimStorageKey(orderNumber, code) {
+  return `bh_deferred_coupon_claimed_${String(orderNumber)}_${String(code)}`;
+}
+
+/** צריכת קופון דחויה (ביט/אשראי) אחרי השלמת תשלום — פעם אחת לכל צמד הזמנה+קוד */
+async function maybeClaimDeferredCouponClient(orderNumber, couponCode) {
+  if (typeof window === "undefined") return;
+  const on =
+    orderNumber !== undefined &&
+    orderNumber !== null &&
+    String(orderNumber).trim() !== ""
+      ? String(orderNumber).trim()
+      : "";
+  const code = String(couponCode || "").trim().toUpperCase();
+  if (!on || !code) return;
+  const sk = deferredCouponClaimStorageKey(on, code);
+  try {
+    if (window.sessionStorage.getItem(sk)) return;
+  } catch {
+    /* ignore */
+  }
+  try {
+    const r = await fetch("/api/coupon/complete-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderNumber: on, code }),
+    });
+    if (r.ok) {
+      try {
+        window.sessionStorage.setItem(sk, "1");
+      } catch {
+        /* ignore */
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+}
 
 /** בסיס אחוז לקופון חדש: מזון בלי משלוח (אם קיים בשמירה); אחרת סכום ההזמנה המלא כבעבר */
 function couponCreateAmountFromCardOrder(cardOrder) {
@@ -96,6 +136,17 @@ export default function SuccessPage() {
             }
             setCardOrder(co);
           }
+          if (
+            hypReturn &&
+            restored.deferredCouponCode &&
+            restored.deferredCouponClaimOrderNumber != null &&
+            String(restored.deferredCouponClaimOrderNumber).trim() !== ""
+          ) {
+            void maybeClaimDeferredCouponClient(
+              restored.deferredCouponClaimOrderNumber,
+              restored.deferredCouponCode
+            );
+          }
           return;
         }
       }
@@ -145,7 +196,21 @@ export default function SuccessPage() {
       }
       setCardWaUrl(url);
       setCardOrder(nextCardOrder);
+      if (
+        hypReturn &&
+        snap.orderNumber != null &&
+        String(snap.orderNumber).trim() !== "" &&
+        String(snap.customer?.couponCode || "").trim()
+      ) {
+        void maybeClaimDeferredCouponClient(
+          snap.orderNumber,
+          snap.customer.couponCode
+        );
+      }
       try {
+        const deferredCouponCode = String(snap.customer?.couponCode || "")
+          .trim()
+          .toUpperCase();
         window.sessionStorage.setItem(
           SUCCESS_WA_RESTORE_KEY,
           JSON.stringify({
@@ -153,6 +218,13 @@ export default function SuccessPage() {
             waUrl: url,
             cardOrder: nextCardOrder,
             savedAt: Date.now(),
+            deferredCouponClaimOrderNumber:
+              snap.orderNumber != null &&
+              String(snap.orderNumber).trim() !== ""
+                ? snap.orderNumber
+                : null,
+            deferredCouponCode:
+              deferredCouponCode || undefined,
           })
         );
         window.sessionStorage.removeItem(snapshotKey);
@@ -163,6 +235,48 @@ export default function SuccessPage() {
       /* ignore */
     }
   }, [router.isReady, hypReturn, method, locale, orderFromQuery]);
+
+  useEffect(() => {
+    if (!router.isReady || typeof window === "undefined") return;
+    if (String(method || "") !== "bit") return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const raw = window.sessionStorage.getItem(BIT_DEFERRED_COUPON_CLAIM_KEY);
+        if (!raw) return;
+        let p;
+        try {
+          p = JSON.parse(raw);
+        } catch {
+          return;
+        }
+        if (
+          !p?.couponCode ||
+          p.orderNumber == null ||
+          String(p.orderNumber).trim() === ""
+        ) {
+          return;
+        }
+        await maybeClaimDeferredCouponClient(p.orderNumber, p.couponCode);
+        if (cancelled) return;
+        const sk = deferredCouponClaimStorageKey(p.orderNumber, p.couponCode);
+        try {
+          if (window.sessionStorage.getItem(sk)) {
+            window.sessionStorage.removeItem(BIT_DEFERRED_COUPON_CLAIM_KEY);
+          }
+        } catch {
+          /* ignore */
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [router.isReady, method]);
 
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
@@ -309,7 +423,7 @@ export default function SuccessPage() {
           </p>
         ) : null}
         {(hypReturn || method === "card" || method === "cash") && coupon?.code ? (
-          <section className="mb-3 w-full max-w-sm rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-900 via-slate-950 to-cyan-950 p-4 text-right text-white">
+          <section className="success-coupon-attention mb-3 w-full max-w-sm rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-900 via-slate-950 to-cyan-950 p-4 text-right text-white">
             <div className="relative rounded-xl border border-white/10 bg-slate-950/70 p-3 pt-10">
               <img
                 src="/logo-burger-hut.png"
@@ -389,7 +503,7 @@ export default function SuccessPage() {
                   }
                   setWaComposeAlreadyUsed(true);
                 }}
-                className="btn-primary block whitespace-pre-line px-4 py-3 text-center leading-snug"
+                className="btn-primary success-wa-btn-attention block whitespace-pre-line px-4 py-3 text-center leading-snug"
               >
                 {waLinkLabel}
               </a>

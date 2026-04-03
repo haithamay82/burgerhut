@@ -5,6 +5,7 @@ import { buildWhatsAppUrl, openWhatsAppComposeUrl } from "@/utils/whatsapp";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useCart } from "@/hooks/useCart";
 import {
+  BIT_DEFERRED_COUPON_CLAIM_KEY,
   BIT_PAY_WA_SENT_ORDER_KEY,
   PENDING_ORDER_KEY,
 } from "@/utils/checkoutSessionKeys";
@@ -151,6 +152,27 @@ export default function BitPayPage() {
       orderNumber,
       locale: waLocale,
     });
+    const deferredCouponCode = String(customer?.couponCode || "")
+      .trim()
+      .toUpperCase();
+    if (
+      deferredCouponCode &&
+      orderNumber != null &&
+      String(orderNumber).trim() !== ""
+    ) {
+      try {
+        window.sessionStorage.setItem(
+          BIT_DEFERRED_COUPON_CLAIM_KEY,
+          JSON.stringify({
+            orderNumber: String(orderNumber),
+            couponCode: deferredCouponCode,
+            savedAt: Date.now(),
+          })
+        );
+      } catch {
+        /* ignore */
+      }
+    }
     window.sessionStorage.removeItem(PENDING_ORDER_KEY);
     setWaPendingOk(false);
     try {

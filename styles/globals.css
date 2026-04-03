@@ -39,3 +39,48 @@ body {
   animation: promoGlowPulse 2s ease-in-out infinite;
 }
 
+/* עמוד success — הבהוב עדין לכרטיס קופון ולכפתור שליחת ווטסאפ */
+@keyframes successAttentionPulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.35);
+  }
+  50% {
+    opacity: 0.94;
+    box-shadow: 0 0 28px 2px rgba(52, 211, 153, 0.45);
+  }
+}
+
+@keyframes successWaButtonPulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.45);
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 22px 4px rgba(245, 158, 11, 0.65);
+    transform: scale(1.02);
+  }
+}
+
+.success-coupon-attention {
+  animation: successAttentionPulse 1.8s ease-in-out infinite;
+}
+
+.success-wa-btn-attention {
+  animation: successWaButtonPulse 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .success-coupon-attention,
+  .success-wa-btn-attention {
+    animation: none;
+    box-shadow: none;
+    transform: none;
+    opacity: 1;
+  }
+}
+

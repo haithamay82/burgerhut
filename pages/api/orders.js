@@ -50,8 +50,16 @@ export default async function handler(req, res) {
   }
 
   if (req.method === "POST") {
-    const { customer, items, payment, total, channel, meta, couponCode } =
-      req.body || {};
+    const {
+      customer,
+      items,
+      payment,
+      total,
+      channel,
+      meta,
+      couponCode,
+      deferCouponConsume,
+    } = req.body || {};
 
     if (!customer || typeof customer !== "object") {
       return res.status(400).json({ ok: false, error: "invalid_customer" });
@@ -116,12 +124,18 @@ export default async function handler(req, res) {
       meta: meta || {},
     });
 
-    if (couponToConsume && redis) {
+    const shouldConsumeCouponNow =
+      couponToConsume &&
+      redis &&
+      !Boolean(deferCouponConsume);
+
+    if (shouldConsumeCouponNow) {
       try {
         const nextCoupon = {
           ...couponToConsume,
           used: true,
           usedAt: Date.now(),
+          usedByOrderNumber: row.orderNumber,
         };
         await redis.set(`coupon:${String(couponToConsume.code || "").toUpperCase()}`, nextCoupon, {
           ex: 60 * 60 * 24 * 30,
