@@ -86,6 +86,7 @@ const IMG_BURGER_200 = "/menu/burger-200.png";
 const IMG_BURGER_320 = "/menu/burger-320.png";
 /** תמונה משותפת לבורגר כפול 360ג׳ / 400ג׳ */
 const IMG_BURGER_DOUBLE_LARGE = "/menu/burger-double-large.png";
+const IMG_BURGER_440 = "/menu/burger-440.png";
 const IMG_CHICKEN =
   "https://images.pexels.com/photos/1639559/pexels-photo-1639559.jpeg?auto=compress&cs=tinysrgb&w=800";
 const IMG_CRISPY_CHICKEN_BURGER_ADULT = "/menu/crispy-chicken-burger.png";
@@ -157,6 +158,12 @@ export const MENU_ITEMS = [
     basePrice: 80,
     category: "burgers",
     image: IMG_BURGER_DOUBLE_LARGE,
+  },
+  {
+    id: "burger-440",
+    basePrice: 85,
+    category: "burgers",
+    image: IMG_BURGER_440,
   },
   {
     id: "crispy-chicken-burger",

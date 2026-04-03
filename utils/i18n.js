@@ -78,6 +78,8 @@ const HE = {
   "menu.burger-360.desc": "בורגר — 360 גרם.",
   "menu.burger-400.name": "בורגר 400 גר׳",
   "menu.burger-400.desc": "בורגר — 400 גרם.",
+  "menu.burger-440.name": "בורגר 440 גר׳",
+  "menu.burger-440.desc": "בורגר — 440 גרם.",
   "menu.crispy-chicken-burger.name": "קריספי צ׳יקן בורגר (עגולה/בלי עגולה)",
   "menu.crispy-chicken-burger.desc": "קריספי בעגולה או בלי עגולה.",
   "menu.crispy-chicken-burger-kids.name":
@@ -653,6 +655,8 @@ const AR = {
   "menu.burger-360.desc": "برجر — 360 غرام.",
   "menu.burger-400.name": "برجر 400غ",
   "menu.burger-400.desc": "برجر — 400 غرام.",
+  "menu.burger-440.name": "برجر 440غ",
+  "menu.burger-440.desc": "برجر — 440 غرام.",
   "menu.crispy-chicken-burger.name": "برجر كريسبي تشيكن (مدورة/بدون مدورة)",
   "menu.crispy-chicken-burger.desc": "كريسبي — بخبز مدور أو بدون.",
   "menu.crispy-chicken-burger-kids.name":
