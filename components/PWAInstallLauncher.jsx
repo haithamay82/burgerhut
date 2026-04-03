@@ -26,7 +26,33 @@ function isIOS() {
 function needsOpenInSafariOnIOS() {
   if (!isIOS()) return false;
   const ua = navigator.userAgent || "";
+  /** GSA = אפליקציית Google (חיפוש); דפדפנים מובנים בלי «הוסף למסך הבית» */
   return /GSA\/|FBAN|FBAV|Instagram|Line\/|MicroMessenger|KAKAOTALK/i.test(ua);
+}
+
+async function copyTextToClipboard(text) {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    /* fall through */
+  }
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch {
+    return false;
+  }
 }
 
 function isMobileDevice() {
@@ -55,6 +81,12 @@ export default function PWAInstallLauncher() {
   const deferredPromptRef = useRef(null);
   const [mounted, setMounted] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [iosGuide, setIosGuide] = useState(
+    /** @type {"inapp" | "safari" | null} */ (null)
+  );
+  const [copyHint, setCopyHint] = useState(
+    /** @type {"ok" | "fail" | null} */ (null)
+  );
 
   const path = router?.pathname || "";
   const hideOnThisPage = HIDE_LAUNCHER_PREFIXES.some((p) => path.startsWith(p));
@@ -99,15 +131,21 @@ export default function PWAInstallLauncher() {
       return;
     }
     if (isIOS()) {
-      window.alert(
-        needsOpenInSafariOnIOS()
-          ? t("pwa.iosUseSafariFirst")
-          : t("pwa.iosInstallHint")
-      );
+      setIosGuide(needsOpenInSafariOnIOS() ? "inapp" : "safari");
     } else {
       window.alert(t("pwa.androidInstallHint"));
     }
     setConfirmOpen(false);
+  };
+
+  const siteUrl =
+    typeof window !== "undefined" ? `${window.location.origin}/` : "";
+
+  const copySiteUrl = async () => {
+    if (!siteUrl) return;
+    const ok = await copyTextToClipboard(siteUrl);
+    setCopyHint(ok ? "ok" : "fail");
+    window.setTimeout(() => setCopyHint(null), 5000);
   };
 
   if (!mounted) {
@@ -126,6 +164,86 @@ export default function PWAInstallLauncher() {
   ) {
     return null;
   }
+
+  const iosGuideModal =
+    iosGuide && typeof document !== "undefined"
+      ? createPortal(
+          <div
+            className="fixed inset-0 z-[221] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+            role="presentation"
+            onClick={() => {
+              setIosGuide(null);
+              setCopyHint(null);
+            }}
+          >
+            <div
+              className="max-h-[min(90vh,32rem)] w-full max-w-sm overflow-y-auto rounded-2xl border-2 border-[#f5a623] bg-black p-5 shadow-2xl"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="pwa-ios-guide-title"
+              dir="rtl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2
+                id="pwa-ios-guide-title"
+                className="mb-2 text-center text-base font-bold text-[#f5a623]"
+              >
+                {iosGuide === "inapp"
+                  ? t("pwa.iosInAppBrowserTitle")
+                  : t("pwa.iosSafariGuideTitle")}
+              </h2>
+              {iosGuide === "inapp" ? (
+                <>
+                  <p className="mb-3 text-sm leading-relaxed text-gray-200">
+                    {t("pwa.iosInAppBrowserLead")}
+                  </p>
+                  <ol className="mb-4 list-decimal space-y-2 pr-5 text-sm leading-relaxed text-gray-200">
+                    <li>{t("pwa.iosInAppBrowserStep1")}</li>
+                    <li>{t("pwa.iosInAppBrowserStep2")}</li>
+                    <li>{t("pwa.iosInAppBrowserStep3")}</li>
+                  </ol>
+                  <p className="mb-2 break-all text-center text-[11px] text-gray-500">
+                    {siteUrl}
+                  </p>
+                  <button
+                    type="button"
+                    className="mb-3 w-full rounded-xl bg-[#f5a623] py-3 text-sm font-bold text-black transition-opacity hover:opacity-90"
+                    onClick={() => void copySiteUrl()}
+                  >
+                    {t("pwa.iosCopyLinkButton")}
+                  </button>
+                  {copyHint === "ok" ? (
+                    <p className="mb-3 rounded-lg border border-emerald-500/40 bg-emerald-950/40 p-2 text-center text-xs leading-snug text-emerald-100">
+                      {t("pwa.iosCopyLinkDone")}
+                    </p>
+                  ) : null}
+                  {copyHint === "fail" ? (
+                    <p className="mb-3 rounded-lg border border-amber-600/50 bg-amber-950/30 p-2 text-center text-xs leading-snug text-amber-100">
+                      {t("pwa.iosCopyLinkFail")}{" "}
+                      <span className="font-mono text-[11px]">{siteUrl}</span>
+                    </p>
+                  ) : null}
+                </>
+              ) : (
+                <p className="mb-5 whitespace-pre-line text-center text-sm leading-relaxed text-gray-200">
+                  {t("pwa.iosInstallHint")}
+                </p>
+              )}
+              <button
+                type="button"
+                className="w-full rounded-xl border-2 border-[#f5a623] py-3 text-sm font-semibold text-white transition-colors hover:bg-white/5"
+                onClick={() => {
+                  setIosGuide(null);
+                  setCopyHint(null);
+                }}
+              >
+                {t("pwa.iosGuideClose")}
+              </button>
+            </div>
+          </div>,
+          document.body
+        )
+      : null;
 
   const modal =
     confirmOpen && typeof document !== "undefined"
@@ -209,6 +327,7 @@ export default function PWAInstallLauncher() {
         </span>
       </div>
       {modal}
+      {iosGuideModal}
     </>
   );
 }

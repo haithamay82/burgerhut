@@ -48,6 +48,20 @@ const HE = {
   "home.promoAria": "פרסום וידאו בדף הבית",
   "pwa.iosUseSafariFirst":
     "נראה שהאתר נפתח מתוך **אפליקציית Google** (אייקון G) או דפדפן מובנה — שם בדרך כלל **אין** «הוסף למסך הבית».\n\n• לחץ שיתוף → **«פתיחה ב-Safari»** או **«פתיחה ב-Chrome»**.\n• ב-Safari או ב-Chrome: שיתוף → גלול למטה → «הוסף למסך הבית» (לעיתים Add to Home Screen).",
+  "pwa.iosInAppBrowserTitle": "קודם פותחים ב-Safari",
+  "pwa.iosInAppBrowserLead":
+    "באפליקציית Google (אייקון G) ובחלון דפדפן מובנה אין בדרך כלל «הוסף למסך הבית» — גם אחרי לחיצה על שיתוף. צריך לפתוח את האתר ב-Safari (או Chrome) ומשם להתקין.",
+  "pwa.iosInAppBrowserStep1": "לחצו שיתוף (הריבוע עם החץ למעלה).",
+  "pwa.iosInAppBrowserStep2":
+    "חפשו «פתיחה ב-Safari» או «פתיחה ב-Chrome». אם אין — לחצו למטה על «העתק כתובת האתר».",
+  "pwa.iosInAppBrowserStep3":
+    "כשהאתר פתוח ב-Safari: שיתוף שוב → גללו למטה → «הוסף למסך הבית».",
+  "pwa.iosCopyLinkButton": "העתק כתובת האתר",
+  "pwa.iosCopyLinkDone":
+    "הועתק. פתחו את Safari מהמסך הבית, הדביקו בשורת הכתובת, ואז שיתוף → הוסף למסך הבית.",
+  "pwa.iosCopyLinkFail": "העתקה אוטומטית נכשלה. העתיקו ידנית:",
+  "pwa.iosSafariGuideTitle": "הוספה מ-Safari",
+  "pwa.iosGuideClose": "הבנתי",
   "pwa.iosInstallHint":
     "ב-Safari באייפון:\n\n• לחץ שיתוף (החץ למעלה מהריבוע).\n• גלול למטה בגיליון — «הוסף למסך הבית» לעיתים מתחת לאנשי קשר, לא בשורה העליונה.\n• אם לא מופיע: «עריכת פעולות…» בתחתית והפעל «הוסף למסך הבית».",
   "pwa.androidInstallHint":
@@ -639,6 +653,20 @@ const AR = {
   "home.promoAria": "إعلان فيديو في الصفحة الرئيسية",
   "pwa.iosUseSafariFirst":
     "يبدو أن الموقع فُتح من **تطبيق Google** (أيقونة G) أو متصفح مضمّن — غالباً **لا** تتوفر «إضافة إلى الشاشة الرئيسية» هناك.\n\n• اضغط مشاركة → «فتح في Safari» أو «فتح في Chrome».\n• في Safari أو Chrome: مشاركة → مرّر للأسفل → «إضافة إلى الشاشة الرئيسية».",
+  "pwa.iosInAppBrowserTitle": "افتح أولاً في Safari",
+  "pwa.iosInAppBrowserLead":
+    "في تطبيق Google (أيقونة G) وفي متصفحات مضمّنة غالباً لا تتوفر «إضافة إلى الشاشة الرئيسية» — حتى بعد الضغط على مشاركة. افتح الموقع في Safari (أو Chrome) ثم ثبّت من هناك.",
+  "pwa.iosInAppBrowserStep1": "اضغط مشاركة (المربع مع السهم لأعلى).",
+  "pwa.iosInAppBrowserStep2":
+    "ابحث عن «فتح في Safari» أو «فتح في Chrome». إن لم يظهر — استخدم الزر أدناه «نسخ عنوان الموقع».",
+  "pwa.iosInAppBrowserStep3":
+    "عندما يفتح الموقع في Safari: مشاركة مرة أخرى → مرّر للأسفل → «إضافة إلى الشاشة الرئيسية».",
+  "pwa.iosCopyLinkButton": "نسخ عنوان الموقع",
+  "pwa.iosCopyLinkDone":
+    "تم النسخ. افتح Safari من الشاشة الرئيسية، الصق في شريط العنوان، ثم مشاركة → إضافة إلى الشاشة الرئيسية.",
+  "pwa.iosCopyLinkFail": "فشل النسخ التلقائي. انسخ يدوياً:",
+  "pwa.iosSafariGuideTitle": "إضافة من Safari",
+  "pwa.iosGuideClose": "فهمت",
   "pwa.iosInstallHint":
     "في Safari على آيفون:\n\n• اضغط مشاركة.\n• مرّر للأسفل — «إضافة إلى الشاشة الرئيسية» غالباً تحت جهات الاتصال.\n• إن لم تظهر: «تعديل الإجراءات…» في الأسفل وفعّل الخيار.",
   "pwa.androidInstallHint":

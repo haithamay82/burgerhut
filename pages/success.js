@@ -423,7 +423,7 @@ export default function SuccessPage() {
           </p>
         ) : null}
         {(hypReturn || method === "card" || method === "cash") && coupon?.code ? (
-          <section className="mb-3 w-full max-w-sm rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-900 via-slate-950 to-cyan-950 p-4 text-right text-white">
+          <section className="success-coupon-attention mb-3 w-full max-w-sm rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-900 via-slate-950 to-cyan-950 p-4 text-right text-white">
             <div className="relative rounded-xl border border-white/10 bg-slate-950/70 p-3 pt-10">
               <img
                 src="/logo-burger-hut.png"
@@ -473,7 +473,7 @@ export default function SuccessPage() {
                 </div>
               </div>
             </div>
-            <p className="success-screenshot-hint-attention mt-2 text-center text-xs font-extrabold text-red-400">
+            <p className="mt-2 text-center text-xs font-extrabold text-red-400">
               {t("success.couponScreenshotHint")}
             </p>
           </section>
