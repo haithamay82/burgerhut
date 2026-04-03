@@ -18,6 +18,23 @@ function rowByWeekday(days, wd) {
   return days.find((d) => d.weekday === wd) ?? days[wd] ?? null;
 }
 
+const DEFAULT_OPEN_DISPLAY = "16:00";
+
+/**
+ * Today's admin `open` time (HH:mm) for banners; fallback when row missing/disabled.
+ * @param {{ weekday: number, enabled: boolean, open: string, close: string }[] | null | undefined} days
+ * @param {Date} [date]
+ */
+export function getTodayOpenTimeDisplay(days, date = new Date()) {
+  if (!days || !Array.isArray(days) || days.length !== 7) {
+    return DEFAULT_OPEN_DISPLAY;
+  }
+  const row = rowByWeekday(days, getJerusalemWeekday(date));
+  if (!row?.enabled) return DEFAULT_OPEN_DISPLAY;
+  const s = typeof row.open === "string" ? row.open.trim() : "";
+  return s || DEFAULT_OPEN_DISPLAY;
+}
+
 /**
  * @param {Date} [date]
  * @returns {number} 0=Sun … 6=Sat in Jerusalem

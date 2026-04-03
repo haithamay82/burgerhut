@@ -33,6 +33,8 @@ const HE = {
   "home.hoursNoOpenDays": "לא הוגדרו ימי פעילות.",
   "home.orderingClosedBannerOpenDay":
     "המסעדה תיפתח בשעה 16:00 — ניתן לעשות הזמנה משעה 10:00 עד שעת הסגירה באותו יום.",
+  "home.preOrderBanner":
+    "המסעדה תיפתח בשעה {openTime} אבל ניתן לעשות הזמנה שתהיה מוכנה בזמן שתרצו.",
   "home.orderingClosedBannerDayOff": "המסעדה סגורה היום",
   "home.discountAnnounceWithReason":
     "עקב {reason} מחכה לכם הנחה של {percent}% בקניה מעל {min}.",
@@ -606,6 +608,8 @@ const AR = {
   "home.hoursNoOpenDays": "لم يُعرّف أي يوم عمل.",
   "home.orderingClosedBannerOpenDay":
     "يفتح المطعم الساعة 16:00 — يمكن تقديم الطلب من الساعة 10:00 حتى وقت الإغلاق في ذلك اليوم.",
+  "home.preOrderBanner":
+    "يفتح المطعم الساعة {openTime} لكن يمكنكم تقديم طلب ليكون جاهزاً في الوقت الذي يناسبكم.",
   "home.orderingClosedBannerDayOff": "المطعم مغلق اليوم",
   "home.discountAnnounceWithReason":
     "بسبب {reason} يمكنكم الحصول على خصم بنسبة {percent}% عند الشراء فوق {min}.",

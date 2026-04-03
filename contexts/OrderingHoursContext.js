@@ -7,6 +7,7 @@ import {
 } from "react";
 import {
   getJerusalemWeekday,
+  getTodayOpenTimeDisplay,
   isOrderingAllowedAt,
   isRestaurantOpenAt,
 } from "@/utils/orderingHours";
@@ -26,6 +27,8 @@ export function OrderingHoursProvider({ children }) {
   const [orderingAllowed, setOrderingAllowed] = useState(true);
   const [restaurantOpen, setRestaurantOpen] = useState(false);
   const [todayScheduledOpen, setTodayScheduledOpen] = useState(true);
+  const [todayOpenTimeDisplay, setTodayOpenTimeDisplay] =
+    useState("16:00");
 
   useEffect(() => {
     let cancelled = false;
@@ -39,11 +42,13 @@ export function OrderingHoursProvider({ children }) {
           const now = new Date();
           setOrderingAllowed(isOrderingAllowedAt(now, data.days));
           setRestaurantOpen(isRestaurantOpenAt(now, data.days));
+          setTodayOpenTimeDisplay(getTodayOpenTimeDisplay(data.days, now));
         } else {
           setTodayScheduledOpen(true);
           const now = new Date();
           setOrderingAllowed(isOrderingAllowedAt(now, null));
           setRestaurantOpen(isRestaurantOpenAt(now, null));
+          setTodayOpenTimeDisplay(getTodayOpenTimeDisplay(null, now));
         }
       } catch {
         if (!cancelled) {
@@ -51,6 +56,7 @@ export function OrderingHoursProvider({ children }) {
           const now = new Date();
           setOrderingAllowed(isOrderingAllowedAt(now, null));
           setRestaurantOpen(isRestaurantOpenAt(now, null));
+          setTodayOpenTimeDisplay(getTodayOpenTimeDisplay(null, now));
         }
       }
     };
@@ -63,8 +69,13 @@ export function OrderingHoursProvider({ children }) {
   }, []);
 
   const value = useMemo(
-    () => ({ orderingAllowed, restaurantOpen, todayScheduledOpen }),
-    [orderingAllowed, restaurantOpen, todayScheduledOpen]
+    () => ({
+      orderingAllowed,
+      restaurantOpen,
+      todayScheduledOpen,
+      todayOpenTimeDisplay,
+    }),
+    [orderingAllowed, restaurantOpen, todayScheduledOpen, todayOpenTimeDisplay]
   );
 
   return (
