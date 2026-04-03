@@ -1,12 +1,16 @@
 /**
- * Ordering window: each day's open–close (Asia/Jerusalem) from business-hours.json;
- * supports overnight shifts (e.g. 22:00–02:00 = closes the next calendar day);
- * fallback 10:00–22:00 when schedule missing.
+ * Ordering window (Asia/Jerusalem) from business-hours.json:
+ * customers may order from 10:00 until that day's close, even when kitchen `open` is later (e.g. 16:00).
+ * Overnight shifts (e.g. 22:00–02:00): pre-orders from 10:00 until evening `open`, then service until close next morning.
+ * Fallback 10:00–22:00 when schedule missing.
  */
 const TZ = "Asia/Jerusalem";
 
+/** Earliest time (minutes from midnight) customers may place an order on an enabled day. */
+const ORDER_WINDOW_EARLIEST_MIN = 10 * 60;
+
 /** Fallback when schedule missing (minutes from midnight). */
-const FALLBACK_START_MIN = 10 * 60;
+const FALLBACK_START_MIN = ORDER_WINDOW_EARLIEST_MIN;
 const FALLBACK_END_MIN = 22 * 60;
 
 function rowByWeekday(days, wd) {
@@ -84,6 +88,7 @@ function isInOvernightMorningTail(row, curMin) {
   return curMin <= closeM;
 }
 
+/** Admin-defined service window (kitchen open): between `open` and `close` only. */
 function isInTodayBusinessWindow(row, curMin) {
   if (!row?.enabled) return false;
   const openM = parseHHmmToMinutes(row.open);
@@ -94,6 +99,46 @@ function isInTodayBusinessWindow(row, curMin) {
     return curMin >= openM && curMin <= closeM;
   }
   return curMin >= openM;
+}
+
+/**
+ * Whether the restaurant is in the admin-defined open–close window (for UI status / green dot).
+ * Without a 7-day schedule, uses the same 10:00–22:00 fallback as ordering when data is missing.
+ * @param {Date} [date]
+ * @param {{ weekday: number, enabled: boolean, open: string, close: string }[] | null | undefined} days
+ * @returns {boolean}
+ */
+export function isRestaurantOpenAt(date = new Date(), days) {
+  const { h, m } = getJerusalemHourMinute(date);
+  const curMin = h * 60 + m;
+
+  if (days && Array.isArray(days) && days.length === 7) {
+    const wd = getJerusalemWeekday(date);
+    const prevWd = (wd - 1 + 7) % 7;
+    const prevRow = rowByWeekday(days, prevWd);
+    if (isInOvernightMorningTail(prevRow, curMin)) return true;
+    const todayRow = rowByWeekday(days, wd);
+    return isInTodayBusinessWindow(todayRow, curMin);
+  }
+
+  return curMin >= FALLBACK_START_MIN && curMin <= FALLBACK_END_MIN;
+}
+
+/**
+ * Whether the customer may order now for today's schedule row (Jerusalem minutes from midnight).
+ * Uses 10:00 as the earliest order time; upper bound is always the day's closing time (same calendar day or overnight tail via prevRow).
+ */
+function isInTodayOrderingWindow(row, curMin) {
+  if (!row?.enabled) return false;
+  const openM = parseHHmmToMinutes(row.open);
+  const closeM = parseHHmmToMinutes(row.close);
+  if (openM === null || closeM === null) return false;
+  if (openM === closeM) return false;
+  if (closeM > openM) {
+    return curMin >= ORDER_WINDOW_EARLIEST_MIN && curMin <= closeM;
+  }
+  if (curMin >= openM) return true;
+  return curMin >= ORDER_WINDOW_EARLIEST_MIN && curMin < openM;
 }
 
 /**
@@ -111,7 +156,7 @@ export function isOrderingAllowedAt(date = new Date(), days) {
     const prevRow = rowByWeekday(days, prevWd);
     if (isInOvernightMorningTail(prevRow, curMin)) return true;
     const todayRow = rowByWeekday(days, wd);
-    return isInTodayBusinessWindow(todayRow, curMin);
+    return isInTodayOrderingWindow(todayRow, curMin);
   }
 
   return curMin >= FALLBACK_START_MIN && curMin <= FALLBACK_END_MIN;

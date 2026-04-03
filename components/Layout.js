@@ -15,9 +15,9 @@ const PWAInstallLauncher = dynamic(() => import("./PWAInstallLauncher"), {
 
 export default function Layout({ children }) {
   const { t } = useLocale();
-  const { orderingAllowed } = useOrderingHours();
-  /** Overnight shifts can extend past midnight; orderingAllowed already reflects that. */
-  const showAsOpen = orderingAllowed;
+  const { restaurantOpen } = useOrderingHours();
+  /** Green dot = admin open–close only; pre-orders (10:00–close) use orderingAllowed elsewhere. */
+  const showAsOpen = restaurantOpen;
   const [hoursOpen, setHoursOpen] = useState(false);
   const [businessHours, setBusinessHours] = useState(null);
   const wazeUrl = "https://waze.com/ul?q=%D7%99%D7%A8%D7%9B%D7%90%20137&navigate=yes";

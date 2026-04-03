@@ -8,6 +8,7 @@ import {
 import {
   getJerusalemWeekday,
   isOrderingAllowedAt,
+  isRestaurantOpenAt,
 } from "@/utils/orderingHours";
 
 const OrderingHoursContext = createContext(null);
@@ -23,6 +24,7 @@ function isTodayEnabledInSchedule(days) {
 
 export function OrderingHoursProvider({ children }) {
   const [orderingAllowed, setOrderingAllowed] = useState(true);
+  const [restaurantOpen, setRestaurantOpen] = useState(false);
   const [todayScheduledOpen, setTodayScheduledOpen] = useState(true);
 
   useEffect(() => {
@@ -34,15 +36,21 @@ export function OrderingHoursProvider({ children }) {
         if (cancelled) return;
         if (data?.ok && Array.isArray(data.days)) {
           setTodayScheduledOpen(isTodayEnabledInSchedule(data.days));
-          setOrderingAllowed(isOrderingAllowedAt(new Date(), data.days));
+          const now = new Date();
+          setOrderingAllowed(isOrderingAllowedAt(now, data.days));
+          setRestaurantOpen(isRestaurantOpenAt(now, data.days));
         } else {
           setTodayScheduledOpen(true);
-          setOrderingAllowed(isOrderingAllowedAt(new Date(), null));
+          const now = new Date();
+          setOrderingAllowed(isOrderingAllowedAt(now, null));
+          setRestaurantOpen(isRestaurantOpenAt(now, null));
         }
       } catch {
         if (!cancelled) {
           setTodayScheduledOpen(true);
-          setOrderingAllowed(isOrderingAllowedAt(new Date(), null));
+          const now = new Date();
+          setOrderingAllowed(isOrderingAllowedAt(now, null));
+          setRestaurantOpen(isRestaurantOpenAt(now, null));
         }
       }
     };
@@ -55,8 +63,8 @@ export function OrderingHoursProvider({ children }) {
   }, []);
 
   const value = useMemo(
-    () => ({ orderingAllowed, todayScheduledOpen }),
-    [orderingAllowed, todayScheduledOpen]
+    () => ({ orderingAllowed, restaurantOpen, todayScheduledOpen }),
+    [orderingAllowed, restaurantOpen, todayScheduledOpen]
   );
 
   return (
