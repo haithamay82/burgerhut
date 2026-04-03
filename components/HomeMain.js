@@ -237,9 +237,10 @@ export default function HomeMain() {
         <div className="mt-3 flex justify-center border-t border-slate-800/80 pt-3">
           <Link
             href="/admin/orders"
-            className="text-xs font-semibold text-primary underline-offset-4 hover:text-amber-400 hover:underline"
+            className="h-8 w-8 shrink-0 cursor-pointer rounded-[2px] border border-slate-900 bg-black/70 shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] transition-colors hover:border-slate-800 hover:bg-black/90 focus-visible:outline focus-visible:outline-1 focus-visible:outline-slate-600 focus-visible:outline-offset-2"
+            title=""
           >
-            {t("header.admin")}
+            <span className="sr-only">{t("home.adminDiscreetSr")}</span>
           </Link>
         </div>
       </section>

@@ -22,6 +22,8 @@ const HE = {
   "home.tiktokUrl": "https://www.tiktok.com/@burger._.hut?_r=1&_t=ZS-95A2cZnTFdV",
   "home.openMap": "פתיחה במפות",
   "home.openWaze": "waze למסעדה",
+  /** טקסט מוסתר לקוראי מסך בלבד — ללא מילה «ניהול» בממשק הגלוי */
+  "home.adminDiscreetSr": "כניסת פאנל המסעדה",
   "home.hoursButton": "זמני עבודה",
   "home.restaurantOpen": "המסעדה פתוחה",
   "home.restaurantClosed": "המסעדה סגורה",
@@ -627,6 +629,7 @@ const AR = {
   "home.tiktokUrl": "https://www.tiktok.com/@burger._.hut?_r=1&_t=ZS-95A2cZnTFdV",
   "home.openMap": "فتح في الخرائط",
   "home.openWaze": "waze للمطعم",
+  "home.adminDiscreetSr": "دخول لوحة المطعم",
   "home.hoursButton": "ساعات العمل",
   "home.restaurantOpen": "المطعم مفتوح",
   "home.restaurantClosed": "المطعم مغلق",
