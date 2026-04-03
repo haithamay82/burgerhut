@@ -143,6 +143,7 @@ export default function AdminOrdersPage() {
   const [couponDeleteCode, setCouponDeleteCode] = useState("");
   const [couponMsg, setCouponMsg] = useState("");
   const [couponPanelOpen, setCouponPanelOpen] = useState(false);
+  const [siteVisitsPanelOpen, setSiteVisitsPanelOpen] = useState(false);
   /** סינון רשימת קופונים: null = הכל */
   const [couponStatusFilter, setCouponStatusFilter] = useState(null);
   /** ביקורים יומיים לאתר / PWA */
@@ -1364,68 +1365,83 @@ export default function AdminOrdersPage() {
               </>
             </div>
 
-              <section
-                className="mb-10 rounded-2xl border border-slate-800 bg-slate-900/40 p-4"
-                aria-label={t("admin.siteVisitsTitle")}
+              <button
+                type="button"
+                onClick={() => setSiteVisitsPanelOpen((v) => !v)}
+                aria-expanded={siteVisitsPanelOpen}
+                className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-right text-sm font-bold text-gray-100 transition-colors hover:border-primary/50 hover:bg-slate-800/60"
               >
-                <h2 className="mb-2 text-base font-bold text-primary">
+                <span className="min-w-0 flex-1 leading-snug">
                   {t("admin.siteVisitsTitle")}
-                </h2>
-                <p className="mb-4 text-[11px] leading-relaxed text-gray-500">
-                  {t("admin.siteVisitsHint")}
-                </p>
-                {siteVisitsErr === "redis" ? (
-                  <p className="text-sm text-amber-200/90">
-                    {t("admin.siteVisitsRedisHint")}
+                </span>
+                <span
+                  className="shrink-0 text-lg leading-none text-primary"
+                  aria-hidden
+                >
+                  {siteVisitsPanelOpen ? "▾" : "▶"}
+                </span>
+              </button>
+              {siteVisitsPanelOpen ? (
+                <section
+                  className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4"
+                  aria-label={t("admin.siteVisitsTitle")}
+                >
+                  <p className="mb-4 text-[11px] leading-relaxed text-gray-500">
+                    {t("admin.siteVisitsHint")}
                   </p>
-                ) : siteVisitsErr === "load" ? (
-                  <p className="text-sm text-gray-500">
-                    {t("admin.siteVisitsLoadErr")}
-                  </p>
-                ) : (
-                  <div className="overflow-x-auto rounded-xl border border-slate-800/80">
-                    <table className="w-full min-w-[280px] border-collapse text-left text-xs">
-                      <thead>
-                        <tr className="border-b border-slate-800 bg-slate-950/60">
-                          <th className="px-3 py-2 font-semibold text-gray-300">
-                            {t("admin.siteVisitsColDay")}
-                          </th>
-                          <th className="px-3 py-2 text-center font-semibold text-gray-300">
-                            {t("admin.siteVisitsColTotal")}
-                          </th>
-                          <th className="px-3 py-2 text-center font-semibold text-gray-300">
-                            {t("admin.siteVisitsColWeb")}
-                          </th>
-                          <th className="px-3 py-2 text-center font-semibold text-gray-300">
-                            {t("admin.siteVisitsColPwa")}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {siteVisitsDays.map((row) => (
-                          <tr
-                            key={row.date}
-                            className="border-b border-slate-800/60 last:border-0"
-                          >
-                            <td className="px-3 py-2 text-gray-200">
-                              {formatDayHeading(row.date, locale)}
-                            </td>
-                            <td className="px-3 py-2 text-center font-semibold tabular-nums text-primary">
-                              {row.total}
-                            </td>
-                            <td className="px-3 py-2 text-center tabular-nums text-gray-300">
-                              {row.web}
-                            </td>
-                            <td className="px-3 py-2 text-center tabular-nums text-gray-300">
-                              {row.pwa}
-                            </td>
+                  {siteVisitsErr === "redis" ? (
+                    <p className="text-sm text-amber-200/90">
+                      {t("admin.siteVisitsRedisHint")}
+                    </p>
+                  ) : siteVisitsErr === "load" ? (
+                    <p className="text-sm text-gray-500">
+                      {t("admin.siteVisitsLoadErr")}
+                    </p>
+                  ) : (
+                    <div className="overflow-x-auto rounded-xl border border-slate-800/80">
+                      <table className="w-full min-w-[280px] border-collapse text-left text-xs">
+                        <thead>
+                          <tr className="border-b border-slate-800 bg-slate-950/60">
+                            <th className="px-3 py-2 font-semibold text-gray-300">
+                              {t("admin.siteVisitsColDay")}
+                            </th>
+                            <th className="px-3 py-2 text-center font-semibold text-gray-300">
+                              {t("admin.siteVisitsColTotal")}
+                            </th>
+                            <th className="px-3 py-2 text-center font-semibold text-gray-300">
+                              {t("admin.siteVisitsColWeb")}
+                            </th>
+                            <th className="px-3 py-2 text-center font-semibold text-gray-300">
+                              {t("admin.siteVisitsColPwa")}
+                            </th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </section>
+                        </thead>
+                        <tbody>
+                          {siteVisitsDays.map((row) => (
+                            <tr
+                              key={row.date}
+                              className="border-b border-slate-800/60 last:border-0"
+                            >
+                              <td className="px-3 py-2 text-gray-200">
+                                {formatDayHeading(row.date, locale)}
+                              </td>
+                              <td className="px-3 py-2 text-center font-semibold tabular-nums text-primary">
+                                {row.total}
+                              </td>
+                              <td className="px-3 py-2 text-center tabular-nums text-gray-300">
+                                {row.web}
+                              </td>
+                              <td className="px-3 py-2 text-center tabular-nums text-gray-300">
+                                {row.pwa}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </section>
+              ) : null}
 
               <section
                 className="mb-10 rounded-2xl border border-slate-800 bg-slate-900/40 p-4"
