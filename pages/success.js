@@ -79,6 +79,11 @@ export default function SuccessPage() {
   const [coupon, setCoupon] = useState(null);
   /** אחרי ניסיון טעינת קופון (או מטמון) — מאפשר ווטסאפ גם אם לא נוצר קופון */
   const [couponFetchSettled, setCouponFetchSettled] = useState(false);
+  /**
+   * null = טוען; true = מנהל הפעיל קופונים ללקוחות (כמו ב־/api/coupon/create);
+   * false = קופונים כבויים או אחוז 0 — כפתור ווטסאפ פעיל מיד בלי להמתין לקופון
+   */
+  const [customerCouponsActive, setCustomerCouponsActive] = useState(null);
   const [waComposeAlreadyUsed, setWaComposeAlreadyUsed] = useState(false);
 
   useEffect(() => {
@@ -310,7 +315,38 @@ export default function SuccessPage() {
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
     if (!(hypReturn || method === "card" || method === "cash")) {
+      setCustomerCouponsActive(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch("/api/discount");
+        const d = await r.json().catch(() => ({}));
+        if (cancelled) return;
+        const offered =
+          Boolean(d?.couponEnabled) && Number(d?.couponPercent) > 0;
+        setCustomerCouponsActive(offered);
+      } catch {
+        if (!cancelled) setCustomerCouponsActive(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [router.isReady, hypReturn, method]);
+
+  useEffect(() => {
+    if (!router.isReady || typeof window === "undefined") return;
+    if (!(hypReturn || method === "card" || method === "cash")) {
       setCouponFetchSettled(true);
+      return;
+    }
+    if (customerCouponsActive === false) {
+      setCouponFetchSettled(true);
+      return;
+    }
+    if (customerCouponsActive !== true) {
       return;
     }
     const couponCreateAmount = couponCreateAmountFromCardOrder(cardOrder);
@@ -346,12 +382,17 @@ export default function SuccessPage() {
           }),
         });
         const d = await r.json().catch(() => ({}));
-        if (active && r.ok && d?.ok && d?.coupon?.code) {
-          setCoupon(d.coupon);
-          try {
-            window.sessionStorage.setItem(sessionKey, JSON.stringify(d.coupon));
-          } catch {
-            /* ignore */
+        if (active && r.ok && d?.ok) {
+          if (d.enabled === false) {
+            setCustomerCouponsActive(false);
+          }
+          if (d?.coupon?.code) {
+            setCoupon(d.coupon);
+            try {
+              window.sessionStorage.setItem(sessionKey, JSON.stringify(d.coupon));
+            } catch {
+              /* ignore */
+            }
           }
         }
       } catch {
@@ -364,7 +405,7 @@ export default function SuccessPage() {
     return () => {
       active = false;
     };
-  }, [router.isReady, hypReturn, method, cardOrder]);
+  }, [router.isReady, hypReturn, method, cardOrder, customerCouponsActive]);
 
   const title = hypReturn
     ? t("success.paymentCompleted")
@@ -398,8 +439,9 @@ export default function SuccessPage() {
     }).format(d);
   };
 
-  /** פעיל רק כשבלוק הקופון מוצג (יש קוד) */
-  const waLinkActive = Boolean(coupon?.code);
+  /** פעיל מיד כשהמנהל כיבה קופונים ללקוחות; אחרת רק אחרי שקופון נטען */
+  const waLinkActive =
+    customerCouponsActive === false || Boolean(coupon?.code);
 
   const waLinkLabel =
     coupon?.code && Number(coupon?.value) > 0
@@ -516,9 +558,11 @@ export default function SuccessPage() {
                   {waLinkLabel}
                 </span>
                 <p className="mt-2 text-[11px] leading-snug text-gray-500">
-                  {couponFetchSettled
-                    ? t("success.waNoCouponLoaded")
-                    : t("success.waWaitForCoupon")}
+                  {customerCouponsActive === null
+                    ? t("success.waPreparingShort")
+                    : couponFetchSettled
+                      ? t("success.waNoCouponLoaded")
+                      : t("success.waWaitForCoupon")}
                 </p>
               </>
             )}

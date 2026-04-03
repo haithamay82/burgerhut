@@ -383,6 +383,7 @@ const HE = {
   "success.waAfterCardWithCoupon":
     "שלח את ההזמנה לווטסאפ\nותאם עם המסעדה זמן קבלת ההזמנה",
   "success.waWaitForCoupon": "ממתינים לקופון… אחרי שיוצג אפשר יהיה לשלוח לווטסאפ.",
+  "success.waPreparingShort": "רגע…",
   "success.waNoCouponLoaded":
     "לא הוצג קופון. נסו לרענן את הדף; אם זה נמשך — חזרו לתפריט או צרו קשר עם המסעדה.",
   "success.couponTitle": "🎁 קיבלת קופון!",
@@ -991,6 +992,7 @@ const AR = {
     "أرسل الطلب عبر واتساب\nونسّق مع المطعم وقت استلام الطلب",
   "success.waWaitForCoupon":
     "جاري تحميل الكوبون… بعد ظهوره يمكن الإرسال عبر واتساب.",
+  "success.waPreparingShort": "لحظة…",
   "success.waNoCouponLoaded":
     "لم يظهر الكوبون. حدّث الصفحة؛ إن استمر ذلك ارجعوا للقائمة أو تواصلوا مع المطعم.",
   "success.couponTitle": "🎁 حصلت على كوبون!",
