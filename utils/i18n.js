@@ -9,7 +9,7 @@ const HE = {
   "lang.he": "עברית",
   "lang.ar": "العربية",
 
-  "home.title": "רעבים? הזמינו עכשיו ואנחנו נכין לכם באהבה ❤",
+  "home.title": "רעבים? הזמינו עכשיו ונכין לכם באהבה ❤",
   "home.contactTitle": "יצירת קשר ומיקום",
   "home.contactPhoneLabel": "טלפון",
   "home.contactAddressLabel": "כתובת",
