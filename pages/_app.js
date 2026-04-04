@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import "@/styles/globals.css";
 import { CartProvider } from "@/hooks/useCart";
 import { LocaleProvider } from "@/contexts/LocaleContext";
+import { MenuCatalogProvider } from "@/contexts/MenuCatalogContext";
 import { InventoryProvider } from "@/contexts/InventoryContext";
 import { OrderingHoursProvider } from "@/contexts/OrderingHoursContext";
 import { isStandalonePwaDisplay } from "@/utils/pwaDisplay";
@@ -80,9 +81,11 @@ export default function App({ Component, pageProps }) {
     <LocaleProvider>
       <OrderingHoursProvider>
         <CartProvider>
-          <InventoryProvider>
-            <Component {...pageProps} />
-          </InventoryProvider>
+          <MenuCatalogProvider>
+            <InventoryProvider>
+              <Component {...pageProps} />
+            </InventoryProvider>
+          </MenuCatalogProvider>
         </CartProvider>
       </OrderingHoursProvider>
     </LocaleProvider>

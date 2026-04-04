@@ -10,11 +10,11 @@ import {
 } from "@/hooks/useCart";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useInventory } from "@/contexts/InventoryContext";
+import { useMenuCatalog } from "@/contexts/MenuCatalogContext";
 import { useOrderingHours } from "@/contexts/OrderingHoursContext";
 import { PAYMENT_METHODS } from "@/utils/payment";
 import { formatIls, lineTotal, safePrice } from "@/utils/cartMoney";
 import { RESTAURANT_COORDS } from "@/utils/deliveryPricing";
-import { MAIN_MENU_PRODUCT_IDS } from "@/utils/menuData";
 import {
   PENDING_ORDER_KEY,
   CHECKOUT_RESUME_KEY,
@@ -64,6 +64,7 @@ export default function CheckoutPage() {
   const { orderingAllowed } = useOrderingHours();
   const { items, total, updateQuantity, removeItem, clearCart } = useCart();
   const { isUnavailable, refresh: refreshInventory } = useInventory();
+  const { mainMealProductIds } = useMenuCatalog();
 
   const [form, setForm] = useState({
     firstName: "",
@@ -116,7 +117,7 @@ export default function CheckoutPage() {
     for (const item of items) {
       const qty = Math.max(1, Number(item?.quantity) || 1);
       const pid = cartLineProductId(item);
-      if (MAIN_MENU_PRODUCT_IDS.has(pid)) {
+      if (mainMealProductIds.has(pid)) {
         eligibleDishUnits += qty;
       }
       if (!Array.isArray(item?.extras)) continue;
@@ -139,7 +140,7 @@ export default function CheckoutPage() {
       chargedStandardSauceNis - shouldChargeStandardSauceNis
     );
     return Math.round(credit * 100) / 100;
-  }, [items]);
+  }, [items, mainMealProductIds]);
 
   const foodTotal = useMemo(
     () => Math.max(0, rawFoodTotal - saucePolicyCreditNis),

@@ -10,8 +10,9 @@ import {
   EXTRA_SAUCES,
   FREE_SALADS,
   KIDS_CRISPY_BREAD_CHOICES,
-  MENU_ITEMS,
 } from "@/utils/menuData";
+import { useMenuCatalog } from "@/contexts/MenuCatalogContext";
+import { menuItemName } from "@/utils/menuItemLabels";
 import { formatIls } from "@/utils/cartMoney";
 import { computeSaucesCharge, marginalSauceCharge } from "@/utils/saucePricing";
 import { useCart } from "@/hooks/useCart";
@@ -40,7 +41,8 @@ function computeMissingMealSelections(selectedSalads, selectedSauces) {
 }
 
 export default function MealCustomizeWizard({ item, open, onClose }) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
+  const { menuItems } = useMenuCatalog();
   const { orderingAllowed } = useOrderingHours();
   const { addItem } = useCart();
   const { isUnavailable, unavailableIds } = useInventory();
@@ -100,13 +102,13 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
     : 0;
   const drinkOptions = useMemo(
     () =>
-      MENU_ITEMS.filter((row) => row.category === "drinks").map((row) => ({
+      menuItems.filter((row) => row.category === "drinks").map((row) => ({
         id: row.id,
-        label: t(`menu.${row.id}.name`),
+        label: menuItemName(row, t, locale),
         price: Number(row.basePrice) || 0,
         image: row.image,
       })),
-    [t]
+    [menuItems, t, locale]
   );
   const requestedDrinkPrice = useMemo(() => {
     if (!requestedDrinkId) return 0;
@@ -275,7 +277,7 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
   const performAddToCart = () => {
     if (!item || blocked) return;
     setIsAdding(true);
-    const name = t(`menu.${item.id}.name`);
+    const name = menuItemName(item, t, locale);
     const salads = selectedSalads.map((id) => ({
       id,
       label: t(`salad.${id}`),
@@ -317,7 +319,13 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
 
     const notesTrim = sellerNotes.trim();
     const requestedDrinkLabel = requestedDrinkId
-      ? t(`menu.${requestedDrinkId}.name`)
+      ? menuItemName(
+          menuItems.find((r) => r.id === requestedDrinkId) || {
+            id: requestedDrinkId,
+          },
+          t,
+          locale
+        )
       : "";
     addItem({
       productId: item.id,
@@ -374,7 +382,7 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
 
   if (!open || !item) return null;
 
-  const name = t(`menu.${item.id}.name`);
+  const name = menuItemName(item, t, locale);
 
   return (
     <div

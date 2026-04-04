@@ -4,10 +4,12 @@ import { useCart } from "@/hooks/useCart";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useInventory } from "@/contexts/InventoryContext";
 import { useOrderingHours } from "@/contexts/OrderingHoursContext";
-import { MENU_ITEMS } from "@/utils/menuData";
+import { useMenuCatalog } from "@/contexts/MenuCatalogContext";
+import { menuItemDesc, menuItemName } from "@/utils/menuItemLabels";
 
 export default function SimpleMenuItemCard({ item }) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
+  const { menuItems } = useMenuCatalog();
   const { orderingAllowed } = useOrderingHours();
   const { addItem } = useCart();
   const { isUnavailable } = useInventory();
@@ -19,8 +21,8 @@ export default function SimpleMenuItemCard({ item }) {
   const [drinkMenuOpen, setDrinkMenuOpen] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
 
-  const name = t(`menu.${item.id}.name`);
-  const description = t(`menu.${item.id}.desc`);
+  const name = menuItemName(item, t, locale);
+  const description = menuItemDesc(item, t, locale);
 
   const isShiftedCrispyImage =
     item.id === "crispy-chicken-burger-kids" ||
@@ -30,13 +32,13 @@ export default function SimpleMenuItemCard({ item }) {
     item.category !== "sides" && item.category !== "drinks";
   const drinkOptions = useMemo(
     () =>
-      MENU_ITEMS.filter((row) => row.category === "drinks").map((row) => ({
+      menuItems.filter((row) => row.category === "drinks").map((row) => ({
         id: row.id,
-        label: t(`menu.${row.id}.name`),
+        label: menuItemName(row, t, locale),
         price: Number(row.basePrice) || 0,
         image: row.image,
       })),
-    [t]
+    [menuItems, t, locale]
   );
   const requestedDrinkPrice = useMemo(() => {
     if (!requestedDrinkId) return 0;
@@ -54,7 +56,13 @@ export default function SimpleMenuItemCard({ item }) {
     const notesTrim = showSellerNotes ? sellerNotes.trim() : "";
     const requestedDrinkLabel =
       showSellerNotes && requestedDrinkId
-        ? t(`menu.${requestedDrinkId}.name`)
+        ? menuItemName(
+            menuItems.find((r) => r.id === requestedDrinkId) || {
+              id: requestedDrinkId,
+            },
+            t,
+            locale
+          )
         : "";
     addItem({
       productId: item.id,

@@ -1,6 +1,8 @@
 import { appendOrder, deleteOrderById, listOrders } from "@/lib/ordersStore";
 import { getUnavailableIds } from "@/lib/inventoryStore";
-import { BURGER_TOPPING_IDS, MAIN_MENU_PRODUCT_IDS } from "@/utils/menuData";
+import { getCatalogEditor } from "@/lib/catalogStore";
+import { BURGER_TOPPING_IDS } from "@/utils/menuData";
+import { mainMealProductIdsFromEditor } from "@/utils/mergeMenuCatalog";
 import { isOrderingAllowedAt } from "@/utils/orderingHours";
 import { getBusinessHours } from "@/lib/businessHoursStore";
 import { redis, isRedisConfigured } from "@/lib/redis";
@@ -74,9 +76,11 @@ export default async function handler(req, res) {
     }
 
     const unavailable = new Set(await getUnavailableIds());
+    const editor = await getCatalogEditor();
+    const mainMealIds = mainMealProductIdsFromEditor(editor);
     for (const line of items) {
       const pid = lineProductId(line);
-      if (MAIN_MENU_PRODUCT_IDS.has(pid) && unavailable.has(pid)) {
+      if (mainMealIds.has(pid) && unavailable.has(pid)) {
         return res.status(400).json({ ok: false, error: "item_unavailable" });
       }
       const tops = line.toppings;

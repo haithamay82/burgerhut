@@ -4,10 +4,17 @@ import Link from "next/link";
 import { upload as uploadToBlob } from "@vercel/blob/client";
 import { useLocale } from "@/contexts/LocaleContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
-import { BURGER_TOPPINGS, MAIN_MENU_ITEMS } from "@/utils/menuData";
+import { BURGER_TOPPINGS, MENU_ITEMS } from "@/utils/menuData";
+import {
+  emptyCatalogEditor,
+  mergeMenuItemsFromEditor,
+} from "@/utils/mergeMenuCatalog";
+import { menuItemName } from "@/utils/menuItemLabels";
 import { getDefaultBusinessSchedule } from "@/utils/businessHoursDefaults";
 
 const INVENTORY_CATEGORIES = ["burgers", "crispy"];
+const CATALOG_CATEGORIES = ["burgers", "crispy", "sides", "drinks"];
+const CATALOG_ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function formatTime(iso, locale) {
   const loc = locale === "ar" ? "ar" : "he-IL";
@@ -131,6 +138,11 @@ export default function AdminOrdersPage() {
   const [discountSaving, setDiscountSaving] = useState(false);
   const [discountMsg, setDiscountMsg] = useState("");
   const [inventoryOpen, setInventoryOpen] = useState(false);
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  const [catalogEditor, setCatalogEditor] = useState(() => emptyCatalogEditor());
+  const [catalogSaving, setCatalogSaving] = useState(false);
+  const [catalogMsg, setCatalogMsg] = useState("");
+  const [catalogModal, setCatalogModal] = useState(null);
   const [promoOpen, setPromoOpen] = useState(false);
   const [hoursPanelOpen, setHoursPanelOpen] = useState(false);
   const [discountPanelOpen, setDiscountPanelOpen] = useState(false);
@@ -179,6 +191,233 @@ export default function AdminOrdersPage() {
     [locale]
   );
 
+  const mergedCatalogItems = useMemo(
+    () => mergeMenuItemsFromEditor(catalogEditor),
+    [catalogEditor]
+  );
+
+  const mergedMainForInventory = useMemo(
+    () =>
+      mergedCatalogItems.filter(
+        (row) => row.category === "burgers" || row.category === "crispy"
+      ),
+    [mergedCatalogItems]
+  );
+
+  const persistCatalog = async (nextEditor) => {
+    if (!secret.trim()) return;
+    setCatalogMsg("");
+    setError("");
+    setCatalogSaving(true);
+    try {
+      const r = await fetch("/api/catalog", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-secret": secret.trim(),
+        },
+        body: JSON.stringify(nextEditor),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setCatalogMsg(t("admin.catalogErr"));
+        return;
+      }
+      if (d.editor) setCatalogEditor(d.editor);
+      setCatalogMsg(t("admin.catalogSaved"));
+    } catch {
+      setCatalogMsg(t("admin.catalogErr"));
+    } finally {
+      setCatalogSaving(false);
+    }
+  };
+
+  const removeCatalogItem = (row) => {
+    if (!secret.trim()) return;
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(t("admin.catalogRemoveConfirm"))
+    ) {
+      return;
+    }
+    const isCustom = catalogEditor.customItems.some((c) => c.id === row.id);
+    const isBase = MENU_ITEMS.some((m) => m.id === row.id);
+    if (isCustom) {
+      persistCatalog({
+        ...catalogEditor,
+        customItems: catalogEditor.customItems.filter((c) => c.id !== row.id),
+      });
+      return;
+    }
+    if (isBase) {
+      const nextHidden = [...new Set([...catalogEditor.hiddenIds, row.id])];
+      const nextOverrides = { ...catalogEditor.overrides };
+      delete nextOverrides[row.id];
+      persistCatalog({
+        ...catalogEditor,
+        hiddenIds: nextHidden,
+        overrides: nextOverrides,
+      });
+    }
+  };
+
+  const restoreHiddenCatalogItem = (id) => {
+    if (!secret.trim()) return;
+    persistCatalog({
+      ...catalogEditor,
+      hiddenIds: catalogEditor.hiddenIds.filter((x) => x !== id),
+    });
+  };
+
+  const openCatalogAdd = (category) => {
+    setCatalogModal({
+      kind: "add",
+      draft: {
+        id: "",
+        category,
+        basePrice: "0",
+        image: "",
+        nameHe: "",
+        nameAr: "",
+        descHe: "",
+        descAr: "",
+      },
+    });
+  };
+
+  const openCatalogEdit = (row) => {
+    const isCustom = catalogEditor.customItems.some((c) => c.id === row.id);
+    setCatalogModal({
+      kind: "edit",
+      isCustom,
+      draft: {
+        id: row.id,
+        category: row.category,
+        basePrice: String(row.basePrice ?? ""),
+        image: row.image || "",
+        nameHe: row.nameHe || "",
+        nameAr: row.nameAr || "",
+        descHe: row.descHe || "",
+        descAr: row.descAr || "",
+      },
+    });
+  };
+
+  const submitCatalogModal = () => {
+    if (!catalogModal || !secret.trim()) return;
+    const d = catalogModal.draft;
+    if (catalogModal.kind === "add") {
+      const id = String(d.id || "")
+        .trim()
+        .toLowerCase();
+      if (!CATALOG_ID_RE.test(id)) {
+        setCatalogMsg(t("admin.catalogErrId"));
+        return;
+      }
+      if (
+        MENU_ITEMS.some((m) => m.id === id) ||
+        catalogEditor.customItems.some((c) => c.id === id)
+      ) {
+        setCatalogMsg(t("admin.catalogErrId"));
+        return;
+      }
+      if (!String(d.nameHe || "").trim() || !String(d.nameAr || "").trim()) {
+        setCatalogMsg(t("admin.catalogErrNames"));
+        return;
+      }
+      if (!String(d.image || "").trim()) {
+        setCatalogMsg(t("admin.catalogErr"));
+        return;
+      }
+      const bp = Number(d.basePrice);
+      if (!Number.isFinite(bp) || bp < 0) {
+        setCatalogMsg(t("admin.catalogErr"));
+        return;
+      }
+      const row = {
+        id,
+        category: d.category,
+        basePrice: bp,
+        image: String(d.image).trim(),
+        nameHe: String(d.nameHe).trim(),
+        nameAr: String(d.nameAr).trim(),
+      };
+      const dh = String(d.descHe || "").trim();
+      const da = String(d.descAr || "").trim();
+      if (dh) row.descHe = dh;
+      if (da) row.descAr = da;
+      persistCatalog({
+        ...catalogEditor,
+        customItems: [...catalogEditor.customItems, row],
+      });
+      setCatalogModal(null);
+      return;
+    }
+    const baseRow = MENU_ITEMS.find((m) => m.id === d.id);
+    if (catalogModal.isCustom) {
+      if (!String(d.nameHe || "").trim() || !String(d.nameAr || "").trim()) {
+        setCatalogMsg(t("admin.catalogErrNames"));
+        return;
+      }
+      if (!String(d.image || "").trim()) {
+        setCatalogMsg(t("admin.catalogErr"));
+        return;
+      }
+      const bp = Number(d.basePrice);
+      if (!Number.isFinite(bp) || bp < 0) {
+        setCatalogMsg(t("admin.catalogErr"));
+        return;
+      }
+      const row = {
+        id: d.id,
+        category: d.category,
+        basePrice: bp,
+        image: String(d.image).trim(),
+        nameHe: String(d.nameHe).trim(),
+        nameAr: String(d.nameAr).trim(),
+      };
+      const dh = String(d.descHe || "").trim();
+      const da = String(d.descAr || "").trim();
+      if (dh) row.descHe = dh;
+      if (da) row.descAr = da;
+      persistCatalog({
+        ...catalogEditor,
+        customItems: catalogEditor.customItems.map((c) =>
+          c.id === d.id ? row : c
+        ),
+      });
+      setCatalogModal(null);
+      return;
+    }
+    if (!baseRow) {
+      setCatalogModal(null);
+      return;
+    }
+    const bp = Number(d.basePrice);
+    if (!Number.isFinite(bp) || bp < 0) {
+      setCatalogMsg(t("admin.catalogErr"));
+      return;
+    }
+    const patch = {
+      basePrice: bp,
+      category: d.category,
+      image: String(d.image || "").trim() || baseRow.image,
+    };
+    const nh = String(d.nameHe || "").trim();
+    const na = String(d.nameAr || "").trim();
+    const dh = String(d.descHe || "").trim();
+    const da = String(d.descAr || "").trim();
+    if (nh) patch.nameHe = nh;
+    if (na) patch.nameAr = na;
+    if (dh) patch.descHe = dh;
+    if (da) patch.descAr = da;
+    persistCatalog({
+      ...catalogEditor,
+      overrides: { ...catalogEditor.overrides, [d.id]: patch },
+    });
+    setCatalogModal(null);
+  };
+
   const load = async (e) => {
     e?.preventDefault();
     setError("");
@@ -197,6 +436,7 @@ export default function AdminOrdersPage() {
         setCoupons([]);
         setSiteVisitsDays([]);
         setSiteVisitsErr("");
+        setCatalogEditor(emptyCatalogEditor());
         setError(
           data.error === "admin_not_configured"
             ? t("admin.errConfig")
@@ -223,6 +463,32 @@ export default function AdminOrdersPage() {
         }
       } catch {
         setUnavailableIds([]);
+      }
+      try {
+        const catR = await fetch("/api/catalog", {
+          headers: { "x-admin-secret": secret.trim() },
+        });
+        const catD = await catR.json().catch(() => ({}));
+        if (catR.ok && catD.editor && typeof catD.editor === "object") {
+          setCatalogEditor({
+            hiddenIds: Array.isArray(catD.editor.hiddenIds)
+              ? [...catD.editor.hiddenIds]
+              : [],
+            customItems: Array.isArray(catD.editor.customItems)
+              ? catD.editor.customItems.map((x) => ({ ...x }))
+              : [],
+            overrides:
+              catD.editor.overrides && typeof catD.editor.overrides === "object"
+                ? { ...catD.editor.overrides }
+                : {},
+          });
+        } else if (catR.status === 401) {
+          setCatalogMsg(t("admin.errAuth"));
+        } else if (catR.ok) {
+          setCatalogEditor(emptyCatalogEditor());
+        }
+      } catch {
+        setCatalogEditor(emptyCatalogEditor());
       }
       try {
         const bhR = await fetch("/api/business-hours");
@@ -320,6 +586,7 @@ export default function AdminOrdersPage() {
       setCoupons([]);
       setSiteVisitsDays([]);
       setSiteVisitsErr("");
+      setCatalogEditor(emptyCatalogEditor());
     } finally {
       setLoading(false);
     }
@@ -867,6 +1134,135 @@ export default function AdminOrdersPage() {
               <div className="mb-8 space-y-3">
               <button
                 type="button"
+                onClick={() => setCatalogOpen((v) => !v)}
+                aria-expanded={catalogOpen}
+                className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-right text-sm font-bold text-gray-100 transition-colors hover:border-primary/50 hover:bg-slate-800/60"
+              >
+                <span className="min-w-0 flex-1 leading-snug">
+                  {t("admin.catalogTitle")}
+                </span>
+                <span
+                  className="shrink-0 text-lg leading-none text-primary"
+                  aria-hidden
+                >
+                  {catalogOpen ? "▾" : "▶"}
+                </span>
+              </button>
+              {catalogOpen ? (
+                <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
+                  <p className="mb-4 text-[11px] text-gray-500">
+                    {t("admin.catalogHint")}
+                  </p>
+                  {catalogSaving ? (
+                    <p className="mb-3 text-xs text-amber-400/90">
+                      {t("admin.catalogSaving")}
+                    </p>
+                  ) : null}
+                  {catalogMsg ? (
+                    <p className="mb-3 text-xs text-emerald-400/95">{catalogMsg}</p>
+                  ) : null}
+                  <div className="space-y-5">
+                    {CATALOG_CATEGORIES.map((catId) => {
+                      const catItems = mergedCatalogItems
+                        .filter((row) => row.category === catId)
+                        .sort((a, b) => a.basePrice - b.basePrice);
+                      return (
+                        <div key={catId}>
+                          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                            <h3 className="text-xs font-semibold text-primary">
+                              {t(`cat.${catId}`)}
+                            </h3>
+                            <button
+                              type="button"
+                              disabled={catalogSaving || !secret.trim()}
+                              onClick={() => openCatalogAdd(catId)}
+                              className="rounded-lg border border-primary/40 bg-slate-950 px-2 py-1 text-[11px] font-semibold text-primary hover:bg-slate-900 disabled:opacity-50"
+                            >
+                              {t("admin.catalogAdd")}
+                            </button>
+                          </div>
+                          {catItems.length ? (
+                            <ul className="space-y-2">
+                              {catItems.map((row) => (
+                                <li
+                                  key={row.id}
+                                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800/80 bg-slate-950/40 px-2 py-2"
+                                >
+                                  <span className="min-w-0 flex-1 text-xs text-gray-300">
+                                    {menuItemName(row, t, locale)}
+                                    <span className="mr-2 text-[10px] text-gray-500">
+                                      ({row.id}) · ₪{row.basePrice}
+                                    </span>
+                                  </span>
+                                  <div className="flex shrink-0 flex-wrap gap-1">
+                                    <button
+                                      type="button"
+                                      disabled={catalogSaving || !secret.trim()}
+                                      onClick={() => openCatalogEdit(row)}
+                                      className="rounded border border-slate-600 px-2 py-0.5 text-[11px] text-gray-200 hover:border-primary disabled:opacity-50"
+                                    >
+                                      {t("admin.catalogEdit")}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={catalogSaving || !secret.trim()}
+                                      onClick={() => removeCatalogItem(row)}
+                                      className="rounded border border-red-900/60 px-2 py-0.5 text-[11px] text-red-300 hover:bg-red-950/30 disabled:opacity-50"
+                                    >
+                                      {t("admin.catalogRemove")}
+                                    </button>
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="text-[11px] text-gray-600">
+                              —
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {catalogEditor.hiddenIds.length ? (
+                      <div>
+                        <h3 className="mb-2 text-xs font-semibold text-amber-500/90">
+                          {t("admin.catalogHiddenTitle")}
+                        </h3>
+                        <ul className="space-y-2">
+                          {catalogEditor.hiddenIds.map((hid) => {
+                            const base = MENU_ITEMS.find((m) => m.id === hid);
+                            if (!base) return null;
+                            return (
+                              <li
+                                key={hid}
+                                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800/80 bg-slate-950/40 px-2 py-2"
+                              >
+                                <span className="text-xs text-gray-400">
+                                  {t(`menu.${hid}.name`)}{" "}
+                                  <span className="text-[10px] text-gray-600">
+                                    ({hid})
+                                  </span>
+                                </span>
+                                <button
+                                  type="button"
+                                  disabled={catalogSaving || !secret.trim()}
+                                  onClick={() => restoreHiddenCatalogItem(hid)}
+                                  className="shrink-0 rounded border border-emerald-800/60 px-2 py-0.5 text-[11px] text-emerald-300 hover:bg-emerald-950/20 disabled:opacity-50"
+                                >
+                                  {t("admin.catalogRestore")}
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    ) : null}
+                  </div>
+                </section>
+              ) : null}
+
+              <button
+                type="button"
                 onClick={() => setInventoryOpen((v) => !v)}
                 aria-expanded={inventoryOpen}
                 className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-right text-sm font-bold text-gray-100 transition-colors hover:border-primary/50 hover:bg-slate-800/60"
@@ -893,7 +1289,7 @@ export default function AdminOrdersPage() {
                   ) : null}
                   <div className="space-y-5">
                     {INVENTORY_CATEGORIES.map((catId) => {
-                      const catItems = MAIN_MENU_ITEMS.filter(
+                      const catItems = mergedMainForInventory.filter(
                         (row) => row.category === catId
                       );
                       if (!catItems.length) return null;
@@ -922,7 +1318,9 @@ export default function AdminOrdersPage() {
                                       }
                                       className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-600 bg-slate-900 text-primary focus:ring-primary"
                                     />
-                                    <span>{t(`menu.${row.id}.name`)}</span>
+                                    <span>
+                                      {menuItemName(row, t, locale)}
+                                    </span>
                                   </label>
                                 </li>
                               );
@@ -1920,6 +2318,221 @@ export default function AdminOrdersPage() {
             </>
           ) : null}
         </main>
+        {catalogModal ? (
+          <div
+            className="fixed inset-0 z-[300] flex items-end justify-center bg-black/80 p-4 sm:items-center"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="catalog-modal-title"
+          >
+            <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-700 bg-slate-950 p-4 shadow-xl">
+              <h3
+                id="catalog-modal-title"
+                className="mb-3 text-sm font-bold text-primary"
+              >
+                {catalogModal.kind === "add"
+                  ? t("admin.catalogModalAdd")
+                  : t("admin.catalogModalEdit")}
+              </h3>
+              <p className="mb-3 text-[10px] text-gray-500">
+                {t("admin.catalogSlugHint")}
+              </p>
+              <div className="flex flex-col gap-2 text-xs">
+                <label className="flex flex-col gap-1 text-gray-400">
+                  <span>{t("admin.catalogId")}</span>
+                  <input
+                    value={catalogModal.draft.id}
+                    disabled={
+                      catalogModal.kind === "edit" || catalogSaving
+                    }
+                    onChange={(e) =>
+                      setCatalogModal((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              draft: { ...prev.draft, id: e.target.value },
+                            }
+                          : null
+                      )
+                    }
+                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100 disabled:opacity-60"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-gray-400">
+                  <span>{t("admin.catalogCategory")}</span>
+                  <select
+                    value={catalogModal.draft.category}
+                    disabled={catalogSaving}
+                    onChange={(e) =>
+                      setCatalogModal((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              draft: {
+                                ...prev.draft,
+                                category: e.target.value,
+                              },
+                            }
+                          : null
+                      )
+                    }
+                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100"
+                  >
+                    {CATALOG_CATEGORIES.map((cid) => (
+                      <option key={cid} value={cid}>
+                        {t(`cat.${cid}`)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1 text-gray-400">
+                  <span>{t("admin.catalogPrice")}</span>
+                  <input
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={catalogModal.draft.basePrice}
+                    disabled={catalogSaving}
+                    onChange={(e) =>
+                      setCatalogModal((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              draft: {
+                                ...prev.draft,
+                                basePrice: e.target.value,
+                              },
+                            }
+                          : null
+                      )
+                    }
+                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-gray-400">
+                  <span>{t("admin.catalogImage")}</span>
+                  <input
+                    value={catalogModal.draft.image}
+                    disabled={catalogSaving}
+                    onChange={(e) =>
+                      setCatalogModal((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              draft: { ...prev.draft, image: e.target.value },
+                            }
+                          : null
+                      )
+                    }
+                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-gray-400">
+                  <span>{t("admin.catalogNameHe")}</span>
+                  <input
+                    value={catalogModal.draft.nameHe}
+                    disabled={catalogSaving}
+                    onChange={(e) =>
+                      setCatalogModal((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              draft: {
+                                ...prev.draft,
+                                nameHe: e.target.value,
+                              },
+                            }
+                          : null
+                      )
+                    }
+                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-gray-400">
+                  <span>{t("admin.catalogNameAr")}</span>
+                  <input
+                    value={catalogModal.draft.nameAr}
+                    disabled={catalogSaving}
+                    onChange={(e) =>
+                      setCatalogModal((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              draft: {
+                                ...prev.draft,
+                                nameAr: e.target.value,
+                              },
+                            }
+                          : null
+                      )
+                    }
+                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-gray-400">
+                  <span>{t("admin.catalogDescHe")}</span>
+                  <input
+                    value={catalogModal.draft.descHe}
+                    disabled={catalogSaving}
+                    onChange={(e) =>
+                      setCatalogModal((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              draft: {
+                                ...prev.draft,
+                                descHe: e.target.value,
+                              },
+                            }
+                          : null
+                      )
+                    }
+                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-gray-400">
+                  <span>{t("admin.catalogDescAr")}</span>
+                  <input
+                    value={catalogModal.draft.descAr}
+                    disabled={catalogSaving}
+                    onChange={(e) =>
+                      setCatalogModal((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              draft: {
+                                ...prev.draft,
+                                descAr: e.target.value,
+                              },
+                            }
+                          : null
+                      )
+                    }
+                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100"
+                  />
+                </label>
+              </div>
+              <div className="mt-4 flex flex-wrap justify-end gap-2">
+                <button
+                  type="button"
+                  disabled={catalogSaving}
+                  onClick={() => setCatalogModal(null)}
+                  className="rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-gray-300 hover:bg-slate-900 disabled:opacity-50"
+                >
+                  {t("admin.catalogCancel")}
+                </button>
+                <button
+                  type="button"
+                  disabled={catalogSaving || !secret.trim()}
+                  onClick={submitCatalogModal}
+                  className="btn-primary px-4 py-1.5 text-xs disabled:opacity-50"
+                >
+                  {t("admin.catalogSaveRow")}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </>
   );

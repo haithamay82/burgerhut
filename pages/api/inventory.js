@@ -1,5 +1,7 @@
 import { getUnavailableIds, setUnavailableIds } from "@/lib/inventoryStore";
-import { MANAGED_INVENTORY_IDS } from "@/utils/menuData";
+import { getCatalogEditor } from "@/lib/catalogStore";
+import { BURGER_TOPPING_IDS } from "@/utils/menuData";
+import { managedMenuProductIdsFromEditor } from "@/utils/mergeMenuCatalog";
 
 function authorize(req) {
   const secret = process.env.ADMIN_ORDERS_SECRET;
@@ -9,8 +11,18 @@ function authorize(req) {
   return { ok: true };
 }
 
-function filterManaged(ids) {
-  return [...new Set(ids)].filter((id) => MANAGED_INVENTORY_IDS.has(id));
+async function allowedInventoryIds() {
+  const editor = await getCatalogEditor();
+  const allowed = managedMenuProductIdsFromEditor(editor);
+  for (const tid of BURGER_TOPPING_IDS) {
+    allowed.add(tid);
+  }
+  return allowed;
+}
+
+async function filterManaged(ids) {
+  const allowed = await allowedInventoryIds();
+  return [...new Set(ids)].filter((id) => allowed.has(id));
 }
 
 export default async function handler(req, res) {
@@ -35,7 +47,7 @@ export default async function handler(req, res) {
     if (!Array.isArray(raw)) {
       return res.status(400).json({ ok: false, error: "invalid_body" });
     }
-    const filtered = filterManaged(raw);
+    const filtered = await filterManaged(raw);
     await setUnavailableIds(filtered);
     return res.status(200).json({ ok: true, unavailableIds: filtered });
   }

@@ -4,7 +4,8 @@ import StickyCartBar from "@/components/StickyCartBar";
 import { useOrderingHours } from "@/contexts/OrderingHoursContext";
 import MenuItemCard from "@/components/MenuItemCard";
 import MealCustomizeWizard from "@/components/MealCustomizeWizard";
-import { CATEGORIES, MENU_ITEMS } from "@/utils/menuData";
+import { CATEGORIES } from "@/utils/menuData";
+import { useMenuCatalog } from "@/contexts/MenuCatalogContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import { formatIls } from "@/utils/cartMoney";
 import { useEffect, useState } from "react";
@@ -12,6 +13,7 @@ import HomeMediaSlider from "@/components/HomeMediaSlider";
 
 export default function HomeMain() {
   const { t } = useLocale();
+  const { menuItems } = useMenuCatalog();
   const {
     orderingAllowed,
     restaurantOpen,
@@ -35,9 +37,9 @@ export default function HomeMain() {
   const mapOpenUrl = `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
   const wazeOpenUrl = `https://waze.com/ul?q=${mapQuery}&navigate=yes`;
 
-  const filteredItems = MENU_ITEMS.filter(
-    (item) => item.category === activeCategory
-  ).sort((a, b) => a.basePrice - b.basePrice);
+  const filteredItems = menuItems
+    .filter((item) => item.category === activeCategory)
+    .sort((a, b) => a.basePrice - b.basePrice);
   const homeTitle = t("home.title");
   const titleWithoutHeart = homeTitle.replace("❤", "").trim();
   const discountActive =

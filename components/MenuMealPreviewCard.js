@@ -1,17 +1,18 @@
 import { formatIls } from "@/utils/cartMoney";
 import { useLocale } from "@/contexts/LocaleContext";
+import { menuItemDesc, menuItemName } from "@/utils/menuItemLabels";
 import { useInventory } from "@/contexts/InventoryContext";
 import { useOrderingHours } from "@/contexts/OrderingHoursContext";
 
 export default function MenuMealPreviewCard({ item, onOpenWizard }) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { orderingAllowed } = useOrderingHours();
   const { isUnavailable } = useInventory();
   const isOutOfStock = isUnavailable(item.id);
   const orderingClosed = !orderingAllowed;
 
-  const name = t(`menu.${item.id}.name`);
-  const description = t(`menu.${item.id}.desc`);
+  const name = menuItemName(item, t, locale);
+  const description = menuItemDesc(item, t, locale);
 
   const isShiftedCrispyImage =
     item.id === "crispy-chicken-burger-kids" ||
