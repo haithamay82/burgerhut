@@ -62,6 +62,10 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
   const [selectedSauces, setSelectedSauces] = useState([]);
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
+  const [mealValidateOpen, setMealValidateOpen] = useState(false);
+  const [mealValidateMissing, setMealValidateMissing] = useState(
+    /** @type {("salads"|"toppings"|"sauces")[]} */ ([])
+  );
   const [kidsBreadChoice, setKidsBreadChoice] = useState("round");
   const [adultCrispyBli, setAdultCrispyBli] = useState(false);
   const [sellerNotes, setSellerNotes] = useState("");
