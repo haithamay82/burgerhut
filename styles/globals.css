@@ -120,7 +120,6 @@ body {
   animation-name: homeSliderMarqueeRight;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
-  will-change: transform;
 }
 
 @media (prefers-reduced-motion: reduce) {

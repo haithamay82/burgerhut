@@ -18,7 +18,7 @@ export default function MenuMealPreviewCard({ item, onOpenWizard }) {
     item.id === "crispy-chicken-tortilla-large";
 
   return (
-    <div className="card overflow-hidden">
+    <div className="card min-w-0 max-w-full overflow-hidden">
       <div className="flex gap-3 p-3">
         <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl border border-slate-800">
           <img

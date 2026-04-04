@@ -50,8 +50,8 @@ export default function HomeMediaSlider() {
 
   const animationDurationSec = useMemo(() => {
     const n = images.length;
-    if (n <= 0) return 40;
-    return Math.min(90, Math.max(24, n * 14));
+    if (n <= 0) return 20;
+    return Math.min(42, Math.max(10, n * 6));
   }, [images.length]);
 
   if (!images.length) return null;
@@ -59,13 +59,11 @@ export default function HomeMediaSlider() {
   if (reduceMotion) {
     return (
       <section
-        className="mb-3"
+        className="mb-3 min-w-0 w-full max-w-full"
+        dir="ltr"
         aria-label={t("home.sliderAria")}
       >
-        <div
-          dir="ltr"
-          className="flex gap-3 overflow-x-auto pb-2 [-webkit-overflow-scrolling:touch] snap-x snap-mandatory"
-        >
+        <div className="flex gap-3 overflow-x-auto pb-2 [-webkit-overflow-scrolling:touch] snap-x snap-mandatory">
           {images.map((img) => (
             <img
               key={img.id}
@@ -83,13 +81,11 @@ export default function HomeMediaSlider() {
 
   return (
     <section
-      className="mb-3"
+      className="mb-3 min-w-0 w-full max-w-full"
+      dir="ltr"
       aria-label={t("home.sliderAria")}
     >
-      <div
-        dir="ltr"
-        className="overflow-hidden pb-2 [-webkit-overflow-scrolling:touch]"
-      >
+      <div className="overflow-hidden pb-2 [-webkit-overflow-scrolling:touch]">
         <div
           className="home-slider-marquee-right flex w-max gap-3"
           style={{
@@ -102,7 +98,7 @@ export default function HomeMediaSlider() {
               src={img.url}
               alt=""
               className="h-44 w-[min(88vw,22rem)] shrink-0 rounded-xl border border-slate-700 object-cover shadow-lg"
-              loading={i < images.length ? "lazy" : "eager"}
+              loading="eager"
               decoding="async"
             />
           ))}

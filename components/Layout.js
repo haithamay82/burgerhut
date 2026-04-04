@@ -199,7 +199,9 @@ export default function Layout({ children }) {
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-4xl px-4 pb-28 pt-4">{children}</main>
+      <main className="mx-auto min-w-0 max-w-4xl px-4 pb-28 pt-4">
+        {children}
+      </main>
       <FloatingWhatsAppButton />
 
       {hoursOpen ? (
