@@ -22,6 +22,35 @@ import { useOrderingHours } from "@/contexts/OrderingHoursContext";
 /** סימון ב-history.state כדי שכפתור «חזור» במכשיר יסגור את הוויזארד */
 const MEAL_WIZARD_HISTORY_KEY = "__burgerhutMealWizard";
 
+const MEAL_VALIDATE_I18N = {
+  salads: "ui.mealValidateSalads",
+  toppings: "ui.mealValidateToppings",
+  sauces: "ui.mealValidateSauces",
+};
+
+/**
+ * @param {string[]} selectedSalads
+ * @param {string[]} selectedToppings
+ * @param {string[]} selectedSauces
+ * @param {Record<string, number>} cheeseMode
+ * @returns {("salads"|"toppings"|"sauces")[]}
+ */
+function computeMissingMealSelections(
+  selectedSalads,
+  selectedToppings,
+  selectedSauces,
+  cheeseMode
+) {
+  const missing = /** @type {("salads"|"toppings"|"sauces")[]} */ ([]);
+  if (!selectedSalads.length) missing.push("salads");
+  const hasBurgerTopping =
+    selectedToppings.length > 0 ||
+    [...DOUBLE_CHEESE_TOPPING_IDS].some((id) => Boolean(cheeseMode[id]));
+  if (!hasBurgerTopping) missing.push("toppings");
+  if (!selectedSauces.length) missing.push("sauces");
+  return missing;
+}
+
 export default function MealCustomizeWizard({ item, open, onClose }) {
   const { t } = useLocale();
   const { orderingAllowed } = useOrderingHours();
@@ -111,6 +140,8 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
     setIsAdding(false);
     setDonenessId(DEFAULT_BURGER_DONENESS_ID);
     setCheeseMode({});
+    setMealValidateOpen(false);
+    setMealValidateMissing([]);
   }, [open, item?.id]);
 
   useEffect(() => {
@@ -158,11 +189,18 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => {
-      if (e.key === "Escape") handleClose();
+      if (e.key !== "Escape") return;
+      if (mealValidateOpen) {
+        e.preventDefault();
+        setMealValidateOpen(false);
+        setMealValidateMissing([]);
+        return;
+      }
+      handleClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, handleClose]);
+  }, [open, handleClose, mealValidateOpen]);
 
   useEffect(() => {
     if (!open) return;
@@ -242,7 +280,7 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
     });
   };
 
-  const handleAdd = () => {
+  const performAddToCart = () => {
     if (!item || blocked) return;
     setIsAdding(true);
     const name = t(`menu.${item.id}.name`);
@@ -315,6 +353,33 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
       setIsAdding(false);
       handleClose();
     }, 250);
+  };
+
+  const handleAdd = () => {
+    if (!item || blocked) return;
+    const missing = computeMissingMealSelections(
+      selectedSalads,
+      selectedToppings,
+      selectedSauces,
+      cheeseMode
+    );
+    if (missing.length > 0) {
+      setMealValidateMissing(missing);
+      setMealValidateOpen(true);
+      return;
+    }
+    performAddToCart();
+  };
+
+  const handleMealValidateAddAnyway = () => {
+    setMealValidateOpen(false);
+    setMealValidateMissing([]);
+    performAddToCart();
+  };
+
+  const handleMealValidateGoBack = () => {
+    setMealValidateOpen(false);
+    setMealValidateMissing([]);
   };
 
   if (!open || !item) return null;
@@ -785,13 +850,58 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
           <button
             type="button"
             onClick={handleAdd}
-            disabled={isAdding || blocked}
+            disabled={isAdding || blocked || mealValidateOpen}
             className="btn-primary flex-1 py-2.5 text-sm disabled:opacity-50"
           >
             {isAdding ? t("ui.added") : t("ui.addToCart")}
           </button>
         </div>
       </footer>
+
+      {mealValidateOpen ? (
+        <div
+          className="absolute inset-0 z-[210] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          role="presentation"
+          onClick={handleMealValidateGoBack}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-amber-500/45 bg-slate-950 p-4 shadow-2xl"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="meal-validate-title"
+            dir="rtl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3
+              id="meal-validate-title"
+              className="mb-3 text-center text-base font-bold text-amber-200"
+            >
+              {t("ui.mealValidateTitle")}
+            </h3>
+            <ul className="mb-4 list-disc space-y-1.5 pr-5 text-sm leading-relaxed text-gray-200">
+              {mealValidateMissing.map((key) => (
+                <li key={key}>{t(MEAL_VALIDATE_I18N[key])}</li>
+              ))}
+            </ul>
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={handleMealValidateAddAnyway}
+                className="w-full rounded-xl bg-primary py-3 text-sm font-bold text-black transition-opacity hover:opacity-90"
+              >
+                {t("ui.mealValidateAddAnyway")}
+              </button>
+              <button
+                type="button"
+                onClick={handleMealValidateGoBack}
+                className="w-full rounded-xl border border-slate-600 py-3 text-sm font-semibold text-gray-200 transition-colors hover:bg-slate-900"
+              >
+                {t("ui.mealValidateGoBack")}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
