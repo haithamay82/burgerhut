@@ -24,29 +24,17 @@ const MEAL_WIZARD_HISTORY_KEY = "__burgerhutMealWizard";
 
 const MEAL_VALIDATE_I18N = {
   salads: "ui.mealValidateSalads",
-  toppings: "ui.mealValidateToppings",
   sauces: "ui.mealValidateSauces",
 };
 
 /**
  * @param {string[]} selectedSalads
- * @param {string[]} selectedToppings
  * @param {string[]} selectedSauces
- * @param {Record<string, number>} cheeseMode
- * @returns {("salads"|"toppings"|"sauces")[]}
+ * @returns {("salads"|"sauces")[]}
  */
-function computeMissingMealSelections(
-  selectedSalads,
-  selectedToppings,
-  selectedSauces,
-  cheeseMode
-) {
-  const missing = /** @type {("salads"|"toppings"|"sauces")[]} */ ([]);
+function computeMissingMealSelections(selectedSalads, selectedSauces) {
+  const missing = /** @type {("salads"|"sauces")[]} */ ([]);
   if (!selectedSalads.length) missing.push("salads");
-  const hasBurgerTopping =
-    selectedToppings.length > 0 ||
-    [...DOUBLE_CHEESE_TOPPING_IDS].some((id) => Boolean(cheeseMode[id]));
-  if (!hasBurgerTopping) missing.push("toppings");
   if (!selectedSauces.length) missing.push("sauces");
   return missing;
 }
@@ -64,7 +52,7 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
   const [isAdding, setIsAdding] = useState(false);
   const [mealValidateOpen, setMealValidateOpen] = useState(false);
   const [mealValidateMissing, setMealValidateMissing] = useState(
-    /** @type {("salads"|"toppings"|"sauces")[]} */ ([])
+    /** @type {("salads"|"sauces")[]} */ ([])
   );
   const [kidsBreadChoice, setKidsBreadChoice] = useState("round");
   const [adultCrispyBli, setAdultCrispyBli] = useState(false);
@@ -363,9 +351,7 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
     if (!item || blocked) return;
     const missing = computeMissingMealSelections(
       selectedSalads,
-      selectedToppings,
-      selectedSauces,
-      cheeseMode
+      selectedSauces
     );
     if (missing.length > 0) {
       setMealValidateMissing(missing);
