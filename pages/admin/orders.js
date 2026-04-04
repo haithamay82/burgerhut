@@ -143,6 +143,7 @@ export default function AdminOrdersPage() {
   const [catalogSaving, setCatalogSaving] = useState(false);
   const [catalogMsg, setCatalogMsg] = useState("");
   const [catalogModal, setCatalogModal] = useState(null);
+  const [catalogImageUploading, setCatalogImageUploading] = useState(false);
   const [promoOpen, setPromoOpen] = useState(false);
   const [hoursPanelOpen, setHoursPanelOpen] = useState(false);
   const [discountPanelOpen, setDiscountPanelOpen] = useState(false);
@@ -163,6 +164,7 @@ export default function AdminOrdersPage() {
   const [siteVisitsErr, setSiteVisitsErr] = useState("");
   const promoFileRef = useRef(null);
   const sliderFileRef = useRef(null);
+  const catalogImageFileRef = useRef(null);
   const [sliderImages, setSliderImages] = useState([]);
   const [sliderUploading, setSliderUploading] = useState(false);
   const [sliderMsg, setSliderMsg] = useState("");
@@ -304,7 +306,7 @@ export default function AdminOrdersPage() {
   };
 
   const submitCatalogModal = () => {
-    if (!catalogModal || !secret.trim()) return;
+    if (!catalogModal || !secret.trim() || catalogImageUploading) return;
     const d = catalogModal.draft;
     if (catalogModal.kind === "add") {
       const id = String(d.id || "")
@@ -868,6 +870,55 @@ export default function AdminOrdersPage() {
       setError(t("admin.errNet"));
     } finally {
       setSliderUploading(false);
+    }
+  };
+
+  const uploadCatalogMenuImage = async () => {
+    if (!secret.trim() || !catalogModal) return;
+    const file = catalogImageFileRef.current?.files?.[0];
+    if (!file) {
+      setCatalogMsg("");
+      setError(t("admin.sliderErrMissing"));
+      return;
+    }
+    setError("");
+    setCatalogMsg("");
+    setCatalogImageUploading(true);
+    try {
+      const result = await uploadToBlob(
+        `catalog-${Date.now()}-${file.name}`,
+        file,
+        {
+          access: "public",
+          handleUploadUrl: "/api/catalog/blob",
+          clientPayload: JSON.stringify({ adminSecret: secret.trim() }),
+          multipart: true,
+        }
+      );
+      const url = String(result?.url || "");
+      if (!url) {
+        setCatalogMsg(t("admin.catalogErr"));
+        return;
+      }
+      setCatalogModal((prev) =>
+        prev ? { ...prev, draft: { ...prev.draft, image: url } } : null
+      );
+      setCatalogMsg(t("admin.catalogImageUploaded"));
+      if (catalogImageFileRef.current) catalogImageFileRef.current.value = "";
+    } catch (blobErr) {
+      const msg = String(blobErr?.message || "");
+      const isBlobDisabled =
+        msg.includes("blob_not_configured") ||
+        msg.includes("BLOB_READ_WRITE_TOKEN");
+      if (isBlobDisabled) {
+        setError(t("admin.promoErrBlobConfig"));
+      } else if (msg) {
+        setError(`${t("admin.promoErrBlobUpload")} (${msg})`);
+      } else {
+        setError(t("admin.errNet"));
+      }
+    } finally {
+      setCatalogImageUploading(false);
     }
   };
 
@@ -2409,24 +2460,51 @@ export default function AdminOrdersPage() {
                     className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100"
                   />
                 </label>
-                <label className="flex flex-col gap-1 text-gray-400">
-                  <span>{t("admin.catalogImage")}</span>
+                <div className="flex flex-col gap-2 text-gray-400">
+                  <span className="text-xs">{t("admin.catalogImage")}</span>
+                  <p className="text-[10px] leading-snug text-gray-500">
+                    {t("admin.catalogImageUrlHint")}
+                  </p>
                   <input
-                    value={catalogModal.draft.image}
-                    disabled={catalogSaving}
-                    onChange={(e) =>
-                      setCatalogModal((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              draft: { ...prev.draft, image: e.target.value },
-                            }
-                          : null
-                      )
-                    }
-                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100"
+                    ref={catalogImageFileRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    disabled={catalogSaving || catalogImageUploading}
+                    className="max-w-full text-[11px] text-gray-400 file:mr-2 file:rounded-lg file:border-0 file:bg-slate-800 file:px-2 file:py-1.5 file:text-gray-200 disabled:opacity-50"
                   />
-                </label>
+                  <button
+                    type="button"
+                    onClick={uploadCatalogMenuImage}
+                    disabled={
+                      catalogSaving ||
+                      catalogImageUploading ||
+                      !secret.trim()
+                    }
+                    className="w-fit rounded-lg border border-primary/50 bg-slate-900 px-3 py-1.5 text-[11px] font-semibold text-primary hover:bg-slate-800 disabled:opacity-50"
+                  >
+                    {catalogImageUploading
+                      ? t("admin.catalogImageUploading")
+                      : t("admin.catalogUploadBtn")}
+                  </button>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-[10px] text-gray-500">URL</span>
+                    <input
+                      value={catalogModal.draft.image}
+                      disabled={catalogSaving || catalogImageUploading}
+                      onChange={(e) =>
+                        setCatalogModal((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                draft: { ...prev.draft, image: e.target.value },
+                              }
+                            : null
+                        )
+                      }
+                      className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100"
+                    />
+                  </label>
+                </div>
                 <label className="flex flex-col gap-1 text-gray-400">
                   <span>{t("admin.catalogNameHe")}</span>
                   <input
@@ -2515,15 +2593,24 @@ export default function AdminOrdersPage() {
               <div className="mt-4 flex flex-wrap justify-end gap-2">
                 <button
                   type="button"
-                  disabled={catalogSaving}
-                  onClick={() => setCatalogModal(null)}
+                  disabled={catalogSaving || catalogImageUploading}
+                  onClick={() => {
+                    if (catalogImageFileRef.current) {
+                      catalogImageFileRef.current.value = "";
+                    }
+                    setCatalogModal(null);
+                  }}
                   className="rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-gray-300 hover:bg-slate-900 disabled:opacity-50"
                 >
                   {t("admin.catalogCancel")}
                 </button>
                 <button
                   type="button"
-                  disabled={catalogSaving || !secret.trim()}
+                  disabled={
+                    catalogSaving ||
+                    catalogImageUploading ||
+                    !secret.trim()
+                  }
                   onClick={submitCatalogModal}
                   className="btn-primary px-4 py-1.5 text-xs disabled:opacity-50"
                 >
