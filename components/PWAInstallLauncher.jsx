@@ -4,6 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/router";
 import { useLocale } from "@/contexts/LocaleContext";
+import {
+  buildIosChromeOpenUrl,
+  buildIosSafariOpenUrl,
+  navigateToIosDeepLink,
+} from "@/utils/iosBrowserOpen";
 
 const HIDE_LAUNCHER_PREFIXES = [
   "/checkout",
@@ -194,20 +199,43 @@ export default function PWAInstallLauncher() {
               </h2>
               {iosGuide === "inapp" ? (
                 <>
-                  <p className="mb-3 text-sm leading-relaxed text-gray-200">
-                    {t("pwa.iosInAppBrowserLead")}
+                  <p className="mb-3 text-center text-sm leading-relaxed text-gray-200">
+                    {t("pwa.iosInAppShortLine1")}
                   </p>
-                  <ol className="mb-4 list-decimal space-y-2 pr-5 text-sm leading-relaxed text-gray-200">
-                    <li>{t("pwa.iosInAppBrowserStep1")}</li>
-                    <li>{t("pwa.iosInAppBrowserStep2")}</li>
-                    <li>{t("pwa.iosInAppBrowserStep3")}</li>
-                  </ol>
-                  <p className="mb-2 break-all text-center text-[11px] text-gray-500">
+                  <p className="mb-4 text-center text-sm leading-relaxed text-gray-200">
+                    <span>{t("pwa.iosInAppShortPrefix")}</span>
+                    <button
+                      type="button"
+                      className="mx-0.5 font-semibold text-[#f5a623] underline decoration-[#f5a623]/70 underline-offset-2 hover:text-amber-300"
+                      aria-label={t("pwa.iosOpenInSafariAria")}
+                      onClick={() =>
+                        navigateToIosDeepLink(buildIosSafariOpenUrl(siteUrl))
+                      }
+                    >
+                      Safari
+                    </button>
+                    <span>{t("pwa.iosInAppShortOr")}</span>
+                    <button
+                      type="button"
+                      className="mx-0.5 font-semibold text-[#f5a623] underline decoration-[#f5a623]/70 underline-offset-2 hover:text-amber-300"
+                      aria-label={t("pwa.iosOpenInChromeAria")}
+                      onClick={() =>
+                        navigateToIosDeepLink(buildIosChromeOpenUrl(siteUrl))
+                      }
+                    >
+                      Chrome
+                    </button>
+                    <span>{t("pwa.iosInAppShortSuffix")}</span>
+                  </p>
+                  <p className="mb-2 text-center text-[11px] leading-snug text-gray-500">
+                    {t("pwa.iosInAppShortHint")}
+                  </p>
+                  <p className="mb-2 break-all text-center text-[11px] text-gray-600">
                     {siteUrl}
                   </p>
                   <button
                     type="button"
-                    className="mb-3 w-full rounded-xl bg-[#f5a623] py-3 text-sm font-bold text-black transition-opacity hover:opacity-90"
+                    className="mb-3 w-full rounded-xl border border-[#f5a623]/50 bg-black py-2.5 text-sm font-semibold text-[#f5a623] transition-colors hover:bg-white/5"
                     onClick={() => void copySiteUrl()}
                   >
                     {t("pwa.iosCopyLinkButton")}
