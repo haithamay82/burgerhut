@@ -526,7 +526,9 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
 
         <section className="mb-6 space-y-2 text-xs">
           <h3 className="text-[11px] font-semibold text-gray-300">
-            {t("ui.burgerToppings")}
+            {item?.category === "crispy"
+              ? t("ui.crispyToppings")
+              : t("ui.burgerToppings")}
           </h3>
           <div className="grid grid-cols-2 gap-2">
             {toppingChoices.map((x) => {
