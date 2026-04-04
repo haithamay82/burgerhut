@@ -298,7 +298,7 @@ export default function PWAInstallLauncher() {
 
   return (
     <>
-      <div className="flex w-[3.25rem] shrink-0 flex-col items-center gap-0.5">
+      <div className="pwa-install-launcher-attention flex w-[3.25rem] shrink-0 flex-col items-center gap-0.5">
         <button
           type="button"
           onClick={() => setConfirmOpen(true)}

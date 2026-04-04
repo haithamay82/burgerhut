@@ -84,12 +84,35 @@ body {
   animation: successWaButtonPulse 0.65s ease-in-out infinite;
 }
 
+/* כפתור «הורד אפליקציה» בראש דף הבית */
+@keyframes pwaInstallAttention {
+  0%,
+  100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.4));
+  }
+  50% {
+    opacity: 0.82;
+    filter: drop-shadow(0 0 14px rgba(245, 158, 11, 0.85));
+  }
+}
+
+.pwa-install-launcher-attention {
+  animation: pwaInstallAttention 0.95s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .success-coupon-attention,
   .success-wa-btn-attention {
     animation: none;
     box-shadow: none;
     transform: none;
+    opacity: 1;
+  }
+
+  .pwa-install-launcher-attention {
+    animation: none;
+    filter: none;
     opacity: 1;
   }
 }
