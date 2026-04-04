@@ -17,8 +17,9 @@ export function buildIosSafariOpenUrl(siteUrl) {
 export function buildIosChromeOpenUrl(siteUrl) {
   try {
     const u = new URL(siteUrl);
+    /** בלי googlechrome://https:// — ב־iOS לעיתים מוצג «לא ניתן לגשת לאתר». פורמט מומלץ: googlechrome://host/path */
     const rest = `${u.host}${u.pathname}${u.search}${u.hash}`;
-    return `googlechrome://https://${rest}`;
+    return `googlechrome://${rest}`;
   } catch {
     return siteUrl;
   }

@@ -538,7 +538,8 @@ const HE = {
   "admin.catalogPrice": "מחיר (₪)",
   "admin.catalogImage": "תמונה",
   "admin.catalogImageUrlHint":
-    "אחרי העלאה יופיע קישור כאן; אפשר גם להדביק ידנית URL או נתיב מקומי.",
+    "בחרו קובץ והעלו — התמונה תאוחסן אוטומטית (נדרש לפני שמירת מנה חדשה).",
+  "admin.catalogImageRequired": "יש להעלות תמונה לפני השמירה.",
   "admin.catalogUploadBtn": "העלה מהטלפון / מהמחשב",
   "admin.catalogImageUploading": "מעלה תמונה…",
   "admin.catalogImageUploaded": "התמונה הועלתה. שמרו את המנה כדי לשמור בקטלוג.",
@@ -1203,7 +1204,8 @@ const AR = {
   "admin.catalogPrice": "السعر (₪)",
   "admin.catalogImage": "صورة",
   "admin.catalogImageUrlHint":
-    "بعد الرفع يظهر الرابط هنا؛ يمكن أيضاً لصق URL أو مسار يدوياً.",
+    "اختروا ملفاً وارفعوه — تُخزَّن الصورة تلقائياً (مطلوب قبل حفظ طبق جديد).",
+  "admin.catalogImageRequired": "يرجى رفع صورة قبل الحفظ.",
   "admin.catalogUploadBtn": "رفع من الهاتف / الجهاز",
   "admin.catalogImageUploading": "جارٍ رفع الصورة…",
   "admin.catalogImageUploaded": "تم رفع الصورة. احفظوا الطبق لحفظه في الكتالوج.",

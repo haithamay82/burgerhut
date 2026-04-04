@@ -328,7 +328,7 @@ export default function AdminOrdersPage() {
         return;
       }
       if (!String(d.image || "").trim()) {
-        setCatalogMsg(t("admin.catalogErr"));
+        setCatalogMsg(t("admin.catalogImageRequired"));
         return;
       }
       const bp = Number(d.basePrice);
@@ -362,7 +362,7 @@ export default function AdminOrdersPage() {
         return;
       }
       if (!String(d.image || "").trim()) {
-        setCatalogMsg(t("admin.catalogErr"));
+        setCatalogMsg(t("admin.catalogImageRequired"));
         return;
       }
       const bp = Number(d.basePrice);
@@ -2486,24 +2486,15 @@ export default function AdminOrdersPage() {
                       ? t("admin.catalogImageUploading")
                       : t("admin.catalogUploadBtn")}
                   </button>
-                  <label className="flex flex-col gap-1">
-                    <span className="text-[10px] text-gray-500">URL</span>
-                    <input
-                      value={catalogModal.draft.image}
-                      disabled={catalogSaving || catalogImageUploading}
-                      onChange={(e) =>
-                        setCatalogModal((prev) =>
-                          prev
-                            ? {
-                                ...prev,
-                                draft: { ...prev.draft, image: e.target.value },
-                              }
-                            : null
-                        )
-                      }
-                      className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100"
-                    />
-                  </label>
+                  {catalogModal.draft.image ? (
+                    <div className="mt-1">
+                      <img
+                        src={catalogModal.draft.image}
+                        alt=""
+                        className="max-h-24 max-w-full rounded-lg border border-slate-700 object-contain"
+                      />
+                    </div>
+                  ) : null}
                 </div>
                 <label className="flex flex-col gap-1 text-gray-400">
                   <span>{t("admin.catalogNameHe")}</span>
