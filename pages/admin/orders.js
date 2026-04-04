@@ -150,6 +150,10 @@ export default function AdminOrdersPage() {
   const [siteVisitsDays, setSiteVisitsDays] = useState([]);
   const [siteVisitsErr, setSiteVisitsErr] = useState("");
   const promoFileRef = useRef(null);
+  const sliderFileRef = useRef(null);
+  const [sliderImages, setSliderImages] = useState([]);
+  const [sliderUploading, setSliderUploading] = useState(false);
+  const [sliderMsg, setSliderMsg] = useState("");
 
   const [selectedDayKey, setSelectedDayKey] = useState(null);
   const [calView, setCalView] = useState({ y: 2026, m: 1 });
@@ -430,18 +434,35 @@ export default function AdminOrdersPage() {
     setDiscountDraft((prev) => (prev ? { ...prev, ...patch } : prev));
   };
 
+  const loadHomeSlider = async () => {
+    try {
+      const r = await fetch("/api/home-slider");
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d?.ok && Array.isArray(d.images)) {
+        setSliderImages(d.images);
+      } else {
+        setSliderImages([]);
+      }
+    } catch {
+      setSliderImages([]);
+    }
+  };
+
   const togglePromoPanel = async () => {
     const next = !promoOpen;
     setPromoOpen(next);
-    if (next && loaded && promo == null) {
-      try {
-        const pr = await fetch("/api/promo");
-        const pd = await pr.json().catch(() => ({}));
-        if (pr.ok && pd.ok) {
-          setPromo(pd);
+    if (next) {
+      void loadHomeSlider();
+      if (loaded && promo == null) {
+        try {
+          const pr = await fetch("/api/promo");
+          const pd = await pr.json().catch(() => ({}));
+          if (pr.ok && pd.ok) {
+            setPromo(pd);
+          }
+        } catch {
+          /* ignore */
         }
-      } catch {
-        /* ignore */
       }
     }
   };
@@ -537,6 +558,90 @@ export default function AdminOrdersPage() {
       setError(t("admin.errNet"));
     } finally {
       setPromoUploading(false);
+    }
+  };
+
+  const uploadSliderImage = async () => {
+    if (!secret.trim()) return;
+    const file = sliderFileRef.current?.files?.[0];
+    if (!file) {
+      setSliderMsg("");
+      setError(t("admin.sliderErrMissing"));
+      return;
+    }
+    setError("");
+    setSliderMsg("");
+    setSliderUploading(true);
+    try {
+      try {
+        await uploadToBlob(`slider-${Date.now()}-${file.name}`, file, {
+          access: "public",
+          handleUploadUrl: "/api/home-slider/blob",
+          clientPayload: JSON.stringify({ adminSecret: secret.trim() }),
+          multipart: true,
+        });
+      } catch (blobErr) {
+        const msg = String(blobErr?.message || "");
+        const isBlobDisabled =
+          msg.includes("blob_not_configured") ||
+          msg.includes("BLOB_READ_WRITE_TOKEN");
+        if (isBlobDisabled) {
+          setError(t("admin.promoErrBlobConfig"));
+          return;
+        }
+        setError(
+          `${t("admin.promoErrBlobUpload")}${msg ? ` (${msg})` : ""}`
+        );
+        return;
+      }
+      await loadHomeSlider();
+      if (sliderFileRef.current) sliderFileRef.current.value = "";
+      setSliderMsg(t("admin.sliderUploaded"));
+    } catch {
+      setError(t("admin.errNet"));
+    } finally {
+      setSliderUploading(false);
+    }
+  };
+
+  const deleteSliderImage = async (id) => {
+    if (!secret.trim()) return;
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(t("admin.sliderDeleteConfirm"))
+    ) {
+      return;
+    }
+    setError("");
+    setSliderMsg("");
+    try {
+      const r = await fetch("/api/home-slider", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-secret": secret.trim(),
+        },
+        body: JSON.stringify({ id }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        if (d.error === "admin_not_configured") {
+          setError(t("admin.errConfig"));
+        } else if (d.error === "unauthorized") {
+          setError(t("admin.errAuth"));
+        } else {
+          setError(t("admin.sliderDeleteErr"));
+        }
+        return;
+      }
+      if (Array.isArray(d.images)) {
+        setSliderImages(d.images);
+      } else {
+        await loadHomeSlider();
+      }
+      setSliderMsg(t("admin.sliderDeleted"));
+    } catch {
+      setError(t("admin.errNet"));
     }
   };
 
@@ -877,77 +982,144 @@ export default function AdminOrdersPage() {
               </button>
               {promoOpen ? (
                 <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
-                  {promo ? (
-                    <>
-                      <p className="mb-4 text-[11px] text-gray-500">
-                        {t("admin.promoHint")}
-                      </p>
-                      <p className="mb-3 text-xs font-medium text-gray-300">
-                        {promo.hasFile
-                          ? promo.active
-                            ? t("admin.promoStatusOn")
-                            : t("admin.promoStatusOff")
-                          : t("admin.promoNoFile")}
-                      </p>
-                      {promoMsg ? (
-                        <p className="mb-3 text-xs font-medium text-emerald-400/95">
-                          {promoMsg}
+                  <p className="mb-4 text-[11px] text-gray-500">
+                    {t("admin.promoHint")}
+                  </p>
+
+                  <div className="mb-6">
+                    <h4 className="mb-2 text-xs font-bold text-primary">
+                      {t("admin.promoVideoSection")}
+                    </h4>
+                    {promo ? (
+                      <>
+                        <p className="mb-3 text-xs font-medium text-gray-300">
+                          {promo.hasFile
+                            ? promo.active
+                              ? t("admin.promoStatusOn")
+                              : t("admin.promoStatusOff")
+                            : t("admin.promoNoFile")}
                         </p>
-                      ) : null}
-                      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
-                        <input
-                          ref={promoFileRef}
-                          type="file"
-                          accept="video/*"
-                          disabled={promoUploading}
-                          className="max-w-full text-xs text-gray-400 file:mr-2 file:rounded-lg file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-gray-200"
-                        />
-                        <button
-                          type="button"
-                          onClick={uploadPromoVideo}
-                          disabled={promoUploading || !secret.trim()}
-                          className="btn-primary shrink-0 text-sm disabled:opacity-50"
-                        >
-                          {promoUploading
-                            ? t("admin.promoUploading")
-                            : t("admin.promoUploadBtn")}
-                        </button>
-                      </div>
-                      {promo.hasFile ? (
-                        <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 p-3">
-                          <h4 className="mb-2 text-xs font-bold text-primary">
-                            {t("admin.promoHomeDisplaySection")}
-                          </h4>
-                          <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
-                            {t("admin.promoShowOnHomeHint")}
+                        {promoMsg ? (
+                          <p className="mb-3 text-xs font-medium text-emerald-400/95">
+                            {promoMsg}
                           </p>
-                          <label className="flex cursor-pointer items-start gap-2 text-xs text-gray-200">
-                            <input
-                              type="checkbox"
-                              checked={Boolean(promo.enabled)}
-                              disabled={promoSaving}
-                              onChange={(e) =>
-                                savePromoEnabled(e.target.checked)
-                              }
-                              className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-600 bg-slate-900 text-primary focus:ring-primary"
-                            />
-                            <span className="font-medium leading-snug">
-                              {t("admin.promoShowOnHomeCheckbox")}
-                            </span>
-                          </label>
-                          {promoSaving ? (
-                            <p className="mt-2 text-xs text-amber-400/90">
-                              {t("admin.promoSaving")}
-                            </p>
-                          ) : null}
+                        ) : null}
+                        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+                          <input
+                            ref={promoFileRef}
+                            type="file"
+                            accept="video/*"
+                            disabled={promoUploading}
+                            className="max-w-full text-xs text-gray-400 file:mr-2 file:rounded-lg file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-gray-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={uploadPromoVideo}
+                            disabled={promoUploading || !secret.trim()}
+                            className="btn-primary shrink-0 text-sm disabled:opacity-50"
+                          >
+                            {promoUploading
+                              ? t("admin.promoUploading")
+                              : t("admin.promoUploadBtn")}
+                          </button>
                         </div>
-                      ) : null}
-                    </>
-                  ) : (
-                    <p className="text-xs text-gray-500">
-                      {t("admin.promoLoadEmpty")}
+                        {promo.hasFile ? (
+                          <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 p-3">
+                            <h4 className="mb-2 text-xs font-bold text-primary">
+                              {t("admin.promoHomeDisplaySection")}
+                            </h4>
+                            <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
+                              {t("admin.promoShowOnHomeHint")}
+                            </p>
+                            <label className="flex cursor-pointer items-start gap-2 text-xs text-gray-200">
+                              <input
+                                type="checkbox"
+                                checked={Boolean(promo.enabled)}
+                                disabled={promoSaving}
+                                onChange={(e) =>
+                                  savePromoEnabled(e.target.checked)
+                                }
+                                className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-600 bg-slate-900 text-primary focus:ring-primary"
+                              />
+                              <span className="font-medium leading-snug">
+                                {t("admin.promoShowOnHomeCheckbox")}
+                              </span>
+                            </label>
+                            {promoSaving ? (
+                              <p className="mt-2 text-xs text-amber-400/90">
+                                {t("admin.promoSaving")}
+                              </p>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </>
+                    ) : (
+                      <p className="text-xs text-gray-500">
+                        {t("admin.promoLoadEmpty")}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="border-t border-slate-700/80 pt-5">
+                    <h4 className="mb-2 text-xs font-bold text-primary">
+                      {t("admin.sliderSection")}
+                    </h4>
+                    <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
+                      {t("admin.sliderHint")}
                     </p>
-                  )}
+                    {sliderMsg ? (
+                      <p className="mb-3 text-xs font-medium text-emerald-400/95">
+                        {sliderMsg}
+                      </p>
+                    ) : null}
+                    {sliderImages.length ? (
+                      <ul className="mb-4 grid gap-2 sm:grid-cols-2">
+                        {sliderImages.map((img) => (
+                          <li
+                            key={img.id}
+                            className="flex items-center gap-2 rounded-lg border border-slate-700/80 bg-slate-950/40 p-2"
+                          >
+                            <img
+                              src={img.url}
+                              alt=""
+                              className="h-16 w-24 shrink-0 rounded object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => deleteSliderImage(img.id)}
+                              disabled={sliderUploading || !secret.trim()}
+                              className="rounded-lg border border-red-900/50 bg-red-950/20 px-2 py-1 text-[11px] text-red-300 hover:bg-red-950/40 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              {t("admin.sliderDelete")}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="mb-4 text-xs text-gray-500">
+                        {t("admin.sliderEmpty")}
+                      </p>
+                    )}
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                      <input
+                        ref={sliderFileRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        disabled={sliderUploading}
+                        className="max-w-full text-xs text-gray-400 file:mr-2 file:rounded-lg file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={uploadSliderImage}
+                        disabled={sliderUploading || !secret.trim()}
+                        className="btn-primary shrink-0 text-sm disabled:opacity-50"
+                      >
+                        {sliderUploading
+                          ? t("admin.sliderUploading")
+                          : t("admin.sliderUploadBtn")}
+                      </button>
+                    </div>
+                  </div>
                 </section>
               ) : null}
 

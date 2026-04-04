@@ -7,7 +7,8 @@ import MealCustomizeWizard from "@/components/MealCustomizeWizard";
 import { CATEGORIES, MENU_ITEMS } from "@/utils/menuData";
 import { useLocale } from "@/contexts/LocaleContext";
 import { formatIls } from "@/utils/cartMoney";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
+import HomeMediaSlider from "@/components/HomeMediaSlider";
 
 export default function HomeMain() {
   const { t } = useLocale();
@@ -167,11 +168,15 @@ export default function HomeMain() {
 
       <section className="grid gap-3 pb-36">
         {filteredItems.map((item) => (
-          <MenuItemCard
-            key={item.id}
-            item={item}
-            onOpenMealWizard={setMealWizardItem}
-          />
+          <Fragment key={item.id}>
+            <MenuItemCard
+              item={item}
+              onOpenMealWizard={setMealWizardItem}
+            />
+            {activeCategory === "burgers" && item.id === "burger-160" ? (
+              <HomeMediaSlider />
+            ) : null}
+          </Fragment>
         ))}
       </section>
 
