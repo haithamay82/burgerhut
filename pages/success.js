@@ -18,6 +18,24 @@ function deferredCouponClaimStorageKey(orderNumber, code) {
   return `bh_deferred_coupon_claimed_${String(orderNumber)}_${String(code)}`;
 }
 
+function firstQuery(router, key) {
+  const v = router.query?.[key];
+  return Array.isArray(v) ? v[0] : v;
+}
+
+/** יש snapshot אשראי ב-session לפני צריכה — חזרה מ-Hyp ל־/success בלי query תקין */
+function hasCardSuccessSnapshotInStorage() {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = window.sessionStorage.getItem(CARD_SUCCESS_SNAPSHOT_KEY);
+    if (!raw) return false;
+    const snap = JSON.parse(raw);
+    return Boolean(snap?.customer && Array.isArray(snap.items) && snap.items.length);
+  } catch {
+    return false;
+  }
+}
+
 /** צריכת קופון דחויה (ביט/אשראי) אחרי השלמת תשלום — פעם אחת לכל צמד הזמנה+קוד */
 async function maybeClaimDeferredCouponClient(orderNumber, couponCode) {
   if (typeof window === "undefined") return;
@@ -64,16 +82,18 @@ function couponCreateAmountFromCardOrder(cardOrder) {
 export default function SuccessPage() {
   const router = useRouter();
   const { t, locale } = useLocale();
-  const method = router.query.method || "";
+  const method = firstQuery(router, "method") || "";
   const orderFromQuery = Array.isArray(router.query.on)
     ? router.query.on[0]
     : router.query.on;
+  /** Hyp מחזיר לעיתים uniqueId / txId — חייבים לזהות כדי לטעון snapshot ולהציג ווטסאפ */
   const hypReturn =
-    router.query.uniqueID ||
-    router.query.uniqueid ||
-    router.query.txId ||
-    router.query.cgUid ||
-    router.query.Id;
+    firstQuery(router, "uniqueID") ||
+    firstQuery(router, "uniqueid") ||
+    firstQuery(router, "uniqueId") ||
+    firstQuery(router, "txId") ||
+    firstQuery(router, "cgUid") ||
+    firstQuery(router, "Id");
   const [cardWaUrl, setCardWaUrl] = useState("");
   const [cardOrder, setCardOrder] = useState(null);
   const [coupon, setCoupon] = useState(null);
@@ -95,7 +115,12 @@ export default function SuccessPage() {
         /* ignore */
       }
     }
-    if (!hypReturn && method !== "card" && method !== "cash") return;
+    const allowSnapshotLoad =
+      Boolean(hypReturn) ||
+      method === "card" ||
+      method === "cash" ||
+      hasCardSuccessSnapshotInStorage();
+    if (!allowSnapshotLoad) return;
 
     const methodStr = String(method || "");
     const snapshotKey =
@@ -285,7 +310,13 @@ export default function SuccessPage() {
 
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
-    if (!(hypReturn || method === "card" || method === "cash")) return;
+    const waAuxFlow =
+      Boolean(hypReturn) ||
+      method === "card" ||
+      method === "cash" ||
+      Boolean(cardWaUrl) ||
+      hasCardSuccessSnapshotInStorage();
+    if (!waAuxFlow) return;
     const mk = buildSuccessPageMatchKey({
       method,
       orderOn: orderFromQuery,
@@ -310,11 +341,17 @@ export default function SuccessPage() {
       /* ignore */
     }
     setWaComposeAlreadyUsed(used);
-  }, [router.isReady, hypReturn, method, orderFromQuery]);
+  }, [router.isReady, hypReturn, method, orderFromQuery, cardWaUrl]);
 
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
-    if (!(hypReturn || method === "card" || method === "cash")) {
+    const waAuxFlow =
+      Boolean(hypReturn) ||
+      method === "card" ||
+      method === "cash" ||
+      Boolean(cardWaUrl) ||
+      hasCardSuccessSnapshotInStorage();
+    if (!waAuxFlow) {
       setCustomerCouponsActive(null);
       return;
     }
@@ -334,11 +371,17 @@ export default function SuccessPage() {
     return () => {
       cancelled = true;
     };
-  }, [router.isReady, hypReturn, method]);
+  }, [router.isReady, hypReturn, method, cardWaUrl]);
 
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
-    if (!(hypReturn || method === "card" || method === "cash")) {
+    const waAuxFlow =
+      Boolean(hypReturn) ||
+      method === "card" ||
+      method === "cash" ||
+      Boolean(cardWaUrl) ||
+      hasCardSuccessSnapshotInStorage();
+    if (!waAuxFlow) {
       setCouponFetchSettled(true);
       return;
     }
@@ -444,12 +487,21 @@ export default function SuccessPage() {
    * אחרי תשלום אשראי (חזרה מ-Hyp): כפתור «שלח את ההזמנה» פעיל כשיש waUrl,
    * בלי להמתין לקופון. אחרת: קופון כבוי / קופון נטען / סיום ניסיון יצירת קופון.
    */
+  const postPaymentWhatsAppContext =
+    Boolean(hypReturn) ||
+    method === "card" ||
+    method === "cash" ||
+    (Boolean(cardWaUrl) && Boolean(cardOrder));
+
   const waLinkActive =
     customerCouponsActive === false ||
     Boolean(coupon?.code) ||
     couponFetchSettled ||
     (Boolean(hypReturn) && Boolean(cardWaUrl)) ||
-    (String(method) === "card" && Boolean(cardWaUrl));
+    (String(method) === "card" && Boolean(cardWaUrl)) ||
+    (Boolean(cardWaUrl) &&
+      Boolean(cardOrder) &&
+      method !== "cash");
 
   const waLinkLabel =
     coupon?.code && Number(coupon?.value) > 0
@@ -472,7 +524,7 @@ export default function SuccessPage() {
             #{String(orderFromQuery)}
           </p>
         ) : null}
-        {(hypReturn || method === "card" || method === "cash") && coupon?.code ? (
+        {postPaymentWhatsAppContext && coupon?.code ? (
           <section className="success-coupon-attention mb-3 w-full max-w-sm rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-900 via-slate-950 to-cyan-950 p-4 text-right text-white">
             <div className="relative rounded-xl border border-white/10 bg-slate-950/70 p-3 pt-10">
               <img
@@ -528,9 +580,7 @@ export default function SuccessPage() {
             </p>
           </section>
         ) : null}
-        {(hypReturn || method === "card" || method === "cash") &&
-        cardWaUrl &&
-        !waComposeAlreadyUsed ? (
+        {postPaymentWhatsAppContext && cardWaUrl && !waComposeAlreadyUsed ? (
           <div className="mb-4 w-full max-w-xs">
             {waLinkActive ? (
               <a
