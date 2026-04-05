@@ -212,14 +212,13 @@ export default function BitPayPage() {
       </section>
 
       <section className="card space-y-3 p-3">
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[11px] text-gray-400">{t("bit.bitNumber")}</p>
-              <p className="text-lg font-extrabold tracking-tight text-primary">
-                {phone || "0504847599"}
-              </p>
-            </div>
+        <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3">
+          <p className="text-sm leading-relaxed text-gray-200">
+            {t("bit.payIntro")
+              .replace(/\{phone\}/g, phone || "0504847599")
+              .replace(/\{amount\}/g, total || "—")}
+          </p>
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => copy(phone || "0504847599")}
@@ -227,15 +226,6 @@ export default function BitPayPage() {
             >
               {t("bit.copyNumber")}
             </button>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[11px] text-gray-400">{t("bit.amount")}</p>
-              <p className="text-lg font-extrabold tracking-tight">₪{total}</p>
-            </div>
             <button
               type="button"
               onClick={() => copy(total)}
@@ -250,21 +240,6 @@ export default function BitPayPage() {
           {t("bit.openApp")}
         </button>
 
-        <div className="space-y-2 text-xs text-gray-300">
-          <p className="text-[11px] text-gray-400">{t("bit.manualIntro")}</p>
-          <ol className="list-decimal space-y-1 pr-5 text-[12px] text-gray-200">
-            <li>{t("bit.step1")}</li>
-            <li>{t("bit.step2")}</li>
-            <li>
-              {t("bit.step3")} {phone || "0504847599"}
-            </li>
-            <li>
-              {t("bit.step4")}
-              {total}
-            </li>
-          </ol>
-        </div>
-
         {waPendingOk && !waOrderComposeDone ? (
           <div className="border-t border-slate-800 pt-3">
             <p className="mb-2 text-[11px] text-gray-400">{t("bit.waHint")}</p>
@@ -272,7 +247,9 @@ export default function BitPayPage() {
               type="button"
               onClick={sendOrderWhatsApp}
               disabled={isSendingWa}
-              className="btn-primary inline-flex w-full items-center justify-center disabled:opacity-60"
+              className={`btn-primary inline-flex w-full items-center justify-center whitespace-pre-line px-4 py-3 text-center leading-snug disabled:opacity-60 ${
+                isSendingWa ? "" : "success-wa-btn-attention"
+              }`}
             >
               {isSendingWa ? t("bit.waOpening") : t("bit.waBtn")}
             </button>
@@ -282,8 +259,6 @@ export default function BitPayPage() {
         {status ? (
           <p className="text-center text-[11px] text-gray-400">{status}</p>
         ) : null}
-
-        <div className="text-[11px] text-gray-500">{t("bit.note")}</div>
       </section>
     </Layout>
   );
