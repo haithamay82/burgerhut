@@ -196,6 +196,9 @@ export default function HomeMain({
 
       <section className="mb-24 rounded-2xl border border-slate-800 bg-slate-900/60 p-3">
         <h3 className="mb-2 text-sm font-semibold">{t("home.contactTitle")}</h3>
+        <p className="mb-3 text-center text-[10px] leading-snug text-gray-500">
+          {t("home.contactCopyright")}
+        </p>
         <div className="mb-3 space-y-1 text-xs text-gray-300">
           <p className="inline-flex flex-wrap items-center gap-1">
             <span className="inline-flex h-4 w-4 shrink-0 overflow-hidden rounded-full ring-1 ring-white/10">

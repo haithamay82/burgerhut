@@ -11,6 +11,7 @@ const HE = {
 
   "home.title": "רעבים? הזמינו עכשיו ונכין לכם באהבה ❤",
   "home.contactTitle": "יצירת קשר ומיקום",
+  "home.contactCopyright": "© אקסטרים טוכנולוגיות",
   "home.contactPhoneLabel": "טלפון",
   "home.contactAddressLabel": "כתובת",
   "home.contactPhoneValue": "0504847599",
@@ -678,6 +679,7 @@ const AR = {
 
   "home.title": "جائعون؟ اطلبوا الآن ونحضّر لكم بمحبة ❤",
   "home.contactTitle": "التواصل والموقع",
+  "home.contactCopyright": "© אקסטרים טוכנולוגיות",
   "home.contactPhoneLabel": "الهاتف",
   "home.contactAddressLabel": "العنوان",
   "home.contactPhoneValue": "0504847599",
