@@ -833,6 +833,7 @@ export default function CheckoutPage() {
 
   return (
     <Layout>
+      <div className="relative">
       <section className="mb-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
@@ -846,14 +847,6 @@ export default function CheckoutPage() {
             {t("checkout.backToMenu")}
           </Link>
         </div>
-        {!orderingAllowed ? (
-          <p
-            className="mt-3 rounded-xl border border-amber-800/60 bg-amber-950/40 p-3 text-sm font-medium text-amber-100"
-            role="status"
-          >
-            {t("err.orderingClosed")}
-          </p>
-        ) : null}
       </section>
 
       {!items.length ? (
@@ -1448,6 +1441,19 @@ export default function CheckoutPage() {
           {isSubmitting ? t("checkout.submitting") : t("checkout.submit")}
         </button>
       </form>
+
+      {!orderingAllowed && items.length > 0 ? (
+        <div
+          className="absolute inset-0 z-20 flex items-center justify-center bg-slate-950/80 px-6 py-10 backdrop-blur-sm"
+          role="alert"
+          aria-live="polite"
+        >
+          <p className="max-w-sm text-center text-lg font-semibold leading-snug text-amber-50 sm:text-xl">
+            {t("checkout.restaurantClosedNow")}
+          </p>
+        </div>
+      ) : null}
+      </div>
 
       <DeliveryMapPicker
         open={mapPickerOpen}

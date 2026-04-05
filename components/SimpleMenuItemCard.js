@@ -3,18 +3,15 @@ import { formatIls } from "@/utils/cartMoney";
 import { useCart } from "@/hooks/useCart";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useInventory } from "@/contexts/InventoryContext";
-import { useOrderingHours } from "@/contexts/OrderingHoursContext";
 import { useMenuCatalog } from "@/contexts/MenuCatalogContext";
 import { menuItemDesc, menuItemName } from "@/utils/menuItemLabels";
 
 export default function SimpleMenuItemCard({ item }) {
   const { t, locale } = useLocale();
   const { menuItems } = useMenuCatalog();
-  const { orderingAllowed } = useOrderingHours();
   const { addItem } = useCart();
   const { isUnavailable } = useInventory();
   const isOutOfStock = isUnavailable(item.id);
-  const orderingClosed = !orderingAllowed;
   const [quantity, setQuantity] = useState(1);
   const [sellerNotes, setSellerNotes] = useState("");
   const [requestedDrinkId, setRequestedDrinkId] = useState("");
@@ -51,7 +48,7 @@ export default function SimpleMenuItemCard({ item }) {
   const finalUnitPrice = (Number(item.basePrice) || 0) + requestedDrinkPrice;
 
   const handleAdd = () => {
-    if (isOutOfStock || orderingClosed) return;
+    if (isOutOfStock) return;
     setIsAdding(true);
     const notesTrim = showSellerNotes ? sellerNotes.trim() : "";
     const requestedDrinkLabel =
@@ -108,11 +105,6 @@ export default function SimpleMenuItemCard({ item }) {
               {t("ui.outOfStock")}
             </p>
           ) : null}
-          {orderingClosed && !isOutOfStock ? (
-            <p className="mt-1.5 text-sm font-semibold leading-snug text-amber-200/90">
-              {t("err.orderingClosed")}
-            </p>
-          ) : null}
           <p className="line-clamp-3 text-xs text-gray-400">{description}</p>
           <p className="mt-1 text-sm font-semibold text-primary">
             ₪{formatIls(finalUnitPrice * quantity)}
@@ -122,7 +114,7 @@ export default function SimpleMenuItemCard({ item }) {
       {showSellerNotes ? (
         <div
           className={`space-y-1.5 border-t border-slate-800 p-3 text-xs ${
-            isOutOfStock || orderingClosed ? "pointer-events-none opacity-45" : ""
+            isOutOfStock ? "pointer-events-none opacity-45" : ""
           }`}
         >
           <label
@@ -134,7 +126,7 @@ export default function SimpleMenuItemCard({ item }) {
           <div id={`requested-drink-${item.id}`} className="relative mb-2">
             <button
               type="button"
-              disabled={isOutOfStock || orderingClosed}
+              disabled={isOutOfStock}
               onClick={() => setDrinkMenuOpen((v) => !v)}
               className="flex w-full items-center justify-between rounded-lg border border-slate-700 bg-slate-900/80 px-2 py-1.5 text-[11px] text-gray-100 outline-none transition-colors hover:border-primary disabled:opacity-50"
             >
@@ -202,7 +194,7 @@ export default function SimpleMenuItemCard({ item }) {
             onChange={(e) => setSellerNotes(e.target.value)}
             rows={2}
             maxLength={500}
-            disabled={isOutOfStock || orderingClosed}
+            disabled={isOutOfStock}
             placeholder={t("ui.sellerNotesPh")}
             className="mb-2 w-full resize-y rounded-lg border border-slate-700 bg-slate-900/80 px-2 py-1.5 text-[11px] text-gray-100 outline-none placeholder:text-gray-600 focus:border-primary disabled:opacity-50"
           />
@@ -210,14 +202,14 @@ export default function SimpleMenuItemCard({ item }) {
       ) : null}
       <div
         className={`flex items-center justify-between gap-2 border-t border-slate-800 p-3 text-xs ${
-          isOutOfStock || orderingClosed ? "pointer-events-none opacity-45" : ""
+          isOutOfStock ? "pointer-events-none opacity-45" : ""
         }`}
       >
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-            disabled={isOutOfStock || orderingClosed}
+            disabled={isOutOfStock}
             className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 text-lg leading-none disabled:opacity-50"
           >
             −
@@ -226,7 +218,7 @@ export default function SimpleMenuItemCard({ item }) {
           <button
             type="button"
             onClick={() => setQuantity((q) => q + 1)}
-            disabled={isOutOfStock || orderingClosed}
+            disabled={isOutOfStock}
             className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 text-lg leading-none disabled:opacity-50"
           >
             +
@@ -235,7 +227,7 @@ export default function SimpleMenuItemCard({ item }) {
         <button
           type="button"
           onClick={handleAdd}
-          disabled={isAdding || isOutOfStock || orderingClosed}
+          disabled={isAdding || isOutOfStock}
           className="btn-primary flex-1 text-xs disabled:opacity-50"
         >
           {isAdding ? t("ui.added") : t("ui.addToCart")}

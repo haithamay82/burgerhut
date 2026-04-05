@@ -18,8 +18,6 @@ import { computeSaucesCharge, marginalSauceCharge } from "@/utils/saucePricing";
 import { useCart } from "@/hooks/useCart";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useInventory } from "@/contexts/InventoryContext";
-import { useOrderingHours } from "@/contexts/OrderingHoursContext";
-
 /** סימון ב-history.state כדי שכפתור «חזור» במכשיר יסגור את הוויזארד */
 const MEAL_WIZARD_HISTORY_KEY = "__burgerhutMealWizard";
 
@@ -43,7 +41,6 @@ function computeMissingMealSelections(selectedSalads, selectedSauces) {
 export default function MealCustomizeWizard({ item, open, onClose }) {
   const { t, locale } = useLocale();
   const { menuItems } = useMenuCatalog();
-  const { orderingAllowed } = useOrderingHours();
   const { addItem } = useCart();
   const { isUnavailable, unavailableIds } = useInventory();
 
@@ -71,8 +68,7 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
   const wizardHistoryPending = useRef(false);
 
   const isOutOfStock = item ? isUnavailable(item.id) : false;
-  const orderingClosed = !orderingAllowed;
-  const blocked = isOutOfStock || orderingClosed;
+  const blocked = isOutOfStock;
   const isKidsCrispyBurger = item?.id === CRISPY_CHICKEN_KIDS_PRODUCT_ID;
   const isAdultCrispyBurger = item?.id === CRISPY_CHICKEN_BURGER_PRODUCT_ID;
   const toppingChoices =
@@ -417,11 +413,6 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
         {isOutOfStock ? (
           <p className="mb-4 text-base font-extrabold text-red-500">
             {t("ui.outOfStock")}
-          </p>
-        ) : null}
-        {orderingClosed && !isOutOfStock ? (
-          <p className="mb-4 text-sm font-semibold text-amber-200/90">
-            {t("err.orderingClosed")}
           </p>
         ) : null}
 

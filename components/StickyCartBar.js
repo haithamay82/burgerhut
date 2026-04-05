@@ -7,12 +7,10 @@ import {
 } from "@/hooks/useCart";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useInventory } from "@/contexts/InventoryContext";
-import { useOrderingHours } from "@/contexts/OrderingHoursContext";
 import { formatIls, lineTotal, safePrice } from "@/utils/cartMoney";
 
 export default function StickyCartBar() {
   const { t } = useLocale();
-  const { orderingAllowed } = useOrderingHours();
   const { items, total, updateQuantity, removeItem } = useCart();
   const { isUnavailable } = useInventory();
   const [panelOpen, setPanelOpen] = useState(false);
@@ -142,7 +140,7 @@ export default function StickyCartBar() {
                         onClick={() =>
                           updateQuantity(item.id, item.quantity + 1)
                         }
-                        disabled={lineOos || !orderingAllowed}
+                        disabled={lineOos}
                         className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 text-sm leading-none disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         +
@@ -175,11 +173,6 @@ export default function StickyCartBar() {
         ) : null}
 
         <div className="border-t border-slate-800 bg-black/95 py-3 backdrop-blur">
-          {!orderingAllowed ? (
-            <p className="mb-2 px-1 text-center text-[11px] font-medium leading-snug text-amber-200/95">
-              {t("err.orderingClosed")}
-            </p>
-          ) : null}
           <div className="flex flex-wrap items-center gap-2">
             <div className="min-w-0 flex-1 basis-[8rem]">
               <span className="text-xs text-gray-400">{t("cart.label")}</span>
@@ -195,21 +188,12 @@ export default function StickyCartBar() {
             >
               {panelOpen ? t("cart.hideCart") : t("cart.showCart")}
             </button>
-            {orderingAllowed ? (
-              <Link
-                href="/checkout"
-                className="btn-primary flex min-h-[2.5rem] flex-1 items-center justify-center gap-2 text-center text-sm md:flex-none md:px-6"
-              >
-                <span>{t("cart.checkout")}</span>
-              </Link>
-            ) : (
-              <span
-                className="flex min-h-[2.5rem] flex-1 cursor-not-allowed items-center justify-center gap-2 rounded-full border border-slate-700 bg-slate-800/80 px-3 text-center text-sm text-gray-500 md:flex-none md:px-6"
-                aria-disabled="true"
-              >
-                {t("cart.checkout")}
-              </span>
-            )}
+            <Link
+              href="/checkout"
+              className="btn-primary flex min-h-[2.5rem] flex-1 items-center justify-center gap-2 text-center text-sm md:flex-none md:px-6"
+            >
+              <span>{t("cart.checkout")}</span>
+            </Link>
           </div>
         </div>
       </div>

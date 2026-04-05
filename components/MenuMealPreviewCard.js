@@ -2,14 +2,11 @@ import { formatIls } from "@/utils/cartMoney";
 import { useLocale } from "@/contexts/LocaleContext";
 import { menuItemDesc, menuItemName } from "@/utils/menuItemLabels";
 import { useInventory } from "@/contexts/InventoryContext";
-import { useOrderingHours } from "@/contexts/OrderingHoursContext";
 
 export default function MenuMealPreviewCard({ item, onOpenWizard }) {
   const { t, locale } = useLocale();
-  const { orderingAllowed } = useOrderingHours();
   const { isUnavailable } = useInventory();
   const isOutOfStock = isUnavailable(item.id);
-  const orderingClosed = !orderingAllowed;
 
   const name = menuItemName(item, t, locale);
   const description = menuItemDesc(item, t, locale);
@@ -42,11 +39,6 @@ export default function MenuMealPreviewCard({ item, onOpenWizard }) {
               {t("ui.outOfStock")}
             </p>
           ) : null}
-          {orderingClosed && !isOutOfStock ? (
-            <p className="mt-1.5 text-sm font-semibold leading-snug text-amber-200/90">
-              {t("err.orderingClosed")}
-            </p>
-          ) : null}
           <p className="line-clamp-3 text-xs text-gray-400">{description}</p>
           <p className="mt-1 text-sm font-semibold text-primary">
             {t("ui.fromPrice")} ₪{formatIls(item.basePrice)}
@@ -57,7 +49,7 @@ export default function MenuMealPreviewCard({ item, onOpenWizard }) {
         <button
           type="button"
           onClick={() => onOpenWizard(item)}
-          disabled={isOutOfStock || orderingClosed}
+          disabled={isOutOfStock}
           className="btn-primary w-full text-sm disabled:opacity-50"
         >
           {t("ui.openCustomize")}
