@@ -1,5 +1,6 @@
 import dynamic from "next/dynamic";
 import Layout from "@/components/Layout";
+import { getHomeSliderPublic } from "@/lib/homeSliderStore";
 
 const HomeMain = dynamic(() => import("@/components/HomeMain"), {
   ssr: false,
@@ -14,10 +15,23 @@ const HomeMain = dynamic(() => import("@/components/HomeMain"), {
   ),
 });
 
-export default function HomePage() {
+export async function getServerSideProps() {
+  let initialHomeSliderImages = [];
+  try {
+    const data = await getHomeSliderPublic();
+    if (data?.ok && Array.isArray(data.images) && data.images.length) {
+      initialHomeSliderImages = data.images;
+    }
+  } catch {
+    /* ignore */
+  }
+  return { props: { initialHomeSliderImages } };
+}
+
+export default function HomePage({ initialHomeSliderImages }) {
   return (
     <Layout>
-      <HomeMain />
+      <HomeMain initialHomeSliderImages={initialHomeSliderImages} />
     </Layout>
   );
 }

@@ -14,9 +14,11 @@ function usePrefersReducedMotion() {
   return reduce;
 }
 
-export default function HomeMediaSlider() {
+export default function HomeMediaSlider({ initialImages = [] }) {
   const { t } = useLocale();
-  const [images, setImages] = useState([]);
+  const [images, setImages] = useState(() =>
+    Array.isArray(initialImages) && initialImages.length ? initialImages : []
+  );
   const reduceMotion = usePrefersReducedMotion();
 
   useEffect(() => {
@@ -25,19 +27,12 @@ export default function HomeMediaSlider() {
       try {
         const r = await fetch("/api/home-slider");
         const d = await r.json().catch(() => ({}));
-        if (
-          cancelled ||
-          !r.ok ||
-          !d?.ok ||
-          !Array.isArray(d.images) ||
-          !d.images.length
-        ) {
-          if (!cancelled) setImages([]);
+        if (cancelled || !r.ok || !d?.ok || !Array.isArray(d.images)) {
           return;
         }
         setImages(d.images);
       } catch {
-        if (!cancelled) setImages([]);
+        /* שומרים תמונות מ-getServerSideProps אם ה-fetch נכשל */
       }
     };
     load();

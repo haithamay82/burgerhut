@@ -36,6 +36,10 @@ export default async function handler(req, res) {
   if (req.method === "GET") {
     try {
       const data = await getHomeSliderPublic();
+      res.setHeader(
+        "Cache-Control",
+        "public, s-maxage=30, stale-while-revalidate=120"
+      );
       return res.status(200).json(data);
     } catch {
       return res.status(200).json({ ok: true, images: [], version: 0 });
