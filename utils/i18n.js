@@ -3,6 +3,7 @@
 const HE = {
   "header.tagline":
     "מסעדת בורגר וקריספי משלוחים ואיסוף עצמי ירכא והסביבה",
+  "header.goHome": "מעבר למסך הבית",
   "header.brandSecondary": "בורגר האט",
   "header.admin": "ניהול",
   "lang.switch": "שפה",
@@ -672,6 +673,7 @@ const HE = {
 const AR = {
   "header.tagline":
     "مطعم برجر وكرسبي — توصيلات واستلام ذاتي في يركا والمناطق المحيطة",
+  "header.goHome": "الانتقال إلى الصفحة الرئيسية",
   "header.brandSecondary": "برجرهات",
   "header.admin": "إدارة",
   "lang.switch": "اللغة",

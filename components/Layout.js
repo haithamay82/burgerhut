@@ -1,4 +1,5 @@
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import FloatingWhatsAppButton from "./FloatingWhatsAppButton";
 import CurrentDateTime from "./CurrentDateTime";
@@ -61,20 +62,26 @@ export default function Layout({ children }) {
                 >
                   <PWAInstallLauncher />
                 </div>
-                <div className="relative z-[2] h-[4.2rem] w-[4.2rem] shrink-0 overflow-hidden rounded-full bg-white ring-1 ring-white/15">
-                  <img
-                    src="/logo-burger-hut.png"
-                    alt="Burger Hut logo icon"
-                    width={132}
-                    height={132}
-                    className="h-full w-full scale-115 object-cover object-center"
-                  />
-                </div>
+                <Link
+                  href="/"
+                  className="relative z-[2] flex flex-col items-center rounded-lg outline-none transition-opacity hover:opacity-95 focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                  aria-label={t("header.goHome")}
+                >
+                  <div className="h-[4.2rem] w-[4.2rem] shrink-0 overflow-hidden rounded-full bg-white ring-1 ring-white/15">
+                    <img
+                      src="/logo-burger-hut.png"
+                      alt=""
+                      width={132}
+                      height={132}
+                      className="h-full w-full scale-115 object-cover object-center"
+                    />
+                  </div>
+                  <h1 className="mb-0.5 mt-0.5 inline-flex flex-wrap items-center justify-center gap-x-1 gap-y-0 text-base font-extrabold tracking-tight text-primary sm:text-xl">
+                    <span dir="ltr">Burger Hut</span>
+                    <span dir="rtl">{t("header.brandSecondary")}</span>
+                  </h1>
+                </Link>
               </div>
-              <h1 className="mb-0.5 inline-flex flex-wrap items-center justify-center gap-x-1 gap-y-0 text-base font-extrabold tracking-tight text-primary sm:text-xl">
-                <span dir="ltr">Burger Hut</span>
-                <span dir="rtl">{t("header.brandSecondary")}</span>
-              </h1>
               <p className="mb-0 whitespace-nowrap text-[11px] leading-tight text-gray-400 sm:text-xs">
                 {t("header.tagline")}
               </p>
