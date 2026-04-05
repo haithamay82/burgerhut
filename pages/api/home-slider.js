@@ -29,6 +29,38 @@ function readJsonBody(req) {
   });
 }
 
+/**
+ * Next.js מפרסר מראש JSON ל-req.body; קריאה חוזרת מהזרם מחזירה {} או נתקעת —
+ * ואז «נקה הכל» נכשל והלקוח נשאר ב-sliderBusy=true.
+ */
+function bodyFromNextParser(req) {
+  const b = req.body;
+  if (b === undefined || b === null) return null;
+  if (Buffer.isBuffer(b)) {
+    try {
+      const s = b.toString("utf8");
+      return s ? JSON.parse(s) : {};
+    } catch {
+      return null;
+    }
+  }
+  if (typeof b === "string") {
+    try {
+      return b.trim() ? JSON.parse(b) : {};
+    } catch {
+      return null;
+    }
+  }
+  if (typeof b === "object") return b;
+  return null;
+}
+
+async function getJsonBody(req) {
+  const parsed = bodyFromNextParser(req);
+  if (parsed !== null) return parsed;
+  return readJsonBody(req);
+}
+
 function isVercelBlobUrl(u) {
   return typeof u === "string" && u.includes(".public.blob.vercel-storage.com");
 }
@@ -59,7 +91,7 @@ export default async function handler(req, res) {
     }
     let body;
     try {
-      body = await readJsonBody(req);
+      body = await getJsonBody(req);
     } catch {
       return res.status(400).json({ ok: false, error: "invalid_json" });
     }
@@ -97,7 +129,7 @@ export default async function handler(req, res) {
     }
     let body;
     try {
-      body = await readJsonBody(req);
+      body = await getJsonBody(req);
     } catch {
       return res.status(400).json({ ok: false, error: "invalid_json" });
     }

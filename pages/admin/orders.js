@@ -16,6 +16,17 @@ const INVENTORY_CATEGORIES = ["burgers", "crispy"];
 const CATALOG_CATEGORIES = ["burgers", "crispy", "sides", "drinks"];
 const CATALOG_ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+/** מונע תקיעה אינסופית של sliderBusy אם fetch לא חוזר */
+function sliderAdminFetchSignal() {
+  if (
+    typeof AbortSignal !== "undefined" &&
+    typeof AbortSignal.timeout === "function"
+  ) {
+    return AbortSignal.timeout(60000);
+  }
+  return undefined;
+}
+
 function formatTime(iso, locale) {
   const loc = locale === "ar" ? "ar" : "he-IL";
   return new Date(iso).toLocaleString(loc, {
@@ -180,9 +191,11 @@ export default function AdminOrdersPage() {
         setSliderBusy(false);
       }
     });
-    sliderChainRef.current = p.catch(() => {
-      setSliderBusy(false);
-    });
+    sliderChainRef.current = p
+      .finally(() => {
+        setSliderBusy(false);
+      })
+      .catch(() => {});
     return p;
   };
 
@@ -725,6 +738,7 @@ export default function AdminOrdersPage() {
       const r = await fetch(`/api/home-slider?_=${Date.now()}`, {
         cache: "no-store",
         headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+        signal: sliderAdminFetchSignal(),
       });
       const d = await r.json().catch(() => ({}));
       if (r.ok && d?.ok && Array.isArray(d.images)) {
@@ -967,6 +981,7 @@ export default function AdminOrdersPage() {
             Pragma: "no-cache",
           },
           body: JSON.stringify({ id }),
+          signal: sliderAdminFetchSignal(),
         });
         const d = await r.json().catch(() => ({}));
         if (!r.ok) {
@@ -1023,6 +1038,7 @@ export default function AdminOrdersPage() {
             Pragma: "no-cache",
           },
           body: JSON.stringify({ clear: true }),
+          signal: sliderAdminFetchSignal(),
         });
         const d = await r.json().catch(() => ({}));
         if (!r.ok) {
