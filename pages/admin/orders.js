@@ -167,7 +167,24 @@ export default function AdminOrdersPage() {
   const catalogImageFileRef = useRef(null);
   const [sliderImages, setSliderImages] = useState([]);
   const [sliderUploading, setSliderUploading] = useState(false);
+  const [sliderBusy, setSliderBusy] = useState(false);
   const [sliderMsg, setSliderMsg] = useState("");
+  const sliderChainRef = useRef(Promise.resolve());
+
+  const runSliderChain = (task) => {
+    const p = sliderChainRef.current.then(async () => {
+      setSliderBusy(true);
+      try {
+        await task();
+      } finally {
+        setSliderBusy(false);
+      }
+    });
+    sliderChainRef.current = p.catch(() => {
+      setSliderBusy(false);
+    });
+    return p;
+  };
 
   const [selectedDayKey, setSelectedDayKey] = useState(null);
   const [calView, setCalView] = useState({ y: 2026, m: 1 });
@@ -841,39 +858,41 @@ export default function AdminOrdersPage() {
       setError(t("admin.sliderErrMissing"));
       return;
     }
-    setError("");
-    setSliderMsg("");
-    setSliderUploading(true);
-    try {
+    return runSliderChain(async () => {
+      setError("");
+      setSliderMsg("");
+      setSliderUploading(true);
       try {
-        await uploadToBlob(`slider-${Date.now()}-${file.name}`, file, {
-          access: "public",
-          handleUploadUrl: "/api/home-slider/blob",
-          clientPayload: JSON.stringify({ adminSecret: secret.trim() }),
-          multipart: true,
-        });
-      } catch (blobErr) {
-        const msg = String(blobErr?.message || "");
-        const isBlobDisabled =
-          msg.includes("blob_not_configured") ||
-          msg.includes("BLOB_READ_WRITE_TOKEN");
-        if (isBlobDisabled) {
-          setError(t("admin.promoErrBlobConfig"));
+        try {
+          await uploadToBlob(`slider-${Date.now()}-${file.name}`, file, {
+            access: "public",
+            handleUploadUrl: "/api/home-slider/blob",
+            clientPayload: JSON.stringify({ adminSecret: secret.trim() }),
+            multipart: true,
+          });
+        } catch (blobErr) {
+          const msg = String(blobErr?.message || "");
+          const isBlobDisabled =
+            msg.includes("blob_not_configured") ||
+            msg.includes("BLOB_READ_WRITE_TOKEN");
+          if (isBlobDisabled) {
+            setError(t("admin.promoErrBlobConfig"));
+            return;
+          }
+          setError(
+            `${t("admin.promoErrBlobUpload")}${msg ? ` (${msg})` : ""}`
+          );
           return;
         }
-        setError(
-          `${t("admin.promoErrBlobUpload")}${msg ? ` (${msg})` : ""}`
-        );
-        return;
+        await loadHomeSlider();
+        if (sliderFileRef.current) sliderFileRef.current.value = "";
+        setSliderMsg(t("admin.sliderUploaded"));
+      } catch {
+        setError(t("admin.errNet"));
+      } finally {
+        setSliderUploading(false);
       }
-      await loadHomeSlider();
-      if (sliderFileRef.current) sliderFileRef.current.value = "";
-      setSliderMsg(t("admin.sliderUploaded"));
-    } catch {
-      setError(t("admin.errNet"));
-    } finally {
-      setSliderUploading(false);
-    }
+    });
   };
 
   const uploadCatalogMenuImage = async () => {
@@ -933,46 +952,106 @@ export default function AdminOrdersPage() {
     ) {
       return;
     }
-    setError("");
-    setSliderMsg("");
-    const prevImages = sliderImages;
-    setSliderImages((imgs) => imgs.filter((x) => x.id !== id));
-    try {
-      const r = await fetch("/api/home-slider", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          "x-admin-secret": secret.trim(),
-        },
-        body: JSON.stringify({ id }),
-      });
-      const d = await r.json().catch(() => ({}));
-      if (!r.ok) {
-        setSliderImages(prevImages);
-        if (d.error === "admin_not_configured") {
-          setError(t("admin.errConfig"));
-        } else if (d.error === "unauthorized") {
-          setError(t("admin.errAuth"));
-        } else if (
-          d.error === "persist_failed" ||
-          d.error === "persist_verify_failed"
-        ) {
-          setError(t("admin.sliderPersistErr"));
-        } else {
-          setError(t("admin.sliderDeleteErr"));
+    return runSliderChain(async () => {
+      setError("");
+      setSliderMsg("");
+      setSliderImages((imgs) => imgs.filter((x) => x.id !== id));
+      try {
+        const r = await fetch(`/api/home-slider?_=${Date.now()}`, {
+          method: "DELETE",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-secret": secret.trim(),
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
+          body: JSON.stringify({ id }),
+        });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          await loadHomeSlider();
+          if (d.error === "admin_not_configured") {
+            setError(t("admin.errConfig"));
+          } else if (d.error === "unauthorized") {
+            setError(t("admin.errAuth"));
+          } else if (
+            d.error === "persist_failed" ||
+            d.error === "persist_verify_failed"
+          ) {
+            setError(t("admin.sliderPersistErr"));
+          } else if (d.error === "not_found") {
+            setError(t("admin.sliderDeleteErr"));
+          } else {
+            setError(t("admin.sliderDeleteErr"));
+          }
+          return;
         }
-        return;
-      }
-      if (Array.isArray(d.images)) {
-        setSliderImages(d.images);
-      } else {
+        if (Array.isArray(d.images)) {
+          setSliderImages(d.images);
+        } else {
+          await loadHomeSlider();
+        }
+        setSliderMsg(t("admin.sliderDeleted"));
+      } catch {
         await loadHomeSlider();
+        setError(t("admin.errNet"));
       }
-      setSliderMsg(t("admin.sliderDeleted"));
-    } catch {
-      setSliderImages(prevImages);
-      setError(t("admin.errNet"));
+    });
+  };
+
+  const clearAllSliderImages = async () => {
+    if (!secret.trim() || sliderImages.length === 0) return;
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(t("admin.sliderClearAllConfirm"))
+    ) {
+      return;
     }
+    return runSliderChain(async () => {
+      setError("");
+      setSliderMsg("");
+      setSliderImages([]);
+      try {
+        const r = await fetch(`/api/home-slider?_=${Date.now()}`, {
+          method: "POST",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-secret": secret.trim(),
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
+          body: JSON.stringify({ clear: true }),
+        });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          await loadHomeSlider();
+          if (d.error === "admin_not_configured") {
+            setError(t("admin.errConfig"));
+          } else if (d.error === "unauthorized") {
+            setError(t("admin.errAuth"));
+          } else if (
+            d.error === "persist_failed" ||
+            d.error === "persist_verify_failed"
+          ) {
+            setError(t("admin.sliderPersistErr"));
+          } else {
+            setError(t("admin.sliderClearAllErr"));
+          }
+          return;
+        }
+        if (Array.isArray(d.images)) {
+          setSliderImages(d.images);
+        } else {
+          await loadHomeSlider();
+        }
+        setSliderMsg(t("admin.sliderClearedAll"));
+      } catch {
+        await loadHomeSlider();
+        setError(t("admin.errNet"));
+      }
+    });
   };
 
   const savePromoEnabled = async (enabled) => {
@@ -1534,28 +1613,48 @@ export default function AdminOrdersPage() {
                       </p>
                     ) : null}
                     {sliderImages.length ? (
-                      <ul className="mb-4 grid gap-2 sm:grid-cols-2">
-                        {sliderImages.map((img) => (
-                          <li
-                            key={img.id}
-                            className="flex items-center gap-2 rounded-lg border border-slate-700/80 bg-slate-950/40 p-2"
-                          >
-                            <img
-                              src={img.url}
-                              alt=""
-                              className="h-16 w-24 shrink-0 rounded object-cover"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => deleteSliderImage(img.id)}
-                              disabled={sliderUploading || !secret.trim()}
-                              className="rounded-lg border border-red-900/50 bg-red-950/20 px-2 py-1 text-[11px] text-red-300 hover:bg-red-950/40 disabled:cursor-not-allowed disabled:opacity-50"
+                      <>
+                        <ul className="mb-3 grid gap-2 sm:grid-cols-2">
+                          {sliderImages.map((img) => (
+                            <li
+                              key={img.id}
+                              className="flex items-center gap-2 rounded-lg border border-slate-700/80 bg-slate-950/40 p-2"
                             >
-                              {t("admin.sliderDelete")}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
+                              <img
+                                src={img.url}
+                                alt=""
+                                className="h-16 w-24 shrink-0 rounded object-cover"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => deleteSliderImage(img.id)}
+                                disabled={
+                                  sliderUploading ||
+                                  sliderBusy ||
+                                  !secret.trim()
+                                }
+                                className="rounded-lg border border-red-900/50 bg-red-950/20 px-2 py-1 text-[11px] text-red-300 hover:bg-red-950/40 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                {t("admin.sliderDelete")}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                        <div className="mb-4">
+                          <button
+                            type="button"
+                            onClick={() => void clearAllSliderImages()}
+                            disabled={
+                              sliderUploading ||
+                              sliderBusy ||
+                              !secret.trim()
+                            }
+                            className="rounded-lg border border-red-800/60 bg-red-950/30 px-3 py-1.5 text-[11px] font-medium text-red-200 hover:bg-red-950/50 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {t("admin.sliderClearAll")}
+                          </button>
+                        </div>
+                      </>
                     ) : (
                       <p className="mb-4 text-xs text-gray-500">
                         {t("admin.sliderEmpty")}
@@ -1566,13 +1665,15 @@ export default function AdminOrdersPage() {
                         ref={sliderFileRef}
                         type="file"
                         accept="image/jpeg,image/png,image/webp,image/gif"
-                        disabled={sliderUploading}
+                        disabled={sliderUploading || sliderBusy}
                         className="max-w-full text-xs text-gray-400 file:mr-2 file:rounded-lg file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-gray-200"
                       />
                       <button
                         type="button"
-                        onClick={uploadSliderImage}
-                        disabled={sliderUploading || !secret.trim()}
+                        onClick={() => void uploadSliderImage()}
+                        disabled={
+                          sliderUploading || sliderBusy || !secret.trim()
+                        }
                         className="btn-primary shrink-0 text-sm disabled:opacity-50"
                       >
                         {sliderUploading

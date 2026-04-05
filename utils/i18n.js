@@ -611,7 +611,7 @@ const HE = {
   "admin.promoVideoSection": "סרטון בכניסה לאתר",
   "admin.sliderSection": "סליידר תמונות בדף הבית",
   "admin.sliderHint":
-    "מוצג בין מנת בורגר 160 לבורגר 200. עד 24 תמונות (JPEG, PNG, WebP, GIF). נדרש Vercel Blob. כל העלאה מוסיפה שורה נפרדת — אותה תמונה שהועלתה כמה פעמים תופיע כמה פעמים; «הסרה» מוחקת רק את השורה שלחצת עליה.",
+    "מוצג בין מנת בורגר 160 לבורגר 200. עד 24 תמונות (JPEG, PNG, WebP, GIF). נדרש Vercel Blob. כל העלאה מוסיפה שורה נפרדת — אותה תמונה שהועלתה כמה פעמים תופיע כמה פעמים; «הסרה» מוחקת רק את השורה שלחצת עליה. למחיקת כל התמונות בבת אחת השתמשו ב«הסר את כל התמונות» (מניעת בעיות כשמוחקים מהר ברצף).",
   "admin.sliderUploadBtn": "העלאת תמונה לסליידר",
   "admin.sliderUploading": "מעלה תמונה…",
   "admin.sliderUploaded": "התמונה נוספה לסליידר.",
@@ -620,6 +620,11 @@ const HE = {
   "admin.sliderDeleteConfirm": "להסיר תמונה זו מהסליידר? (הקובץ יימחק מ־Blob אם אפשר)",
   "admin.sliderDeleted": "התמונה הוסרה מהסליידר.",
   "admin.sliderDeleteErr": "לא ניתן היה להסיר את התמונה.",
+  "admin.sliderClearAll": "הסר את כל התמונות",
+  "admin.sliderClearAllConfirm":
+    "להסיר את כל תמונות הסליידר בבת אחת? (קבצי Blob יימחקו מהאחסון אם אפשר)",
+  "admin.sliderClearedAll": "כל תמונות הסליידר הוסרו.",
+  "admin.sliderClearAllErr": "לא ניתן היה להסיר את כל התמונות.",
   "admin.sliderPersistErr":
     "השמירה לשרת נכשלה (בדרך כלל חיבור KV/Redis). בדקו משתני סביבה; בלי שמירה תקינה השינויים לא יישמרו.",
   "admin.sliderErrMissing": "בחר קובץ תמונה לפני ההעלאה.",
@@ -1274,7 +1279,7 @@ const AR = {
   "admin.promoVideoSection": "فيديو عند الدخول",
   "admin.sliderSection": "شريط صور في الصفحة الرئيسية",
   "admin.sliderHint":
-    "يُعرض بين وجبة برغر 160 وبرغر 200. حتى 24 صورة (JPEG، PNG، WebP، GIF). يلزم Vercel Blob. كل رفع يضيف صفاً منفصلاً — نفس الصورة المرفوعة عدة مرات تظهر عدة مرات؛ «إزالة» تحذف فقط الصف الذي ضغطت عليه.",
+    "يُعرض بين وجبة برغر 160 وبرغر 200. حتى 24 صورة (JPEG، PNG، WebP، GIF). يلزم Vercel Blob. كل رفع يضيف صفاً منفصلاً — نفس الصورة المرفوعة عدة مرات تظهر عدة مرات؛ «إزالة» تحذف فقط الصف الذي ضغطت عليه. لحذف كل الصور دفعة واحدة استخدموا «إزالة كل الصور» (يمنع مشاكل الحذف السريع المتتابع).",
   "admin.sliderUploadBtn": "رفع صورة للشريط",
   "admin.sliderUploading": "جارٍ رفع الصورة…",
   "admin.sliderUploaded": "أُضيفت الصورة إلى الشريط.",
@@ -1283,6 +1288,11 @@ const AR = {
   "admin.sliderDeleteConfirm": "إزالة هذه الصورة من الشريط؟ (يُحذف الملف من Blob إن أمكن)",
   "admin.sliderDeleted": "أُزيلت الصورة من الشريط.",
   "admin.sliderDeleteErr": "تعذّرت إزالة الصورة.",
+  "admin.sliderClearAll": "إزالة كل الصور",
+  "admin.sliderClearAllConfirm":
+    "إزالة كل صور الشريط دفعة واحدة؟ (تُحذف ملفات Blob من التخزين إن أمكن)",
+  "admin.sliderClearedAll": "أُزيلت كل صور الشريط.",
+  "admin.sliderClearAllErr": "تعذّرت إزالة كل الصور.",
   "admin.sliderPersistErr":
     "فشل الحفظ على الخادم (غالباً اتصال KV/Redis). تحققوا من متغيرات البيئة؛ بدون حفظ صحيح لن تُحفظ التغييرات.",
   "admin.sliderErrMissing": "اختر ملف صورة قبل الرفع.",

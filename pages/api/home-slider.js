@@ -1,5 +1,6 @@
 import { del as deleteBlob } from "@vercel/blob";
 import {
+  clearHomeSliderImages,
   getHomeSliderPublic,
   removeHomeSliderImage,
 } from "@/lib/homeSliderStore";
@@ -72,7 +73,9 @@ export default async function handler(req, res) {
         result.error === "persist_failed" ||
         result.error === "persist_verify_failed"
           ? 503
-          : 400;
+          : result.error === "not_found"
+            ? 404
+            : 400;
       return res.status(status).json({ ok: false, error: result.error });
     }
     const data = await getHomeSliderPublic();
@@ -84,6 +87,43 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, ...data });
   }
 
-  res.setHeader("Allow", "GET, DELETE");
+  if (req.method === "POST") {
+    const auth = authorize(req);
+    if (!auth.ok) {
+      if (auth.reason === "not_configured") {
+        return res.status(503).json({ ok: false, error: "admin_not_configured" });
+      }
+      return res.status(401).json({ ok: false, error: "unauthorized" });
+    }
+    let body;
+    try {
+      body = await readJsonBody(req);
+    } catch {
+      return res.status(400).json({ ok: false, error: "invalid_json" });
+    }
+    if (body?.clear !== true) {
+      return res.status(400).json({ ok: false, error: "invalid_body" });
+    }
+    const cleared = await clearHomeSliderImages();
+    if (!cleared.ok) {
+      const status =
+        cleared.error === "persist_failed" ||
+        cleared.error === "persist_verify_failed"
+          ? 503
+          : 400;
+      return res.status(status).json({ ok: false, error: cleared.error });
+    }
+    const data = await getHomeSliderPublic();
+    for (const url of cleared.removedUrls) {
+      if (typeof url === "string" && isVercelBlobUrl(url)) {
+        void deleteBlob(url).catch(() => {
+          /* ignore blob delete failure */
+        });
+      }
+    }
+    return res.status(200).json({ ok: true, ...data });
+  }
+
+  res.setHeader("Allow", "GET, DELETE, POST");
   return res.status(405).json({ ok: false, error: "method_not_allowed" });
 }
