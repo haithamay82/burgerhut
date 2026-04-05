@@ -1448,9 +1448,14 @@ export default function CheckoutPage() {
           role="alert"
           aria-live="polite"
         >
-          <p className="max-w-sm text-center text-lg font-semibold leading-snug text-amber-50 sm:text-xl">
-            {t("checkout.restaurantClosedNow")}
-          </p>
+          <div className="max-w-sm space-y-3 text-center">
+            <p className="text-lg font-semibold leading-snug text-amber-50 sm:text-xl">
+              {t("checkout.restaurantClosedNow")}
+            </p>
+            <p className="text-sm font-medium leading-snug text-amber-200/90">
+              {t("checkout.restaurantClosedHoursHint")}
+            </p>
+          </div>
         </div>
       ) : null}
       </div>

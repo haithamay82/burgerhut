@@ -255,6 +255,7 @@ const HE = {
   "checkout.addressPh": "עיר, רחוב, דירה, הערות למשלוח",
   "checkout.payment": "תשלום",
   "checkout.restaurantClosedNow": "המסעדה סגורה כעת.",
+  "checkout.restaurantClosedHoursHint": "ראה זמני עבודה בדף הראשי",
   "checkout.cardUnavailableBanner": "עדיין אין אשראי",
   "checkout.cardUnavailableSubline": "עוד שבוע יהיה",
   "checkout.submit": "סיום הזמנה ותשלום",
@@ -920,6 +921,8 @@ const AR = {
   "checkout.addressPh": "المدينة، الشارع، رقم البيت، ملاحظات للوصل",
   "checkout.payment": "طريقة الدفع",
   "checkout.restaurantClosedNow": "المطعم مغلق حالياً.",
+  "checkout.restaurantClosedHoursHint":
+    "اطّلع على ساعات العمل في الصفحة الرئيسية",
   "checkout.cardUnavailableBanner": "لا يتوفر الدفع بالبطاقة بعد",
   "checkout.cardUnavailableSubline": "سيكون خلال أسبوع",
   "checkout.submit": "اكمال الطلب والدفع",
