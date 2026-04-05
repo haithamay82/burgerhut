@@ -5,7 +5,7 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { useCart } from "@/hooks/useCart";
 import {
   PENDING_ORDER_KEY,
-  CARD_SUCCESS_SNAPSHOT_KEY,
+  writeCardSuccessSnapshot,
 } from "@/utils/checkoutSessionKeys";
 import { buildCardOrderDetailsFromItems } from "@/utils/cardOrderDetails";
 import { consumePendingOrderForCheckoutResume } from "@/utils/checkoutResumeFromPending";
@@ -149,22 +149,19 @@ export default function CardPayPage() {
       }
 
       try {
-        window.sessionStorage.setItem(
-          CARD_SUCCESS_SNAPSHOT_KEY,
-          JSON.stringify({
-            customer: pending.customer,
-            items: pending.items,
-            payment: pending.payment,
-            orderNumber: pending.orderNumber,
-            cardUniqueId:
-              typeof pending.cardUniqueId === "string"
-                ? pending.cardUniqueId
-                : String(orderId || ""),
-            locale: pending.locale,
-            waGrandTotal: pending.waGrandTotal,
-            couponRewardBaseNis: pending.couponRewardBaseNis,
-          })
-        );
+        writeCardSuccessSnapshot({
+          customer: pending.customer,
+          items: pending.items,
+          payment: pending.payment,
+          orderNumber: pending.orderNumber,
+          cardUniqueId:
+            typeof pending.cardUniqueId === "string"
+              ? pending.cardUniqueId
+              : String(orderId || ""),
+          locale: pending.locale,
+          waGrandTotal: pending.waGrandTotal,
+          couponRewardBaseNis: pending.couponRewardBaseNis,
+        });
       } catch {
         /* ignore */
       }

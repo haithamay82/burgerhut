@@ -7,11 +7,15 @@ import { buildWhatsAppUrl } from "@/utils/whatsapp";
 import {
   BIT_DEFERRED_COUPON_CLAIM_KEY,
   buildSuccessPageMatchKey,
-  CARD_SUCCESS_SNAPSHOT_KEY,
+  clearCardSuccessSnapshot,
+  hasValidCardSuccessSnapshot,
   PENDING_ORDER_KEY,
-  SUCCESS_WA_RESTORE_KEY,
+  readCardSuccessSnapshotRaw,
+  clearSuccessWaRestore,
+  readSuccessWaRestoreRaw,
   SUCCESS_WA_SENT_KEY,
   SUCCESS_WA_SNAPSHOT_KEY,
+  writeSuccessWaRestore,
 } from "@/utils/checkoutSessionKeys";
 
 function deferredCouponClaimStorageKey(orderNumber, code) {
@@ -21,19 +25,6 @@ function deferredCouponClaimStorageKey(orderNumber, code) {
 function firstQuery(router, key) {
   const v = router.query?.[key];
   return Array.isArray(v) ? v[0] : v;
-}
-
-/** יש snapshot אשראי ב-session לפני צריכה — חזרה מ-Hyp ל־/success בלי query תקין */
-function hasCardSuccessSnapshotInStorage() {
-  if (typeof window === "undefined") return false;
-  try {
-    const raw = window.sessionStorage.getItem(CARD_SUCCESS_SNAPSHOT_KEY);
-    if (!raw) return false;
-    const snap = JSON.parse(raw);
-    return Boolean(snap?.customer && Array.isArray(snap.items) && snap.items.length);
-  } catch {
-    return false;
-  }
 }
 
 /** צריכת קופון דחויה (ביט/אשראי) אחרי השלמת תשלום — פעם אחת לכל צמד הזמנה+קוד */
@@ -94,6 +85,33 @@ export default function SuccessPage() {
     firstQuery(router, "txId") ||
     firstQuery(router, "cgUid") ||
     firstQuery(router, "Id");
+  /** חלק מההגדרות ב-Hyp מחזירות מזהים ב-hash של ה-URL — Next query לא תופס */
+  const [hypFromHash, setHypFromHash] = useState("");
+  useEffect(() => {
+    if (!router.isReady || typeof window === "undefined") return;
+    const hash = (window.location.hash || "").replace(/^#/, "");
+    if (!hash.includes("=")) {
+      setHypFromHash("");
+      return;
+    }
+    const qs = hash.startsWith("?") ? hash.slice(1) : hash;
+    try {
+      const p = new URLSearchParams(qs);
+      const h =
+        p.get("uniqueId") ||
+        p.get("uniqueID") ||
+        p.get("txId") ||
+        p.get("cgUid") ||
+        p.get("Id") ||
+        "";
+      setHypFromHash(String(h || ""));
+    } catch {
+      setHypFromHash("");
+    }
+  }, [router.isReady, router.asPath]);
+
+  const payDoneMarker = String(hypReturn || hypFromHash || "");
+
   const [cardWaUrl, setCardWaUrl] = useState("");
   const [cardOrder, setCardOrder] = useState(null);
   const [coupon, setCoupon] = useState(null);
@@ -108,7 +126,7 @@ export default function SuccessPage() {
 
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
-    if (hypReturn) {
+    if (payDoneMarker) {
       try {
         window.sessionStorage.removeItem(PENDING_ORDER_KEY);
       } catch {
@@ -116,27 +134,25 @@ export default function SuccessPage() {
       }
     }
     const allowSnapshotLoad =
-      Boolean(hypReturn) ||
+      Boolean(payDoneMarker) ||
       method === "card" ||
       method === "cash" ||
-      hasCardSuccessSnapshotInStorage();
+      hasValidCardSuccessSnapshot();
     if (!allowSnapshotLoad) return;
 
     const methodStr = String(method || "");
-    const snapshotKey =
-      methodStr === "cash" ? SUCCESS_WA_SNAPSHOT_KEY : CARD_SUCCESS_SNAPSHOT_KEY;
 
     const buildMatchKey = () =>
       buildSuccessPageMatchKey({
         method: methodStr,
         orderOn: orderFromQuery,
-        hypReturn,
+        hypReturn: payDoneMarker,
       });
 
     const RESTORE_MAX_AGE_MS = 48 * 3600 * 1000;
 
     try {
-      const rawRestore = window.sessionStorage.getItem(SUCCESS_WA_RESTORE_KEY);
+      const rawRestore = readSuccessWaRestoreRaw();
       if (rawRestore) {
         const restored = JSON.parse(rawRestore);
         const age = Date.now() - Number(restored?.savedAt || 0);
@@ -167,7 +183,7 @@ export default function SuccessPage() {
             setCardOrder(co);
           }
           if (
-            hypReturn &&
+            payDoneMarker &&
             restored.deferredCouponCode &&
             restored.deferredCouponClaimOrderNumber != null &&
             String(restored.deferredCouponClaimOrderNumber).trim() !== ""
@@ -185,7 +201,12 @@ export default function SuccessPage() {
     }
 
     try {
-      const raw = window.sessionStorage.getItem(snapshotKey);
+      let raw;
+      if (methodStr === "cash") {
+        raw = window.sessionStorage.getItem(SUCCESS_WA_SNAPSHOT_KEY);
+      } else {
+        raw = readCardSuccessSnapshotRaw();
+      }
       if (!raw) return;
       const snap = JSON.parse(raw);
       if (!snap?.customer || !Array.isArray(snap.items) || !snap.items.length) {
@@ -211,7 +232,11 @@ export default function SuccessPage() {
           : amountFromItems) || 0;
       const nextCardOrder = {
         orderId: String(
-          snap.cardUniqueId ?? snap.orderNumber ?? orderFromQuery ?? hypReturn ?? ""
+          snap.cardUniqueId ??
+            snap.orderNumber ??
+            orderFromQuery ??
+            payDoneMarker ??
+            ""
         ),
         amount: grand,
       };
@@ -227,7 +252,7 @@ export default function SuccessPage() {
       setCardWaUrl(url);
       setCardOrder(nextCardOrder);
       if (
-        hypReturn &&
+        payDoneMarker &&
         snap.orderNumber != null &&
         String(snap.orderNumber).trim() !== "" &&
         String(snap.customer?.couponCode || "").trim()
@@ -241,30 +266,34 @@ export default function SuccessPage() {
         const deferredCouponCode = String(snap.customer?.couponCode || "")
           .trim()
           .toUpperCase();
-        window.sessionStorage.setItem(
-          SUCCESS_WA_RESTORE_KEY,
-          JSON.stringify({
-            matchKey: buildMatchKey(),
-            waUrl: url,
-            cardOrder: nextCardOrder,
-            savedAt: Date.now(),
-            deferredCouponClaimOrderNumber:
-              snap.orderNumber != null &&
-              String(snap.orderNumber).trim() !== ""
-                ? snap.orderNumber
-                : null,
-            deferredCouponCode:
-              deferredCouponCode || undefined,
-          })
-        );
-        window.sessionStorage.removeItem(snapshotKey);
+        writeSuccessWaRestore({
+          matchKey: buildMatchKey(),
+          waUrl: url,
+          cardOrder: nextCardOrder,
+          savedAt: Date.now(),
+          deferredCouponClaimOrderNumber:
+            snap.orderNumber != null &&
+            String(snap.orderNumber).trim() !== ""
+              ? snap.orderNumber
+              : null,
+          deferredCouponCode: deferredCouponCode || undefined,
+        });
+        if (methodStr === "cash") {
+          try {
+            window.sessionStorage.removeItem(SUCCESS_WA_SNAPSHOT_KEY);
+          } catch {
+            /* ignore */
+          }
+        } else {
+          clearCardSuccessSnapshot();
+        }
       } catch {
         /* ignore */
       }
     } catch {
       /* ignore */
     }
-  }, [router.isReady, hypReturn, method, locale, orderFromQuery]);
+  }, [router.isReady, payDoneMarker, method, locale, orderFromQuery]);
 
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
@@ -311,16 +340,16 @@ export default function SuccessPage() {
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
     const waAuxFlow =
-      Boolean(hypReturn) ||
+      Boolean(payDoneMarker) ||
       method === "card" ||
       method === "cash" ||
       Boolean(cardWaUrl) ||
-      hasCardSuccessSnapshotInStorage();
+      hasValidCardSuccessSnapshot();
     if (!waAuxFlow) return;
     const mk = buildSuccessPageMatchKey({
       method,
       orderOn: orderFromQuery,
-      hypReturn,
+      hypReturn: payDoneMarker,
     });
     const RESTORE_MAX_AGE_MS = 48 * 3600 * 1000;
     let used = false;
@@ -341,16 +370,16 @@ export default function SuccessPage() {
       /* ignore */
     }
     setWaComposeAlreadyUsed(used);
-  }, [router.isReady, hypReturn, method, orderFromQuery, cardWaUrl]);
+  }, [router.isReady, payDoneMarker, method, orderFromQuery, cardWaUrl]);
 
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
     const waAuxFlow =
-      Boolean(hypReturn) ||
+      Boolean(payDoneMarker) ||
       method === "card" ||
       method === "cash" ||
       Boolean(cardWaUrl) ||
-      hasCardSuccessSnapshotInStorage();
+      hasValidCardSuccessSnapshot();
     if (!waAuxFlow) {
       setCustomerCouponsActive(null);
       return;
@@ -371,16 +400,16 @@ export default function SuccessPage() {
     return () => {
       cancelled = true;
     };
-  }, [router.isReady, hypReturn, method, cardWaUrl]);
+  }, [router.isReady, payDoneMarker, method, cardWaUrl]);
 
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
     const waAuxFlow =
-      Boolean(hypReturn) ||
+      Boolean(payDoneMarker) ||
       method === "card" ||
       method === "cash" ||
       Boolean(cardWaUrl) ||
-      hasCardSuccessSnapshotInStorage();
+      hasValidCardSuccessSnapshot();
     if (!waAuxFlow) {
       setCouponFetchSettled(true);
       return;
@@ -449,9 +478,9 @@ export default function SuccessPage() {
     return () => {
       active = false;
     };
-  }, [router.isReady, hypReturn, method, cardOrder, customerCouponsActive]);
+  }, [router.isReady, payDoneMarker, method, cardOrder, customerCouponsActive]);
 
-  const title = hypReturn
+  const title = payDoneMarker
     ? t("success.paymentCompleted")
     : method === "online"
       ? t("success.titleOnline")
@@ -461,7 +490,7 @@ export default function SuccessPage() {
           ? t("success.paymentCompleted")
           : t("success.titleOk");
 
-  const description = hypReturn
+  const description = payDoneMarker
     ? t("success.paymentCompletedSub")
     : method === "online"
       ? t("success.descOnline")
@@ -488,7 +517,7 @@ export default function SuccessPage() {
    * בלי להמתין לקופון. אחרת: קופון כבוי / קופון נטען / סיום ניסיון יצירת קופון.
    */
   const postPaymentWhatsAppContext =
-    Boolean(hypReturn) ||
+    Boolean(payDoneMarker) ||
     method === "card" ||
     method === "cash" ||
     (Boolean(cardWaUrl) && Boolean(cardOrder));
@@ -497,7 +526,7 @@ export default function SuccessPage() {
     customerCouponsActive === false ||
     Boolean(coupon?.code) ||
     couponFetchSettled ||
-    (Boolean(hypReturn) && Boolean(cardWaUrl)) ||
+    (Boolean(payDoneMarker) && Boolean(cardWaUrl)) ||
     (String(method) === "card" && Boolean(cardWaUrl)) ||
     (Boolean(cardWaUrl) &&
       Boolean(cardOrder) &&
@@ -591,7 +620,7 @@ export default function SuccessPage() {
                   const mk = buildSuccessPageMatchKey({
                     method,
                     orderOn: orderFromQuery,
-                    hypReturn,
+                    hypReturn: payDoneMarker,
                   });
                   try {
                     window.sessionStorage.setItem(
@@ -630,11 +659,7 @@ export default function SuccessPage() {
           href="/"
           className="btn-primary"
           onClick={() => {
-            try {
-              window.sessionStorage.removeItem(SUCCESS_WA_RESTORE_KEY);
-            } catch {
-              /* ignore */
-            }
+            clearSuccessWaRestore();
           }}
         >
           {t("success.back")}
