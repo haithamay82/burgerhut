@@ -351,6 +351,7 @@ export default function SuccessPage() {
     }
     const couponCreateAmount = couponCreateAmountFromCardOrder(cardOrder);
     if (!cardOrder?.orderId || couponCreateAmount <= 0) {
+      setCouponFetchSettled(true);
       return;
     }
 
@@ -439,9 +440,16 @@ export default function SuccessPage() {
     }).format(d);
   };
 
-  /** פעיל מיד כשהמנהל כיבה קופונים ללקוחות; אחרת רק אחרי שקופון נטען */
+  /**
+   * אחרי תשלום אשראי (חזרה מ-Hyp): כפתור «שלח את ההזמנה» פעיל כשיש waUrl,
+   * בלי להמתין לקופון. אחרת: קופון כבוי / קופון נטען / סיום ניסיון יצירת קופון.
+   */
   const waLinkActive =
-    customerCouponsActive === false || Boolean(coupon?.code);
+    customerCouponsActive === false ||
+    Boolean(coupon?.code) ||
+    couponFetchSettled ||
+    (Boolean(hypReturn) && Boolean(cardWaUrl)) ||
+    (String(method) === "card" && Boolean(cardWaUrl));
 
   const waLinkLabel =
     coupon?.code && Number(coupon?.value) > 0

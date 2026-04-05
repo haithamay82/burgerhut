@@ -254,6 +254,7 @@ const HE = {
   "checkout.address": "כתובת מלאה",
   "checkout.addressPh": "עיר, רחוב, דירה, הערות למשלוח",
   "checkout.payment": "תשלום",
+  "checkout.cardUnavailableBanner": "עדיין אין אשראי",
   "checkout.submit": "סיום הזמנה ותשלום",
   "checkout.submitting": "מעבדים…",
   "checkout.cardHypNotConfigured":
@@ -916,6 +917,7 @@ const AR = {
   "checkout.address": "العنوان الكامل",
   "checkout.addressPh": "المدينة، الشارع، رقم البيت، ملاحظات للوصل",
   "checkout.payment": "طريقة الدفع",
+  "checkout.cardUnavailableBanner": "لا يتوفر الدفع بالبطاقة بعد",
   "checkout.submit": "اكمال الطلب والدفع",
   "checkout.submitting": "جارٍ معالجة الطلب...",
   "checkout.cardHypNotConfigured":
