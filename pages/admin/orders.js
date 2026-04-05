@@ -932,6 +932,8 @@ export default function AdminOrdersPage() {
     }
     setError("");
     setSliderMsg("");
+    const prevImages = sliderImages;
+    setSliderImages((imgs) => imgs.filter((x) => x.id !== id));
     try {
       const r = await fetch("/api/home-slider", {
         method: "DELETE",
@@ -943,6 +945,7 @@ export default function AdminOrdersPage() {
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) {
+        setSliderImages(prevImages);
         if (d.error === "admin_not_configured") {
           setError(t("admin.errConfig"));
         } else if (d.error === "unauthorized") {
@@ -959,6 +962,7 @@ export default function AdminOrdersPage() {
       }
       setSliderMsg(t("admin.sliderDeleted"));
     } catch {
+      setSliderImages(prevImages);
       setError(t("admin.errNet"));
     }
   };

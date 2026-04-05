@@ -64,14 +64,12 @@ export default async function handler(req, res) {
     if (!result.ok) {
       return res.status(400).json({ ok: false, error: result.error });
     }
-    if (result.removed?.url && isVercelBlobUrl(result.removed.url)) {
-      try {
-        await deleteBlob(result.removed.url);
-      } catch {
-        /* ignore blob delete failure */
-      }
-    }
     const data = await getHomeSliderPublic();
+    if (result.removed?.url && isVercelBlobUrl(result.removed.url)) {
+      void deleteBlob(result.removed.url).catch(() => {
+        /* ignore blob delete failure */
+      });
+    }
     return res.status(200).json({ ok: true, ...data });
   }
 
