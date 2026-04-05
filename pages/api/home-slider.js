@@ -67,7 +67,10 @@ export default async function handler(req, res) {
     const result = await removeHomeSliderImage(id);
     if (!result.ok) {
       const status =
-        result.error === "persist_failed" ? 503 : 400;
+        result.error === "persist_failed" ||
+        result.error === "persist_verify_failed"
+          ? 503
+          : 400;
       return res.status(status).json({ ok: false, error: result.error });
     }
     const data = await getHomeSliderPublic();

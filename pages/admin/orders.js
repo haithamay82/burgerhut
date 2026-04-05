@@ -950,7 +950,10 @@ export default function AdminOrdersPage() {
           setError(t("admin.errConfig"));
         } else if (d.error === "unauthorized") {
           setError(t("admin.errAuth"));
-        } else if (d.error === "persist_failed") {
+        } else if (
+          d.error === "persist_failed" ||
+          d.error === "persist_verify_failed"
+        ) {
           setError(t("admin.sliderPersistErr"));
         } else {
           setError(t("admin.sliderDeleteErr"));

@@ -25,7 +25,7 @@ export default function HomeMediaSlider({ initialImages = [] }) {
     let cancelled = false;
     const load = async () => {
       try {
-        const r = await fetch("/api/home-slider");
+        const r = await fetch("/api/home-slider", { cache: "no-store" });
         const d = await r.json().catch(() => ({}));
         if (cancelled || !r.ok || !d?.ok || !Array.isArray(d.images)) {
           return;
