@@ -1304,6 +1304,9 @@ export default function CheckoutPage() {
                     <p className="text-center text-[10px] font-semibold leading-tight text-red-400">
                       {t("checkout.cardUnavailableBanner")}
                     </p>
+                    <p className="text-center text-[9px] leading-tight text-red-300/85">
+                      {t("checkout.cardUnavailableSubline")}
+                    </p>
                     <button
                       type="button"
                       onClick={() => selectPayment(m.id)}
