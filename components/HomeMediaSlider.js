@@ -43,10 +43,11 @@ export default function HomeMediaSlider({ initialImages = [] }) {
 
   const loopImages = useMemo(() => [...images, ...images], [images]);
 
+  /** משך קצר יותר = מרקיז מהיר יותר (חצי מהערכים הקודמים ≈ פי 2 במהירות) */
   const animationDurationSec = useMemo(() => {
     const n = images.length;
-    if (n <= 0) return 20;
-    return Math.min(42, Math.max(10, n * 6));
+    if (n <= 0) return 10;
+    return Math.min(21, Math.max(5, n * 3));
   }, [images.length]);
 
   if (!images.length) return null;
