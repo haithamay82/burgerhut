@@ -38,7 +38,7 @@ export default async function handler(req, res) {
       const data = await getHomeSliderPublic();
       res.setHeader(
         "Cache-Control",
-        "public, s-maxage=30, stale-while-revalidate=120"
+        "private, max-age=0, must-revalidate"
       );
       return res.status(200).json(data);
     } catch {
@@ -66,7 +66,9 @@ export default async function handler(req, res) {
     }
     const result = await removeHomeSliderImage(id);
     if (!result.ok) {
-      return res.status(400).json({ ok: false, error: result.error });
+      const status =
+        result.error === "persist_failed" ? 503 : 400;
+      return res.status(status).json({ ok: false, error: result.error });
     }
     const data = await getHomeSliderPublic();
     if (result.removed?.url && isVercelBlobUrl(result.removed.url)) {

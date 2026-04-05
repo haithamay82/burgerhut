@@ -611,7 +611,7 @@ const HE = {
   "admin.promoVideoSection": "סרטון בכניסה לאתר",
   "admin.sliderSection": "סליידר תמונות בדף הבית",
   "admin.sliderHint":
-    "מוצג בין מנת בורגר 160 לבורגר 200. עד 24 תמונות (JPEG, PNG, WebP, GIF). נדרש Vercel Blob.",
+    "מוצג בין מנת בורגר 160 לבורגר 200. עד 24 תמונות (JPEG, PNG, WebP, GIF). נדרש Vercel Blob. כל העלאה מוסיפה שורה נפרדת — אותה תמונה שהועלתה כמה פעמים תופיע כמה פעמים; «הסרה» מוחקת רק את השורה שלחצת עליה.",
   "admin.sliderUploadBtn": "העלאת תמונה לסליידר",
   "admin.sliderUploading": "מעלה תמונה…",
   "admin.sliderUploaded": "התמונה נוספה לסליידר.",
@@ -620,6 +620,8 @@ const HE = {
   "admin.sliderDeleteConfirm": "להסיר תמונה זו מהסליידר? (הקובץ יימחק מ־Blob אם אפשר)",
   "admin.sliderDeleted": "התמונה הוסרה מהסליידר.",
   "admin.sliderDeleteErr": "לא ניתן היה להסיר את התמונה.",
+  "admin.sliderPersistErr":
+    "השמירה לשרת נכשלה (בדרך כלל חיבור KV/Redis). בדקו משתני סביבה; בלי שמירה תקינה השינויים לא יישמרו.",
   "admin.sliderErrMissing": "בחר קובץ תמונה לפני ההעלאה.",
   "home.sliderAria": "תמונות פרסום",
   "admin.promoStatusOn": "מוצג ללקוחות (כשיש קובץ)",
@@ -1272,7 +1274,7 @@ const AR = {
   "admin.promoVideoSection": "فيديو عند الدخول",
   "admin.sliderSection": "شريط صور في الصفحة الرئيسية",
   "admin.sliderHint":
-    "يُعرض بين وجبة برغر 160 وبرغر 200. حتى 24 صورة (JPEG، PNG، WebP، GIF). يلزم Vercel Blob.",
+    "يُعرض بين وجبة برغر 160 وبرغر 200. حتى 24 صورة (JPEG، PNG، WebP، GIF). يلزم Vercel Blob. كل رفع يضيف صفاً منفصلاً — نفس الصورة المرفوعة عدة مرات تظهر عدة مرات؛ «إزالة» تحذف فقط الصف الذي ضغطت عليه.",
   "admin.sliderUploadBtn": "رفع صورة للشريط",
   "admin.sliderUploading": "جارٍ رفع الصورة…",
   "admin.sliderUploaded": "أُضيفت الصورة إلى الشريط.",
@@ -1281,6 +1283,8 @@ const AR = {
   "admin.sliderDeleteConfirm": "إزالة هذه الصورة من الشريط؟ (يُحذف الملف من Blob إن أمكن)",
   "admin.sliderDeleted": "أُزيلت الصورة من الشريط.",
   "admin.sliderDeleteErr": "تعذّرت إزالة الصورة.",
+  "admin.sliderPersistErr":
+    "فشل الحفظ على الخادم (غالباً اتصال KV/Redis). تحققوا من متغيرات البيئة؛ بدون حفظ صحيح لن تُحفظ التغييرات.",
   "admin.sliderErrMissing": "اختر ملف صورة قبل الرفع.",
   "home.sliderAria": "صور إعلانية",
   "admin.promoStatusOn": "يُعرض للعملاء (عند وجود ملف)",

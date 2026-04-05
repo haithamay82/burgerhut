@@ -27,6 +27,8 @@ Thumbs.db
 
 # Local order log (do not commit customer data)
 data/orders.json
+# Slider list when using file fallback — must not override production KV in deploy
+data/home-slider.json
 
 # Promo uploads (manager videos)
 public/uploads/*

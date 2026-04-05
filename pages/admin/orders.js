@@ -705,7 +705,7 @@ export default function AdminOrdersPage() {
 
   const loadHomeSlider = async () => {
     try {
-      const r = await fetch("/api/home-slider");
+      const r = await fetch("/api/home-slider", { cache: "no-store" });
       const d = await r.json().catch(() => ({}));
       if (r.ok && d?.ok && Array.isArray(d.images)) {
         setSliderImages(d.images);
@@ -950,6 +950,8 @@ export default function AdminOrdersPage() {
           setError(t("admin.errConfig"));
         } else if (d.error === "unauthorized") {
           setError(t("admin.errAuth"));
+        } else if (d.error === "persist_failed") {
+          setError(t("admin.sliderPersistErr"));
         } else {
           setError(t("admin.sliderDeleteErr"));
         }
