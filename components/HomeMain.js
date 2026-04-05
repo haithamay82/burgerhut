@@ -11,7 +11,10 @@ import { formatIls } from "@/utils/cartMoney";
 import { useEffect, useState } from "react";
 import HomeMediaSlider from "@/components/HomeMediaSlider";
 
-export default function HomeMain({ initialHomeSliderImages = [] }) {
+export default function HomeMain({
+  initialHomeSliderImages = [],
+  initialSliderVersion = 0,
+}) {
   const { t } = useLocale();
   const { menuItems } = useMenuCatalog();
   const {
@@ -176,7 +179,10 @@ export default function HomeMain({ initialHomeSliderImages = [] }) {
               onOpenMealWizard={setMealWizardItem}
             />
             {activeCategory === "burgers" && item.id === "burger-160" ? (
-              <HomeMediaSlider initialImages={initialHomeSliderImages} />
+              <HomeMediaSlider
+                initialImages={initialHomeSliderImages}
+                initialVersion={initialSliderVersion}
+              />
             ) : null}
           </div>
         ))}

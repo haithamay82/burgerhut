@@ -705,7 +705,10 @@ export default function AdminOrdersPage() {
 
   const loadHomeSlider = async () => {
     try {
-      const r = await fetch("/api/home-slider", { cache: "no-store" });
+      const r = await fetch(`/api/home-slider?_=${Date.now()}`, {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+      });
       const d = await r.json().catch(() => ({}));
       if (r.ok && d?.ok && Array.isArray(d.images)) {
         setSliderImages(d.images);

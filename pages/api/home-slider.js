@@ -38,8 +38,10 @@ export default async function handler(req, res) {
       const data = await getHomeSliderPublic();
       res.setHeader(
         "Cache-Control",
-        "private, max-age=0, must-revalidate"
+        "private, no-store, no-cache, must-revalidate, max-age=0"
       );
+      res.setHeader("CDN-Cache-Control", "no-store");
+      res.setHeader("Vercel-CDN-Cache-Control", "no-store");
       return res.status(200).json(data);
     } catch {
       return res.status(200).json({ ok: true, images: [], version: 0 });

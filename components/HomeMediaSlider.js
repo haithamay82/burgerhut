@@ -14,18 +14,32 @@ function usePrefersReducedMotion() {
   return reduce;
 }
 
-export default function HomeMediaSlider({ initialImages = [] }) {
+export default function HomeMediaSlider({
+  initialImages = [],
+  initialVersion = 0,
+}) {
   const { t } = useLocale();
   const [images, setImages] = useState(() =>
-    Array.isArray(initialImages) && initialImages.length ? initialImages : []
+    Array.isArray(initialImages) ? [...initialImages] : []
   );
   const reduceMotion = usePrefersReducedMotion();
+
+  useEffect(() => {
+    setImages(Array.isArray(initialImages) ? [...initialImages] : []);
+  }, [initialVersion, initialImages]);
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       try {
-        const r = await fetch("/api/home-slider", { cache: "no-store" });
+        const bust = `${Date.now()}-${initialVersion}`;
+        const r = await fetch(`/api/home-slider?_=${encodeURIComponent(bust)}`, {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
+        });
         const d = await r.json().catch(() => ({}));
         if (cancelled || !r.ok || !d?.ok || !Array.isArray(d.images)) {
           return;
@@ -39,7 +53,7 @@ export default function HomeMediaSlider({ initialImages = [] }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initialVersion]);
 
   const loopImages = useMemo(() => [...images, ...images], [images]);
 

@@ -15,23 +15,34 @@ const HomeMain = dynamic(() => import("@/components/HomeMain"), {
   ),
 });
 
-export async function getServerSideProps() {
+export async function getServerSideProps({ res }) {
+  if (res) {
+    res.setHeader(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, max-age=0"
+    );
+  }
   let initialHomeSliderImages = [];
+  let initialSliderVersion = 0;
   try {
     const data = await getHomeSliderPublic();
-    if (data?.ok && Array.isArray(data.images) && data.images.length) {
+    if (data?.ok && Array.isArray(data.images)) {
       initialHomeSliderImages = data.images;
+      initialSliderVersion = Number(data.version) || 0;
     }
   } catch {
     /* ignore */
   }
-  return { props: { initialHomeSliderImages } };
+  return { props: { initialHomeSliderImages, initialSliderVersion } };
 }
 
-export default function HomePage({ initialHomeSliderImages }) {
+export default function HomePage({ initialHomeSliderImages, initialSliderVersion }) {
   return (
     <Layout>
-      <HomeMain initialHomeSliderImages={initialHomeSliderImages} />
+      <HomeMain
+        initialHomeSliderImages={initialHomeSliderImages}
+        initialSliderVersion={initialSliderVersion}
+      />
     </Layout>
   );
 }
