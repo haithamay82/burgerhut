@@ -11,17 +11,6 @@ import { formatIls } from "@/utils/cartMoney";
 import { useEffect, useState } from "react";
 import HomeMediaSlider from "@/components/HomeMediaSlider";
 
-const HOME_SLIDER_SHOW_KEY = "bh_home_slider_show";
-
-function readHomeSliderShowPref() {
-  if (typeof window === "undefined") return true;
-  try {
-    return window.localStorage.getItem(HOME_SLIDER_SHOW_KEY) !== "0";
-  } catch {
-    return true;
-  }
-}
-
 export default function HomeMain({
   initialHomeSliderImages = [],
   initialSliderVersion = 0,
@@ -39,7 +28,6 @@ export default function HomeMain({
     !restaurantOpen &&
     todayScheduledOpen;
   const [activeCategory, setActiveCategory] = useState("burgers");
-  const [homeSliderVisible, setHomeSliderVisible] = useState(readHomeSliderShowPref);
   const [mealWizardItem, setMealWizardItem] = useState(null);
   const [discountCfg, setDiscountCfg] = useState({
     enabled: false,
@@ -191,34 +179,10 @@ export default function HomeMain({
               onOpenMealWizard={setMealWizardItem}
             />
             {activeCategory === "burgers" && item.id === "burger-160" ? (
-              <div className="flex min-w-0 w-full flex-col items-stretch gap-2">
-                {homeSliderVisible ? (
-                  <HomeMediaSlider
-                    initialImages={initialHomeSliderImages}
-                    initialVersion={initialSliderVersion}
-                  />
-                ) : null}
-                <label className="mx-auto flex max-w-full cursor-pointer items-center gap-2 rounded-xl border border-slate-600/70 bg-slate-900/55 px-3 py-2 text-[11px] font-medium leading-snug text-gray-200 shadow-sm touch-manipulation sm:text-xs">
-                  <input
-                    type="checkbox"
-                    checked={homeSliderVisible}
-                    onChange={(e) => {
-                      const on = e.target.checked;
-                      setHomeSliderVisible(on);
-                      try {
-                        window.localStorage.setItem(
-                          HOME_SLIDER_SHOW_KEY,
-                          on ? "1" : "0"
-                        );
-                      } catch {
-                        /* ignore */
-                      }
-                    }}
-                    className="h-4 w-4 shrink-0 rounded border-slate-500 text-primary focus:ring-2 focus:ring-primary/50"
-                  />
-                  <span>{t("home.sliderShowLabel")}</span>
-                </label>
-              </div>
+              <HomeMediaSlider
+                initialImages={initialHomeSliderImages}
+                initialVersion={initialSliderVersion}
+              />
             ) : null}
           </div>
         ))}

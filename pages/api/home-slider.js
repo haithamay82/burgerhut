@@ -1,8 +1,9 @@
 import { del as deleteBlob } from "@vercel/blob";
 import {
   clearHomeSliderImages,
-  getHomeSliderPublic,
+  getHomeSliderMeta,
   removeHomeSliderImage,
+  setHomeSliderDisplayEnabled,
 } from "@/lib/homeSliderStore";
 
 function authorize(req) {
@@ -68,17 +69,67 @@ function isVercelBlobUrl(u) {
 export default async function handler(req, res) {
   if (req.method === "GET") {
     try {
-      const data = await getHomeSliderPublic();
+      const auth = authorize(req);
+      const meta = await getHomeSliderMeta();
+      const displayEnabled = meta.enabled !== false;
+      const images = meta.images.map(({ id, url }) => ({ id, url }));
       res.setHeader(
         "Cache-Control",
         "private, no-store, no-cache, must-revalidate, max-age=0"
       );
       res.setHeader("CDN-Cache-Control", "no-store");
       res.setHeader("Vercel-CDN-Cache-Control", "no-store");
-      return res.status(200).json(data);
+      if (auth.ok) {
+        return res.status(200).json({
+          ok: true,
+          images,
+          version: meta.updatedAt,
+          displayEnabled,
+        });
+      }
+      return res.status(200).json({
+        ok: true,
+        images: displayEnabled ? images : [],
+        version: meta.updatedAt,
+      });
     } catch {
       return res.status(200).json({ ok: true, images: [], version: 0 });
     }
+  }
+
+  if (req.method === "PATCH") {
+    const auth = authorize(req);
+    if (!auth.ok) {
+      if (auth.reason === "not_configured") {
+        return res.status(503).json({ ok: false, error: "admin_not_configured" });
+      }
+      return res.status(401).json({ ok: false, error: "unauthorized" });
+    }
+    let body;
+    try {
+      body = await getJsonBody(req);
+    } catch {
+      return res.status(400).json({ ok: false, error: "invalid_json" });
+    }
+    if (typeof body?.displayEnabled !== "boolean") {
+      return res.status(400).json({ ok: false, error: "missing_displayEnabled" });
+    }
+    const result = await setHomeSliderDisplayEnabled(body.displayEnabled);
+    if (!result.ok) {
+      const status =
+        result.error === "persist_failed" ||
+        result.error === "persist_verify_failed"
+          ? 503
+          : 400;
+      return res.status(status).json({ ok: false, error: result.error });
+    }
+    const meta = await getHomeSliderMeta();
+    return res.status(200).json({
+      ok: true,
+      images: meta.images.map(({ id, url }) => ({ id, url })),
+      version: meta.updatedAt,
+      displayEnabled: meta.enabled !== false,
+    });
   }
 
   if (req.method === "DELETE") {
@@ -110,13 +161,19 @@ export default async function handler(req, res) {
             : 400;
       return res.status(status).json({ ok: false, error: result.error });
     }
-    const data = await getHomeSliderPublic();
+    const meta = await getHomeSliderMeta();
+    const adminPayload = {
+      ok: true,
+      images: meta.images.map(({ id, url }) => ({ id, url })),
+      version: meta.updatedAt,
+      displayEnabled: meta.enabled !== false,
+    };
     if (result.removed?.url && isVercelBlobUrl(result.removed.url)) {
       void deleteBlob(result.removed.url).catch(() => {
         /* ignore blob delete failure */
       });
     }
-    return res.status(200).json({ ok: true, ...data });
+    return res.status(200).json(adminPayload);
   }
 
   if (req.method === "POST") {
@@ -145,7 +202,13 @@ export default async function handler(req, res) {
           : 400;
       return res.status(status).json({ ok: false, error: cleared.error });
     }
-    const data = await getHomeSliderPublic();
+    const meta = await getHomeSliderMeta();
+    const adminPayload = {
+      ok: true,
+      images: meta.images.map(({ id, url }) => ({ id, url })),
+      version: meta.updatedAt,
+      displayEnabled: meta.enabled !== false,
+    };
     for (const url of cleared.removedUrls) {
       if (typeof url === "string" && isVercelBlobUrl(url)) {
         void deleteBlob(url).catch(() => {
@@ -153,9 +216,9 @@ export default async function handler(req, res) {
         });
       }
     }
-    return res.status(200).json({ ok: true, ...data });
+    return res.status(200).json(adminPayload);
   }
 
-  res.setHeader("Allow", "GET, DELETE, POST");
+  res.setHeader("Allow", "GET, DELETE, POST, PATCH");
   return res.status(405).json({ ok: false, error: "method_not_allowed" });
 }

@@ -177,6 +177,7 @@ export default function AdminOrdersPage() {
   const sliderFileRef = useRef(null);
   const catalogImageFileRef = useRef(null);
   const [sliderImages, setSliderImages] = useState([]);
+  const [sliderDisplayEnabled, setSliderDisplayEnabled] = useState(true);
   const [sliderUploading, setSliderUploading] = useState(false);
   const [sliderBusy, setSliderBusy] = useState(false);
   const [sliderMsg, setSliderMsg] = useState("");
@@ -735,14 +736,24 @@ export default function AdminOrdersPage() {
 
   const loadHomeSlider = async () => {
     try {
+      const headers = {
+        "Cache-Control": "no-cache",
+        Pragma: "no-cache",
+      };
+      if (secret.trim()) {
+        headers["x-admin-secret"] = secret.trim();
+      }
       const r = await fetch(`/api/home-slider?_=${Date.now()}`, {
         cache: "no-store",
-        headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+        headers,
         signal: sliderAdminFetchSignal(),
       });
       const d = await r.json().catch(() => ({}));
       if (r.ok && d?.ok && Array.isArray(d.images)) {
         setSliderImages(d.images);
+        if (typeof d.displayEnabled === "boolean") {
+          setSliderDisplayEnabled(d.displayEnabled);
+        }
       } else {
         setSliderImages([]);
       }
@@ -750,6 +761,30 @@ export default function AdminOrdersPage() {
       setSliderImages([]);
     }
   };
+
+  const patchSliderDisplay = (enabled) =>
+    runSliderChain(async () => {
+      if (!secret.trim()) return;
+      setError("");
+      const r = await fetch("/api/home-slider", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-secret": secret.trim(),
+        },
+        body: JSON.stringify({ displayEnabled: enabled }),
+        signal: sliderAdminFetchSignal(),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d?.ok) {
+        if (typeof d.displayEnabled === "boolean") {
+          setSliderDisplayEnabled(d.displayEnabled);
+        }
+        setSliderMsg(t("admin.sliderDisplaySaved"));
+      } else {
+        setError(t("admin.sliderPersistErr"));
+      }
+    });
 
   const togglePromoPanel = async () => {
     const next = !promoOpen;
@@ -1004,6 +1039,9 @@ export default function AdminOrdersPage() {
         }
         if (Array.isArray(d.images)) {
           setSliderImages(d.images);
+          if (typeof d.displayEnabled === "boolean") {
+            setSliderDisplayEnabled(d.displayEnabled);
+          }
         } else {
           await loadHomeSlider();
         }
@@ -1059,6 +1097,9 @@ export default function AdminOrdersPage() {
         }
         if (Array.isArray(d.images)) {
           setSliderImages(d.images);
+          if (typeof d.displayEnabled === "boolean") {
+            setSliderDisplayEnabled(d.displayEnabled);
+          }
         } else {
           await loadHomeSlider();
         }
@@ -1620,6 +1661,27 @@ export default function AdminOrdersPage() {
                     <h4 className="mb-2 text-xs font-bold text-primary">
                       {t("admin.sliderSection")}
                     </h4>
+                    <label className="mb-3 flex cursor-pointer items-start gap-2.5 rounded-lg border border-slate-700/80 bg-slate-950/50 p-3">
+                      <input
+                        type="checkbox"
+                        checked={sliderDisplayEnabled}
+                        disabled={
+                          !secret.trim() || sliderBusy || sliderUploading
+                        }
+                        onChange={(e) =>
+                          void patchSliderDisplay(e.target.checked)
+                        }
+                        className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-500 text-primary focus:ring-2 focus:ring-primary/50"
+                      />
+                      <span className="min-w-0 flex flex-col gap-1 text-right">
+                        <span className="text-xs font-semibold text-gray-200">
+                          {t("admin.sliderShowOnHome")}
+                        </span>
+                        <span className="text-[11px] leading-relaxed text-gray-500">
+                          {t("admin.sliderShowOnHomeHint")}
+                        </span>
+                      </span>
+                    </label>
                     <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
                       {t("admin.sliderHint")}
                     </p>
