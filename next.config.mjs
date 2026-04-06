@@ -7,18 +7,13 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Avoid www↔apex redirects here: hosting often redirects the other way → loop (ERR_TOO_MANY_REDIRECTS).
   async redirects() {
     return [
       {
         source: "/admin",
         destination: "/admin/orders",
         permanent: false,
-      },
-      {
-        source: "/:path*",
-        has: [{ type: "host", value: "www.burgerhut.co.il" }],
-        destination: "https://burgerhut.co.il/:path*",
-        permanent: true,
       },
     ];
   },
