@@ -1,15 +1,12 @@
 import { Html, Head, Main, NextScript } from "next/document";
-
-/** כתובת מוחלטת ל־og:image — נדרש לווטסאפ / פייסבוק לתצוגת קישור */
-const SITE_URL = String(
-  process.env.NEXT_PUBLIC_SITE_URL ||
-    process.env.SITE_URL ||
-    "https://www.burgerhut.co.il"
-).replace(/\/+$/, "");
-const OG_IMAGE_URL = `${SITE_URL}/logo-burger-hut.png`;
-const OG_TITLE = "Burger Hut בורגר האט";
-const OG_DESCRIPTION =
-  "מסעדת בורגר וקריספי משלוחים ואיסוף עצמי ירכא והסביבה";
+import {
+  OG_DESCRIPTION,
+  OG_IMAGE_HEIGHT,
+  OG_IMAGE_URL,
+  OG_IMAGE_WIDTH,
+  OG_TITLE,
+  SITE_URL,
+} from "@/lib/siteOg";
 
 export default function Document() {
   return (
@@ -29,6 +26,8 @@ export default function Document() {
         <meta property="og:url" content={`${SITE_URL}/`} />
         <meta property="og:image" content={OG_IMAGE_URL} />
         <meta property="og:image:secure_url" content={OG_IMAGE_URL} />
+        <meta property="og:image:width" content={OG_IMAGE_WIDTH} />
+        <meta property="og:image:height" content={OG_IMAGE_HEIGHT} />
         <meta property="og:image:type" content="image/png" />
         <meta property="og:image:alt" content={OG_TITLE} />
         <meta name="twitter:card" content="summary_large_image" />

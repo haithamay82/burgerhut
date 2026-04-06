@@ -1,0 +1,9 @@
+# בוטי תצוגת קישור (ווטסאפ / פייסבוק / אינסטגרם)
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Facebot
+Allow: /
+
+User-agent: *
+Allow: /
