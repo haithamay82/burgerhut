@@ -1300,6 +1300,9 @@ export default function CheckoutPage() {
                     <p className="text-center text-[9px] leading-tight text-red-300/85">
                       {t("checkout.cardUnavailableSubline")}
                     </p>
+                    <p className="text-center text-[9px] font-medium leading-tight text-amber-200/95">
+                      {t("checkout.cardUnavailableBitHint")}
+                    </p>
                     <button
                       type="button"
                       onClick={() => selectPayment(m.id)}

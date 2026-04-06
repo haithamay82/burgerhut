@@ -263,8 +263,9 @@ const HE = {
   "checkout.payment": "תשלום",
   "checkout.restaurantClosedNow": "המסעדה סגורה כעת.",
   "checkout.restaurantClosedHoursHint": "ראה זמני עבודה בדף הראשי",
-  "checkout.cardUnavailableBanner": "עדיין אין אשראי",
-  "checkout.cardUnavailableSubline": "עוד שבוע יהיה",
+  "checkout.cardUnavailableBanner": "עדיין אין אשראי אינטרנט",
+  "checkout.cardUnavailableSubline": "שבוע הבא יהיה",
+  "checkout.cardUnavailableBitHint": "כרגע שלמו בביט",
   "checkout.submit": "סיום הזמנה ותשלום",
   "checkout.submitting": "מעבדים…",
   "checkout.cardHypNotConfigured":
@@ -937,8 +938,9 @@ const AR = {
   "checkout.restaurantClosedNow": "المطعم مغلق حالياً.",
   "checkout.restaurantClosedHoursHint":
     "اطّلع على ساعات العمل في الصفحة الرئيسية",
-  "checkout.cardUnavailableBanner": "لا يتوفر الدفع بالبطاقة بعد",
-  "checkout.cardUnavailableSubline": "سيكون خلال أسبوع",
+  "checkout.cardUnavailableBanner": "لا يتوفر دفع البطاقة عبر الإنترنت بعد",
+  "checkout.cardUnavailableSubline": "سيكون الأسبوع القادم",
+  "checkout.cardUnavailableBitHint": "ادفعوا عبر بيت الآن",
   "checkout.submit": "اكمال الطلب والدفع",
   "checkout.submitting": "جارٍ معالجة الطلب...",
   "checkout.cardHypNotConfigured":
