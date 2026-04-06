@@ -14,6 +14,12 @@ const nextConfig = {
         destination: "/admin/orders",
         permanent: false,
       },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.burgerhut.co.il" }],
+        destination: "https://burgerhut.co.il/:path*",
+        permanent: true,
+      },
     ];
   },
 };
