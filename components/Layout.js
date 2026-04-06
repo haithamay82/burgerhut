@@ -10,7 +10,7 @@ import { useOrderingHours } from "@/contexts/OrderingHoursContext";
 const PWAInstallLauncher = dynamic(() => import("./PWAInstallLauncher"), {
   ssr: false,
   loading: () => (
-    <span className="inline-block h-[3.25rem] w-10 shrink-0" aria-hidden />
+    <span className="inline-block h-[2.5rem] w-[2.125rem] shrink-0" aria-hidden />
   ),
 });
 
@@ -55,28 +55,36 @@ export default function Layout({ children }) {
         <div className="relative w-full px-4 py-2 sm:py-2.5">
           <div className="pointer-events-none absolute left-1/2 top-2 z-[40] flex w-max max-w-[calc(100vw-4.5rem)] -translate-x-1/2 justify-center sm:top-2.5">
             <div className="pointer-events-auto flex w-max max-w-[calc(100vw-4.5rem)] flex-col items-center text-center">
-              <div className="relative z-[5] inline-flex shrink-0 justify-center">
-                <div
-                  className="absolute right-full top-1/2 z-[5] -translate-y-1/2 pr-1.5 sm:pr-2"
-                  dir="ltr"
-                >
-                  <PWAInstallLauncher />
+              <div className="relative z-[5] inline-flex shrink-0 flex-col items-center">
+                <div className="relative shrink-0">
+                  <div
+                    className="absolute right-full top-1/2 z-[5] -translate-y-1/2 pr-1 sm:pr-1.5"
+                    dir="ltr"
+                  >
+                    <PWAInstallLauncher compact />
+                  </div>
+                  <Link
+                    href="/"
+                    className="relative z-[2] block rounded-lg outline-none transition-opacity hover:opacity-95 focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                    aria-label={t("header.goHome")}
+                  >
+                    <div className="h-[4.2rem] w-[4.2rem] shrink-0 overflow-hidden rounded-full bg-white ring-1 ring-white/15">
+                      <img
+                        src="/logo-burger-hut.png"
+                        alt=""
+                        width={132}
+                        height={132}
+                        className="h-full w-full scale-115 object-cover object-center"
+                      />
+                    </div>
+                  </Link>
                 </div>
                 <Link
                   href="/"
-                  className="relative z-[2] flex flex-col items-center rounded-lg outline-none transition-opacity hover:opacity-95 focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                  className="relative z-[2] mb-0.5 mt-0.5 rounded-lg outline-none transition-opacity hover:opacity-95 focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                   aria-label={t("header.goHome")}
                 >
-                  <div className="h-[4.2rem] w-[4.2rem] shrink-0 overflow-hidden rounded-full bg-white ring-1 ring-white/15">
-                    <img
-                      src="/logo-burger-hut.png"
-                      alt=""
-                      width={132}
-                      height={132}
-                      className="h-full w-full scale-115 object-cover object-center"
-                    />
-                  </div>
-                  <h1 className="mb-0.5 mt-0.5 inline-flex flex-wrap items-center justify-center gap-x-1 gap-y-0 text-base font-extrabold tracking-tight text-primary sm:text-xl">
+                  <h1 className="inline-flex flex-wrap items-center justify-center gap-x-1 gap-y-0 text-center text-base font-extrabold tracking-tight text-primary sm:text-xl">
                     <span dir="ltr">Burger Hut</span>
                     <span dir="rtl">{t("header.brandSecondary")}</span>
                   </h1>

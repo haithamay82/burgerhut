@@ -80,7 +80,8 @@ function isStandaloneDisplay() {
   return false;
 }
 
-export default function PWAInstallLauncher() {
+/** @param {{ compact?: boolean }} props */
+export default function PWAInstallLauncher({ compact = false }) {
   const { t } = useLocale();
   const router = useRouter();
   const deferredPromptRef = useRef(null);
@@ -156,7 +157,11 @@ export default function PWAInstallLauncher() {
   if (!mounted) {
     return (
       <span
-        className="inline-block h-[3.25rem] w-10 shrink-0"
+        className={
+          compact
+            ? "inline-block h-[2.5rem] w-[2.125rem] shrink-0"
+            : "inline-block h-[3.25rem] w-10 shrink-0"
+        }
         aria-hidden
       />
     );
@@ -326,18 +331,31 @@ export default function PWAInstallLauncher() {
 
   return (
     <>
-      <div className="pwa-install-launcher-attention flex w-[3.25rem] shrink-0 flex-col items-center gap-0.5">
+      <div
+        className={
+          compact
+            ? "pwa-install-launcher-attention flex w-[2.125rem] shrink-0 flex-col items-center gap-0"
+            : "pwa-install-launcher-attention flex w-[3.25rem] shrink-0 flex-col items-center gap-0.5"
+        }
+      >
         <button
           type="button"
-          onClick={() => setConfirmOpen(true)}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-[#f5a623] bg-black/80 text-[#f5a623] shadow-md transition-colors hover:bg-[#f5a623]/15"
+          onClick={(e) => {
+            e.stopPropagation();
+            setConfirmOpen(true);
+          }}
+          className={
+            compact
+              ? "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-[#f5a623] bg-black/80 text-[#f5a623] shadow-md transition-colors hover:bg-[#f5a623]/15"
+              : "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-[#f5a623] bg-black/80 text-[#f5a623] shadow-md transition-colors hover:bg-[#f5a623]/15"
+          }
           aria-label={t("pwa.launcherAria")}
           title={t("pwa.launcherAria")}
         >
           <svg
             viewBox="0 0 24 24"
-            width="20"
-            height="20"
+            width={compact ? 15 : 20}
+            height={compact ? 15 : 20}
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
@@ -350,7 +368,13 @@ export default function PWAInstallLauncher() {
             <path d="M5 21h14" />
           </svg>
         </button>
-        <span className="w-full text-center text-[9px] font-semibold leading-tight text-[#f5a623]/90">
+        <span
+          className={
+            compact
+              ? "w-full text-center text-[7px] font-semibold leading-none text-[#f5a623]/90"
+              : "w-full text-center text-[9px] font-semibold leading-tight text-[#f5a623]/90"
+          }
+        >
           {t("pwa.launcherCaption")}
         </span>
       </div>
