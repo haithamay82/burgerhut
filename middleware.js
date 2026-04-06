@@ -39,6 +39,7 @@ export function middleware(request) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|sw.js|manifest.webmanifest).*)",
+    // אל תיגע בקבצי public סטטיים (במיוחד תמונת OG — ווטסאפ/פייסבוק מבקשים ישירות)
+    "/((?!_next/static|_next/image|favicon.ico|sw\\.js|manifest\\.webmanifest|og-share\\.png|.*\\.(?:png|jpg|jpeg|gif|webp|svg|ico|woff2?|json)$).*)",
   ],
 };

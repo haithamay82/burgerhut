@@ -7,6 +7,20 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  async headers() {
+    return [
+      {
+        source: "/og-share.png",
+        headers: [
+          { key: "Content-Type", value: "image/png" },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+    ];
+  },
   // Avoid www↔apex redirects here: hosting often redirects the other way → loop (ERR_TOO_MANY_REDIRECTS).
   async redirects() {
     return [

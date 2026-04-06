@@ -17,18 +17,19 @@ export default function Document() {
         <meta name="mobile-web-app-capable" content="yes" />
         <link rel="apple-touch-icon" sizes="180x180" href="/pwa-icon-180.png" />
         <link rel="canonical" href={CANONICAL_SITE_URL} />
+        <link rel="image_src" href={OG_IMAGE_URL} />
         <meta name="description" content={OG_DESCRIPTION} />
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="Burger Hut" />
         <meta property="og:locale" content="he_IL" />
+        <meta property="og:url" content={CANONICAL_SITE_URL} />
         <meta property="og:title" content={OG_TITLE} />
         <meta property="og:description" content={OG_DESCRIPTION} />
-        <meta property="og:url" content={CANONICAL_SITE_URL} />
         <meta property="og:image" content={OG_IMAGE_URL} />
         <meta property="og:image:secure_url" content={OG_IMAGE_URL} />
+        <meta property="og:image:type" content="image/png" />
         <meta property="og:image:width" content={OG_IMAGE_WIDTH} />
         <meta property="og:image:height" content={OG_IMAGE_HEIGHT} />
-        <meta property="og:image:type" content="image/png" />
         <meta property="og:image:alt" content={OG_TITLE} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={OG_TITLE} />
