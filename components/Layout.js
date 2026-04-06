@@ -55,11 +55,11 @@ export default function Layout({ children }) {
         <div className="relative w-full px-4 py-2 sm:py-2.5">
           <div className="pointer-events-none absolute left-1/2 top-2 z-[40] flex w-max max-w-[calc(100vw-4.5rem)] -translate-x-1/2 justify-center sm:top-2.5">
             <div className="pointer-events-auto flex w-max max-w-[calc(100vw-4.5rem)] flex-col items-center text-center">
-              <div className="relative inline-flex flex-shrink-0 justify-center">
-                <div
-                  className="absolute right-full top-1/2 z-[5] -translate-y-1/2 pr-2"
-                  dir="ltr"
-                >
+              <div
+                className="relative z-[5] flex shrink-0 flex-row items-center justify-center gap-1.5 sm:gap-2"
+                dir="ltr"
+              >
+                <div className="flex shrink-0 flex-col items-center justify-center self-center">
                   <PWAInstallLauncher />
                 </div>
                 <Link
