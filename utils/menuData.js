@@ -80,6 +80,7 @@ const IMG_BURGER =
 const IMG_BURGER2 =
   "https://images.pexels.com/photos/1639557/pexels-photo-1639557.jpeg?auto=compress&cs=tinysrgb&w=800";
 const IMG_SMASH_240 = "/menu/smash-burger-240.png";
+const IMG_SMASH_360 = "/menu/smash-burger-360.png";
 const IMG_KIDS_BURGER_120 = "/menu/kids-burger-120.png";
 const IMG_BURGER_160 = "/menu/burger-160.png";
 const IMG_BURGER_200 = "/menu/burger-200.png";
@@ -149,6 +150,12 @@ export const MENU_ITEMS = [
     basePrice: 68,
     category: "burgers",
     image: IMG_SMASH_240,
+  },
+  {
+    id: "smash-burger-360",
+    basePrice: 82,
+    category: "burgers",
+    image: IMG_SMASH_360,
   },
   {
     id: "burger-320",
