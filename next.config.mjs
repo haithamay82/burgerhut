@@ -10,9 +10,9 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: "/og-share.jpg",
+        source: "/og-share.png",
         headers: [
-          { key: "Content-Type", value: "image/jpeg" },
+          { key: "Content-Type", value: "image/png" },
           {
             key: "Cache-Control",
             value: "public, max-age=31536000, immutable",

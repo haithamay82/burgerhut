@@ -11,7 +11,7 @@ function isWwwHost(hostHeader) {
 }
 
 /**
- * - תמיד: אותו HTML מ-_document ל-www ול-apex (OG + canonical קבועים ב-lib/siteOg.js).
+ * - תמיד: אותו HTML מ-_document ל-www ול-apex (OG + canonical ב-lib/siteOg.js — כתובת www סופית).
  * - אם ENABLE_WWW_TO_APEX_REDIRECT=1: דפדפנים ב-www מקבלים 308 ל-apex; בוטי תצוגה נשארים ב-200
  *   כדי שווטסאפ שלא עוקב אחרי redirect עדיין יקראו meta.
  * - ברירת מחדל ללא env: אין redirect באפליקציה (מונע לולאה מול redirect ב-Vercel/DNS).
