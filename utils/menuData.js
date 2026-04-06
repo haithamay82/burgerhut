@@ -83,6 +83,7 @@ const IMG_SMASH_240 = "/menu/smash-burger-240.png";
 const IMG_KIDS_BURGER_120 = "/menu/kids-burger-120.png";
 const IMG_BURGER_160 = "/menu/burger-160.png";
 const IMG_BURGER_200 = "/menu/burger-200.png";
+const IMG_BURGER_220 = "/menu/burger-220.png";
 const IMG_BURGER_320 = "/menu/burger-320.png";
 /** תמונה משותפת לבורגר כפול 360ג׳ / 400ג׳ */
 const IMG_BURGER_DOUBLE_LARGE = "/menu/burger-double-large.png";
@@ -136,6 +137,12 @@ export const MENU_ITEMS = [
     basePrice: 58,
     category: "burgers",
     image: IMG_BURGER_200,
+  },
+  {
+    id: "burger-220",
+    basePrice: 65,
+    category: "burgers",
+    image: IMG_BURGER_220,
   },
   {
     id: "smash-burger-240",
