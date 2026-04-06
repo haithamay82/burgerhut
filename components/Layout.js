@@ -53,15 +53,9 @@ export default function Layout({ children }) {
     <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-black text-gray-100">
       <header className="sticky top-0 z-30 w-full border-b border-slate-800 bg-black/80 backdrop-blur">
         <div className="relative w-full px-4 py-2 sm:py-2.5">
-          <div className="pointer-events-none absolute left-1/2 top-2 z-10 flex w-max max-w-[calc(100vw-4.5rem)] -translate-x-1/2 justify-center sm:top-2.5">
+          <div className="pointer-events-none absolute left-1/2 top-2 z-[40] flex w-max max-w-[calc(100vw-4.5rem)] -translate-x-1/2 justify-center sm:top-2.5">
             <div className="pointer-events-auto flex w-max max-w-[calc(100vw-4.5rem)] flex-col items-center text-center">
               <div className="relative inline-flex flex-shrink-0 justify-center">
-                <div
-                  className="absolute right-full top-1/2 z-[1] -translate-y-1/2 pr-2"
-                  dir="ltr"
-                >
-                  <PWAInstallLauncher />
-                </div>
                 <Link
                   href="/"
                   className="relative z-[2] flex flex-col items-center rounded-lg outline-none transition-opacity hover:opacity-95 focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
@@ -81,6 +75,12 @@ export default function Layout({ children }) {
                     <span dir="rtl">{t("header.brandSecondary")}</span>
                   </h1>
                 </Link>
+                <div
+                  className="absolute left-full top-1/2 z-[5] -translate-y-1/2 pl-2"
+                  dir="ltr"
+                >
+                  <PWAInstallLauncher />
+                </div>
               </div>
               <p className="mb-0 whitespace-nowrap text-[11px] leading-tight text-gray-400 sm:text-xs">
                 {t("header.tagline")}
