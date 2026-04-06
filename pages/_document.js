@@ -3,6 +3,7 @@ import {
   CANONICAL_SITE_URL,
   OG_DESCRIPTION,
   OG_IMAGE_HEIGHT,
+  OG_IMAGE_TYPE,
   OG_IMAGE_URL,
   OG_IMAGE_WIDTH,
   OG_TITLE,
@@ -27,7 +28,7 @@ export default function Document() {
         <meta property="og:description" content={OG_DESCRIPTION} />
         <meta property="og:image" content={OG_IMAGE_URL} />
         <meta property="og:image:secure_url" content={OG_IMAGE_URL} />
-        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:type" content={OG_IMAGE_TYPE} />
         <meta property="og:image:width" content={OG_IMAGE_WIDTH} />
         <meta property="og:image:height" content={OG_IMAGE_HEIGHT} />
         <meta property="og:image:alt" content={OG_TITLE} />
