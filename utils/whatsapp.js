@@ -1,6 +1,15 @@
 import { getTranslator, t as tFn } from "@/utils/i18n";
 
+import { cartLineProductId } from "@/hooks/useCart";
 import { formatIls, lineTotal } from "@/utils/cartMoney";
+
+function toppingsWaLabelKey(item) {
+  if (item?.menuCategory === "crispy") return "wa.toppingsCrispy";
+  if (item?.menuCategory === "burgers") return "wa.toppings";
+  const pid = String(cartLineProductId(item) || "");
+  if (pid.startsWith("crispy-")) return "wa.toppingsCrispy";
+  return "wa.toppings";
+}
 
 /** כותרת/תווית בווטסאפ — *מודגש* (לא כופלים אם כבר עטוף ב־*) */
 function waBoldLabel(text) {
@@ -135,7 +144,7 @@ export function buildWhatsAppOrderText({
     }
     if (item.toppings?.length) {
       lines.push(
-        `   ${waBoldLabel(tr("wa.toppings"))}: ${item.toppings.map((x) => x.label).join(", ")}`
+        `   ${waBoldLabel(tr(toppingsWaLabelKey(item)))}: ${item.toppings.map((x) => x.label).join(", ")}`
       );
     }
     if (item.extras?.length) {

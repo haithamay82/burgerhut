@@ -326,6 +326,7 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
     addItem({
       productId: item.id,
       name,
+      menuCategory: item.category,
       salads,
       toppings,
       extras,
