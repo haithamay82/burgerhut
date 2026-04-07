@@ -1,5 +1,13 @@
 import { appendOrder, deleteOrderById, listOrders } from "@/lib/ordersStore";
-import { getUnavailableIds } from "@/lib/inventoryStore";
+import {
+  deductPattyStockForOrder,
+  getInventoryPayload,
+  getUnavailableIds,
+} from "@/lib/inventoryStore";
+import {
+  aggregatePattyCountsFromOrderItems,
+  pattyDemandFitsStock,
+} from "@/utils/burgerPattyPrep";
 import { getCatalogEditor } from "@/lib/catalogStore";
 import { BURGER_TOPPING_IDS } from "@/utils/menuData";
 import { mainMealProductIdsFromEditor } from "@/utils/mergeMenuCatalog";
@@ -98,6 +106,19 @@ export default async function handler(req, res) {
       }
     }
 
+    const invPayload = await getInventoryPayload();
+    /** @type {{ counts: Record<number, number>, qty600: number } | null} */
+    let pattyPrepForDeduction = null;
+    if (invPayload.pattyStock != null) {
+      const prep = aggregatePattyCountsFromOrderItems(items);
+      if (!pattyDemandFitsStock(prep.counts, invPayload.pattyStock)) {
+        return res
+          .status(400)
+          .json({ ok: false, error: "insufficient_patties" });
+      }
+      pattyPrepForDeduction = prep;
+    }
+
     let couponToConsume = null;
     const code = String(couponCode || "").trim().toUpperCase();
     if (code) {
@@ -127,6 +148,14 @@ export default async function handler(req, res) {
       channel: channel || "checkout",
       meta: meta || {},
     });
+
+    if (pattyPrepForDeduction) {
+      try {
+        await deductPattyStockForOrder(pattyPrepForDeduction.counts);
+      } catch {
+        /* ההזמנה נשמרה; ניכוי נכשל — לא מחזירים שגיאה ללקוח */
+      }
+    }
 
     const shouldConsumeCouponNow =
       couponToConsume &&

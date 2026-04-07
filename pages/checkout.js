@@ -636,11 +636,14 @@ export default function CheckoutPage() {
       if (form.payment === "cash") {
         const { order: savedOrder, error: poErr } =
           await persistOrder("checkout_cash");
-        if (poErr === "item_unavailable") {
+        if (poErr === "item_unavailable" || poErr === "insufficient_patties") {
           await refreshInventory();
           setErrors((prev) => ({
             ...prev,
-            unavailable: t("err.unavailable"),
+            unavailable:
+              poErr === "insufficient_patties"
+                ? t("err.insufficientPatties")
+                : t("err.unavailable"),
           }));
           return;
         }
@@ -697,11 +700,14 @@ export default function CheckoutPage() {
       if (form.payment === "bit") {
         const { order: savedOrder, error: poErr } =
           await persistOrder("checkout_bit");
-        if (poErr === "item_unavailable") {
+        if (poErr === "item_unavailable" || poErr === "insufficient_patties") {
           await refreshInventory();
           setErrors((prev) => ({
             ...prev,
-            unavailable: t("err.unavailable"),
+            unavailable:
+              poErr === "insufficient_patties"
+                ? t("err.insufficientPatties")
+                : t("err.unavailable"),
           }));
           return;
         }
@@ -763,11 +769,17 @@ export default function CheckoutPage() {
 
       const { order: savedCardOrder, error: cardPoErr } =
         await persistOrder("checkout_card");
-      if (cardPoErr === "item_unavailable") {
+      if (
+        cardPoErr === "item_unavailable" ||
+        cardPoErr === "insufficient_patties"
+      ) {
         await refreshInventory();
         setErrors((prev) => ({
           ...prev,
-          unavailable: t("err.unavailable"),
+          unavailable:
+            cardPoErr === "insufficient_patties"
+              ? t("err.insufficientPatties")
+              : t("err.unavailable"),
         }));
         return;
       }

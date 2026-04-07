@@ -4,7 +4,7 @@ import { cartLineProductId } from "@/hooks/useCart";
  * מיפוי מנה (בורגר בלבד) → משקלי קציצות בגרמים לפי טבלת המטבח.
  * 600ג׳: ברירת מחדל 3×200; קיימת חלופה 220+220+160 — מוצגת בהערה בניהול.
  */
-const PATTIES_BY_PRODUCT_ID = {
+export const PATTIES_BY_PRODUCT_ID = {
   "kids-burger-120": [120],
   "burger-160": [160],
   "burger-200": [200],
@@ -49,6 +49,48 @@ export function aggregatePattyCountsFromOrderItems(items) {
 export function hasAnyPattyPrep({ counts, qty600 }) {
   if (qty600 > 0) return true;
   return PATTY_GRAMS_ORDER.some((g) => (counts[g] || 0) > 0);
+}
+
+/**
+ * @param {Record<number, number>} stock
+ * @param {string} pid
+ * @param {number} qty
+ */
+export function canBuildBurgerWithPattyStock(stock, pid, qty) {
+  const patties = PATTIES_BY_PRODUCT_ID[pid];
+  if (!patties) return true;
+  const q = Math.max(1, Math.floor(Number(qty) || 1));
+  /** @type {Record<number, number>} */
+  const need = { 120: 0, 160: 0, 200: 0, 220: 0 };
+  for (const g of patties) {
+    need[g] = (need[g] || 0) + q;
+  }
+  for (const g of PATTY_GRAMS_ORDER) {
+    if (need[g] > (Number(stock[g]) || 0)) return false;
+  }
+  return true;
+}
+
+/**
+ * @param {Record<number, number>} stock
+ * @returns {string[]}
+ */
+export function computeAutoUnavailableBurgerIds(stock) {
+  return Object.keys(PATTIES_BY_PRODUCT_ID).filter(
+    (pid) => !canBuildBurgerWithPattyStock(stock, pid, 1)
+  );
+}
+
+/**
+ * @param {Record<number, number>} counts
+ * @param {Record<number, number>} stock
+ */
+export function pattyDemandFitsStock(counts, stock) {
+  for (const g of PATTY_GRAMS_ORDER) {
+    const need = Number(counts[g]) || 0;
+    if (need > (Number(stock[g]) || 0)) return false;
+  }
+  return true;
 }
 
 export { PATTY_GRAMS_ORDER };

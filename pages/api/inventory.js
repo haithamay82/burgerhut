@@ -1,4 +1,9 @@
-import { getUnavailableIds, setUnavailableIds } from "@/lib/inventoryStore";
+import {
+  getInventoryPayload,
+  getUnavailableIds,
+  normalizePattyStock,
+  setInventoryPayload,
+} from "@/lib/inventoryStore";
 import { getCatalogEditor } from "@/lib/catalogStore";
 import { BURGER_TOPPING_IDS } from "@/utils/menuData";
 import { managedMenuProductIdsFromEditor } from "@/utils/mergeMenuCatalog";
@@ -27,8 +32,18 @@ async function filterManaged(ids) {
 
 export default async function handler(req, res) {
   if (req.method === "GET") {
-    const unavailableIds = await getUnavailableIds();
-    return res.status(200).json({ ok: true, unavailableIds });
+    const auth = authorize(req);
+    const effective = await getUnavailableIds();
+    if (auth.ok) {
+      const payload = await getInventoryPayload();
+      return res.status(200).json({
+        ok: true,
+        unavailableIds: effective,
+        manualUnavailableIds: payload.unavailableIds,
+        pattyStock: payload.pattyStock,
+      });
+    }
+    return res.status(200).json({ ok: true, unavailableIds: effective });
   }
 
   if (req.method === "PUT") {
@@ -43,13 +58,35 @@ export default async function handler(req, res) {
       return res.status(401).json({ ok: false, error: "unauthorized" });
     }
     const body = req.body || {};
-    const raw = body.unavailableIds;
-    if (!Array.isArray(raw)) {
-      return res.status(400).json({ ok: false, error: "invalid_body" });
+    const cur = await getInventoryPayload();
+
+    let nextUnavailable = cur.unavailableIds;
+    if (Array.isArray(body.unavailableIds)) {
+      nextUnavailable = await filterManaged(body.unavailableIds);
     }
-    const filtered = await filterManaged(raw);
-    await setUnavailableIds(filtered);
-    return res.status(200).json({ ok: true, unavailableIds: filtered });
+
+    let nextPatty = cur.pattyStock;
+    if (Object.prototype.hasOwnProperty.call(body, "pattyStock")) {
+      if (body.pattyStock === null || body.pattyStock === undefined) {
+        nextPatty = null;
+      } else if (typeof body.pattyStock === "object") {
+        nextPatty = normalizePattyStock(body.pattyStock);
+      }
+    }
+
+    await setInventoryPayload({
+      unavailableIds: nextUnavailable,
+      pattyStock: nextPatty,
+    });
+
+    const payload = await getInventoryPayload();
+    const effective = await getUnavailableIds();
+    return res.status(200).json({
+      ok: true,
+      unavailableIds: effective,
+      manualUnavailableIds: payload.unavailableIds,
+      pattyStock: payload.pattyStock,
+    });
   }
 
   res.setHeader("Allow", "GET, PUT");

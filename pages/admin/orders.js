@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { upload as uploadToBlob } from "@vercel/blob/client";
@@ -13,6 +13,7 @@ import { menuItemName } from "@/utils/menuItemLabels";
 import { getDefaultBusinessSchedule } from "@/utils/businessHoursDefaults";
 import {
   aggregatePattyCountsFromOrderItems,
+  computeAutoUnavailableBurgerIds,
   hasAnyPattyPrep,
   PATTY_GRAMS_ORDER,
 } from "@/utils/burgerPattyPrep";
@@ -145,7 +146,38 @@ export default function AdminOrdersPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
-  const [unavailableIds, setUnavailableIds] = useState([]);
+  const [manualUnavailableIds, setManualUnavailableIds] = useState([]);
+  /** מלאי קציצות לפי גרם — null = מעקב כבוי */
+  const [pattyStock, setPattyStock] = useState(null);
+  const [pattyDraft, setPattyDraft] = useState(() =>
+    Object.fromEntries(PATTY_GRAMS_ORDER.map((g) => [g, ""]))
+  );
+
+  const inventoryAutoBlockedIds = useMemo(
+    () =>
+      pattyStock ? computeAutoUnavailableBurgerIds(pattyStock) : [],
+    [pattyStock]
+  );
+
+  const inventoryEffectiveUnavailableSet = useMemo(() => {
+    const s = new Set(manualUnavailableIds);
+    for (const id of inventoryAutoBlockedIds) s.add(id);
+    return s;
+  }, [manualUnavailableIds, inventoryAutoBlockedIds]);
+
+  useEffect(() => {
+    if (pattyStock) {
+      setPattyDraft(
+        Object.fromEntries(
+          PATTY_GRAMS_ORDER.map((g) => [g, String(pattyStock[g] ?? "")])
+        )
+      );
+    } else {
+      setPattyDraft(
+        Object.fromEntries(PATTY_GRAMS_ORDER.map((g) => [g, ""]))
+      );
+    }
+  }, [pattyStock]);
   const [invSaving, setInvSaving] = useState(false);
   const [hoursDraft, setHoursDraft] = useState(null);
   const [hoursSaving, setHoursSaving] = useState(false);
@@ -495,15 +527,28 @@ export default function AdminOrdersPage() {
       setSelectedDayKey(todayK);
       setCalView({ y: ty, m: tm });
       try {
-        const invR = await fetch("/api/inventory");
+        const invR = await fetch("/api/inventory", {
+          headers: { "x-admin-secret": secret.trim() },
+        });
         const invData = await invR.json().catch(() => ({}));
-        if (invR.ok && Array.isArray(invData.unavailableIds)) {
-          setUnavailableIds(invData.unavailableIds);
+        if (invR.ok && invData.ok) {
+          if (Array.isArray(invData.manualUnavailableIds)) {
+            setManualUnavailableIds(invData.manualUnavailableIds);
+          } else {
+            setManualUnavailableIds([]);
+          }
+          setPattyStock(
+            invData.pattyStock && typeof invData.pattyStock === "object"
+              ? invData.pattyStock
+              : null
+          );
         } else {
-          setUnavailableIds([]);
+          setManualUnavailableIds([]);
+          setPattyStock(null);
         }
       } catch {
-        setUnavailableIds([]);
+        setManualUnavailableIds([]);
+        setPattyStock(null);
       }
       try {
         const catR = await fetch("/api/catalog", {
@@ -705,18 +750,25 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const saveInventory = async (nextIds) => {
+  const saveInventory = async (nextManualIds, nextPattyStock) => {
     if (!secret.trim()) return;
     setError("");
     setInvSaving(true);
     try {
+      const body = {
+        unavailableIds:
+          nextManualIds !== undefined ? nextManualIds : manualUnavailableIds,
+      };
+      if (nextPattyStock !== undefined) {
+        body.pattyStock = nextPattyStock;
+      }
       const r = await fetch("/api/inventory", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           "x-admin-secret": secret.trim(),
         },
-        body: JSON.stringify({ unavailableIds: nextIds }),
+        body: JSON.stringify(body),
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) {
@@ -727,7 +779,16 @@ export default function AdminOrdersPage() {
         );
         return;
       }
-      setUnavailableIds(Array.isArray(d.unavailableIds) ? d.unavailableIds : nextIds);
+      if (Array.isArray(d.manualUnavailableIds)) {
+        setManualUnavailableIds(d.manualUnavailableIds);
+      }
+      if (Object.prototype.hasOwnProperty.call(d, "pattyStock")) {
+        setPattyStock(
+          d.pattyStock && typeof d.pattyStock === "object"
+            ? d.pattyStock
+            : null
+        );
+      }
     } catch {
       setError(t("admin.errNet"));
     } finally {
@@ -735,11 +796,30 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const savePattyDraftToServer = () => {
+    /** @type {Record<number, number>} */
+    const o = {};
+    for (const g of PATTY_GRAMS_ORDER) {
+      const v = parseInt(String(pattyDraft[g] ?? "").trim(), 10);
+      o[g] = Number.isFinite(v) && v >= 0 ? Math.min(1e7, v) : 0;
+    }
+    void saveInventory(undefined, o);
+  };
+
+  const disablePattyTracking = () => {
+    void saveInventory(undefined, null);
+  };
+
   const toggleMainItemAvailable = (productId, checked) => {
-    const next = checked
-      ? unavailableIds.filter((id) => id !== productId)
-      : [...new Set([...unavailableIds, productId])];
-    saveInventory(next);
+    const auto = new Set(inventoryAutoBlockedIds);
+    if (checked) {
+      if (auto.has(productId)) return;
+      const next = manualUnavailableIds.filter((id) => id !== productId);
+      void saveInventory(next);
+    } else {
+      const next = [...new Set([...manualUnavailableIds, productId])];
+      void saveInventory(next);
+    }
   };
 
   const updateHoursDay = (weekday, patch) => {
@@ -1509,6 +1589,61 @@ export default function AdminOrdersPage() {
                     </p>
                   ) : null}
                   <div className="space-y-5">
+                    <div className="rounded-xl border border-amber-900/40 bg-amber-950/15 p-3">
+                      <h3 className="mb-1 text-xs font-semibold text-amber-200">
+                        {t("admin.inventoryPattySectionTitle")}
+                      </h3>
+                      <p className="mb-3 text-[10px] leading-relaxed text-gray-500">
+                        {t("admin.inventoryPattyHint")}
+                      </p>
+                      <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                        {PATTY_GRAMS_ORDER.map((g) => (
+                          <label
+                            key={g}
+                            className="flex flex-col gap-0.5 text-[11px] text-gray-400"
+                          >
+                            <span>
+                              {t("admin.inventoryPattyGramLabel").replace(
+                                "{g}",
+                                String(g)
+                              )}
+                            </span>
+                            <input
+                              type="number"
+                              min={0}
+                              inputMode="numeric"
+                              disabled={invSaving}
+                              value={pattyDraft[g] ?? ""}
+                              onChange={(e) =>
+                                setPattyDraft((prev) => ({
+                                  ...prev,
+                                  [g]: e.target.value,
+                                }))
+                              }
+                              className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-gray-100"
+                            />
+                          </label>
+                        ))}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          disabled={invSaving}
+                          onClick={() => savePattyDraftToServer()}
+                          className="rounded-lg border border-amber-600/60 bg-amber-950/40 px-3 py-1.5 text-[11px] font-semibold text-amber-100 hover:bg-amber-950/60 disabled:opacity-50"
+                        >
+                          {t("admin.inventoryPattySave")}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={invSaving || pattyStock == null}
+                          onClick={() => disablePattyTracking()}
+                          className="rounded-lg border border-slate-600 px-3 py-1.5 text-[11px] text-gray-400 hover:bg-slate-900 disabled:opacity-40"
+                        >
+                          {t("admin.inventoryPattyDisableTracking")}
+                        </button>
+                      </div>
+                    </div>
                     {INVENTORY_CATEGORIES.map((catId) => {
                       const catItems = mergedMainForInventory.filter(
                         (row) => row.category === catId
@@ -1521,26 +1656,39 @@ export default function AdminOrdersPage() {
                           </h3>
                           <ul className="space-y-2">
                             {catItems.map((row) => {
-                              const available = !unavailableIds.includes(
-                                row.id
-                              );
+                              const available =
+                                !inventoryEffectiveUnavailableSet.has(row.id);
+                              const autoOnly =
+                                inventoryAutoBlockedIds.includes(row.id) &&
+                                !manualUnavailableIds.includes(row.id);
                               return (
                                 <li key={row.id}>
-                                  <label className="flex cursor-pointer items-start gap-2 text-xs text-gray-300">
+                                  <label
+                                    className={`flex cursor-pointer items-start gap-2 text-xs text-gray-300 ${
+                                      autoOnly ? "opacity-90" : ""
+                                    }`}
+                                  >
                                     <input
                                       type="checkbox"
                                       checked={available}
-                                      disabled={invSaving}
+                                      disabled={invSaving || autoOnly}
                                       onChange={(e) =>
                                         toggleMainItemAvailable(
                                           row.id,
                                           e.target.checked
                                         )
                                       }
-                                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-600 bg-slate-900 text-primary focus:ring-primary"
+                                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-600 bg-slate-900 text-primary focus:ring-primary disabled:cursor-not-allowed"
                                     />
-                                    <span>
-                                      {menuItemName(row, t, locale)}
+                                    <span className="flex min-w-0 flex-col gap-0.5">
+                                      <span>
+                                        {menuItemName(row, t, locale)}
+                                      </span>
+                                      {autoOnly ? (
+                                        <span className="text-[10px] text-amber-500/90">
+                                          {t("admin.inventoryPattyAutoBadge")}
+                                        </span>
+                                      ) : null}
                                     </span>
                                   </label>
                                 </li>
@@ -1556,7 +1704,8 @@ export default function AdminOrdersPage() {
                       </h3>
                       <ul className="space-y-2">
                         {BURGER_TOPPINGS.map((row) => {
-                          const available = !unavailableIds.includes(row.id);
+                          const available =
+                            !inventoryEffectiveUnavailableSet.has(row.id);
                           return (
                             <li key={row.id}>
                               <label className="flex cursor-pointer items-start gap-2 text-xs text-gray-300">
