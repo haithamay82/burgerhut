@@ -11,6 +11,11 @@ import {
 } from "@/utils/mergeMenuCatalog";
 import { menuItemName } from "@/utils/menuItemLabels";
 import { getDefaultBusinessSchedule } from "@/utils/businessHoursDefaults";
+import {
+  aggregatePattyCountsFromOrderItems,
+  hasAnyPattyPrep,
+  PATTY_GRAMS_ORDER,
+} from "@/utils/burgerPattyPrep";
 
 const INVENTORY_CATEGORIES = ["burgers", "crispy"];
 const CATALOG_CATEGORIES = ["burgers", "crispy", "sides", "drinks"];
@@ -2580,6 +2585,40 @@ export default function AdminOrdersPage() {
                                 );
                               })}
                             </ul>
+                            {(() => {
+                              const prep = aggregatePattyCountsFromOrderItems(
+                                o.items || []
+                              );
+                              if (!hasAnyPattyPrep(prep)) return null;
+                              return (
+                                <div className="mt-2 rounded-lg border border-amber-800/50 bg-amber-950/25 p-2 text-[11px] leading-relaxed text-amber-100/95">
+                                  <p className="mb-1 font-semibold text-amber-200">
+                                    {t("admin.pattyPrepTitle")}
+                                  </p>
+                                  <ul className="list-inside list-disc space-y-0.5 text-gray-200">
+                                    {PATTY_GRAMS_ORDER.map((g) => {
+                                      const n = prep.counts[g] || 0;
+                                      if (n <= 0) return null;
+                                      return (
+                                        <li key={g}>
+                                          {t("admin.pattyPrepLine")
+                                            .replace("{n}", String(n))
+                                            .replace("{g}", String(g))}
+                                        </li>
+                                      );
+                                    })}
+                                  </ul>
+                                  {prep.qty600 > 0 ? (
+                                    <p className="mt-1.5 border-t border-amber-800/40 pt-1.5 text-[10px] text-amber-200/90">
+                                      {t("admin.pattyPrep600Note").replace(
+                                        "{n}",
+                                        String(prep.qty600)
+                                      )}
+                                    </p>
+                                  ) : null}
+                                </div>
+                              );
+                            })()}
                             <p className="mt-2 text-[10px] text-gray-600">
                               {t("admin.orderId")}: {o.id}
                             </p>

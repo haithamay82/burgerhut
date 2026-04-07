@@ -506,6 +506,10 @@ const HE = {
   "admin.errNet": "שגיאת רשת.",
   "admin.empty": "אין הזמנות עדיין.",
   "admin.payment": "תשלום",
+  "admin.pattyPrepTitle": "סיכום קציצות להכנה (בורגרים)",
+  "admin.pattyPrepLine": "{n}× קציצת {g} גר׳",
+  "admin.pattyPrep600Note":
+    "למנה 600 גר׳ (×{n} במנה): הספירה לעיל מבוססת על 3×200 גר׳ למנה; ניתן גם להרכיב 2×220 + 160 גר׳.",
   "admin.orderId": "מזהה",
   "admin.daySalesTotal": "סה״כ מכירות ליום זה",
   "admin.salesCalendarTitle": "מכירות לפי יום",
@@ -1197,6 +1201,10 @@ const AR = {
   "admin.errNet": "خطأ في الشبكة.",
   "admin.empty": "لا توجد طلبات بعد.",
   "admin.payment": "الدفع",
+  "admin.pattyPrepTitle": "ملخص الأقراص للتحضير (برجر)",
+  "admin.pattyPrepLine": "{n}× قطعة {g} غ",
+  "admin.pattyPrep600Note":
+    "وجبة 600غ (×{n} في الطلبية): العد أعلاه يفترض 3×200غ لكل وجبة؛ يمكن أيضاً 2×220 + 160غ.",
   "admin.orderId": "المعرّف",
   "admin.daySalesTotal": "إجمالي المبيعات لهذا اليوم",
   "admin.salesCalendarTitle": "المبيعات حسب اليوم",
