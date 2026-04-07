@@ -934,9 +934,18 @@ export default function CheckoutPage() {
                       >
                         −
                       </button>
-                      <span className="w-5 text-center text-sm">
-                        {item.quantity}
-                      </span>
+                      <div className="flex min-w-[1.25rem] flex-col items-center gap-0.5">
+                        <span className="w-full text-center text-sm">
+                          {item.quantity}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeItem(item.id)}
+                          className="text-[11px] leading-none text-red-400"
+                        >
+                          {t("checkout.remove")}
+                        </button>
+                      </div>
                       <button
                         type="button"
                         onClick={() =>
@@ -948,13 +957,6 @@ export default function CheckoutPage() {
                         +
                       </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => removeItem(item.id)}
-                      className="text-[11px] text-red-400"
-                    >
-                      {t("checkout.remove")}
-                    </button>
                     <p className="text-sm font-semibold">
                       ₪{formatIls(lineTotal(item))}
                     </p>
