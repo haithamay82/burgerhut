@@ -8,6 +8,7 @@ import { OrderingHoursProvider } from "@/contexts/OrderingHoursContext";
 import { isStandalonePwaDisplay } from "@/utils/pwaDisplay";
 
 const SITE_VISIT_STORAGE_KEY = "bh_site_visit_v1";
+const PWA_INSTALL_REPORTED_KEY = "bh_pwa_install_reported_v1";
 
 function jerusalemDayKeyClient() {
   return new Date().toLocaleDateString("en-CA", {
@@ -47,6 +48,36 @@ export default function App({ Component, pageProps }) {
     } catch {
       /* ignore */
     }
+  }, []);
+
+  /** ספירת התקנות PWA מצטברת — פעם אחת למכשיר (אירוע appinstalled או פתיחה ראשונה במצב standalone, ל‑iOS) */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const reportOnce = () => {
+      try {
+        if (window.localStorage.getItem(PWA_INSTALL_REPORTED_KEY)) return;
+        fetch("/api/pwa-installs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: "{}",
+        })
+          .then((r) => r.json().catch(() => ({})))
+          .then((d) => {
+            if (d?.ok && d?.recorded === true) {
+              window.localStorage.setItem(PWA_INSTALL_REPORTED_KEY, "1");
+            }
+          })
+          .catch(() => {});
+      } catch {
+        /* ignore */
+      }
+    };
+    const onInstalled = () => reportOnce();
+    window.addEventListener("appinstalled", onInstalled);
+    if (isStandalonePwaDisplay()) {
+      reportOnce();
+    }
+    return () => window.removeEventListener("appinstalled", onInstalled);
   }, []);
 
   /** PWA מהמסך הבית: רענון כשחוזרים לחזית כדי לטעון גרסה/נתונים עדכניים */

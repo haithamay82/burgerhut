@@ -173,6 +173,8 @@ export default function AdminOrdersPage() {
   /** ביקורים יומיים לאתר / PWA */
   const [siteVisitsDays, setSiteVisitsDays] = useState([]);
   const [siteVisitsErr, setSiteVisitsErr] = useState("");
+  /** מונה התקנות PWA מצטבר (Redis); null = לא נטען או שגיאה */
+  const [pwaInstallTotal, setPwaInstallTotal] = useState(null);
   const promoFileRef = useRef(null);
   const sliderFileRef = useRef(null);
   const catalogImageFileRef = useRef(null);
@@ -469,6 +471,7 @@ export default function AdminOrdersPage() {
         setCoupons([]);
         setSiteVisitsDays([]);
         setSiteVisitsErr("");
+        setPwaInstallTotal(null);
         setCatalogEditor(emptyCatalogEditor());
         setError(
           data.error === "admin_not_configured"
@@ -610,6 +613,19 @@ export default function AdminOrdersPage() {
       } catch {
         setSiteVisitsErr("load");
       }
+      try {
+        const pir = await fetch("/api/pwa-installs", {
+          headers: { "x-admin-secret": secret.trim() },
+        });
+        const pid = await pir.json().catch(() => ({}));
+        if (pir.ok && pid?.ok && Number.isFinite(Number(pid.total))) {
+          setPwaInstallTotal(Number(pid.total));
+        } else {
+          setPwaInstallTotal(null);
+        }
+      } catch {
+        setPwaInstallTotal(null);
+      }
     } catch {
       setError(t("admin.errNet"));
       setLoaded(false);
@@ -619,6 +635,7 @@ export default function AdminOrdersPage() {
       setCoupons([]);
       setSiteVisitsDays([]);
       setSiteVisitsErr("");
+      setPwaInstallTotal(null);
       setCatalogEditor(emptyCatalogEditor());
     } finally {
       setLoading(false);
@@ -2198,6 +2215,22 @@ export default function AdminOrdersPage() {
                   className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4"
                   aria-label={t("admin.siteVisitsTitle")}
                 >
+                  {typeof pwaInstallTotal === "number" ? (
+                    <div className="mb-4 rounded-xl border border-primary/25 bg-slate-950/60 px-4 py-3">
+                      <p className="text-xs font-semibold text-primary">
+                        {t("admin.pwaInstallsTotalTitle")}
+                      </p>
+                      <p
+                        className="mt-1 text-3xl font-bold tabular-nums text-gray-100"
+                        aria-live="polite"
+                      >
+                        {pwaInstallTotal}
+                      </p>
+                      <p className="mt-2 text-[11px] leading-relaxed text-gray-500">
+                        {t("admin.pwaInstallsTotalHint")}
+                      </p>
+                    </div>
+                  ) : null}
                   <p className="mb-4 text-[11px] leading-relaxed text-gray-500">
                     {t("admin.siteVisitsHint")}
                   </p>

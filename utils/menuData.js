@@ -91,6 +91,8 @@ const IMG_BURGER_DOUBLE_LARGE = "/menu/burger-double-large.png";
 const IMG_BURGER_440 = "/menu/burger-440.png";
 const IMG_BURGER_480 = "/menu/burger-480.png";
 const IMG_BURGER_520 = "/menu/burger-520.png";
+const IMG_BURGER_560 = "/menu/burger-560.png";
+const IMG_BURGER_600 = "/menu/burger-600.png";
 const IMG_CHICKEN =
   "https://images.pexels.com/photos/1639559/pexels-photo-1639559.jpeg?auto=compress&cs=tinysrgb&w=800";
 const IMG_CRISPY_CHICKEN_BURGER_ADULT = "/menu/crispy-chicken-burger.png";
@@ -192,6 +194,18 @@ export const MENU_ITEMS = [
     basePrice: 95,
     category: "burgers",
     image: IMG_BURGER_520,
+  },
+  {
+    id: "burger-560",
+    basePrice: 108,
+    category: "burgers",
+    image: IMG_BURGER_560,
+  },
+  {
+    id: "burger-600",
+    basePrice: 114,
+    category: "burgers",
+    image: IMG_BURGER_600,
   },
   {
     id: "crispy-chicken-burger",

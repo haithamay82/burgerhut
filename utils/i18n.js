@@ -106,6 +106,10 @@ const HE = {
   "menu.burger-480.desc": "בורגר — 480 גרם.",
   "menu.burger-520.name": "בורגר 520 גר׳",
   "menu.burger-520.desc": "בורגר — 520 גרם.",
+  "menu.burger-560.name": "בורגר 560 גר׳",
+  "menu.burger-560.desc": "בורגר — 560 גרם.",
+  "menu.burger-600.name": "בורגר 600 גר׳",
+  "menu.burger-600.desc": "בורגר — 600 גרם.",
   "menu.crispy-chicken-burger.name": "קריספי צ׳יקן בורגר (עגולה/בלי עגולה)",
   "menu.crispy-chicken-burger.desc": "קריספי בעגולה או בלי עגולה.",
   "menu.crispy-chicken-burger-kids.name":
@@ -515,6 +519,9 @@ const HE = {
   "admin.siteVisitsRedisHint":
     "אין נתונים: Redis לא מוגדר בשרת (נדרש לאיסוף ביקורים, כמו לקופונים).",
   "admin.siteVisitsLoadErr": "לא ניתן לטעון את נתוני הביקורים.",
+  "admin.pwaInstallsTotalTitle": "התקנות PWA מצטברות",
+  "admin.pwaInstallsTotalHint":
+    "מספר מכשירים שדווחו כהתקנה (הוספה למסך הבית): אירוע התקנה בכרום/אדג׳, וב־iOS — פתיחה ראשונה מהאייקון. לא כולל התקנות שלא נשלחו לשרת.",
   "admin.calendarPrevMonth": "חודש קודם",
   "admin.calendarNextMonth": "חודש הבא",
   "admin.calendarTodayBtn": "היום",
@@ -784,6 +791,10 @@ const AR = {
   "menu.burger-480.desc": "برجر — 480 غرام.",
   "menu.burger-520.name": "برجر 520غ",
   "menu.burger-520.desc": "برجر — 520 غرام.",
+  "menu.burger-560.name": "برجر 560غ",
+  "menu.burger-560.desc": "برجر — 560 غرام.",
+  "menu.burger-600.name": "برجر 600غ",
+  "menu.burger-600.desc": "برجر — 600 غرام.",
   "menu.crispy-chicken-burger.name": "برجر كريسبي تشيكن (مدورة/بدون مدورة)",
   "menu.crispy-chicken-burger.desc": "كريسبي — بخبز مدور أو بدون.",
   "menu.crispy-chicken-burger-kids.name":
@@ -1198,6 +1209,9 @@ const AR = {
   "admin.siteVisitsRedisHint":
     "لا توجد بيانات: Redis غير مُعرّف على الخادم (مطلوب لجمع الزيارات، مثل الكوبونات).",
   "admin.siteVisitsLoadErr": "تعذّر تحميل بيانات الزيارات.",
+  "admin.pwaInstallsTotalTitle": "إجمالي تثبيتات PWA",
+  "admin.pwaInstallsTotalHint":
+    "عدد الأجهزة التي أُبلغ عن تثبيتها (إضافة للشاشة الرئيسية): حدث التثبيت في كروم/إيدج، وفي iOS — أول فتح من الأيقونة. لا يشمل تثبيتات لم تُرسل للخادم.",
   "admin.calendarPrevMonth": "الشهر السابق",
   "admin.calendarNextMonth": "الشهر التالي",
   "admin.calendarTodayBtn": "اليوم",
