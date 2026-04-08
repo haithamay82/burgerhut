@@ -652,6 +652,9 @@ const HE = {
   "admin.discountErr": "לא ניתן היה לשמור את ההנחה.",
   "admin.couponsTitle": "קופונים",
   "admin.couponsHint": "כאן ניתן לראות את כל הקופונים שהופקו ולמחוק לפי צורך.",
+  "admin.couponTotalsUnused":
+    "סה״כ גובה הנחה — קופונים שלא נוצלו (בתוקף):",
+  "admin.couponTotalsUsed": "סה״כ גובה הנחה — קופונים שכבר נוצלו:",
   "admin.couponBadgeLegend": "סימון:",
   "admin.couponFilterLabel": "סינון לפי מצב:",
   "admin.couponFilterEmpty": "אין קופונים במצב שנבחר.",
@@ -1396,6 +1399,9 @@ const AR = {
   "admin.discountErr": "تعذّر حفظ الخصم.",
   "admin.couponsTitle": "الكوبونات",
   "admin.couponsHint": "هنا يمكنك مشاهدة جميع الكوبونات التي أنشأها النظام وحذفها عند الحاجة.",
+  "admin.couponTotalsUnused":
+    "إجمالي قيمة الخصم — كوبونات غير مستخدمة (سارية):",
+  "admin.couponTotalsUsed": "إجمالي قيمة الخصم — كوبونات مستخدمة:",
   "admin.couponBadgeLegend": "دليل الألوان:",
   "admin.couponFilterLabel": "تصفية حسب الحالة:",
   "admin.couponFilterEmpty": "لا توجد كوبونات بهذه الحالة.",

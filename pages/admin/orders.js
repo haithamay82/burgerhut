@@ -236,6 +236,22 @@ export default function AdminOrdersPage() {
   const [siteVisitsPanelOpen, setSiteVisitsPanelOpen] = useState(false);
   /** סינון רשימת קופונים: null = הכל */
   const [couponStatusFilter, setCouponStatusFilter] = useState(null);
+
+  const couponValueTotals = useMemo(() => {
+    const nowTs = Date.now();
+    let unused = 0;
+    let used = 0;
+    for (const c of coupons) {
+      const v = Number(c.value) || 0;
+      if (Boolean(c.used)) {
+        used += v;
+      } else if (couponDisplayStatus(c, nowTs) === "unused") {
+        unused += v;
+      }
+    }
+    return { unused, used };
+  }, [coupons]);
+
   /** ביקורים יומיים לאתר / PWA */
   const [siteVisitsDays, setSiteVisitsDays] = useState([]);
   const [siteVisitsErr, setSiteVisitsErr] = useState("");
@@ -2214,6 +2230,26 @@ export default function AdminOrdersPage() {
                     <p className="mb-4 text-[11px] leading-relaxed text-gray-500">
                       {t("admin.couponsHint")}
                     </p>
+                    {!couponsLoading && coupons.length > 0 ? (
+                      <div className="mb-4 flex flex-col gap-1.5 rounded-xl border border-slate-800/90 bg-slate-950/50 px-3 py-2.5 text-xs text-gray-300">
+                        <p className="flex flex-wrap items-baseline justify-between gap-2">
+                          <span className="text-gray-500">
+                            {t("admin.couponTotalsUnused")}
+                          </span>
+                          <span className="font-bold text-cyan-200">
+                            ₪{couponValueTotals.unused.toFixed(2)}
+                          </span>
+                        </p>
+                        <p className="flex flex-wrap items-baseline justify-between gap-2">
+                          <span className="text-gray-500">
+                            {t("admin.couponTotalsUsed")}
+                          </span>
+                          <span className="font-bold text-amber-200">
+                            ₪{couponValueTotals.used.toFixed(2)}
+                          </span>
+                        </p>
+                      </div>
+                    ) : null}
                     {couponMsg ? (
                       <p className="mb-3 text-xs font-medium text-emerald-400/95">
                         {couponMsg}
