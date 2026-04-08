@@ -4,26 +4,27 @@ import { useLocale } from "@/contexts/LocaleContext";
 /** קובץ ראשי: public/home-burger-mascot.gif (אנימציה). גיבוי: home-burger-mascot.png */
 const MASCOT_SRCS = ["/home-burger-mascot.gif", "/home-burger-mascot.png"];
 
+/** ריבוע קטן בשורה עם הטקסט (למשל אחרי ❤ בכותרת הבית) */
 export default function HomeBurgerMascot({ className = "" }) {
   const { t } = useLocale();
   const [srcIndex, setSrcIndex] = useState(0);
   if (srcIndex >= MASCOT_SRCS.length) return null;
   const src = MASCOT_SRCS[srcIndex];
   return (
-    <div
-      className={`flex shrink-0 justify-center self-center sm:self-start ${className}`}
+    <span
+      className={`inline-flex h-8 w-8 shrink-0 align-middle overflow-hidden rounded-md ring-1 ring-white/20 sm:h-9 sm:w-9 ${className}`}
     >
       <img
         key={src}
         src={src}
         alt={t("home.burgerMascotAlt")}
-        width={176}
-        height={176}
-        className="h-auto max-h-36 w-auto max-w-[min(11rem,42vw)] object-contain drop-shadow-[0_6px_24px_rgba(0,0,0,0.45)] sm:max-h-44 sm:max-w-[13.5rem]"
-        loading="lazy"
+        width={36}
+        height={36}
+        className="pointer-events-none h-full w-full select-none object-cover"
+        loading="eager"
         decoding="async"
         onError={() => setSrcIndex((i) => i + 1)}
       />
-    </div>
+    </span>
   );
 }

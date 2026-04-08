@@ -130,16 +130,17 @@ export default function HomeMain({
         </section>
       ) : null}
       <section className="mb-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-5">
-          <div className="min-w-0 flex-1">
-            <h2 className="mb-1 text-lg font-bold">
-              {titleWithoutHeart} <span className="text-red-600">❤</span>
-            </h2>
-            <p className="mt-2 rounded-xl border border-amber-900/40 bg-amber-950/30 p-3 text-[11px] leading-relaxed text-amber-100/90">
-              {t("home.mealInfo")}
-            </p>
-          </div>
-          <HomeBurgerMascot className="pointer-events-none sm:pt-0.5" />
+        <div className="min-w-0">
+          <h2 className="mb-1 text-lg font-bold leading-snug">
+            {titleWithoutHeart}{" "}
+            <span className="inline-flex items-center gap-1 whitespace-nowrap">
+              <span className="text-red-600">❤</span>
+              <HomeBurgerMascot className="pointer-events-none" />
+            </span>
+          </h2>
+          <p className="mt-2 rounded-xl border border-amber-900/40 bg-amber-950/30 p-3 text-[11px] leading-relaxed text-amber-100/90">
+            {t("home.mealInfo")}
+          </p>
         </div>
       </section>
 
