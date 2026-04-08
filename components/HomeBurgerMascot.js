@@ -21,7 +21,8 @@ export default function HomeBurgerMascot({
     <span
       className={
         isBlock
-          ? `aspect-square shrink-0 self-stretch overflow-hidden rounded-md ring-1 ring-white/20 ${className}`
+          ? /* גודל מוגדר ב־h2 דרך --home-title-mascot (2lh+gap) — מונע התנפחות מ-min-height של ה-GIF */
+            `flex min-h-0 min-w-0 shrink-0 overflow-hidden rounded-md ring-1 ring-white/20 [height:var(--home-title-mascot,2.85rem)] [width:var(--home-title-mascot,2.85rem)] ${className}`
           : `inline-flex h-8 w-8 shrink-0 align-middle overflow-hidden rounded-md ring-1 ring-white/20 sm:h-9 sm:w-9 ${className}`
       }
     >
@@ -29,9 +30,9 @@ export default function HomeBurgerMascot({
         key={src}
         src={src}
         alt={t("home.burgerMascotAlt")}
-        width={isBlock ? 100 : 36}
-        height={isBlock ? 100 : 36}
-        className="pointer-events-none h-full w-full select-none object-cover"
+        width={isBlock ? 64 : 36}
+        height={isBlock ? 64 : 36}
+        className="pointer-events-none h-full max-h-full w-full max-w-full select-none object-cover"
         loading="eager"
         decoding="async"
         onError={() => setSrcIndex((i) => i + 1)}

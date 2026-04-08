@@ -129,8 +129,8 @@ export default function HomeMain({
       ) : null}
       <section className="mb-4">
         <div className="min-w-0">
-          <h2 className="mb-1 flex min-h-0 items-stretch gap-2 text-lg font-bold leading-tight sm:gap-3">
-            <span className="min-w-0 flex flex-1 flex-col justify-center gap-1">
+          <h2 className="mb-1 flex min-h-0 items-center gap-2 text-lg font-bold leading-tight [--home-title-mascot:calc(2lh+0.25rem)] sm:gap-3">
+            <span className="flex min-h-0 min-w-0 flex-1 flex-col justify-center gap-1">
               <span>{t("home.titleLine1")}</span>
               <span className="inline-flex flex-wrap items-baseline gap-x-1 gap-y-0">
                 <span>{t("home.titleLine2")}</span>
