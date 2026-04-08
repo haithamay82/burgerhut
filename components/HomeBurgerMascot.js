@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
 
-/** קודם GIF (אנימציה), אחרת PNG — קבצים ב־public/ */
+/** קובץ ראשי: public/home-burger-mascot.gif (אנימציה). גיבוי: home-burger-mascot.png */
 const MASCOT_SRCS = ["/home-burger-mascot.gif", "/home-burger-mascot.png"];
 
 export default function HomeBurgerMascot({ className = "" }) {
