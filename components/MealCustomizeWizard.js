@@ -16,6 +16,10 @@ import { menuItemName } from "@/utils/menuItemLabels";
 import { formatIls } from "@/utils/cartMoney";
 import { computeSaucesCharge, marginalSauceCharge } from "@/utils/saucePricing";
 import { useCart } from "@/hooks/useCart";
+import {
+  simulateCartAfterAdd,
+  validatePattyStockForSimulatedCart,
+} from "@/utils/pattyStockClient";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useInventory } from "@/contexts/InventoryContext";
 /** סימון ב-history.state כדי שכפתור «חזור» במכשיר יסגור את הוויזארד */
@@ -41,7 +45,7 @@ function computeMissingMealSelections(selectedSalads, selectedSauces) {
 export default function MealCustomizeWizard({ item, open, onClose }) {
   const { t, locale } = useLocale();
   const { menuItems } = useMenuCatalog();
-  const { addItem } = useCart();
+  const { addItem, items: cartItems } = useCart();
   const { isUnavailable, unavailableIds } = useInventory();
 
   const [selectedSalads, setSelectedSalads] = useState([]);
@@ -270,9 +274,8 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
     });
   };
 
-  const performAddToCart = () => {
+  const performAddToCart = async () => {
     if (!item || blocked) return;
-    setIsAdding(true);
     const name = menuItemName(item, t, locale);
     const salads = selectedSalads.map((id) => ({
       id,
@@ -323,7 +326,7 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
           locale
         )
       : "";
-    addItem({
+    const linePayload = {
       productId: item.id,
       name,
       menuCategory: item.category,
@@ -345,7 +348,25 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
         ? { requestedDrinkId, requestedDrinkLabel, requestedDrinkPrice }
         : {}),
       ...(notesTrim ? { sellerNotes: notesTrim } : {}),
-    });
+    };
+
+    const afterMerge = simulateCartAfterAdd(cartItems, linePayload);
+    const pattyCheck = await validatePattyStockForSimulatedCart(afterMerge);
+    if (!pattyCheck.ok) {
+      if (typeof window !== "undefined") {
+        window.alert(
+          t(
+            pattyCheck.error === "network"
+              ? "ui.pattyStockCheckFailed"
+              : "ui.pattyInsufficientForMeal"
+          )
+        );
+      }
+      return;
+    }
+
+    setIsAdding(true);
+    addItem(linePayload);
     setTimeout(() => {
       setIsAdding(false);
       handleClose();
@@ -363,13 +384,13 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
       setMealValidateOpen(true);
       return;
     }
-    performAddToCart();
+    void performAddToCart();
   };
 
   const handleMealValidateAddAnyway = () => {
     setMealValidateOpen(false);
     setMealValidateMissing([]);
-    performAddToCart();
+    void performAddToCart();
   };
 
   const handleMealValidateGoBack = () => {

@@ -1,6 +1,10 @@
 import { useMemo, useState } from "react";
 import { formatIls } from "@/utils/cartMoney";
 import { useCart } from "@/hooks/useCart";
+import {
+  simulateCartAfterAdd,
+  validatePattyStockForSimulatedCart,
+} from "@/utils/pattyStockClient";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useInventory } from "@/contexts/InventoryContext";
 import { useMenuCatalog } from "@/contexts/MenuCatalogContext";
@@ -9,7 +13,7 @@ import { menuItemDesc, menuItemName } from "@/utils/menuItemLabels";
 export default function SimpleMenuItemCard({ item }) {
   const { t, locale } = useLocale();
   const { menuItems } = useMenuCatalog();
-  const { addItem } = useCart();
+  const { addItem, items: cartItems } = useCart();
   const { isUnavailable } = useInventory();
   const isOutOfStock = isUnavailable(item.id);
   const [quantity, setQuantity] = useState(1);
@@ -47,9 +51,8 @@ export default function SimpleMenuItemCard({ item }) {
   );
   const finalUnitPrice = (Number(item.basePrice) || 0) + requestedDrinkPrice;
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (isOutOfStock) return;
-    setIsAdding(true);
     const notesTrim = showSellerNotes ? sellerNotes.trim() : "";
     const requestedDrinkLabel =
       showSellerNotes && requestedDrinkId
@@ -61,9 +64,10 @@ export default function SimpleMenuItemCard({ item }) {
             locale
           )
         : "";
-    addItem({
+    const linePayload = {
       productId: item.id,
       name,
+      menuCategory: item.category,
       salads: [],
       toppings: [],
       extras: [],
@@ -73,7 +77,23 @@ export default function SimpleMenuItemCard({ item }) {
         ? { requestedDrinkId, requestedDrinkLabel, requestedDrinkPrice }
         : {}),
       ...(notesTrim ? { sellerNotes: notesTrim } : {}),
-    });
+    };
+    const afterMerge = simulateCartAfterAdd(cartItems, linePayload);
+    const pattyCheck = await validatePattyStockForSimulatedCart(afterMerge);
+    if (!pattyCheck.ok) {
+      if (typeof window !== "undefined") {
+        window.alert(
+          t(
+            pattyCheck.error === "network"
+              ? "ui.pattyStockCheckFailed"
+              : "ui.pattyInsufficientForMeal"
+          )
+        );
+      }
+      return;
+    }
+    setIsAdding(true);
+    addItem(linePayload);
     setQuantity(1);
     setSellerNotes("");
     setRequestedDrinkId("");

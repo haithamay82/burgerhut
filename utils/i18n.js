@@ -203,6 +203,10 @@ const HE = {
   "ui.crispyToppings": "תוספות לקריספי",
   "ui.extraSauces": "תוספות רטבים בצד",
   "ui.addToCart": "הוספה לעגלה",
+  "ui.pattyInsufficientForMeal":
+    "אין מספיק קציצות במלאי כדי להוסיף את המנה הזו (בהתחשב במה שכבר בעגלה). הורידו כמות או בחרו מנה אחרת.",
+  "ui.pattyStockCheckFailed":
+    "לא ניתן לבדוק את מלאי הקציצות כרגע. נסו שוב בעוד רגע.",
   "ui.added": "נוסף",
   "ui.mealValidateTitle": "חסרות בחירות",
   "ui.mealValidateSalads": "לא בחרת מסלטים.",
@@ -902,6 +906,10 @@ const AR = {
   "ui.crispyToppings": "إضافات الكرسبي",
   "ui.extraSauces": "صلصات إضافية على الجانب",
   "ui.addToCart": "أضف إلى السلة",
+  "ui.pattyInsufficientForMeal":
+    "لا يوجد ما يكفي من أقراص البرجر لإضافة هذا الطبق (مع ما في السلة). خفّضوا الكمية أو اختاروا طبقاً آخر.",
+  "ui.pattyStockCheckFailed":
+    "تعذّر التحقق من مخزون الأقراص الآن. حاولوا مرة أخرى بعد لحظة.",
   "ui.added": "تمت الإضافة",
   "ui.mealValidateTitle": "خيارات ناقصة",
   "ui.mealValidateSalads": "لم تختَر السلطات.",
