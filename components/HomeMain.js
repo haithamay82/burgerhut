@@ -129,18 +129,20 @@ export default function HomeMain({
       ) : null}
       <section className="mb-4">
         <div className="min-w-0">
-          <h2 className="mb-1 flex min-h-0 items-center gap-2 text-lg font-bold leading-tight [--home-title-mascot:calc(2lh+0.25rem)] sm:gap-3">
-            <span className="flex min-h-0 min-w-0 flex-1 flex-col justify-center gap-1">
-              <span>{t("home.titleLine1")}</span>
-              <span className="inline-flex flex-wrap items-baseline gap-x-1 gap-y-0">
-                <span>{t("home.titleLine2")}</span>
-                <span className="text-red-600">❤</span>
+          <h2 className="mb-1 flex w-full min-h-0 justify-center text-lg font-bold leading-tight [--home-title-mascot:calc(2lh+0.25rem)]">
+            <span className="inline-flex min-h-0 max-w-full items-center gap-1">
+              <span className="flex min-h-0 min-w-0 flex-col justify-center gap-1">
+                <span>{t("home.titleLine1")}</span>
+                <span className="inline-flex flex-wrap items-baseline gap-x-1 gap-y-0">
+                  <span>{t("home.titleLine2")}</span>
+                  <span className="text-red-600">❤</span>
+                </span>
               </span>
+              <HomeBurgerMascot
+                size="titleBlock"
+                className="pointer-events-none"
+              />
             </span>
-            <HomeBurgerMascot
-              size="titleBlock"
-              className="pointer-events-none"
-            />
           </h2>
           <p className="mt-2 rounded-xl border border-amber-900/40 bg-amber-950/30 p-3 text-[11px] leading-relaxed text-amber-100/90">
             {t("home.mealInfo")}
