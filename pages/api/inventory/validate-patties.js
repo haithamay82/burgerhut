@@ -1,7 +1,9 @@
 import { getInventoryPayload } from "@/lib/inventoryStore";
 import {
   aggregatePattyCountsFromOrderItems,
+  maxPattyUnitsForProductWithOtherCartLines,
   pattyDemandFitsStock,
+  sumQuantityForProductInItems,
 } from "@/utils/burgerPattyPrep";
 
 export default async function handler(req, res) {
@@ -34,7 +36,27 @@ export default async function handler(req, res) {
   const prep = aggregatePattyCountsFromOrderItems(items);
   const ok = pattyDemandFitsStock(prep.counts, inv.pattyStock);
   if (!ok) {
-    return res.status(200).json({ ok: false, error: "insufficient_patties" });
+    const hintPid =
+      typeof body.hintProductId === "string"
+        ? body.hintProductId.trim()
+        : "";
+    let maxRemain = null;
+    if (hintPid) {
+      const ceiling = maxPattyUnitsForProductWithOtherCartLines(
+        items,
+        hintPid,
+        inv.pattyStock
+      );
+      if (ceiling != null) {
+        const have = sumQuantityForProductInItems(items, hintPid);
+        maxRemain = Math.max(0, ceiling - have);
+      }
+    }
+    return res.status(200).json({
+      ok: false,
+      error: "insufficient_patties",
+      ...(maxRemain != null ? { maxRemain } : {}),
+    });
   }
   return res.status(200).json({ ok: true });
 }

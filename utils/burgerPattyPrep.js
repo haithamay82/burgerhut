@@ -94,6 +94,65 @@ export function pattyDemandFitsStock(counts, stock) {
 }
 
 /**
+ * מקסימום יחידות של מנה (בורגר) מאותו productId שמתאימות למלאי,
+ * אחרי שמייחסים שורות בעגלה שאינן מאותו productId.
+ * @param {unknown[]} items — שורות עגלה (אובייקטים עם productId / id)
+ * @param {string} productId
+ * @param {Record<number, number>} stock
+ * @returns {number | null} null אם המנה לא דורשת קציצות
+ */
+export function maxPattyUnitsForProductWithOtherCartLines(
+  items,
+  productId,
+  stock
+) {
+  const pid = String(productId || "");
+  const patties = PATTIES_BY_PRODUCT_ID[pid];
+  if (!patties || !stock || typeof stock !== "object") return null;
+
+  const others = (Array.isArray(items) ? items : []).filter(
+    (it) => String(cartLineProductId(it) || "") !== pid
+  );
+  const { counts: reserved } = aggregatePattyCountsFromOrderItems(others);
+
+  /** @type {Record<number, number>} */
+  const needPer = { 120: 0, 160: 0, 200: 0, 220: 0 };
+  for (const g of patties) {
+    needPer[g] = (needPer[g] || 0) + 1;
+  }
+
+  let max = Infinity;
+  for (const g of PATTY_GRAMS_ORDER) {
+    const n = needPer[g] || 0;
+    if (n <= 0) continue;
+    const avail = Math.max(
+      0,
+      (Number(stock[g]) || 0) - (Number(reserved[g]) || 0)
+    );
+    max = Math.min(max, Math.floor(avail / n));
+  }
+  if (!Number.isFinite(max)) return 0;
+  return Math.max(0, max);
+}
+
+/**
+ * סכום כמויות בעגלה לשורות עם אותו productId (לפי אובייקטי { productId, quantity }).
+ * @param {unknown[]} items
+ * @param {string} productId
+ */
+export function sumQuantityForProductInItems(items, productId) {
+  const pid = String(productId || "");
+  if (!Array.isArray(items) || !pid) return 0;
+  let s = 0;
+  for (const it of items) {
+    const id = String(cartLineProductId(it) || "");
+    if (id !== pid) continue;
+    s += Math.max(1, Number(it.quantity) || 1);
+  }
+  return s;
+}
+
+/**
  * @param {Record<number, number>} counts
  * @param {Record<number, number>} stock
  * @returns {{ g: number, need: number, have: number, missing: number }[]}

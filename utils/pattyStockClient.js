@@ -28,23 +28,40 @@ export function simulateCartAfterAdd(cartItems, newLine) {
 /**
  * בודק מול השרת אם מלאי הקציצות מספיק לכל השורות (אחרי מיזוג).
  * @param {object[]} lines — תוצאת simulateCartAfterAdd
- * @returns {Promise<{ ok: boolean, error?: string }>}
+ * @param {string} [hintProductId] — מזהה מנה לחישוב «כמה נותרו מסוג זה»
+ * @returns {Promise<{ ok: boolean, error?: string, maxRemain?: number }>}
  */
-export async function validatePattyStockForSimulatedCart(lines) {
+export async function validatePattyStockForSimulatedCart(
+  lines,
+  hintProductId
+) {
   const items = lines.map((it) => ({
     productId: cartLineProductId(it),
     quantity: Math.max(1, Number(it.quantity) || 1),
   }));
+  const hint =
+    typeof hintProductId === "string" && hintProductId.trim()
+      ? hintProductId.trim()
+      : undefined;
   try {
     const r = await fetch("/api/inventory/validate-patties", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items }),
+      body: JSON.stringify({ items, ...(hint ? { hintProductId: hint } : {}) }),
     });
     const d = await r.json().catch(() => ({}));
     if (!r.ok) return { ok: false, error: "network" };
     if (d.skipped) return { ok: true };
-    return d.ok ? { ok: true } : { ok: false, error: "insufficient_patties" };
+    if (d.ok) return { ok: true };
+    const maxRemain =
+      d.maxRemain !== undefined && d.maxRemain !== null
+        ? Number(d.maxRemain)
+        : undefined;
+    return {
+      ok: false,
+      error: "insufficient_patties",
+      ...(Number.isFinite(maxRemain) ? { maxRemain } : {}),
+    };
   } catch {
     return { ok: false, error: "network" };
   }

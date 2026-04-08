@@ -79,15 +79,21 @@ export default function SimpleMenuItemCard({ item }) {
       ...(notesTrim ? { sellerNotes: notesTrim } : {}),
     };
     const afterMerge = simulateCartAfterAdd(cartItems, linePayload);
-    const pattyCheck = await validatePattyStockForSimulatedCart(afterMerge);
+    const pattyCheck = await validatePattyStockForSimulatedCart(
+      afterMerge,
+      item.id
+    );
     if (!pattyCheck.ok) {
       if (typeof window !== "undefined") {
         window.alert(
-          t(
-            pattyCheck.error === "network"
-              ? "ui.pattyStockCheckFailed"
-              : "ui.pattyInsufficientForMeal"
-          )
+          pattyCheck.error === "network"
+            ? t("ui.pattyStockCheckFailed")
+            : pattyCheck.maxRemain !== undefined
+              ? t("ui.pattyInsufficientForMeal").replace(
+                  "{count}",
+                  String(pattyCheck.maxRemain)
+                )
+              : t("ui.pattyInsufficientForMealFallback")
         );
       }
       return;

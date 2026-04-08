@@ -91,25 +91,35 @@ const HE = {
   "menu.burger-220.name": "בורגר 220 גר׳",
   "menu.burger-220.desc": "בורגר — 220 גרם.",
   "menu.smash-burger-240.name": "בורגר 240 גר׳ SMASH",
-  "menu.smash-burger-240.desc": "סמאש — 240 גרם.",
+  "menu.smash-burger-240.desc":
+    "סמאש — 240 גרם. קציצות במנה: 2×120 גר׳.",
   "menu.smash-burger-360.name": "בורגר 360 גר׳ SMASH",
-  "menu.smash-burger-360.desc": "סמאש — 360 גרם.",
+  "menu.smash-burger-360.desc":
+    "סמאש — 360 גרם. קציצות במנה: 3×120 גר׳.",
   "menu.burger-320.name": "בורגר 320 גר׳",
-  "menu.burger-320.desc": "בורגר — 320 גרם.",
+  "menu.burger-320.desc":
+    "בורגר — 320 גרם. קציצות במנה: 2×160 גר׳.",
   "menu.burger-360.name": "בורגר 360 גר׳",
-  "menu.burger-360.desc": "בורגר — 360 גרם.",
+  "menu.burger-360.desc":
+    "בורגר — 360 גרם. קציצות במנה: 200 + 160 גר׳.",
   "menu.burger-400.name": "בורגר 400 גר׳",
-  "menu.burger-400.desc": "בורגר — 400 גרם.",
+  "menu.burger-400.desc":
+    "בורגר — 400 גרם. קציצות במנה: 2×200 גר׳.",
   "menu.burger-440.name": "בורגר 440 גר׳",
-  "menu.burger-440.desc": "בורגר — 440 גרם.",
+  "menu.burger-440.desc":
+    "בורגר — 440 גרם. קציצות במנה: 2×220 גר׳.",
   "menu.burger-480.name": "בורגר 480 גר׳",
-  "menu.burger-480.desc": "בורגר — 480 גרם.",
+  "menu.burger-480.desc":
+    "בורגר — 480 גרם. קציצות במנה: 3×160 גר׳.",
   "menu.burger-520.name": "בורגר 520 גר׳",
-  "menu.burger-520.desc": "בורגר — 520 גרם.",
+  "menu.burger-520.desc":
+    "בורגר — 520 גרם. קציצות במנה: 200 + 160 + 160 גר׳.",
   "menu.burger-560.name": "בורגר 560 גר׳",
-  "menu.burger-560.desc": "בורגר — 560 גרם.",
+  "menu.burger-560.desc":
+    "בורגר — 560 גרם. קציצות במנה: 200 + 200 + 160 גר׳.",
   "menu.burger-600.name": "בורגר 600 גר׳",
-  "menu.burger-600.desc": "בורגר — 600 גרם.",
+  "menu.burger-600.desc":
+    "בורגר — 600 גרם. קציצות במנה: 3×200 גר׳ (ניתן גם 2×220 + 160 גר׳).",
   "menu.crispy-chicken-burger.name": "קריספי צ׳יקן בורגר (עגולה/בלי עגולה)",
   "menu.crispy-chicken-burger.desc": "קריספי בעגולה או בלי עגולה.",
   "menu.crispy-chicken-burger-kids.name":
@@ -204,7 +214,9 @@ const HE = {
   "ui.extraSauces": "תוספות רטבים בצד",
   "ui.addToCart": "הוספה לעגלה",
   "ui.pattyInsufficientForMeal":
-    "אין מספיק קציצות במלאי כדי להוסיף את המנה הזו (בהתחשב במה שכבר בעגלה). הורידו כמות או בחרו מנה אחרת.",
+    "מסוג המנה הזאת נותרו לפי המלאי: {count}.\nהורידו את הכמות או בחרו מנה אחרת.",
+  "ui.pattyInsufficientForMealFallback":
+    "לא ניתן להוסיף את הכמות לפי מלאי הקציצות והעגלה. הורידו כמות או בחרו מנה אחרת.",
   "ui.pattyStockCheckFailed":
     "לא ניתן לבדוק את מלאי הקציצות כרגע. נסו שוב בעוד רגע.",
   "ui.added": "נוסף",
@@ -811,25 +823,35 @@ const AR = {
   "menu.burger-220.name": "برجر 220غ",
   "menu.burger-220.desc": "برجر — 220 غرام.",
   "menu.smash-burger-240.name": "برجر سماش 240غ",
-  "menu.smash-burger-240.desc": "سماش — 240 غرام.",
+  "menu.smash-burger-240.desc":
+    "سماش — 240 غرام. أقراص البرجر في الوجبة: 2×120غ.",
   "menu.smash-burger-360.name": "برجر سماش 360غ",
-  "menu.smash-burger-360.desc": "سماش — 360 غرام.",
+  "menu.smash-burger-360.desc":
+    "سماش — 360 غرام. أقراص البرجر في الوجبة: 3×120غ.",
   "menu.burger-320.name": "برجر 320غ",
-  "menu.burger-320.desc": "برجر — 320 غرام.",
+  "menu.burger-320.desc":
+    "برجر — 320 غرام. أقراص البرجر في الوجبة: 2×160غ.",
   "menu.burger-360.name": "برجر 360غ",
-  "menu.burger-360.desc": "برجر — 360 غرام.",
+  "menu.burger-360.desc":
+    "برجر — 360 غرام. أقراص البرجر في الوجبة: 200 + 160غ.",
   "menu.burger-400.name": "برجر 400غ",
-  "menu.burger-400.desc": "برجر — 400 غرام.",
+  "menu.burger-400.desc":
+    "برجر — 400 غرام. أقراص البرجر في الوجبة: 2×200غ.",
   "menu.burger-440.name": "برجر 440غ",
-  "menu.burger-440.desc": "برجر — 440 غرام.",
+  "menu.burger-440.desc":
+    "برجر — 440 غرام. أقراص البرجر في الوجبة: 2×220غ.",
   "menu.burger-480.name": "برجر 480غ",
-  "menu.burger-480.desc": "برجر — 480 غرام.",
+  "menu.burger-480.desc":
+    "برجر — 480 غرام. أقراص البرجر في الوجبة: 3×160غ.",
   "menu.burger-520.name": "برجر 520غ",
-  "menu.burger-520.desc": "برجر — 520 غرام.",
+  "menu.burger-520.desc":
+    "برجر — 520 غرام. أقراص البرجر في الوجبة: 200 + 160 + 160غ.",
   "menu.burger-560.name": "برجر 560غ",
-  "menu.burger-560.desc": "برجر — 560 غرام.",
+  "menu.burger-560.desc":
+    "برجر — 560 غرام. أقراص البرجر في الوجبة: 200 + 200 + 160غ.",
   "menu.burger-600.name": "برجر 600غ",
-  "menu.burger-600.desc": "برجر — 600 غرام.",
+  "menu.burger-600.desc":
+    "برجر — 600 غرام. أقراص البرجر في الوجبة: 3×200غ (أو بديل 2×220 + 160غ).",
   "menu.crispy-chicken-burger.name": "برجر كريسبي تشيكن (مدورة/بدون مدورة)",
   "menu.crispy-chicken-burger.desc": "كريسبي — بخبز مدور أو بدون.",
   "menu.crispy-chicken-burger-kids.name":
@@ -924,7 +946,9 @@ const AR = {
   "ui.extraSauces": "صلصات إضافية على الجانب",
   "ui.addToCart": "أضف إلى السلة",
   "ui.pattyInsufficientForMeal":
-    "لا يوجد ما يكفي من أقراص البرجر لإضافة هذا الطبق (مع ما في السلة). خفّضوا الكمية أو اختاروا طبقاً آخر.",
+    "من هذا النوع بقي بالمخزون (مع السلة): {count}.\nخفّضوا الكمية أو اختاروا طبقاً آخر.",
+  "ui.pattyInsufficientForMealFallback":
+    "لا يمكن إضافة هذه الكمية حسب مخزون الأقراص والسلة. خفّضوا الكمية أو اختاروا طبقاً آخر.",
   "ui.pattyStockCheckFailed":
     "تعذّر التحقق من مخزون الأقراص الآن. حاولوا مرة أخرى بعد لحظة.",
   "ui.added": "تمت الإضافة",
