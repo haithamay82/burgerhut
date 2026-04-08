@@ -437,6 +437,8 @@ const HE = {
     "תודה! התשלום התקבל וההזמנה נרשמה במערכת.",
   "success.waAfterCard":
     "שלח את ההזמנה לווטסאפ\nותאם עם המסעדה זמן קבלת ההזמנה",
+  "success.waOrderRecordedWithId": "הזמנתך #{order} נרשמה",
+  "success.waOrderRecordedNoId": "הזמנתך נרשמה",
   "success.waAfterCardWithCoupon":
     "שלח את ההזמנה לווטסאפ\nותאם עם המסעדה זמן קבלת ההזמנה",
   "success.waWaitForCoupon": "ממתינים לקופון… אחרי שיוצג אפשר יהיה לשלוח לווטסאפ.",
@@ -1183,6 +1185,8 @@ const AR = {
     "شكراً! تم استلام الدفع وتسجيل الطلب.",
   "success.waAfterCard":
     "أرسل الطلب عبر واتساب\nونسّق مع المطعم وقت استلام الطلب",
+  "success.waOrderRecordedWithId": "تم تسجيل طلبك #{order}",
+  "success.waOrderRecordedNoId": "تم تسجيل طلبك",
   "success.waAfterCardWithCoupon":
     "أرسل الطلب عبر واتساب\nونسّق مع المطعم وقت استلام الطلب",
   "success.waWaitForCoupon":
