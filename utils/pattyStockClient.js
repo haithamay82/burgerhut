@@ -26,10 +26,35 @@ export function simulateCartAfterAdd(cartItems, newLine) {
 }
 
 /**
+ * טקסט להתראה כשחסר מלאי קציצות להוספה לעגלה (לפי תקרה מול כמות שניסו).
+ * @param {(k: string) => string} t
+ * @param {{ error?: string, pattyCeiling?: number, pattyQtyAttempted?: number }} check
+ */
+export function pattyInsufficientAddToCartMessage(t, check) {
+  if (check.error === "network") return t("ui.pattyStockCheckFailed");
+  const c = Number(check.pattyCeiling);
+  const q = Number(check.pattyQtyAttempted);
+  if (
+    Number.isFinite(c) &&
+    Number.isFinite(q) &&
+    q > c
+  ) {
+    if (c <= 0) {
+      return t("ui.pattyInsufficientTypeExhausted");
+    }
+    if (c === 1) {
+      return t("ui.pattyInsufficientCapOne");
+    }
+    return t("ui.pattyInsufficientCapMany").replace(/{max}/g, String(c));
+  }
+  return t("ui.pattyInsufficientForMealFallback");
+}
+
+/**
  * בודק מול השרת אם מלאי הקציצות מספיק לכל השורות (אחרי מיזוג).
  * @param {object[]} lines — תוצאת simulateCartAfterAdd
- * @param {string} [hintProductId] — מזהה מנה לחישוב «כמה נותרו מסוג זה»
- * @returns {Promise<{ ok: boolean, error?: string, maxRemain?: number }>}
+ * @param {string} [hintProductId] — מזהה מנה לחישוב תקרה/כמות לצורך הודעה
+ * @returns {Promise<{ ok: boolean, error?: string, pattyCeiling?: number, pattyQtyAttempted?: number }>}
  */
 export async function validatePattyStockForSimulatedCart(
   lines,
@@ -53,14 +78,15 @@ export async function validatePattyStockForSimulatedCart(
     if (!r.ok) return { ok: false, error: "network" };
     if (d.skipped) return { ok: true };
     if (d.ok) return { ok: true };
-    const maxRemain =
-      d.maxRemain !== undefined && d.maxRemain !== null
-        ? Number(d.maxRemain)
-        : undefined;
+    const pattyCeiling = Number(d.pattyCeiling);
+    const pattyQtyAttempted = Number(d.pattyQtyAttempted);
     return {
       ok: false,
       error: "insufficient_patties",
-      ...(Number.isFinite(maxRemain) ? { maxRemain } : {}),
+      ...(Number.isFinite(pattyCeiling) ? { pattyCeiling } : {}),
+      ...(Number.isFinite(pattyQtyAttempted)
+        ? { pattyQtyAttempted }
+        : {}),
     };
   } catch {
     return { ok: false, error: "network" };

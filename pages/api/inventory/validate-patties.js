@@ -40,7 +40,8 @@ export default async function handler(req, res) {
       typeof body.hintProductId === "string"
         ? body.hintProductId.trim()
         : "";
-    let maxRemain = null;
+    /** @type {{ pattyCeiling?: number, pattyQtyAttempted?: number }} */
+    const capPayload = {};
     if (hintPid) {
       const ceiling = maxPattyUnitsForProductWithOtherCartLines(
         items,
@@ -49,13 +50,14 @@ export default async function handler(req, res) {
       );
       if (ceiling != null) {
         const have = sumQuantityForProductInItems(items, hintPid);
-        maxRemain = Math.max(0, ceiling - have);
+        capPayload.pattyCeiling = ceiling;
+        capPayload.pattyQtyAttempted = have;
       }
     }
     return res.status(200).json({
       ok: false,
       error: "insufficient_patties",
-      ...(maxRemain != null ? { maxRemain } : {}),
+      ...capPayload,
     });
   }
   return res.status(200).json({ ok: true });

@@ -18,6 +18,7 @@ import { computeSaucesCharge, marginalSauceCharge } from "@/utils/saucePricing";
 import { useCart } from "@/hooks/useCart";
 import {
   simulateCartAfterAdd,
+  pattyInsufficientAddToCartMessage,
   validatePattyStockForSimulatedCart,
 } from "@/utils/pattyStockClient";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -357,16 +358,7 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
     );
     if (!pattyCheck.ok) {
       if (typeof window !== "undefined") {
-        window.alert(
-          pattyCheck.error === "network"
-            ? t("ui.pattyStockCheckFailed")
-            : pattyCheck.maxRemain !== undefined
-              ? t("ui.pattyInsufficientForMeal").replace(
-                  "{count}",
-                  String(pattyCheck.maxRemain)
-                )
-              : t("ui.pattyInsufficientForMealFallback")
-        );
+        window.alert(pattyInsufficientAddToCartMessage(t, pattyCheck));
       }
       return;
     }
