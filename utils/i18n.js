@@ -319,7 +319,7 @@ const HE = {
   "checkout.foodSubtotal": "סה״כ מנות",
   "checkout.discountLine": "הנחה",
   "checkout.couponTitle": "קופון",
-  "checkout.couponPh": "יש לכם קופון? הקלידו את הקוד כאן…",
+  "checkout.couponPh": "יש לכם קופון הנחה? הקלידו את הקוד כאן…",
   "checkout.couponApply": "בדיקה",
   "checkout.couponChecking": "בודק…",
   "checkout.couponApplied": "הקופון תקין והופעל.",
