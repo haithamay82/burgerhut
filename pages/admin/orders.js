@@ -66,8 +66,24 @@ function couponDisplayStatus(c, nowTs) {
   return "unused";
 }
 
-function daySalesTotal(dayOrders) {
-  return dayOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+function orderDeliveryFeeNis(o) {
+  if (o?.customer?.orderType !== "delivery") return 0;
+  const fee = Number(o.customer.deliveryFeeNis);
+  return Number.isFinite(fee) && fee > 0 ? fee : 0;
+}
+
+/** מכירות מזון בלבד (ללא דמי משלוח) — לפי total השמור פחות דמי משלוח כשמוגדרים */
+function orderFoodSalesNis(o) {
+  const total = Number(o.total) || 0;
+  return Math.max(0, total - orderDeliveryFeeNis(o));
+}
+
+function dayFoodSalesTotal(dayOrders) {
+  return dayOrders.reduce((sum, o) => sum + orderFoodSalesNis(o), 0);
+}
+
+function dayDeliveryFeesTotal(dayOrders) {
+  return dayOrders.reduce((sum, o) => sum + orderDeliveryFeeNis(o), 0);
 }
 
 function payCourierDeliverySplitLabel(t, payment) {
@@ -2548,14 +2564,26 @@ export default function AdminOrdersPage() {
                         ({selectedDayKey})
                       </span>
                     </h3>
-                    <p className="mb-3 text-sm text-gray-400">
-                      {t("admin.daySalesTotal")}:{" "}
-                      <span className="font-bold text-amber-400">
-                        ₪{daySalesTotal(selectedDayOrders).toFixed(2)}
+                    <p className="mb-3 space-y-1 text-sm text-gray-400">
+                      <span className="block">
+                        {t("admin.daySalesTotal")}:{" "}
+                        <span className="font-bold text-amber-400">
+                          ₪{dayFoodSalesTotal(selectedDayOrders).toFixed(2)}
+                        </span>
+                        <span className="mr-2 text-xs text-gray-500">
+                          ({selectedDayOrders.length}{" "}
+                          {t("admin.ordersCount")})
+                        </span>
                       </span>
-                      <span className="mr-2 text-xs text-gray-500">
-                        ({selectedDayOrders.length} {t("admin.ordersCount")})
-                      </span>
+                      {dayDeliveryFeesTotal(selectedDayOrders) > 0 ? (
+                        <span className="block text-xs text-gray-500">
+                          {t("admin.dayDeliveryFeesTotal")}:{" "}
+                          <span className="font-semibold text-gray-300">
+                            ₪
+                            {dayDeliveryFeesTotal(selectedDayOrders).toFixed(2)}
+                          </span>
+                        </span>
+                      ) : null}
                     </p>
                     {selectedDayOrders.length === 0 ? (
                       <p className="text-sm text-gray-500">
@@ -2588,9 +2616,23 @@ export default function AdminOrdersPage() {
                                   {t("admin.payment")}:{" "}
                                   {t(`payment.${o.payment}`) || o.payment}
                                 </p>
-                                <p className="font-bold text-amber-400">
-                                  ₪{Number(o.total).toFixed(2)}
-                                </p>
+                                <div className="text-left sm:text-right">
+                                  <p className="font-bold text-amber-400">
+                                    <span className="text-[10px] font-normal text-gray-500">
+                                      {t("admin.orderFoodAmountLabel")}{" "}
+                                    </span>
+                                    ₪{orderFoodSalesNis(o).toFixed(2)}
+                                  </p>
+                                  {orderDeliveryFeeNis(o) > 0 ? (
+                                    <p className="text-[11px] font-semibold text-slate-300">
+                                      <span className="font-normal text-gray-500">
+                                        {t("admin.orderDeliveryAmountLabel")}{" "}
+                                      </span>
+                                      ₪
+                                      {orderDeliveryFeeNis(o).toFixed(2)}
+                                    </p>
+                                  ) : null}
+                                </div>
                                 <button
                                   type="button"
                                   onClick={() => deleteOrder(o.id)}

@@ -525,7 +525,10 @@ const HE = {
   "admin.pattyPrep600Note":
     "למנה 600 גר׳ (×{n} במנה): הספירה לעיל מבוססת על 3×200 גר׳ למנה; ניתן גם להרכיב 2×220 + 160 גר׳.",
   "admin.orderId": "מזהה",
-  "admin.daySalesTotal": "סה״כ מכירות ליום זה",
+  "admin.daySalesTotal": "סה״כ מכירות מזון (ללא דמי משלוח)",
+  "admin.dayDeliveryFeesTotal": "סה״כ דמי משלוח באותו יום",
+  "admin.orderFoodAmountLabel": "מזון:",
+  "admin.orderDeliveryAmountLabel": "משלוח:",
   "admin.salesCalendarTitle": "מכירות לפי יום",
   "admin.salesCalendarHint": "לפי תאריך בישראל (Asia/Jerusalem). לחצו על יום כדי לראות הזמנות.",
   "admin.siteVisitsTitle": "ביקורים יומיים — אתר ואפליקציה",
@@ -1241,7 +1244,10 @@ const AR = {
   "admin.pattyPrep600Note":
     "وجبة 600غ (×{n} في الطلبية): العد أعلاه يفترض 3×200غ لكل وجبة؛ يمكن أيضاً 2×220 + 160غ.",
   "admin.orderId": "المعرّف",
-  "admin.daySalesTotal": "إجمالي المبيعات لهذا اليوم",
+  "admin.daySalesTotal": "إجمالي مبيعات الطعام (بدون أجور التوصيل)",
+  "admin.dayDeliveryFeesTotal": "إجمالي أجور التوصيل في ذلك اليوم",
+  "admin.orderFoodAmountLabel": "طعام:",
+  "admin.orderDeliveryAmountLabel": "توصيل:",
   "admin.salesCalendarTitle": "المبيعات حسب اليوم",
   "admin.salesCalendarHint": "حسب التاريخ في إسرائيل (Asia/Jerusalem). انقر يوماً لعرض الطلبات.",
   "admin.siteVisitsTitle": "زيارات يومية — الموقع والتطبيق",
