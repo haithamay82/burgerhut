@@ -11,6 +11,8 @@ const HE = {
   "lang.ar": "العربية",
 
   "home.title": "רעבים? הזמינו עכשיו ונכין לכם באהבה ❤",
+  "home.titleLine1": "רעבים? הזמינו עכשיו",
+  "home.titleLine2": "ונכין לכם באהבה",
   "home.burgerMascotAlt": "דמות מצחיקה אוכלת המבורגר",
   "home.contactTitle": "יצירת קשר ומיקום",
   "home.contactCopyright": "© אקסטרים טוכנולוגיות",
@@ -754,6 +756,8 @@ const AR = {
   "lang.ar": "العربية",
 
   "home.title": "جائعون؟ اطلبوا الآن ونحضّر لكم بمحبة ❤",
+  "home.titleLine1": "جائعون؟ اطلبوا الآن",
+  "home.titleLine2": "ونحضّر لكم بمحبة",
   "home.burgerMascotAlt": "شخصية مرحة تأكل برجراً",
   "home.contactTitle": "التواصل والموقع",
   "home.contactCopyright": "© אקסטרים טוכנולוגיות",

@@ -44,8 +44,6 @@ export default function HomeMain({
   const filteredItems = menuItems
     .filter((item) => item.category === activeCategory)
     .sort((a, b) => a.basePrice - b.basePrice);
-  const homeTitle = t("home.title");
-  const titleWithoutHeart = homeTitle.replace("❤", "").trim();
   const discountActive =
     discountCfg.enabled &&
     Number(discountCfg.percent) > 0 &&
@@ -131,12 +129,18 @@ export default function HomeMain({
       ) : null}
       <section className="mb-4">
         <div className="min-w-0">
-          <h2 className="mb-1 text-lg font-bold leading-snug">
-            {titleWithoutHeart}{" "}
-            <span className="inline-flex items-center gap-1 whitespace-nowrap">
-              <span className="text-red-600">❤</span>
-              <HomeBurgerMascot className="pointer-events-none" />
+          <h2 className="mb-1 flex min-h-0 items-stretch gap-2 text-lg font-bold leading-tight sm:gap-3">
+            <span className="min-w-0 flex flex-1 flex-col justify-center gap-1">
+              <span>{t("home.titleLine1")}</span>
+              <span className="inline-flex flex-wrap items-baseline gap-x-1 gap-y-0">
+                <span>{t("home.titleLine2")}</span>
+                <span className="text-red-600">❤</span>
+              </span>
             </span>
+            <HomeBurgerMascot
+              size="titleBlock"
+              className="pointer-events-none"
+            />
           </h2>
           <p className="mt-2 rounded-xl border border-amber-900/40 bg-amber-950/30 p-3 text-[11px] leading-relaxed text-amber-100/90">
             {t("home.mealInfo")}
