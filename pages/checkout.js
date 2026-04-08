@@ -20,6 +20,7 @@ import {
   CHECKOUT_RESUME_KEY,
   SUCCESS_WA_SNAPSHOT_KEY,
 } from "@/utils/checkoutSessionKeys";
+import { insufficientPattiesUiMessage } from "@/utils/pattyCheckoutErrorText";
 
 const DeliveryMapPicker = dynamic(
   () => import("@/components/DeliveryMapPicker"),
@@ -624,9 +625,16 @@ export default function CheckoutPage() {
           return {
             order: null,
             error: data?.error || "request_failed",
+            pattyShortfalls: data?.pattyShortfalls,
+            pattyAffectedLines: data?.pattyAffectedLines,
           };
         }
-        return { order: data?.order || null, error: null };
+        return {
+          order: data?.order || null,
+          error: null,
+          pattyShortfalls: undefined,
+          pattyAffectedLines: undefined,
+        };
       } catch {
         return { order: null, error: "network" };
       }
@@ -634,15 +642,19 @@ export default function CheckoutPage() {
 
     try {
       if (form.payment === "cash") {
-        const { order: savedOrder, error: poErr } =
-          await persistOrder("checkout_cash");
+        const {
+          order: savedOrder,
+          error: poErr,
+          pattyShortfalls: cashPattySf,
+          pattyAffectedLines: cashPattyLines,
+        } = await persistOrder("checkout_cash");
         if (poErr === "item_unavailable" || poErr === "insufficient_patties") {
           await refreshInventory();
           setErrors((prev) => ({
             ...prev,
             unavailable:
               poErr === "insufficient_patties"
-                ? t("err.insufficientPatties")
+                ? insufficientPattiesUiMessage(t, cashPattySf, cashPattyLines)
                 : t("err.unavailable"),
           }));
           return;
@@ -698,15 +710,19 @@ export default function CheckoutPage() {
       }
 
       if (form.payment === "bit") {
-        const { order: savedOrder, error: poErr } =
-          await persistOrder("checkout_bit");
+        const {
+          order: savedOrder,
+          error: poErr,
+          pattyShortfalls: bitPattySf,
+          pattyAffectedLines: bitPattyLines,
+        } = await persistOrder("checkout_bit");
         if (poErr === "item_unavailable" || poErr === "insufficient_patties") {
           await refreshInventory();
           setErrors((prev) => ({
             ...prev,
             unavailable:
               poErr === "insufficient_patties"
-                ? t("err.insufficientPatties")
+                ? insufficientPattiesUiMessage(t, bitPattySf, bitPattyLines)
                 : t("err.unavailable"),
           }));
           return;
@@ -767,8 +783,12 @@ export default function CheckoutPage() {
         return;
       }
 
-      const { order: savedCardOrder, error: cardPoErr } =
-        await persistOrder("checkout_card");
+      const {
+        order: savedCardOrder,
+        error: cardPoErr,
+        pattyShortfalls: cardPattySf,
+        pattyAffectedLines: cardPattyLines,
+      } = await persistOrder("checkout_card");
       if (
         cardPoErr === "item_unavailable" ||
         cardPoErr === "insufficient_patties"
@@ -778,7 +798,7 @@ export default function CheckoutPage() {
           ...prev,
           unavailable:
             cardPoErr === "insufficient_patties"
-              ? t("err.insufficientPatties")
+              ? insufficientPattiesUiMessage(t, cardPattySf, cardPattyLines)
               : t("err.unavailable"),
         }));
         return;

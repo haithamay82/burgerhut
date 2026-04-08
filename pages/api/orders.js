@@ -7,6 +7,8 @@ import {
 import {
   aggregatePattyCountsFromOrderItems,
   pattyDemandFitsStock,
+  collectPattyAffectedLines,
+  computePattyShortfalls,
 } from "@/utils/burgerPattyPrep";
 import { getCatalogEditor } from "@/lib/catalogStore";
 import { BURGER_TOPPING_IDS } from "@/utils/menuData";
@@ -112,9 +114,21 @@ export default async function handler(req, res) {
     if (invPayload.pattyStock != null) {
       const prep = aggregatePattyCountsFromOrderItems(items);
       if (!pattyDemandFitsStock(prep.counts, invPayload.pattyStock)) {
-        return res
-          .status(400)
-          .json({ ok: false, error: "insufficient_patties" });
+        const pattyShortfalls = computePattyShortfalls(
+          prep.counts,
+          invPayload.pattyStock
+        );
+        const deficientGrams = pattyShortfalls.map((s) => s.g);
+        const pattyAffectedLines = collectPattyAffectedLines(
+          items,
+          deficientGrams
+        );
+        return res.status(400).json({
+          ok: false,
+          error: "insufficient_patties",
+          pattyShortfalls,
+          pattyAffectedLines,
+        });
       }
       pattyPrepForDeduction = prep;
     }

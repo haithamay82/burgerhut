@@ -370,6 +370,14 @@ const HE = {
     "יש בעגלה מנה שאזלה מהמלאי — הסירו אותה או הורידו כמות והמשיכו.",
   "err.insufficientPatties":
     "אין מספיק קציצות במלאי להשלמת ההזמנה — עדכנו את העגלה או נסו שוב מאוחר יותר.",
+  "err.insufficientPattiesIntro": "לא ניתן להשלים את ההזמנה — חסר במלאי:",
+  "err.insufficientPattiesGram": "קציצות {g} גר׳ (נדרש {need}, זמין {have})",
+  "err.insufficientPattiesGramSep": " · ",
+  "err.insufficientPattiesMealsIntro": "מנות בעגלה הרלוונטיות:",
+  "err.insufficientPattiesMealItem": "×{qty} {name}",
+  "err.insufficientPattiesMealSep": ", ",
+  "err.insufficientPattiesAction":
+    "עדכנו את העגלה (הסירו מנה או הורידו כמות) או נסו שוב מאוחר יותר.",
   "err.orderingClosed":
     "ניתן להזמין משעה 10:00 עד שעת הסגירה באותו יום. תחילת עבודה על ההזמנות בשעה 16:00",
 
@@ -1074,6 +1082,14 @@ const AR = {
     "في السلة صنف نفد من المخزون — احذفوه أو خفّضوا الكمية.",
   "err.insufficientPatties":
     "لا يوجد ما يكفي من أقراص البرجر لإتمام الطلب — عدّلوا السلة أو حاولوا لاحقاً.",
+  "err.insufficientPattiesIntro": "لا يمكن إتمام الطلب — نفاد في المخزون:",
+  "err.insufficientPattiesGram": "أقراص {g} غ (مطلوب {need}، متوفر {have})",
+  "err.insufficientPattiesGramSep": " · ",
+  "err.insufficientPattiesMealsIntro": "الأصناف ذات الصلة في السلة:",
+  "err.insufficientPattiesMealItem": "×{qty} {name}",
+  "err.insufficientPattiesMealSep": "، ",
+  "err.insufficientPattiesAction":
+    "عدّلوا السلة (احذفوا صنفاً أو خفّضوا الكمية) أو أعيدوا المحاولة لاحقاً.",
   "err.orderingClosed":
     "يمكن الطلب من الساعة 10:00 حتى وقت الإغلاق في ذلك اليوم. تبدأ معالجة الطلبات الساعة 16:00",
 

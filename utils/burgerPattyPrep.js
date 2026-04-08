@@ -93,4 +93,45 @@ export function pattyDemandFitsStock(counts, stock) {
   return true;
 }
 
+/**
+ * @param {Record<number, number>} counts
+ * @param {Record<number, number>} stock
+ * @returns {{ g: number, need: number, have: number, missing: number }[]}
+ */
+export function computePattyShortfalls(counts, stock) {
+  const out = [];
+  for (const g of PATTY_GRAMS_ORDER) {
+    const need = Number(counts[g]) || 0;
+    const have = Number(stock[g]) || 0;
+    if (need > have) {
+      out.push({ g, need, have, missing: need - have });
+    }
+  }
+  return out;
+}
+
+/**
+ * שורות עגלה שמכילות לפחות קציצה במשקל שנמצא במחסור (לפי סכימה כוללת).
+ * @param {unknown[]} items
+ * @param {Iterable<number>} deficientGrams
+ * @returns {{ productId: string, name: string, quantity: number }[]}
+ */
+export function collectPattyAffectedLines(items, deficientGrams) {
+  const gramSet =
+    deficientGrams instanceof Set ? deficientGrams : new Set(deficientGrams);
+  const rows = [];
+  if (!Array.isArray(items)) return rows;
+  for (const it of items) {
+    const pid = String(cartLineProductId(it) || "");
+    const patties = PATTIES_BY_PRODUCT_ID[pid];
+    if (!patties) continue;
+    if (!patties.some((g) => gramSet.has(g))) continue;
+    const q = Math.max(1, Number(it.quantity) || 1);
+    const name =
+      typeof it.name === "string" && it.name.trim() ? it.name.trim() : pid;
+    rows.push({ productId: pid, name, quantity: q });
+  }
+  return rows;
+}
+
 export { PATTY_GRAMS_ORDER };
