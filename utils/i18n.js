@@ -11,6 +11,7 @@ const HE = {
   "lang.ar": "العربية",
 
   "home.title": "רעבים? הזמינו עכשיו ונכין לכם באהבה ❤",
+  "home.burgerMascotAlt": "דמות מצחיקה אוכלת המבורגר",
   "home.contactTitle": "יצירת קשר ומיקום",
   "home.contactCopyright": "© אקסטרים טוכנולוגיות",
   "home.contactCopyrightEmail": "extremetechnologies22@gmail.com",
@@ -753,6 +754,7 @@ const AR = {
   "lang.ar": "العربية",
 
   "home.title": "جائعون؟ اطلبوا الآن ونحضّر لكم بمحبة ❤",
+  "home.burgerMascotAlt": "شخصية مرحة تأكل برجراً",
   "home.contactTitle": "التواصل والموقع",
   "home.contactCopyright": "© אקסטרים טוכנולוגיות",
   "home.contactCopyrightEmail": "extremetechnologies22@gmail.com",
