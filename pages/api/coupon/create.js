@@ -15,6 +15,15 @@ export default async function handler(req, res) {
 
   const body = req.body || {};
   const orderId = String(body.orderId || "").trim();
+  const orderNumberBody = body.orderNumber;
+  const sourceOrderNumber =
+    orderNumberBody !== undefined &&
+    orderNumberBody !== null &&
+    String(orderNumberBody).trim() !== ""
+      ? String(orderNumberBody).trim()
+      : /^\d+$/.test(orderId)
+        ? orderId
+        : "";
   /** לרוב: מזון נטו אחרי מבצע/קופון (בלי דמי משלוח) — ראו couponRewardBaseNis בצ'קאאוט */
   const amount = Number(body.amount);
   if (!orderId) return res.status(400).json({ ok: false, error: "missing_order_id" });
@@ -59,6 +68,7 @@ export default async function handler(req, res) {
 
     const coupon = generateCoupon({
       orderId,
+      sourceOrderNumber,
       amount,
       percentage: couponPct,
     });

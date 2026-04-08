@@ -66,6 +66,15 @@ function couponDisplayStatus(c, nowTs) {
   return "unused";
 }
 
+/** מספר הזמנה שעליו חושב הקופון — לתצוגת מנהל בלבד */
+function couponRewardSourceOrderDisplay(c) {
+  const explicit = String(c.sourceOrderNumber || "").trim();
+  if (explicit) return explicit;
+  const oid = String(c.orderId || "").trim();
+  if (/^\d+$/.test(oid)) return oid;
+  return "";
+}
+
 function orderDeliveryFeeNis(o) {
   if (o?.customer?.orderType !== "delivery") return 0;
   const fee = Number(o.customer.deliveryFeeNis);
@@ -2339,6 +2348,39 @@ export default function AdminOrdersPage() {
                                     {t("admin.couponExpiresAt")}:{" "}
                                     {formatCouponDateTime(c.expiresAt, locale)}
                                   </p>
+                                  {couponRewardSourceOrderDisplay(c) ? (
+                                    <p className="text-[11px] text-slate-400">
+                                      {t("admin.couponRewardFromOrder")}{" "}
+                                      <span className="font-semibold text-gray-300">
+                                        #
+                                        {couponRewardSourceOrderDisplay(c)}
+                                      </span>
+                                    </p>
+                                  ) : null}
+                                  {used ? (
+                                    <div className="space-y-0.5 border-t border-slate-800/80 pt-1.5 text-[11px] text-amber-200/90">
+                                      {Number(c.usedAt) > 0 ? (
+                                        <p>
+                                          {t("admin.couponUsedAt")}:{" "}
+                                          {formatCouponDateTime(
+                                            c.usedAt,
+                                            locale
+                                          )}
+                                        </p>
+                                      ) : null}
+                                      {c.usedByOrderNumber != null &&
+                                      String(c.usedByOrderNumber).trim() !==
+                                        "" ? (
+                                        <p>
+                                          {t("admin.couponUsedForOrder")}{" "}
+                                          <span className="font-semibold text-amber-100">
+                                            #
+                                            {String(c.usedByOrderNumber).trim()}
+                                          </span>
+                                        </p>
+                                      ) : null}
+                                    </div>
+                                  ) : null}
                                 </div>
                                 <button
                                   type="button"

@@ -14,6 +14,10 @@ export default async function handler(req, res) {
   const body = req.body || {};
   const code = String(body.code || "").trim().toUpperCase();
   if (!code) return res.status(400).json({ ok: false, error: "missing_code" });
+  const usedForOrder =
+    body.orderNumber !== undefined && body.orderNumber !== null
+      ? String(body.orderNumber).trim()
+      : "";
 
   try {
     const coupon = await redis.get(`coupon:${code}`);
@@ -24,6 +28,9 @@ export default async function handler(req, res) {
     }
     coupon.used = true;
     coupon.usedAt = Date.now();
+    if (usedForOrder) {
+      coupon.usedByOrderNumber = usedForOrder;
+    }
     await redis.set(`coupon:${code}`, coupon, { ex: TTL_SECONDS });
     return res.status(200).json({ ok: true });
   } catch (e) {

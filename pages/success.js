@@ -172,6 +172,12 @@ export default function SuccessPage() {
               orderId: String(restored.cardOrder.orderId),
               amount: Number(restored.cardOrder.amount) || 0,
             };
+            if (
+              restored.cardOrder.orderNumber != null &&
+              String(restored.cardOrder.orderNumber).trim() !== ""
+            ) {
+              co.orderNumber = restored.cardOrder.orderNumber;
+            }
             const rb = restored.cardOrder.couponRewardBaseNis;
             if (
               rb != null &&
@@ -230,6 +236,12 @@ export default function SuccessPage() {
         (Number.isFinite(amountFromSnap) && amountFromSnap > 0
           ? amountFromSnap
           : amountFromItems) || 0;
+      const snapOrderNum =
+        snap.orderNumber != null && String(snap.orderNumber).trim() !== ""
+          ? snap.orderNumber
+          : orderFromQuery != null && String(orderFromQuery).trim() !== ""
+            ? orderFromQuery
+            : null;
       const nextCardOrder = {
         orderId: String(
           snap.cardUniqueId ??
@@ -240,6 +252,9 @@ export default function SuccessPage() {
         ),
         amount: grand,
       };
+      if (snapOrderNum != null) {
+        nextCardOrder.orderNumber = snapOrderNum;
+      }
       const rbSnap = snap.couponRewardBaseNis;
       if (
         rbSnap !== undefined &&
@@ -451,6 +466,7 @@ export default function SuccessPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             orderId: cardOrder.orderId,
+            orderNumber: cardOrder.orderNumber,
             amount: couponCreateAmount,
           }),
         });

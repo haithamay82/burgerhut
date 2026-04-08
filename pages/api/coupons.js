@@ -36,10 +36,15 @@ export default async function handler(req, res) {
           value: Number(x.value) || 0,
           percentage: Number(x.percentage) || 0,
           orderId: String(x.orderId || ""),
+          sourceOrderNumber: String(x.sourceOrderNumber || "").trim(),
           used: Boolean(x.used),
           createdAt: Number(x.createdAt) || 0,
           expiresAt: Number(x.expiresAt) || 0,
           usedAt: Number(x.usedAt) || 0,
+          usedByOrderNumber:
+            x.usedByOrderNumber !== undefined && x.usedByOrderNumber !== null
+              ? x.usedByOrderNumber
+              : "",
         }))
         .filter((x) => /^BH[A-Z0-9]{6}$/.test(x.code))
         .sort((a, b) => b.createdAt - a.createdAt);
