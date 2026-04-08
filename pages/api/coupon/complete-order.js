@@ -65,7 +65,7 @@ export default async function handler(req, res) {
       ...coupon,
       used: true,
       usedAt: Date.now(),
-      usedByOrderNumber: order.orderNumber,
+      usedByOrderNumber: String(order.orderNumber ?? "").trim(),
     };
     await redis.set(`coupon:${code}`, nextCoupon, { ex: TTL_SECONDS });
     return res.status(200).json({ ok: true });

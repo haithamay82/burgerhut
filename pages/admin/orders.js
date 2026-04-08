@@ -75,6 +75,10 @@ function couponRewardSourceOrderDisplay(c) {
   return "";
 }
 
+function couponRedemptionOrderDisplay(c) {
+  return String(c.usedByOrderNumber ?? "").trim();
+}
+
 function orderDeliveryFeeNis(o) {
   if (o?.customer?.orderType !== "delivery") return 0;
   const fee = Number(o.customer.deliveryFeeNis);
@@ -2302,6 +2306,7 @@ export default function AdminOrdersPage() {
                             Number(c.expiresAt) > 0 &&
                             Number(c.expiresAt) < nowTs;
                           const used = Boolean(c.used);
+                          const redemptionOrder = couponRedemptionOrderDisplay(c);
                           const badge = expired
                             ? {
                                 label: t("admin.couponExpired"),
@@ -2358,7 +2363,10 @@ export default function AdminOrdersPage() {
                                     </p>
                                   ) : null}
                                   {used ? (
-                                    <div className="space-y-0.5 border-t border-slate-800/80 pt-1.5 text-[11px] text-amber-200/90">
+                                    <div className="space-y-1 border-t border-slate-800/80 pt-1.5 text-[11px] text-amber-200/90">
+                                      <p className="font-semibold text-amber-100/95">
+                                        {t("admin.couponRedeemedTitle")}
+                                      </p>
                                       {Number(c.usedAt) > 0 ? (
                                         <p>
                                           {t("admin.couponUsedAt")}:{" "}
@@ -2367,18 +2375,19 @@ export default function AdminOrdersPage() {
                                             locale
                                           )}
                                         </p>
-                                      ) : null}
-                                      {c.usedByOrderNumber != null &&
-                                      String(c.usedByOrderNumber).trim() !==
-                                        "" ? (
-                                        <p>
-                                          {t("admin.couponUsedForOrder")}{" "}
-                                          <span className="font-semibold text-amber-100">
-                                            #
-                                            {String(c.usedByOrderNumber).trim()}
-                                          </span>
+                                      ) : (
+                                        <p className="text-gray-500">
+                                          {t("admin.couponUsedAtUnknown")}
                                         </p>
-                                      ) : null}
+                                      )}
+                                      <p>
+                                        {t("admin.couponRedeemedOrderNumber")}:{" "}
+                                        <span className="font-semibold text-amber-100">
+                                          {redemptionOrder
+                                            ? `#${redemptionOrder}`
+                                            : `— (${t("admin.couponRedeemedOrderUnknown")})`}
+                                        </span>
+                                      </p>
                                     </div>
                                   ) : null}
                                 </div>

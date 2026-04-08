@@ -182,7 +182,7 @@ export default async function handler(req, res) {
           ...couponToConsume,
           used: true,
           usedAt: Date.now(),
-          usedByOrderNumber: row.orderNumber,
+          usedByOrderNumber: String(row.orderNumber ?? "").trim(),
         };
         await redis.set(`coupon:${String(couponToConsume.code || "").toUpperCase()}`, nextCoupon, {
           ex: 60 * 60 * 24 * 30,

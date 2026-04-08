@@ -41,10 +41,11 @@ export default async function handler(req, res) {
           createdAt: Number(x.createdAt) || 0,
           expiresAt: Number(x.expiresAt) || 0,
           usedAt: Number(x.usedAt) || 0,
-          usedByOrderNumber:
-            x.usedByOrderNumber !== undefined && x.usedByOrderNumber !== null
-              ? x.usedByOrderNumber
-              : "",
+          usedByOrderNumber: (() => {
+            const u = x.usedByOrderNumber;
+            if (u === undefined || u === null) return "";
+            return String(u).trim();
+          })(),
         }))
         .filter((x) => /^BH[A-Z0-9]{6}$/.test(x.code))
         .sort((a, b) => b.createdAt - a.createdAt);
