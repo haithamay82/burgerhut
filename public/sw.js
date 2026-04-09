@@ -1,10 +1,9 @@
 /**
- * PWA + מטמון מדיה מ-Vercel Blob: חוסך תעבורת Blob בכניסות חוזרות (תמונות בעיקר).
- * בקשות Range (נפוץ בווידאו) עוברות ישירות לרשת — לא שומרים חלקי 206 ב-cache.
+ * PWA — רישום Service Worker (עדכונים / התקנה מהבית).
+ *
+ * לא משתמשים ב-fetch handler: מטמון Vercel Blob דרך SW שבר תמונות בסליידר
+ * (תגובות opaque, destination ריק ב-Edge, וכו'). תמונות Blob נטענות ישירות מהרשת.
  */
-/** v2: לא מטמינים בקשות מ-destination=image ל-Blob — opaque מתוך SW שבר תמונות בסליידר */
-const BLOB_CACHE = "bh-blob-media-v2";
-
 self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
@@ -15,77 +14,10 @@ self.addEventListener("activate", (event) => {
       const keys = await caches.keys();
       await Promise.all(
         keys
-          .filter((k) => k.startsWith("bh-blob-media-") && k !== BLOB_CACHE)
+          .filter((k) => k.startsWith("bh-blob-media-"))
           .map((k) => caches.delete(k))
       );
       await self.clients.claim();
     })()
   );
-});
-
-function isVercelBlobHost(hostname) {
-  return (
-    hostname.endsWith(".public.blob.vercel-storage.com") ||
-    hostname.endsWith(".blob.vercel-storage.com")
-  );
-}
-
-async function cacheFirstBlob(request) {
-  const cache = await caches.open(BLOB_CACHE);
-  const cached = await cache.match(request);
-  if (cached) return cached;
-
-  const response = await fetch(request);
-  const cacheable =
-    response &&
-    response.ok &&
-    response.status !== 206 &&
-    (response.type === "basic" || response.type === "cors");
-
-  if (cacheable) {
-    try {
-      await cache.put(request, response.clone());
-    } catch {
-      /* מכסת אחסון / תגובה שלא ניתנת לשמירה */
-    }
-  }
-  return response;
-}
-
-self.addEventListener("fetch", (event) => {
-  const { request } = event;
-  if (request.method !== "GET") {
-    event.respondWith(fetch(request));
-    return;
-  }
-
-  let url;
-  try {
-    url = new URL(request.url);
-  } catch {
-    event.respondWith(fetch(request));
-    return;
-  }
-
-  if (!isVercelBlobHost(url.hostname)) {
-    event.respondWith(fetch(request));
-    return;
-  }
-
-  if (request.headers.has("range")) {
-    event.respondWith(fetch(request));
-    return;
-  }
-
-  /**
-   * <img src="https://…blob…"> — בקשות כאלה לרוב ב-no-cors; fetch מה-SW מחזיר opaque.
-   * שמירה ב-Cache API והחזרה שוברת תצוגה (מסגרות שחורות / אייקון שבור).
-   * תמונות מנות מ-/public או CDN אחר לא עוברות כאן — לכן רק הסליידר נפגע.
-   */
-  if (request.destination === "image") {
-    event.respondWith(fetch(request));
-    return;
-  }
-
-  event.respondWith(cacheFirstBlob(request));
 });

@@ -82,6 +82,7 @@ export default function HomeMediaSlider({
               className="h-44 w-[min(88vw,22rem)] shrink-0 snap-center rounded-xl border border-slate-700 object-cover shadow-lg"
               loading="lazy"
               decoding="async"
+              referrerPolicy="no-referrer"
             />
           ))}
         </div>
@@ -110,6 +111,7 @@ export default function HomeMediaSlider({
               className="h-44 w-[min(88vw,22rem)] shrink-0 rounded-xl border border-slate-700 object-cover shadow-lg"
               loading="eager"
               decoding="async"
+              referrerPolicy="no-referrer"
             />
           ))}
         </div>
