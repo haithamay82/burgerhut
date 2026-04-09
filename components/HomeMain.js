@@ -184,22 +184,32 @@ export default function HomeMain({
         </div>
       </section>
 
-      <div className="min-w-0 w-full max-w-full">
-        <HomeMediaSlider
-          initialImages={initialHomeSliderImages}
-          initialVersion={initialSliderVersion}
-        />
-      </div>
-
       <section className="flex min-w-0 flex-col gap-3 pb-36">
-        {filteredItems.map((item) => (
-          <div key={item.id} className="contents">
-            <MenuItemCard
-              item={item}
-              onOpenMealWizard={setMealWizardItem}
-            />
-          </div>
-        ))}
+        {filteredItems.flatMap((item) => {
+          const row = (
+            <div key={item.id} className="contents">
+              <MenuItemCard
+                item={item}
+                onOpenMealWizard={setMealWizardItem}
+              />
+            </div>
+          );
+          if (activeCategory === "burgers" && item.id === "burger-160") {
+            return [
+              row,
+              <div
+                key="home-media-slider"
+                className="min-w-0 w-full max-w-full"
+              >
+                <HomeMediaSlider
+                  initialImages={initialHomeSliderImages}
+                  initialVersion={initialSliderVersion}
+                />
+              </div>,
+            ];
+          }
+          return [row];
+        })}
       </section>
 
       <MealCustomizeWizard
