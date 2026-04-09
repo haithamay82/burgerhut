@@ -22,34 +22,51 @@ const INVENTORY_CATEGORIES = ["burgers", "crispy"];
 const CATALOG_CATEGORIES = ["burgers", "crispy", "sides", "drinks"];
 const CATALOG_ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-/** אחרי בחירת תמונה בנייד לעיתים הדף נטען מחדש — שומרים קוד מנהל לסשן הטאב */
+/**
+ * אחרי בחירת תמונה בנייד לעיתים הדף נטען מחדש; sessionStorage לפעמים מתרוקן (WebView / מצלמה).
+ * משכפלים ל-localStorage כדי שאוטו-טעינה והעלאה ימשיכו לעבוד.
+ */
 const ADMIN_ORDERS_SECRET_SESSION_KEY = "burgerhut:admin-orders-secret";
+const ADMIN_ORDERS_SECRET_LOCAL_KEY = "burgerhut:admin-orders-secret-ls";
 const ADMIN_PROMO_PANEL_SESSION_KEY = "burgerhut:admin-promo-panel";
 const ADMIN_SLIDER_PANEL_SESSION_KEY = "burgerhut:admin-slider-panel";
 
-function readAdminSecretFromSession() {
+function readPersistedAdminSecret() {
   if (typeof window === "undefined") return "";
   try {
-    return String(
+    const ses = String(
       window.sessionStorage.getItem(ADMIN_ORDERS_SECRET_SESSION_KEY) || ""
+    ).trim();
+    if (ses) return ses;
+    return String(
+      window.localStorage.getItem(ADMIN_ORDERS_SECRET_LOCAL_KEY) || ""
     ).trim();
   } catch {
     return "";
   }
 }
 
-function writeAdminSecretToSession(value) {
+function writePersistedAdminSecret(value) {
   if (typeof window === "undefined") return;
+  const v = String(value || "").trim();
   try {
-    const v = String(value || "").trim();
     if (v) {
       window.sessionStorage.setItem(ADMIN_ORDERS_SECRET_SESSION_KEY, v);
+      window.localStorage.setItem(ADMIN_ORDERS_SECRET_LOCAL_KEY, v);
     } else {
       window.sessionStorage.removeItem(ADMIN_ORDERS_SECRET_SESSION_KEY);
+      window.localStorage.removeItem(ADMIN_ORDERS_SECRET_LOCAL_KEY);
     }
   } catch {
     /* ignore */
   }
+}
+
+/** קוד מנהל מהשדה או מהאחסון (אחרי ריענון בנייד) */
+function resolveAdminSecret(current) {
+  const t = String(current || "").trim();
+  if (t) return t;
+  return readPersistedAdminSecret();
 }
 
 /** timeout ל-fetch של הגדרות סליידר */
@@ -561,7 +578,7 @@ export default function AdminOrdersPage() {
       });
       const data = await r.json().catch(() => ({}));
       if (!r.ok) {
-        writeAdminSecretToSession("");
+        writePersistedAdminSecret("");
         setOrders([]);
         setLoaded(false);
         setHoursDraft(null);
@@ -580,7 +597,7 @@ export default function AdminOrdersPage() {
         return;
       }
       setSecret(effectiveSecret);
-      writeAdminSecretToSession(effectiveSecret);
+      writePersistedAdminSecret(effectiveSecret);
       setOrders(data.orders || []);
       setLoaded(true);
       setHoursMsg("");
@@ -759,7 +776,7 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (adminSessionHydratedRef.current) return;
-    const stored = readAdminSecretFromSession();
+    const stored = readPersistedAdminSecret();
     if (!stored) return;
     adminSessionHydratedRef.current = true;
     setSecret(stored);
@@ -990,7 +1007,9 @@ export default function AdminOrdersPage() {
   };
 
   const uploadSliderFromPhone = async (fileOverride) => {
-    if (!secret.trim()) return;
+    const adminSecret = resolveAdminSecret(secret);
+    if (!adminSecret) return;
+    if (!secret.trim() && adminSecret) setSecret(adminSecret);
     const file =
       fileOverride instanceof File
         ? fileOverride
@@ -1008,9 +1027,11 @@ export default function AdminOrdersPage() {
       fd.append("file", file);
       const r = await fetch("/api/home-slider/upload", {
         method: "POST",
-        headers: { "x-admin-secret": secret.trim() },
+        headers: { "x-admin-secret": adminSecret },
         body: fd,
         signal: sliderAdminFetchSignal(),
+        credentials: "same-origin",
+        cache: "no-store",
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok || !d?.ok) {
@@ -1032,6 +1053,7 @@ export default function AdminOrdersPage() {
       }
       if (sliderFileRef.current) sliderFileRef.current.value = "";
       setSliderMsg(t("admin.sliderUploadedKv"));
+      writePersistedAdminSecret(adminSecret);
     } catch {
       setError(t("admin.errNet"));
     } finally {
@@ -1040,7 +1062,9 @@ export default function AdminOrdersPage() {
   };
 
   const deleteSliderKvImage = async (img) => {
-    if (!secret.trim()) return;
+    const adminSecret = resolveAdminSecret(secret);
+    if (!adminSecret) return;
+    if (!secret.trim() && adminSecret) setSecret(adminSecret);
     const id = String(img?.id || "");
     if (!id.startsWith("kv-")) return;
     const raw = id.slice(3);
@@ -1057,8 +1081,10 @@ export default function AdminOrdersPage() {
         `/api/home-slider/upload?id=${encodeURIComponent(raw)}`,
         {
           method: "DELETE",
-          headers: { "x-admin-secret": secret.trim() },
+          headers: { "x-admin-secret": adminSecret },
           signal: sliderAdminFetchSignal(),
+          credentials: "same-origin",
+          cache: "no-store",
         }
       );
       const d = await r.json().catch(() => ({}));
