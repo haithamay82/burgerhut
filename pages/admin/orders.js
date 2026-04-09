@@ -22,7 +22,7 @@ const INVENTORY_CATEGORIES = ["burgers", "crispy"];
 const CATALOG_CATEGORIES = ["burgers", "crispy", "sides", "drinks"];
 const CATALOG_ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-/** מונע תקיעה אינסופית של sliderBusy אם fetch לא חוזר */
+/** timeout ל-fetch של הגדרות סליידר */
 function sliderAdminFetchSignal() {
   if (
     typeof AbortSignal !== "undefined" &&
@@ -258,32 +258,10 @@ export default function AdminOrdersPage() {
   /** מונה התקנות PWA מצטבר (Redis); null = לא נטען או שגיאה */
   const [pwaInstallTotal, setPwaInstallTotal] = useState(null);
   const promoFileRef = useRef(null);
-  const sliderFileRef = useRef(null);
-  const sliderPublicPathRef = useRef(null);
   const catalogImageFileRef = useRef(null);
   const [sliderImages, setSliderImages] = useState([]);
   const [sliderDisplayEnabled, setSliderDisplayEnabled] = useState(true);
-  const [sliderUploading, setSliderUploading] = useState(false);
-  const [sliderBusy, setSliderBusy] = useState(false);
   const [sliderMsg, setSliderMsg] = useState("");
-  const sliderChainRef = useRef(Promise.resolve());
-
-  const runSliderChain = (task) => {
-    const p = sliderChainRef.current.then(async () => {
-      setSliderBusy(true);
-      try {
-        await task();
-      } finally {
-        setSliderBusy(false);
-      }
-    });
-    sliderChainRef.current = p
-      .finally(() => {
-        setSliderBusy(false);
-      })
-      .catch(() => {});
-    return p;
-  };
 
   const [selectedDayKey, setSelectedDayKey] = useState(null);
   const [calView, setCalView] = useState({ y: 2026, m: 1 });
@@ -910,10 +888,10 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const patchSliderDisplay = (enabled) =>
-    runSliderChain(async () => {
-      if (!secret.trim()) return;
-      setError("");
+  const patchSliderDisplay = async (enabled) => {
+    if (!secret.trim()) return;
+    setError("");
+    try {
       const r = await fetch("/api/home-slider", {
         method: "PATCH",
         headers: {
@@ -928,11 +906,17 @@ export default function AdminOrdersPage() {
         if (typeof d.displayEnabled === "boolean") {
           setSliderDisplayEnabled(d.displayEnabled);
         }
+        if (Array.isArray(d.images)) {
+          setSliderImages(d.images);
+        }
         setSliderMsg(t("admin.sliderDisplaySaved"));
       } else {
         setError(t("admin.sliderPersistErr"));
       }
-    });
+    } catch {
+      setError(t("admin.errNet"));
+    }
+  };
 
   const togglePromoPanel = async () => {
     const next = !promoOpen;
@@ -1047,97 +1031,6 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const uploadSliderImage = async () => {
-    if (!secret.trim()) return;
-    const file = sliderFileRef.current?.files?.[0];
-    if (!file) {
-      setSliderMsg("");
-      setError(t("admin.sliderErrMissing"));
-      return;
-    }
-    return runSliderChain(async () => {
-      setError("");
-      setSliderMsg("");
-      setSliderUploading(true);
-      try {
-        try {
-          await uploadToBlob(`slider-${Date.now()}-${file.name}`, file, {
-            access: "public",
-            handleUploadUrl: "/api/home-slider/blob",
-            clientPayload: JSON.stringify({ adminSecret: secret.trim() }),
-            multipart: true,
-          });
-        } catch (blobErr) {
-          const msg = String(blobErr?.message || "");
-          const isBlobDisabled =
-            msg.includes("blob_not_configured") ||
-            msg.includes("BLOB_READ_WRITE_TOKEN");
-          if (isBlobDisabled) {
-            setError(t("admin.promoErrBlobConfig"));
-            return;
-          }
-          setError(
-            `${t("admin.promoErrBlobUpload")}${msg ? ` (${msg})` : ""}`
-          );
-          return;
-        }
-        await loadHomeSlider();
-        if (sliderFileRef.current) sliderFileRef.current.value = "";
-        setSliderMsg(t("admin.sliderUploaded"));
-      } catch {
-        setError(t("admin.errNet"));
-      } finally {
-        setSliderUploading(false);
-      }
-    });
-  };
-
-  const addSliderPublicPath = async () => {
-    if (!secret.trim()) return;
-    const path = sliderPublicPathRef.current?.value?.trim() || "";
-    if (!path) {
-      setError(t("admin.sliderPublicPathErrEmpty"));
-      return;
-    }
-    return runSliderChain(async () => {
-      setError("");
-      setSliderMsg("");
-      try {
-        const r = await fetch("/api/home-slider", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-admin-secret": secret.trim(),
-          },
-          body: JSON.stringify({ addPublicPath: path }),
-        });
-        const d = await r.json().catch(() => ({}));
-        if (!r.ok || !d?.ok) {
-          if (
-            d?.error === "invalid_public_path" ||
-            d?.error === "invalid"
-          ) {
-            setError(t("admin.sliderPublicPathErr"));
-          } else if (d?.error === "duplicate") {
-            setError(t("admin.sliderPublicPathDup"));
-          } else if (d?.error === "slider_max_images") {
-            setError(t("admin.sliderMaxImages"));
-          } else {
-            setError(t("admin.sliderPersistErr"));
-          }
-          return;
-        }
-        await loadHomeSlider();
-        if (sliderPublicPathRef.current) {
-          sliderPublicPathRef.current.value = "";
-        }
-        setSliderMsg(t("admin.sliderPublicAdded"));
-      } catch {
-        setError(t("admin.errNet"));
-      }
-    });
-  };
-
   const uploadCatalogMenuImage = async () => {
     if (!secret.trim() || !catalogModal) return;
     const file = catalogImageFileRef.current?.files?.[0];
@@ -1185,124 +1078,6 @@ export default function AdminOrdersPage() {
     } finally {
       setCatalogImageUploading(false);
     }
-  };
-
-  const deleteSliderImage = async (id) => {
-    if (!secret.trim()) return;
-    if (
-      typeof window !== "undefined" &&
-      !window.confirm(t("admin.sliderDeleteConfirm"))
-    ) {
-      return;
-    }
-    return runSliderChain(async () => {
-      setError("");
-      setSliderMsg("");
-      setSliderImages((imgs) => imgs.filter((x) => x.id !== id));
-      try {
-        const r = await fetch(`/api/home-slider?_=${Date.now()}`, {
-          method: "DELETE",
-          cache: "no-store",
-          headers: {
-            "Content-Type": "application/json",
-            "x-admin-secret": secret.trim(),
-            "Cache-Control": "no-cache",
-            Pragma: "no-cache",
-          },
-          body: JSON.stringify({ id }),
-          signal: sliderAdminFetchSignal(),
-        });
-        const d = await r.json().catch(() => ({}));
-        if (!r.ok) {
-          await loadHomeSlider();
-          if (d.error === "admin_not_configured") {
-            setError(t("admin.errConfig"));
-          } else if (d.error === "unauthorized") {
-            setError(t("admin.errAuth"));
-          } else if (
-            d.error === "persist_failed" ||
-            d.error === "persist_verify_failed"
-          ) {
-            setError(t("admin.sliderPersistErr"));
-          } else if (d.error === "not_found") {
-            setError(t("admin.sliderDeleteErr"));
-          } else {
-            setError(t("admin.sliderDeleteErr"));
-          }
-          return;
-        }
-        if (Array.isArray(d.images)) {
-          setSliderImages(d.images);
-          if (typeof d.displayEnabled === "boolean") {
-            setSliderDisplayEnabled(d.displayEnabled);
-          }
-        } else {
-          await loadHomeSlider();
-        }
-        setSliderMsg(t("admin.sliderDeleted"));
-      } catch {
-        await loadHomeSlider();
-        setError(t("admin.errNet"));
-      }
-    });
-  };
-
-  const clearAllSliderImages = async () => {
-    if (!secret.trim() || sliderImages.length === 0) return;
-    if (
-      typeof window !== "undefined" &&
-      !window.confirm(t("admin.sliderClearAllConfirm"))
-    ) {
-      return;
-    }
-    return runSliderChain(async () => {
-      setError("");
-      setSliderMsg("");
-      setSliderImages([]);
-      try {
-        const r = await fetch(`/api/home-slider?_=${Date.now()}`, {
-          method: "POST",
-          cache: "no-store",
-          headers: {
-            "Content-Type": "application/json",
-            "x-admin-secret": secret.trim(),
-            "Cache-Control": "no-cache",
-            Pragma: "no-cache",
-          },
-          body: JSON.stringify({ clear: true }),
-          signal: sliderAdminFetchSignal(),
-        });
-        const d = await r.json().catch(() => ({}));
-        if (!r.ok) {
-          await loadHomeSlider();
-          if (d.error === "admin_not_configured") {
-            setError(t("admin.errConfig"));
-          } else if (d.error === "unauthorized") {
-            setError(t("admin.errAuth"));
-          } else if (
-            d.error === "persist_failed" ||
-            d.error === "persist_verify_failed"
-          ) {
-            setError(t("admin.sliderPersistErr"));
-          } else {
-            setError(t("admin.sliderClearAllErr"));
-          }
-          return;
-        }
-        if (Array.isArray(d.images)) {
-          setSliderImages(d.images);
-          if (typeof d.displayEnabled === "boolean") {
-            setSliderDisplayEnabled(d.displayEnabled);
-          }
-        } else {
-          await loadHomeSlider();
-        }
-        setSliderMsg(t("admin.sliderClearedAll"));
-      } catch {
-        await loadHomeSlider();
-        setError(t("admin.errNet"));
-      }
-    });
   };
 
   const savePromoEnabled = async (enabled) => {
@@ -1928,9 +1703,7 @@ export default function AdminOrdersPage() {
                       <input
                         type="checkbox"
                         checked={sliderDisplayEnabled}
-                        disabled={
-                          !secret.trim() || sliderBusy || sliderUploading
-                        }
+                        disabled={!secret.trim()}
                         onChange={(e) =>
                           void patchSliderDisplay(e.target.checked)
                         }
@@ -1941,114 +1714,45 @@ export default function AdminOrdersPage() {
                           {t("admin.sliderShowOnHome")}
                         </span>
                         <span className="text-[11px] leading-relaxed text-gray-500">
-                          {t("admin.sliderShowOnHomeHint")}
+                          {t("admin.sliderShowOnHomeHintFs")}
                         </span>
                       </span>
                     </label>
                     <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
-                      {t("admin.sliderHint")}
+                      {t("admin.sliderHintFs")}
                     </p>
-                    <div className="mb-4 flex flex-col gap-2 rounded-lg border border-emerald-800/50 bg-emerald-950/25 p-3">
-                      <span className="text-xs font-semibold text-emerald-200/95">
-                        {t("admin.sliderPublicPathLabel")}
-                      </span>
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                        <input
-                          ref={sliderPublicPathRef}
-                          type="text"
-                          inputMode="url"
-                          autoComplete="off"
-                          dir="ltr"
-                          placeholder={t("admin.sliderPublicPathPh")}
-                          disabled={sliderUploading || sliderBusy}
-                          className="min-w-0 flex-1 rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 font-mono text-sm text-gray-100 placeholder:text-gray-600"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => void addSliderPublicPath()}
-                          disabled={
-                            sliderUploading || sliderBusy || !secret.trim()
-                          }
-                          className="btn-primary shrink-0 text-sm disabled:opacity-50"
-                        >
-                          {t("admin.sliderPublicPathBtn")}
-                        </button>
-                      </div>
-                    </div>
                     {sliderMsg ? (
                       <p className="mb-3 text-xs font-medium text-emerald-400/95">
                         {sliderMsg}
                       </p>
                     ) : null}
                     {sliderImages.length ? (
-                      <>
-                        <ul className="mb-3 grid gap-2 sm:grid-cols-2">
-                          {sliderImages.map((img) => (
-                            <li
-                              key={img.id}
-                              className="flex items-center gap-2 rounded-lg border border-slate-700/80 bg-slate-950/40 p-2"
-                            >
-                              <img
-                                src={img.url}
-                                alt=""
-                                className="h-16 w-24 shrink-0 rounded object-cover"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => deleteSliderImage(img.id)}
-                                disabled={
-                                  sliderUploading ||
-                                  sliderBusy ||
-                                  !secret.trim()
-                                }
-                                className="rounded-lg border border-red-900/50 bg-red-950/20 px-2 py-1 text-[11px] text-red-300 hover:bg-red-950/40 disabled:cursor-not-allowed disabled:opacity-50"
-                              >
-                                {t("admin.sliderDelete")}
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                        <div className="mb-4">
-                          <button
-                            type="button"
-                            onClick={() => void clearAllSliderImages()}
-                            disabled={
-                              sliderUploading ||
-                              sliderBusy ||
-                              !secret.trim()
-                            }
-                            className="rounded-lg border border-red-800/60 bg-red-950/30 px-3 py-1.5 text-[11px] font-medium text-red-200 hover:bg-red-950/50 disabled:cursor-not-allowed disabled:opacity-50"
+                      <ul className="mb-2 grid gap-2 sm:grid-cols-2">
+                        {sliderImages.map((img) => (
+                          <li
+                            key={img.id}
+                            className="flex items-center gap-2 rounded-lg border border-slate-700/80 bg-slate-950/40 p-2"
                           >
-                            {t("admin.sliderClearAll")}
-                          </button>
-                        </div>
-                      </>
+                            <img
+                              src={img.url}
+                              alt=""
+                              className="h-16 w-24 shrink-0 rounded object-cover"
+                            />
+                            <span
+                              className="min-w-0 truncate font-mono text-[10px] text-gray-500"
+                              dir="ltr"
+                              title={img.url}
+                            >
+                              {img.url}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
                     ) : (
-                      <p className="mb-4 text-xs text-gray-500">
-                        {t("admin.sliderEmpty")}
+                      <p className="mb-2 text-xs text-gray-500">
+                        {t("admin.sliderEmptyFs")}
                       </p>
                     )}
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                      <input
-                        ref={sliderFileRef}
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp,image/gif"
-                        disabled={sliderUploading || sliderBusy}
-                        className="max-w-full text-xs text-gray-400 file:mr-2 file:rounded-lg file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-gray-200"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => void uploadSliderImage()}
-                        disabled={
-                          sliderUploading || sliderBusy || !secret.trim()
-                        }
-                        className="btn-primary shrink-0 text-sm disabled:opacity-50"
-                      >
-                        {sliderUploading
-                          ? t("admin.sliderUploading")
-                          : t("admin.sliderUploadBtn")}
-                      </button>
-                    </div>
                   </div>
                 </section>
               ) : null}

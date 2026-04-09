@@ -692,18 +692,13 @@ const HE = {
   "admin.sliderShowOnHome": "הצג סליידר בדף הבית ללקוחות",
   "admin.sliderShowOnHomeHint":
     "כבוי — התמונות לא ייטענו מהאחסון (חוסך Blob). הרשימה למטה נשארת לניהול; אפשר להפעיל שוב בכל עת.",
+  "admin.sliderShowOnHomeHintFs":
+    "כבוי — הסליידר מוסתר מלקוחות. התמונות עצמן נשארות בתיקיית public/home-slider/ בפרויקט.",
   "admin.sliderDisplaySaved": "הגדרת התצוגה נשמרה.",
-  "admin.sliderHint":
-    "מוצג בין מנת בורגר 160 לבורגר 200. עד 24 תמונות. מומלץ: קבצים בתיקייה public/home-slider/ (כמו תמונות התפריט) — אותו דומיין, תמיד עובד בכל דפדפן. שמים קובץ (למשל promo.jpg), דוחפים ל־Git, ומוסיפים כאן את הנתיב /home-slider/promo.jpg. אופציונלי: העלאה ל־Blob (דורש הגדרה).",
-  "admin.sliderPublicPathLabel": "נתיב באתר (מומלץ)",
-  "admin.sliderPublicPathPh": "/home-slider/שם-הקובץ.jpg",
-  "admin.sliderPublicPathBtn": "הוסף נתיב",
-  "admin.sliderPublicPathErr":
-    "נתיב לא תקין. דוגמה: /home-slider/promo.jpg (אותיות באנגלית, מספרים, מקף, קובץ jpg/png/webp/gif)",
-  "admin.sliderPublicPathErrEmpty": "הקלידו נתיב, למשל /home-slider/promo.jpg",
-  "admin.sliderPublicPathDup": "הנתיב כבר ברשימה.",
-  "admin.sliderPublicAdded": "הנתיב נוסף לסליידר.",
-  "admin.sliderMaxImages": "הגעתם למקסימום 24 תמונות בסליידר.",
+  "admin.sliderHintFs":
+    "מוצג בין בורגר 160 לבורגר 200. שמים עד 24 קבצי תמונה (jpg, png, webp, gif, avif) בתיקייה public/home-slider/, דוחפים ל-Git ומפרסמים — יוצגו אוטומטית לכולם, בלי Blob.",
+  "admin.sliderEmptyFs":
+    "אין קבצים בתיקייה public/home-slider/. הוסיפו תמונות שם ושחררו גרסה.",
   "admin.sliderUploadBtn": "העלאת תמונה לסליידר",
   "admin.sliderUploading": "מעלה תמונה…",
   "admin.sliderUploaded": "התמונה נוספה לסליידר.",
@@ -1453,18 +1448,13 @@ const AR = {
   "admin.sliderShowOnHome": "عرض الشريط في الصفحة الرئيسية للعملاء",
   "admin.sliderShowOnHomeHint":
     "عند الإلغاء لا تُحمّل الصور من التخزين (توفير Blob). تبقى القائمة أدناه للإدارة ويمكن التفعيل لاحقاً.",
+  "admin.sliderShowOnHomeHintFs":
+    "عند الإيقاف يُخفى الشريط عن العملاء. الصور نفسها تبقى في مجلد public/home-slider/ في المشروع.",
   "admin.sliderDisplaySaved": "تم حفظ إعداد العرض.",
-  "admin.sliderHint":
-    "يُعرض بين وجبة برغر 160 وبرغر 200. حتى 24 صورة. يُفضّل: ملفات في مجلد public/home-slider/ (مثل صور القائمة) — نفس النطاق ويعمل في كل المتصفحات. ارفعوا الملف (مثلاً promo.jpg) إلى Git ثم أضيفوا المسار /home-slider/promo.jpg هنا. اختياري: رفع إلى Blob (يتطلب إعداداً).",
-  "admin.sliderPublicPathLabel": "مسار في الموقع (مُفضّل)",
-  "admin.sliderPublicPathPh": "/home-slider/اسم-الملف.jpg",
-  "admin.sliderPublicPathBtn": "إضافة مسار",
-  "admin.sliderPublicPathErr":
-    "مسار غير صالح. مثال: /home-slider/promo.jpg (حروف إنجليزية وأرقام وشرطة، امتداد jpg/png/webp/gif)",
-  "admin.sliderPublicPathErrEmpty": "أدخلوا مساراً، مثلاً /home-slider/promo.jpg",
-  "admin.sliderPublicPathDup": "المسار موجود مسبقاً في القائمة.",
-  "admin.sliderPublicAdded": "أُضيف المسار إلى الشريط.",
-  "admin.sliderMaxImages": "وصلتم إلى الحد الأقصى 24 صورة في الشريط.",
+  "admin.sliderHintFs":
+    "يُعرض بين برغر 160 وبرغر 200. ضعوا حتى 24 صورة (jpg، png، webp، gif، avif) في مجلد public/home-slider/، ادفعوا إلى Git وانشروا — ستظهر تلقائياً للجميع دون Blob.",
+  "admin.sliderEmptyFs":
+    "لا توجد ملفات في مجلد public/home-slider/. أضيفوا صوراً هناك وانشروا إصداراً.",
   "admin.sliderUploadBtn": "رفع صورة للشريط",
   "admin.sliderUploading": "جارٍ رفع الصورة…",
   "admin.sliderUploaded": "أُضيفت الصورة إلى الشريط.",

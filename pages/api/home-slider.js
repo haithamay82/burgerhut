@@ -1,10 +1,5 @@
-import { del as deleteBlob } from "@vercel/blob";
 import {
-  appendHomeSliderImage,
-  clearHomeSliderImages,
   getHomeSliderMeta,
-  isSliderPublicPath,
-  removeHomeSliderImage,
   setHomeSliderDisplayEnabled,
 } from "@/lib/homeSliderStore";
 
@@ -32,10 +27,6 @@ function readJsonBody(req) {
   });
 }
 
-/**
- * Next.js מפרסר מראש JSON ל-req.body; קריאה חוזרת מהזרם מחזירה {} או נתקעת —
- * ואז «נקה הכל» נכשל והלקוח נשאר ב-sliderBusy=true.
- */
 function bodyFromNextParser(req) {
   const b = req.body;
   if (b === undefined || b === null) return null;
@@ -62,10 +53,6 @@ async function getJsonBody(req) {
   const parsed = bodyFromNextParser(req);
   if (parsed !== null) return parsed;
   return readJsonBody(req);
-}
-
-function isVercelBlobUrl(u) {
-  return typeof u === "string" && u.includes(".public.blob.vercel-storage.com");
 }
 
 export default async function handler(req, res) {
@@ -118,12 +105,7 @@ export default async function handler(req, res) {
     }
     const result = await setHomeSliderDisplayEnabled(body.displayEnabled);
     if (!result.ok) {
-      const status =
-        result.error === "persist_failed" ||
-        result.error === "persist_verify_failed"
-          ? 503
-          : 400;
-      return res.status(status).json({ ok: false, error: result.error });
+      return res.status(503).json({ ok: false, error: result.error });
     }
     const meta = await getHomeSliderMeta();
     return res.status(200).json({
@@ -134,118 +116,6 @@ export default async function handler(req, res) {
     });
   }
 
-  if (req.method === "DELETE") {
-    const auth = authorize(req);
-    if (!auth.ok) {
-      if (auth.reason === "not_configured") {
-        return res.status(503).json({ ok: false, error: "admin_not_configured" });
-      }
-      return res.status(401).json({ ok: false, error: "unauthorized" });
-    }
-    let body;
-    try {
-      body = await getJsonBody(req);
-    } catch {
-      return res.status(400).json({ ok: false, error: "invalid_json" });
-    }
-    const id = String(body?.id || "").trim();
-    if (!id) {
-      return res.status(400).json({ ok: false, error: "missing_id" });
-    }
-    const result = await removeHomeSliderImage(id);
-    if (!result.ok) {
-      const status =
-        result.error === "persist_failed" ||
-        result.error === "persist_verify_failed"
-          ? 503
-          : result.error === "not_found"
-            ? 404
-            : 400;
-      return res.status(status).json({ ok: false, error: result.error });
-    }
-    const meta = await getHomeSliderMeta();
-    const adminPayload = {
-      ok: true,
-      images: meta.images.map(({ id, url }) => ({ id, url })),
-      version: meta.updatedAt,
-      displayEnabled: meta.enabled !== false,
-    };
-    if (result.removed?.url && isVercelBlobUrl(result.removed.url)) {
-      void deleteBlob(result.removed.url).catch(() => {
-        /* ignore blob delete failure */
-      });
-    }
-    return res.status(200).json(adminPayload);
-  }
-
-  if (req.method === "POST") {
-    const auth = authorize(req);
-    if (!auth.ok) {
-      if (auth.reason === "not_configured") {
-        return res.status(503).json({ ok: false, error: "admin_not_configured" });
-      }
-      return res.status(401).json({ ok: false, error: "unauthorized" });
-    }
-    let body;
-    try {
-      body = await getJsonBody(req);
-    } catch {
-      return res.status(400).json({ ok: false, error: "invalid_json" });
-    }
-    const addPublicPath =
-      typeof body?.addPublicPath === "string" ? body.addPublicPath.trim() : "";
-    if (addPublicPath) {
-      if (!isSliderPublicPath(addPublicPath)) {
-        return res.status(400).json({ ok: false, error: "invalid_public_path" });
-      }
-      const id = `slider-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-      const result = await appendHomeSliderImage(addPublicPath, id);
-      if (!result.ok) {
-        const status =
-          result.error === "persist_failed" ||
-          result.error === "persist_verify_failed"
-            ? 503
-            : 400;
-        return res.status(status).json({ ok: false, error: result.error });
-      }
-      const meta = await getHomeSliderMeta();
-      return res.status(200).json({
-        ok: true,
-        images: meta.images.map(({ id: i, url }) => ({ id: i, url })),
-        version: meta.updatedAt,
-        displayEnabled: meta.enabled !== false,
-      });
-    }
-
-    if (body?.clear !== true) {
-      return res.status(400).json({ ok: false, error: "invalid_body" });
-    }
-    const cleared = await clearHomeSliderImages();
-    if (!cleared.ok) {
-      const status =
-        cleared.error === "persist_failed" ||
-        cleared.error === "persist_verify_failed"
-          ? 503
-          : 400;
-      return res.status(status).json({ ok: false, error: cleared.error });
-    }
-    const meta = await getHomeSliderMeta();
-    const adminPayload = {
-      ok: true,
-      images: meta.images.map(({ id, url }) => ({ id, url })),
-      version: meta.updatedAt,
-      displayEnabled: meta.enabled !== false,
-    };
-    for (const url of cleared.removedUrls) {
-      if (typeof url === "string" && isVercelBlobUrl(url)) {
-        void deleteBlob(url).catch(() => {
-          /* ignore blob delete failure */
-        });
-      }
-    }
-    return res.status(200).json(adminPayload);
-  }
-
-  res.setHeader("Allow", "GET, DELETE, POST, PATCH");
+  res.setHeader("Allow", "GET, PATCH");
   return res.status(405).json({ ok: false, error: "method_not_allowed" });
 }
