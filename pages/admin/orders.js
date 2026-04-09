@@ -17,57 +17,21 @@ import {
   hasAnyPattyPrep,
   PATTY_GRAMS_ORDER,
 } from "@/utils/burgerPattyPrep";
+import {
+  readPersistedAdminSecret,
+  writePersistedAdminSecret,
+  resolveAdminSecret,
+  ADMIN_PROMO_PANEL_SESSION_KEY,
+  ADMIN_SLIDER_PANEL_SESSION_KEY,
+} from "@/utils/adminSecretPersist";
+import {
+  prepareSliderImageForUpload,
+  blobToBase64PngOrJpeg,
+} from "@/utils/prepareSliderImageForUpload";
 
 const INVENTORY_CATEGORIES = ["burgers", "crispy"];
 const CATALOG_CATEGORIES = ["burgers", "crispy", "sides", "drinks"];
 const CATALOG_ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-
-/**
- * אחרי בחירת תמונה בנייד לעיתים הדף נטען מחדש; sessionStorage לפעמים מתרוקן (WebView / מצלמה).
- * משכפלים ל-localStorage כדי שאוטו-טעינה והעלאה ימשיכו לעבוד.
- */
-const ADMIN_ORDERS_SECRET_SESSION_KEY = "burgerhut:admin-orders-secret";
-const ADMIN_ORDERS_SECRET_LOCAL_KEY = "burgerhut:admin-orders-secret-ls";
-const ADMIN_PROMO_PANEL_SESSION_KEY = "burgerhut:admin-promo-panel";
-const ADMIN_SLIDER_PANEL_SESSION_KEY = "burgerhut:admin-slider-panel";
-
-function readPersistedAdminSecret() {
-  if (typeof window === "undefined") return "";
-  try {
-    const ses = String(
-      window.sessionStorage.getItem(ADMIN_ORDERS_SECRET_SESSION_KEY) || ""
-    ).trim();
-    if (ses) return ses;
-    return String(
-      window.localStorage.getItem(ADMIN_ORDERS_SECRET_LOCAL_KEY) || ""
-    ).trim();
-  } catch {
-    return "";
-  }
-}
-
-function writePersistedAdminSecret(value) {
-  if (typeof window === "undefined") return;
-  const v = String(value || "").trim();
-  try {
-    if (v) {
-      window.sessionStorage.setItem(ADMIN_ORDERS_SECRET_SESSION_KEY, v);
-      window.localStorage.setItem(ADMIN_ORDERS_SECRET_LOCAL_KEY, v);
-    } else {
-      window.sessionStorage.removeItem(ADMIN_ORDERS_SECRET_SESSION_KEY);
-      window.localStorage.removeItem(ADMIN_ORDERS_SECRET_LOCAL_KEY);
-    }
-  } catch {
-    /* ignore */
-  }
-}
-
-/** קוד מנהל מהשדה או מהאחסון (אחרי ריענון בנייד) */
-function resolveAdminSecret(current) {
-  const t = String(current || "").trim();
-  if (t) return t;
-  return readPersistedAdminSecret();
-}
 
 /** timeout ל-fetch של הגדרות סליידר */
 function sliderAdminFetchSignal() {
@@ -75,7 +39,7 @@ function sliderAdminFetchSignal() {
     typeof AbortSignal !== "undefined" &&
     typeof AbortSignal.timeout === "function"
   ) {
-    return AbortSignal.timeout(60000);
+    return AbortSignal.timeout(90000);
   }
   return undefined;
 }
@@ -1023,12 +987,15 @@ export default function AdminOrdersPage() {
     setSliderMsg("");
     setSliderUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const r = await fetch("/api/home-slider/upload", {
+      const prepared = await prepareSliderImageForUpload(file);
+      const imageBase64 = await blobToBase64PngOrJpeg(prepared);
+      const r = await fetch("/api/home-slider/upload-b64", {
         method: "POST",
-        headers: { "x-admin-secret": adminSecret },
-        body: fd,
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-secret": adminSecret,
+        },
+        body: JSON.stringify({ imageBase64 }),
         signal: sliderAdminFetchSignal(),
         credentials: "same-origin",
         cache: "no-store",
@@ -1947,6 +1914,14 @@ export default function AdminOrdersPage() {
                   <p className="mb-3 text-[11px] leading-relaxed text-amber-200/80">
                     {t("admin.sliderKvHint")}
                   </p>
+                  <p className="mb-3 text-[11px] leading-relaxed text-sky-200/85">
+                    <Link
+                      href="/admin/slider-upload"
+                      className="font-semibold text-sky-300 underline-offset-2 hover:underline"
+                    >
+                      {t("admin.sliderUploadLitePageLink")}
+                    </Link>
+                  </p>
                   <div
                     className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center"
                     onPointerDown={(ev) => ev.stopPropagation()}
@@ -1955,17 +1930,31 @@ export default function AdminOrdersPage() {
                       ref={sliderFileRef}
                       type="file"
                       accept="image/jpeg,image/png,image/webp,image/gif"
-                      disabled={sliderUploading || !secret.trim()}
+                      disabled={
+                        sliderUploading || !resolveAdminSecret(secret)
+                      }
                       className="max-w-full text-xs text-gray-400 file:mr-2 file:rounded-lg file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-gray-200"
                       onChange={(ev) => {
                         const f = ev.target.files?.[0];
-                        if (f) void uploadSliderFromPhone(f);
+                        if (!f) return;
+                        const touch =
+                          typeof window !== "undefined" &&
+                          ("ontouchstart" in window ||
+                            (typeof navigator !== "undefined" &&
+                              navigator.maxTouchPoints > 0));
+                        const ms = touch ? 500 : 0;
+                        window.setTimeout(
+                          () => void uploadSliderFromPhone(f),
+                          ms
+                        );
                       }}
                     />
                     <button
                       type="button"
                       onClick={() => void uploadSliderFromPhone()}
-                      disabled={sliderUploading || !secret.trim()}
+                      disabled={
+                        sliderUploading || !resolveAdminSecret(secret)
+                      }
                       className="btn-primary shrink-0 text-sm disabled:opacity-50"
                     >
                       {sliderUploading
