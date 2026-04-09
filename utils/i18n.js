@@ -440,13 +440,9 @@ const HE = {
     "תודה! ההזמנה נרשמה.",
   "success.descCard":
     "תודה! התשלום התקבל וההזמנה נרשמה במערכת.",
-  "success.waAfterCard":
-    "שלח את ההזמנה לווטסאפ\nותאם עם המסעדה זמן קבלת ההזמנה",
-  "success.waSendOrder": "שלח הזמנה",
-  "success.waOrderRecordedWithId": "הזמנתך #{order} נרשמה",
-  "success.waOrderRecordedNoId": "הזמנתך נרשמה",
-  "success.waAfterCardWithCoupon":
-    "שלח את ההזמנה לווטסאפ\nותאם עם המסעדה זמן קבלת ההזמנה",
+  "success.waSendOrder": "שלח את ההזמנה למסעדה",
+  "success.waOrderRecordedWithId": "הזמנתך #{order} מוכנה לשליחה",
+  "success.waOrderRecordedNoId": "הזמנתך מוכנה לשליחה",
   "success.waWaitForCoupon": "ממתינים לקופון… אחרי שיוצג אפשר יהיה לשלוח לווטסאפ.",
   "success.waPreparingShort": "רגע…",
   "success.waNoCouponLoaded":
@@ -1226,13 +1222,9 @@ const AR = {
     "شكراً! تم تسجيل الطلب في النظام. إذا فتح واتساب — راجِع الرسالة وأرسلها للمتجر.",
   "success.descCard":
     "شكراً! تم استلام الدفع وتسجيل الطلب.",
-  "success.waAfterCard":
-    "أرسل الطلب عبر واتساب\nونسّق مع المطعم وقت استلام الطلب",
-  "success.waSendOrder": "أرسل الطلب",
-  "success.waOrderRecordedWithId": "تم تسجيل طلبك #{order}",
-  "success.waOrderRecordedNoId": "تم تسجيل طلبك",
-  "success.waAfterCardWithCoupon":
-    "أرسل الطلب عبر واتساب\nونسّق مع المطعم وقت استلام الطلب",
+  "success.waSendOrder": "أرسل الطلب إلى المطعم",
+  "success.waOrderRecordedWithId": "طلبك #{order} جاهز للإرسال",
+  "success.waOrderRecordedNoId": "طلبك جاهز للإرسال",
   "success.waWaitForCoupon":
     "جاري تحميل الكوبون… بعد ظهوره يمكن الإرسال عبر واتساب.",
   "success.waPreparingShort": "لحظة…",

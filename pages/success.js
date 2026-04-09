@@ -548,14 +548,6 @@ export default function SuccessPage() {
       Boolean(cardOrder) &&
       method !== "cash");
 
-  const waLinkLabel =
-    coupon?.code && Number(coupon?.value) > 0
-      ? t("success.waAfterCardWithCoupon").replace(
-          "{value}",
-          String(Number(coupon.value) || 0)
-        )
-      : t("success.waAfterCard");
-
   const showMergedWaButton =
     postPaymentWhatsAppContext && cardWaUrl && !waComposeAlreadyUsed;
   const orderRecordedLine = orderFromQuery
@@ -568,18 +560,13 @@ export default function SuccessPage() {
   const waSendClasses =
     "btn-primary flex w-full justify-center px-4 py-3 text-center text-base font-extrabold text-black";
 
-  const waPostButtonInfo = (
-    <div className="flex w-full flex-col items-center gap-3 text-center leading-snug">
-      <span className="flex flex-col items-center gap-2">
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20 text-2xl text-emerald-400">
-          ✓
-        </span>
-        <span className="text-base font-extrabold leading-tight text-gray-100">
-          {orderRecordedLine}
-        </span>
+  const waOrderStatusBlock = (
+    <div className="flex w-full flex-col items-center gap-2 text-center leading-snug">
+      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20 text-2xl text-emerald-400">
+        ✓
       </span>
-      <span className="block w-full border-t border-white/10 pt-3 text-sm font-semibold whitespace-pre-line text-gray-300">
-        {waLinkLabel}
+      <span className="text-base font-extrabold leading-tight text-gray-100">
+        {orderRecordedLine}
       </span>
     </div>
   );
@@ -659,6 +646,7 @@ export default function SuccessPage() {
         ) : null}
         {showMergedWaButton ? (
           <div className="mb-4 flex w-full max-w-xs flex-col items-stretch gap-4">
+            {waOrderStatusBlock}
             {waLinkActive ? (
               <a
                 href={cardWaUrl}
@@ -692,7 +680,6 @@ export default function SuccessPage() {
                 {t("success.waSendOrder")}
               </span>
             )}
-            {waPostButtonInfo}
             {!waLinkActive ? (
               <p className="text-[11px] leading-snug text-gray-500">
                 {customerCouponsActive === null
