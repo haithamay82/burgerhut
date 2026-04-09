@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import Link from "next/link";
 import Layout from "@/components/Layout";
 import { useLocale } from "@/contexts/LocaleContext";
 import { buildWhatsAppUrl } from "@/utils/whatsapp";
@@ -11,7 +10,6 @@ import {
   hasValidCardSuccessSnapshot,
   PENDING_ORDER_KEY,
   readCardSuccessSnapshotRaw,
-  clearSuccessWaRestore,
   readSuccessWaRestoreRaw,
   SUCCESS_WA_SENT_KEY,
   SUCCESS_WA_SNAPSHOT_KEY,
@@ -691,15 +689,6 @@ export default function SuccessPage() {
             ) : null}
           </div>
         ) : null}
-        <Link
-          href="/"
-          className="btn-primary"
-          onClick={() => {
-            clearSuccessWaRestore();
-          }}
-        >
-          {t("success.back")}
-        </Link>
       </div>
     </Layout>
   );
