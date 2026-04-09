@@ -8,6 +8,7 @@ import {
 import { useLocale } from "@/contexts/LocaleContext";
 import { useInventory } from "@/contexts/InventoryContext";
 import { formatIls, lineTotal, safePrice } from "@/utils/cartMoney";
+import { sortSaladsForDisplay } from "@/utils/saladDisplayOrder";
 
 export default function StickyCartBar() {
   const { t } = useLocale();
@@ -78,7 +79,9 @@ export default function StickyCartBar() {
                     {item.salads?.length ? (
                       <p className="text-[11px] text-gray-400">
                         {t("checkout.saladsPrefix")}:{" "}
-                        {item.salads.map((x) => x.label).join(", ")}
+                        {sortSaladsForDisplay(item.salads)
+                          .map((x) => x.label)
+                          .join(", ")}
                       </p>
                     ) : null}
                     {item.burgerDoneness?.label ? (

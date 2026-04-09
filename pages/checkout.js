@@ -21,6 +21,7 @@ import {
   SUCCESS_WA_SNAPSHOT_KEY,
 } from "@/utils/checkoutSessionKeys";
 import { insufficientPattiesUiMessage } from "@/utils/pattyCheckoutErrorText";
+import { sortSaladsForDisplay } from "@/utils/saladDisplayOrder";
 
 const DeliveryMapPicker = dynamic(
   () => import("@/components/DeliveryMapPicker"),
@@ -912,7 +913,9 @@ export default function CheckoutPage() {
                     {item.salads?.length ? (
                       <p className="text-[11px] text-gray-400">
                         {t("checkout.saladsPrefix")}:{" "}
-                        {item.salads.map((x) => x.label).join(", ")}
+                        {sortSaladsForDisplay(item.salads)
+                          .map((x) => x.label)
+                          .join(", ")}
                       </p>
                     ) : null}
                     {item.burgerDoneness?.label ? (

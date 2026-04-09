@@ -2,6 +2,7 @@ import { getTranslator, t as tFn } from "@/utils/i18n";
 
 import { cartLineProductId } from "@/hooks/useCart";
 import { formatIls, lineTotal } from "@/utils/cartMoney";
+import { sortSaladsForDisplay } from "@/utils/saladDisplayOrder";
 
 function toppingsWaLabelKey(item) {
   if (item?.menuCategory === "crispy") return "wa.toppingsCrispy";
@@ -134,7 +135,9 @@ export function buildWhatsAppOrderText({
     }
     if (item.salads?.length) {
       lines.push(
-        `   ${waBoldLabel(tr("wa.salads"))}: ${item.salads.map((x) => x.label).join(", ")}`
+        `   ${waBoldLabel(tr("wa.salads"))}: ${sortSaladsForDisplay(item.salads)
+          .map((x) => x.label)
+          .join(", ")}`
       );
     }
     if (item.burgerDoneness?.label) {

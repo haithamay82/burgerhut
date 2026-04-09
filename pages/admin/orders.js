@@ -28,6 +28,7 @@ import {
   prepareSliderImageForUpload,
   blobToBase64PngOrJpeg,
 } from "@/utils/prepareSliderImageForUpload";
+import { sortSaladsForDisplay } from "@/utils/saladDisplayOrder";
 
 const INVENTORY_CATEGORIES = ["burgers", "crispy"];
 const CATALOG_CATEGORIES = ["burgers", "crispy", "sides", "drinks"];
@@ -2905,7 +2906,7 @@ export default function AdminOrdersPage() {
                                     {it.salads?.length ? (
                                       <p className="text-[11px] text-gray-400">
                                         {t("checkout.saladsPrefix")}:{" "}
-                                        {it.salads
+                                        {sortSaladsForDisplay(it.salads)
                                           .map((x) => x.label)
                                           .join(", ")}
                                       </p>

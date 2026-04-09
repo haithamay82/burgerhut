@@ -1,11 +1,14 @@
 import { lineTotal } from "@/utils/cartMoney";
+import { sortSaladsForDisplay } from "@/utils/saladDisplayOrder";
 
 /** פירוט שורות ל־Hyp / לוג — תוספות ומחיר שורה */
 export function buildCardOrderDetailsFromItems(items) {
   if (!Array.isArray(items)) return [];
   return items.map((item) => {
     const tops = (item.toppings || []).map((x) => x.label || x.name || x.id);
-    const sals = (item.salads || []).map((x) => x.label || x.name || x.id);
+    const sals = sortSaladsForDisplay(item.salads || []).map(
+      (x) => x.label || x.name || x.id
+    );
     const exs = (item.extras || []).map((x) => x.label || x.name || x.id);
     return {
       name: item.name,
