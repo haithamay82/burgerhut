@@ -24,6 +24,8 @@ const CATALOG_ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 /** אחרי בחירת תמונה בנייד לעיתים הדף נטען מחדש — שומרים קוד מנהל לסשן הטאב */
 const ADMIN_ORDERS_SECRET_SESSION_KEY = "burgerhut:admin-orders-secret";
+const ADMIN_PROMO_PANEL_SESSION_KEY = "burgerhut:admin-promo-panel";
+const ADMIN_SLIDER_PANEL_SESSION_KEY = "burgerhut:admin-slider-panel";
 
 function readAdminSecretFromSession() {
   if (typeof window === "undefined") return "";
@@ -250,6 +252,8 @@ export default function AdminOrdersPage() {
   const [catalogModal, setCatalogModal] = useState(null);
   const [catalogImageUploading, setCatalogImageUploading] = useState(false);
   const [promoOpen, setPromoOpen] = useState(false);
+  /** סליידר מחוץ לפאנל הפרסום — מונע סגירה/באגים בנייד אחרי בורר קבצים */
+  const [sliderPanelOpen, setSliderPanelOpen] = useState(true);
   const [hoursPanelOpen, setHoursPanelOpen] = useState(false);
   const [discountPanelOpen, setDiscountPanelOpen] = useState(false);
   const [promo, setPromo] = useState(null);
@@ -763,6 +767,20 @@ export default function AdminOrdersPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- פעם אחת אחרי ריענון (מובייל / בורר קבצים)
   }, []);
 
+  useEffect(() => {
+    if (!loaded || typeof window === "undefined") return;
+    try {
+      const p = window.sessionStorage.getItem(ADMIN_PROMO_PANEL_SESSION_KEY);
+      const s = window.sessionStorage.getItem(ADMIN_SLIDER_PANEL_SESSION_KEY);
+      if (p === "1") setPromoOpen(true);
+      else if (p === "0") setPromoOpen(false);
+      if (s === "1") setSliderPanelOpen(true);
+      else if (s === "0") setSliderPanelOpen(false);
+    } catch {
+      /* ignore */
+    }
+  }, [loaded]);
+
   const deleteCoupon = async (code) => {
     if (!secret.trim() || !code) return;
     if (typeof window !== "undefined" && !window.confirm(t("admin.couponDeleteConfirm"))) {
@@ -935,6 +953,12 @@ export default function AdminOrdersPage() {
     }
   };
 
+  useEffect(() => {
+    if (!loaded || !sliderPanelOpen) return;
+    void loadHomeSlider();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- טעינה כשהפאנל פתוח ו-secret כבר ב-state
+  }, [loaded, sliderPanelOpen]);
+
   const patchSliderDisplay = async (enabled) => {
     if (!secret.trim()) return;
     setError("");
@@ -1056,8 +1080,15 @@ export default function AdminOrdersPage() {
   const togglePromoPanel = async () => {
     const next = !promoOpen;
     setPromoOpen(next);
+    try {
+      window.sessionStorage.setItem(
+        ADMIN_PROMO_PANEL_SESSION_KEY,
+        next ? "1" : "0"
+      );
+    } catch {
+      /* ignore */
+    }
     if (next) {
-      void loadHomeSlider();
       if (loaded && promo == null) {
         try {
           const pr = await fetch("/api/promo");
@@ -1070,6 +1101,21 @@ export default function AdminOrdersPage() {
         }
       }
     }
+  };
+
+  const toggleSliderPanel = () => {
+    setSliderPanelOpen((prev) => {
+      const next = !prev;
+      try {
+        window.sessionStorage.setItem(
+          ADMIN_SLIDER_PANEL_SESSION_KEY,
+          next ? "1" : "0"
+        );
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
   };
 
   const uploadPromoVideo = async () => {
@@ -1829,104 +1875,122 @@ export default function AdminOrdersPage() {
                       </p>
                     )}
                   </div>
+                </section>
+              ) : null}
 
-                  <div className="border-t border-slate-700/80 pt-5">
-                    <h4 className="mb-2 text-xs font-bold text-primary">
-                      {t("admin.sliderSection")}
-                    </h4>
-                    <label className="mb-3 flex cursor-pointer items-start gap-2.5 rounded-lg border border-slate-700/80 bg-slate-950/50 p-3">
-                      <input
-                        type="checkbox"
-                        checked={sliderDisplayEnabled}
-                        disabled={!secret.trim()}
-                        onChange={(e) =>
-                          void patchSliderDisplay(e.target.checked)
-                        }
-                        className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-500 text-primary focus:ring-2 focus:ring-primary/50"
-                      />
-                      <span className="min-w-0 flex flex-col gap-1 text-right">
-                        <span className="text-xs font-semibold text-gray-200">
-                          {t("admin.sliderShowOnHome")}
-                        </span>
-                        <span className="text-[11px] leading-relaxed text-gray-500">
-                          {t("admin.sliderShowOnHomeHintFs")}
-                        </span>
+              <button
+                type="button"
+                onClick={toggleSliderPanel}
+                aria-expanded={sliderPanelOpen}
+                className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-right text-sm font-bold text-gray-100 transition-colors hover:border-primary/50 hover:bg-slate-800/60"
+              >
+                <span className="min-w-0 flex-1 leading-snug">
+                  {t("admin.sliderSection")}
+                </span>
+                <span
+                  className="shrink-0 text-lg leading-none text-primary"
+                  aria-hidden
+                >
+                  {sliderPanelOpen ? "▾" : "▶"}
+                </span>
+              </button>
+              {sliderPanelOpen ? (
+                <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
+                  <label className="mb-3 flex cursor-pointer items-start gap-2.5 rounded-lg border border-slate-700/80 bg-slate-950/50 p-3">
+                    <input
+                      type="checkbox"
+                      checked={sliderDisplayEnabled}
+                      disabled={!secret.trim()}
+                      onChange={(e) =>
+                        void patchSliderDisplay(e.target.checked)
+                      }
+                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-500 text-primary focus:ring-2 focus:ring-primary/50"
+                    />
+                    <span className="min-w-0 flex flex-col gap-1 text-right">
+                      <span className="text-xs font-semibold text-gray-200">
+                        {t("admin.sliderShowOnHome")}
                       </span>
-                    </label>
-                    <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
-                      {t("admin.sliderHintFs")}
-                    </p>
-                    <p className="mb-3 text-[11px] leading-relaxed text-amber-200/80">
-                      {t("admin.sliderKvHint")}
-                    </p>
-                    <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
-                      <input
-                        ref={sliderFileRef}
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp,image/gif"
-                        disabled={sliderUploading || !secret.trim()}
-                        className="max-w-full text-xs text-gray-400 file:mr-2 file:rounded-lg file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-gray-200"
-                        onChange={(ev) => {
-                          const f = ev.target.files?.[0];
-                          if (f) void uploadSliderFromPhone(f);
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => void uploadSliderFromPhone()}
-                        disabled={sliderUploading || !secret.trim()}
-                        className="btn-primary shrink-0 text-sm disabled:opacity-50"
-                      >
-                        {sliderUploading
-                          ? t("admin.sliderUploadingKv")
-                          : t("admin.sliderUploadPhoneBtn")}
-                      </button>
-                    </div>
-                    {sliderMsg ? (
-                      <p className="mb-3 text-xs font-medium text-emerald-400/95">
-                        {sliderMsg}
-                      </p>
-                    ) : null}
-                    {sliderImages.length ? (
-                      <ul className="mb-2 grid gap-2 sm:grid-cols-2">
-                        {sliderImages.map((img) => (
-                          <li
-                            key={img.id}
-                            className="flex items-center gap-2 rounded-lg border border-slate-700/80 bg-slate-950/40 p-2"
-                          >
-                            <img
-                              src={img.url}
-                              alt=""
-                              className="h-16 w-24 shrink-0 rounded object-cover"
-                            />
-                            <div className="flex min-w-0 flex-1 flex-col items-stretch gap-1">
-                              <span
-                                className="truncate font-mono text-[10px] text-gray-500"
-                                dir="ltr"
-                                title={img.url}
-                              >
-                                {img.url}
-                              </span>
-                              {img.id?.startsWith("kv-") ? (
-                                <button
-                                  type="button"
-                                  onClick={() => void deleteSliderKvImage(img)}
-                                  disabled={sliderUploading || !secret.trim()}
-                                  className="self-start rounded border border-red-900/50 bg-red-950/20 px-2 py-0.5 text-[10px] text-red-300 hover:bg-red-950/40 disabled:opacity-50"
-                                >
-                                  {t("admin.sliderDeleteKv")}
-                                </button>
-                              ) : null}
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="mb-2 text-xs text-gray-500">
-                        {t("admin.sliderEmptyFs")}
-                      </p>
-                    )}
+                      <span className="text-[11px] leading-relaxed text-gray-500">
+                        {t("admin.sliderShowOnHomeHintFs")}
+                      </span>
+                    </span>
+                  </label>
+                  <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
+                    {t("admin.sliderHintFs")}
+                  </p>
+                  <p className="mb-3 text-[11px] leading-relaxed text-amber-200/80">
+                    {t("admin.sliderKvHint")}
+                  </p>
+                  <div
+                    className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center"
+                    onPointerDown={(ev) => ev.stopPropagation()}
+                  >
+                    <input
+                      ref={sliderFileRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      disabled={sliderUploading || !secret.trim()}
+                      className="max-w-full text-xs text-gray-400 file:mr-2 file:rounded-lg file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-gray-200"
+                      onChange={(ev) => {
+                        const f = ev.target.files?.[0];
+                        if (f) void uploadSliderFromPhone(f);
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void uploadSliderFromPhone()}
+                      disabled={sliderUploading || !secret.trim()}
+                      className="btn-primary shrink-0 text-sm disabled:opacity-50"
+                    >
+                      {sliderUploading
+                        ? t("admin.sliderUploadingKv")
+                        : t("admin.sliderUploadPhoneBtn")}
+                    </button>
                   </div>
+                  {sliderMsg ? (
+                    <p className="mb-3 text-xs font-medium text-emerald-400/95">
+                      {sliderMsg}
+                    </p>
+                  ) : null}
+                  {sliderImages.length ? (
+                    <ul className="mb-2 grid gap-2 sm:grid-cols-2">
+                      {sliderImages.map((img) => (
+                        <li
+                          key={img.id}
+                          className="flex items-center gap-2 rounded-lg border border-slate-700/80 bg-slate-950/40 p-2"
+                        >
+                          <img
+                            src={img.url}
+                            alt=""
+                            className="h-16 w-24 shrink-0 rounded object-cover"
+                          />
+                          <div className="flex min-w-0 flex-1 flex-col items-stretch gap-1">
+                            <span
+                              className="truncate font-mono text-[10px] text-gray-500"
+                              dir="ltr"
+                              title={img.url}
+                            >
+                              {img.url}
+                            </span>
+                            {img.id?.startsWith("kv-") ? (
+                              <button
+                                type="button"
+                                onClick={() => void deleteSliderKvImage(img)}
+                                disabled={sliderUploading || !secret.trim()}
+                                className="self-start rounded border border-red-900/50 bg-red-950/20 px-2 py-0.5 text-[10px] text-red-300 hover:bg-red-950/40 disabled:opacity-50"
+                              >
+                                {t("admin.sliderDeleteKv")}
+                              </button>
+                            ) : null}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mb-2 text-xs text-gray-500">
+                      {t("admin.sliderEmptyFs")}
+                    </p>
+                  )}
                 </section>
               ) : null}
 
