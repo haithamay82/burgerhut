@@ -22,6 +22,34 @@ const INVENTORY_CATEGORIES = ["burgers", "crispy"];
 const CATALOG_CATEGORIES = ["burgers", "crispy", "sides", "drinks"];
 const CATALOG_ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+/** אחרי בחירת תמונה בנייד לעיתים הדף נטען מחדש — שומרים קוד מנהל לסשן הטאב */
+const ADMIN_ORDERS_SECRET_SESSION_KEY = "burgerhut:admin-orders-secret";
+
+function readAdminSecretFromSession() {
+  if (typeof window === "undefined") return "";
+  try {
+    return String(
+      window.sessionStorage.getItem(ADMIN_ORDERS_SECRET_SESSION_KEY) || ""
+    ).trim();
+  } catch {
+    return "";
+  }
+}
+
+function writeAdminSecretToSession(value) {
+  if (typeof window === "undefined") return;
+  try {
+    const v = String(value || "").trim();
+    if (v) {
+      window.sessionStorage.setItem(ADMIN_ORDERS_SECRET_SESSION_KEY, v);
+    } else {
+      window.sessionStorage.removeItem(ADMIN_ORDERS_SECRET_SESSION_KEY);
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
 /** timeout ל-fetch של הגדרות סליידר */
 function sliderAdminFetchSignal() {
   if (
@@ -260,6 +288,7 @@ export default function AdminOrdersPage() {
   const promoFileRef = useRef(null);
   const sliderFileRef = useRef(null);
   const catalogImageFileRef = useRef(null);
+  const adminSessionHydratedRef = useRef(false);
   const [sliderImages, setSliderImages] = useState([]);
   const [sliderDisplayEnabled, setSliderDisplayEnabled] = useState(true);
   const [sliderMsg, setSliderMsg] = useState("");
@@ -516,16 +545,19 @@ export default function AdminOrdersPage() {
     setCatalogModal(null);
   };
 
-  const load = async (e) => {
+  const load = async (e, secretOverride) => {
     e?.preventDefault();
+    const effectiveSecret = String(secretOverride ?? secret).trim();
+    if (!effectiveSecret) return;
     setError("");
     setLoading(true);
     try {
       const r = await fetch("/api/orders", {
-        headers: { "x-admin-secret": secret.trim() },
+        headers: { "x-admin-secret": effectiveSecret },
       });
       const data = await r.json().catch(() => ({}));
       if (!r.ok) {
+        writeAdminSecretToSession("");
         setOrders([]);
         setLoaded(false);
         setHoursDraft(null);
@@ -543,6 +575,8 @@ export default function AdminOrdersPage() {
         );
         return;
       }
+      setSecret(effectiveSecret);
+      writeAdminSecretToSession(effectiveSecret);
       setOrders(data.orders || []);
       setLoaded(true);
       setHoursMsg("");
@@ -554,7 +588,7 @@ export default function AdminOrdersPage() {
       setCalView({ y: ty, m: tm });
       try {
         const invR = await fetch("/api/inventory", {
-          headers: { "x-admin-secret": secret.trim() },
+          headers: { "x-admin-secret": effectiveSecret },
         });
         const invData = await invR.json().catch(() => ({}));
         if (invR.ok && invData.ok) {
@@ -578,7 +612,7 @@ export default function AdminOrdersPage() {
       }
       try {
         const catR = await fetch("/api/catalog", {
-          headers: { "x-admin-secret": secret.trim() },
+          headers: { "x-admin-secret": effectiveSecret },
         });
         const catD = await catR.json().catch(() => ({}));
         if (catR.ok && catD.editor && typeof catD.editor === "object") {
@@ -659,7 +693,7 @@ export default function AdminOrdersPage() {
       try {
         setCouponsLoading(true);
         const cr = await fetch("/api/coupons", {
-          headers: { "x-admin-secret": secret.trim() },
+          headers: { "x-admin-secret": effectiveSecret },
         });
         const cd = await cr.json().catch(() => ({}));
         if (cr.ok && cd?.ok && Array.isArray(cd.coupons)) {
@@ -676,7 +710,7 @@ export default function AdminOrdersPage() {
       setSiteVisitsDays([]);
       try {
         const vr = await fetch("/api/site-visits?days=31", {
-          headers: { "x-admin-secret": secret.trim() },
+          headers: { "x-admin-secret": effectiveSecret },
         });
         const vd = await vr.json().catch(() => ({}));
         if (vr.ok && vd?.ok && Array.isArray(vd.days)) {
@@ -691,7 +725,7 @@ export default function AdminOrdersPage() {
       }
       try {
         const pir = await fetch("/api/pwa-installs", {
-          headers: { "x-admin-secret": secret.trim() },
+          headers: { "x-admin-secret": effectiveSecret },
         });
         const pid = await pir.json().catch(() => ({}));
         if (pir.ok && pid?.ok && Number.isFinite(Number(pid.total))) {
@@ -717,6 +751,17 @@ export default function AdminOrdersPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (adminSessionHydratedRef.current) return;
+    const stored = readAdminSecretFromSession();
+    if (!stored) return;
+    adminSessionHydratedRef.current = true;
+    setSecret(stored);
+    void load(undefined, stored);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- פעם אחת אחרי ריענון (מובייל / בורר קבצים)
+  }, []);
 
   const deleteCoupon = async (code) => {
     if (!secret.trim() || !code) return;
@@ -1811,7 +1856,13 @@ export default function AdminOrdersPage() {
                     <p className="mb-3 text-[11px] leading-relaxed text-amber-200/80">
                       {t("admin.sliderKvHint")}
                     </p>
-                    <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <form
+                      className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center"
+                      onSubmit={(ev) => {
+                        ev.preventDefault();
+                        void uploadSliderFromPhone();
+                      }}
+                    >
                       <input
                         ref={sliderFileRef}
                         type="file"
@@ -1820,8 +1871,7 @@ export default function AdminOrdersPage() {
                         className="max-w-full text-xs text-gray-400 file:mr-2 file:rounded-lg file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-gray-200"
                       />
                       <button
-                        type="button"
-                        onClick={() => void uploadSliderFromPhone()}
+                        type="submit"
                         disabled={sliderUploading || !secret.trim()}
                         className="btn-primary shrink-0 text-sm disabled:opacity-50"
                       >
@@ -1829,7 +1879,7 @@ export default function AdminOrdersPage() {
                           ? t("admin.sliderUploadingKv")
                           : t("admin.sliderUploadPhoneBtn")}
                       </button>
-                    </div>
+                    </form>
                     {sliderMsg ? (
                       <p className="mb-3 text-xs font-medium text-emerald-400/95">
                         {sliderMsg}
