@@ -259,6 +259,7 @@ export default function AdminOrdersPage() {
   const [pwaInstallTotal, setPwaInstallTotal] = useState(null);
   const promoFileRef = useRef(null);
   const sliderFileRef = useRef(null);
+  const sliderPublicPathRef = useRef(null);
   const catalogImageFileRef = useRef(null);
   const [sliderImages, setSliderImages] = useState([]);
   const [sliderDisplayEnabled, setSliderDisplayEnabled] = useState(true);
@@ -1091,6 +1092,52 @@ export default function AdminOrdersPage() {
     });
   };
 
+  const addSliderPublicPath = async () => {
+    if (!secret.trim()) return;
+    const path = sliderPublicPathRef.current?.value?.trim() || "";
+    if (!path) {
+      setError(t("admin.sliderPublicPathErrEmpty"));
+      return;
+    }
+    return runSliderChain(async () => {
+      setError("");
+      setSliderMsg("");
+      try {
+        const r = await fetch("/api/home-slider", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-secret": secret.trim(),
+          },
+          body: JSON.stringify({ addPublicPath: path }),
+        });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok || !d?.ok) {
+          if (
+            d?.error === "invalid_public_path" ||
+            d?.error === "invalid"
+          ) {
+            setError(t("admin.sliderPublicPathErr"));
+          } else if (d?.error === "duplicate") {
+            setError(t("admin.sliderPublicPathDup"));
+          } else if (d?.error === "slider_max_images") {
+            setError(t("admin.sliderMaxImages"));
+          } else {
+            setError(t("admin.sliderPersistErr"));
+          }
+          return;
+        }
+        await loadHomeSlider();
+        if (sliderPublicPathRef.current) {
+          sliderPublicPathRef.current.value = "";
+        }
+        setSliderMsg(t("admin.sliderPublicAdded"));
+      } catch {
+        setError(t("admin.errNet"));
+      }
+    });
+  };
+
   const uploadCatalogMenuImage = async () => {
     if (!secret.trim() || !catalogModal) return;
     const file = catalogImageFileRef.current?.files?.[0];
@@ -1901,6 +1948,33 @@ export default function AdminOrdersPage() {
                     <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
                       {t("admin.sliderHint")}
                     </p>
+                    <div className="mb-4 flex flex-col gap-2 rounded-lg border border-emerald-800/50 bg-emerald-950/25 p-3">
+                      <span className="text-xs font-semibold text-emerald-200/95">
+                        {t("admin.sliderPublicPathLabel")}
+                      </span>
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <input
+                          ref={sliderPublicPathRef}
+                          type="text"
+                          inputMode="url"
+                          autoComplete="off"
+                          dir="ltr"
+                          placeholder={t("admin.sliderPublicPathPh")}
+                          disabled={sliderUploading || sliderBusy}
+                          className="min-w-0 flex-1 rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 font-mono text-sm text-gray-100 placeholder:text-gray-600"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => void addSliderPublicPath()}
+                          disabled={
+                            sliderUploading || sliderBusy || !secret.trim()
+                          }
+                          className="btn-primary shrink-0 text-sm disabled:opacity-50"
+                        >
+                          {t("admin.sliderPublicPathBtn")}
+                        </button>
+                      </div>
+                    </div>
                     {sliderMsg ? (
                       <p className="mb-3 text-xs font-medium text-emerald-400/95">
                         {sliderMsg}

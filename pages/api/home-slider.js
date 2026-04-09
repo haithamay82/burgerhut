@@ -1,7 +1,9 @@
 import { del as deleteBlob } from "@vercel/blob";
 import {
+  appendHomeSliderImage,
   clearHomeSliderImages,
   getHomeSliderMeta,
+  isSliderPublicPath,
   removeHomeSliderImage,
   setHomeSliderDisplayEnabled,
 } from "@/lib/homeSliderStore";
@@ -190,6 +192,31 @@ export default async function handler(req, res) {
     } catch {
       return res.status(400).json({ ok: false, error: "invalid_json" });
     }
+    const addPublicPath =
+      typeof body?.addPublicPath === "string" ? body.addPublicPath.trim() : "";
+    if (addPublicPath) {
+      if (!isSliderPublicPath(addPublicPath)) {
+        return res.status(400).json({ ok: false, error: "invalid_public_path" });
+      }
+      const id = `slider-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      const result = await appendHomeSliderImage(addPublicPath, id);
+      if (!result.ok) {
+        const status =
+          result.error === "persist_failed" ||
+          result.error === "persist_verify_failed"
+            ? 503
+            : 400;
+        return res.status(status).json({ ok: false, error: result.error });
+      }
+      const meta = await getHomeSliderMeta();
+      return res.status(200).json({
+        ok: true,
+        images: meta.images.map(({ id: i, url }) => ({ id: i, url })),
+        version: meta.updatedAt,
+        displayEnabled: meta.enabled !== false,
+      });
+    }
+
     if (body?.clear !== true) {
       return res.status(400).json({ ok: false, error: "invalid_body" });
     }
