@@ -1980,18 +1980,21 @@ export default function AdminOrdersPage() {
                             className="h-16 w-24 shrink-0 rounded object-cover"
                           />
                           <div className="flex min-w-0 flex-1 flex-col items-stretch gap-1">
-                            <span
-                              className="truncate font-mono text-[10px] text-gray-500"
-                              dir="ltr"
-                              title={img.url}
-                            >
+                            <span className="text-[11px] font-medium text-gray-400">
+                              {img.id?.startsWith("kv-")
+                                ? t("admin.sliderItemKindUpload")
+                                : t("admin.sliderItemKindFs")}
+                            </span>
+                            <span className="sr-only" dir="ltr">
                               {img.url}
                             </span>
                             {img.id?.startsWith("kv-") ? (
                               <button
                                 type="button"
                                 onClick={() => void deleteSliderKvImage(img)}
-                                disabled={sliderUploading || !secret.trim()}
+                                disabled={
+                                  sliderUploading || !resolveAdminSecret(secret)
+                                }
                                 className="self-start rounded border border-red-900/50 bg-red-950/20 px-2 py-0.5 text-[10px] text-red-300 hover:bg-red-950/40 disabled:opacity-50"
                               >
                                 {t("admin.sliderDeleteKv")}
