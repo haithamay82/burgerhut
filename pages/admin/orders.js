@@ -737,6 +737,44 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const logoutAdmin = () => {
+    writePersistedAdminSecret("");
+    if (typeof window !== "undefined") {
+      try {
+        window.sessionStorage.removeItem(ADMIN_PROMO_PANEL_SESSION_KEY);
+        window.sessionStorage.removeItem(ADMIN_SLIDER_PANEL_SESSION_KEY);
+      } catch {
+        /* ignore */
+      }
+    }
+    adminSessionHydratedRef.current = false;
+    setSecret("");
+    setError("");
+    setOrders([]);
+    setLoaded(false);
+    setHoursDraft(null);
+    setDiscountDraft(null);
+    setPromo(null);
+    setCoupons([]);
+    setSiteVisitsDays([]);
+    setSiteVisitsErr("");
+    setPwaInstallTotal(null);
+    setCatalogEditor(emptyCatalogEditor());
+    setSliderImages([]);
+    setSliderMsg("");
+    setManualUnavailableIds([]);
+    setPattyStock(null);
+    setPromoOpen(false);
+    setSliderPanelOpen(true);
+    setCatalogOpen(false);
+    setInventoryOpen(false);
+    setHoursPanelOpen(false);
+    setDiscountPanelOpen(false);
+    setCouponPanelOpen(false);
+    setSiteVisitsPanelOpen(false);
+    setCatalogModal(null);
+  };
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (adminSessionHydratedRef.current) return;
@@ -1422,11 +1460,31 @@ export default function AdminOrdersPage() {
       <div className="min-h-screen bg-black text-gray-100" dir="rtl">
         <header className="border-b border-slate-800 bg-slate-950/80 px-4 py-4">
           <div className="mx-auto flex max-w-3xl flex-wrap items-start justify-between gap-3">
-            <div>
+            <div className="min-w-0 flex-1">
               <h1 className="text-lg font-bold text-primary">{t("admin.title")}</h1>
               <p className="text-xs text-gray-500">{t("admin.hint")}</p>
+              <p className="mt-2 max-w-xl text-[11px] leading-relaxed text-gray-500">
+                {t("admin.secretStorageHint")}
+              </p>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              {loaded ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (
+                      typeof window !== "undefined" &&
+                      !window.confirm(t("admin.logoutConfirm"))
+                    ) {
+                      return;
+                    }
+                    logoutAdmin();
+                  }}
+                  className="rounded-lg border border-red-900/60 bg-red-950/30 px-3 py-1.5 text-xs font-semibold text-red-200 hover:bg-red-950/50"
+                >
+                  {t("admin.logoutBtn")}
+                </button>
+              ) : null}
               <Link
                 href="/"
                 className="text-xs font-semibold text-primary underline-offset-4 hover:text-amber-400 hover:underline"
