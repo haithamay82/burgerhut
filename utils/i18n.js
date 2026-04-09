@@ -42,7 +42,7 @@ const HE = {
   "home.orderingClosedBannerOpenDay":
     "המסעדה תיפתח בשעה 16:00 — ניתן לעשות הזמנה משעה 10:00 עד שעת הסגירה באותו יום.",
   "home.preOrderBanner":
-    "המסעדה תיפתח בשעה {openTime} אבל ניתן לעשות הזמנה שתהיה מוכנה בזמן שתרצו.",
+    "אפשר לשלוח הזמנות עכשיו. תחילת עבודה שעה {openTime}",
   "home.orderingClosedBannerDayOff": "המסעדה סגורה היום",
   "home.discountAnnounceWithReason":
     "עקב {reason} מחכה לכם הנחה של {percent}% בקניה מעל {min}.",
@@ -696,7 +696,21 @@ const HE = {
     "כבוי — הסליידר מוסתר מלקוחות. התמונות עצמן נשארות בתיקיית public/home-slider/ בפרויקט.",
   "admin.sliderDisplaySaved": "הגדרת התצוגה נשמרה.",
   "admin.sliderHintFs":
-    "מוצג בין בורגר 160 לבורגר 200. שמים עד 24 קבצי תמונה (jpg, png, webp, gif, avif) בתיקייה public/home-slider/, דוחפים ל-Git ומפרסמים — יוצגו אוטומטית לכולם, בלי Blob.",
+    "מוצג בין בורגר 160 לבורגר 200. שמים עד 24 קבצי תמונה (jpg, png, webp, gif, avif) בתיקייה public/home-slider/, דוחפים ל-Git ומפרסמים — יוצגו אוטומטית לכולם, בלי Blob. אפשר גם להעלות מהטלפון מהאזור למטה (נשמר ב-KV או מקומית).",
+  "admin.sliderKvHint":
+    "העלאה מהטלפון: בפרודקשן ב-Vercel חובה Redis/KV (משתני הסביבה של Vercel KV). בלי זה אין איפה לשמור את הקובץ בשרת. בפיתוח מקומי נשמר תחת תיקיית data/ (לא ב-Git).",
+  "admin.sliderUploadPhoneBtn": "העלה לסליידר מהטלפון",
+  "admin.sliderUploadingKv": "מעלה…",
+  "admin.sliderUploadedKv": "התמונה נוספה לסליידר (העלאה).",
+  "admin.sliderUploadRequiresKv":
+    "העלאה מהטלפון דורשת Redis/KV בפרודקשן. הגדירו Vercel KV בפרויקט או הוסיפו תמונות דרך public/home-slider/ + Git.",
+  "admin.sliderUploadTooLarge": "הקובץ גדול מדי. נסו תמונה קטנה יותר.",
+  "admin.sliderMaxImages": "הגעתם למקסימום תמונות בסליידר.",
+  "admin.sliderUploadInvalidImage": "הקובץ אינו תמונה תקינה.",
+  "admin.sliderUploadFailed": "ההעלאה נכשלה. נסו שוב.",
+  "admin.sliderDeleteKv": "מחק תמונה שהועלתה",
+  "admin.sliderKvDeleteConfirm": "למחוק תמונה זו מהסליידר? (לא ניתן לשחזר)",
+  "admin.sliderKvDeleted": "התמונה נמחקה.",
   "admin.sliderEmptyFs":
     "אין קבצים בתיקייה public/home-slider/. הוסיפו תמונות שם ושחררו גרסה.",
   "admin.sliderUploadBtn": "העלאת תמונה לסליידר",
@@ -792,7 +806,7 @@ const AR = {
   "home.orderingClosedBannerOpenDay":
     "يفتح المطعم الساعة 16:00 — يمكن تقديم الطلب من الساعة 10:00 حتى وقت الإغلاق في ذلك اليوم.",
   "home.preOrderBanner":
-    "يفتح المطعم الساعة {openTime} لكن يمكنكم تقديم طلب ليكون جاهزاً في الوقت الذي يناسبكم.",
+    "يمكن إرسال الطلبات الآن. بداية العمل الساعة {openTime}",
   "home.orderingClosedBannerDayOff": "المطعم مغلق اليوم",
   "home.discountAnnounceWithReason":
     "بسبب {reason} يمكنكم الحصول على خصم بنسبة {percent}% عند الشراء فوق {min}.",
@@ -1452,7 +1466,21 @@ const AR = {
     "عند الإيقاف يُخفى الشريط عن العملاء. الصور نفسها تبقى في مجلد public/home-slider/ في المشروع.",
   "admin.sliderDisplaySaved": "تم حفظ إعداد العرض.",
   "admin.sliderHintFs":
-    "يُعرض بين برغر 160 وبرغر 200. ضعوا حتى 24 صورة (jpg، png، webp، gif، avif) في مجلد public/home-slider/، ادفعوا إلى Git وانشروا — ستظهر تلقائياً للجميع دون Blob.",
+    "يُعرض بين برغر 160 وبرغر 200. ضعوا حتى 24 صورة (jpg، png، webp، gif، avif) في مجلد public/home-slider/، ادفعوا إلى Git وانشروا — ستظهر تلقائياً للجميع دون Blob. يمكن أيضاً الرفع من الهاتف من القسم أدناه (يُحفظ في KV أو محلياً).",
+  "admin.sliderKvHint":
+    "الرفع من الهاتف: في الإنتاج على Vercel يلزم Redis/KV (متغيرات بيئة Vercel KV). بدون ذلك لا يوجد مكان لحفظ الملف على الخادم. محلياً يُحفظ تحت مجلد data/ (ليس في Git).",
+  "admin.sliderUploadPhoneBtn": "رفع للشريط من الهاتف",
+  "admin.sliderUploadingKv": "جارٍ الرفع…",
+  "admin.sliderUploadedKv": "أُضيفت الصورة إلى الشريط (رفع).",
+  "admin.sliderUploadRequiresKv":
+    "الرفع من الهاتف يتطلب Redis/KV في الإنتاج. فعّلوا Vercel KV في المشروع أو أضيفوا صوراً عبر public/home-slider/ وGit.",
+  "admin.sliderUploadTooLarge": "الملف كبير جداً. جرّبوا صورة أصغر.",
+  "admin.sliderMaxImages": "وصلتم إلى الحد الأقصى لصور الشريط.",
+  "admin.sliderUploadInvalidImage": "الملف ليس صورة صالحة.",
+  "admin.sliderUploadFailed": "فشل الرفع. حاولوا مرة أخرى.",
+  "admin.sliderDeleteKv": "حذف صورة مرفوعة",
+  "admin.sliderKvDeleteConfirm": "حذف هذه الصورة من الشريط؟ (لا يمكن الاسترجاع)",
+  "admin.sliderKvDeleted": "حُذفت الصورة.",
   "admin.sliderEmptyFs":
     "لا توجد ملفات في مجلد public/home-slider/. أضيفوا صوراً هناك وانشروا إصداراً.",
   "admin.sliderUploadBtn": "رفع صورة للشريط",

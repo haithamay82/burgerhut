@@ -91,7 +91,7 @@ export default function HomeMain({
       ) : null}
       {showPreOrderInfoBanner ? (
         <p
-          className="mb-4 rounded-xl border-2 border-blue-500 bg-blue-950/80 p-3 text-sm font-bold leading-snug text-white shadow-[0_0_24px_-4px_rgba(59,130,246,0.45)]"
+          className="pre-order-banner-blink mb-4 rounded-xl border-2 border-blue-500 bg-blue-950/80 p-3 text-sm font-bold leading-snug text-white shadow-[0_0_24px_-4px_rgba(59,130,246,0.45)]"
           role="status"
         >
           {t("home.preOrderBanner").replace(

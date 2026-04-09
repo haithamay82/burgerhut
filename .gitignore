@@ -29,6 +29,7 @@ Thumbs.db
 data/orders.json
 # Slider list when using file fallback — must not override production KV in deploy
 data/home-slider.json
+data/home-slider-uploads/
 
 # Promo uploads (manager videos)
 public/uploads/*

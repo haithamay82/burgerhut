@@ -258,10 +258,12 @@ export default function AdminOrdersPage() {
   /** מונה התקנות PWA מצטבר (Redis); null = לא נטען או שגיאה */
   const [pwaInstallTotal, setPwaInstallTotal] = useState(null);
   const promoFileRef = useRef(null);
+  const sliderFileRef = useRef(null);
   const catalogImageFileRef = useRef(null);
   const [sliderImages, setSliderImages] = useState([]);
   const [sliderDisplayEnabled, setSliderDisplayEnabled] = useState(true);
   const [sliderMsg, setSliderMsg] = useState("");
+  const [sliderUploading, setSliderUploading] = useState(false);
 
   const [selectedDayKey, setSelectedDayKey] = useState(null);
   const [calView, setCalView] = useState({ y: 2026, m: 1 });
@@ -915,6 +917,91 @@ export default function AdminOrdersPage() {
       }
     } catch {
       setError(t("admin.errNet"));
+    }
+  };
+
+  const uploadSliderFromPhone = async () => {
+    if (!secret.trim()) return;
+    const file = sliderFileRef.current?.files?.[0];
+    if (!file) {
+      setSliderMsg("");
+      setError(t("admin.sliderErrMissing"));
+      return;
+    }
+    setError("");
+    setSliderMsg("");
+    setSliderUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const r = await fetch("/api/home-slider/upload", {
+        method: "POST",
+        headers: { "x-admin-secret": secret.trim() },
+        body: fd,
+        signal: sliderAdminFetchSignal(),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || !d?.ok) {
+        if (d?.error === "slider_upload_requires_kv") {
+          setError(t("admin.sliderUploadRequiresKv"));
+        } else if (d?.error === "file_too_large" || r.status === 413) {
+          setError(t("admin.sliderUploadTooLarge"));
+        } else if (d?.error === "slider_max_images") {
+          setError(t("admin.sliderMaxImages"));
+        } else if (d?.error === "invalid_image") {
+          setError(t("admin.sliderUploadInvalidImage"));
+        } else {
+          setError(t("admin.sliderUploadFailed"));
+        }
+        return;
+      }
+      if (Array.isArray(d.images)) {
+        setSliderImages(d.images);
+      }
+      if (sliderFileRef.current) sliderFileRef.current.value = "";
+      setSliderMsg(t("admin.sliderUploadedKv"));
+    } catch {
+      setError(t("admin.errNet"));
+    } finally {
+      setSliderUploading(false);
+    }
+  };
+
+  const deleteSliderKvImage = async (img) => {
+    if (!secret.trim()) return;
+    const id = String(img?.id || "");
+    if (!id.startsWith("kv-")) return;
+    const raw = id.slice(3);
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(t("admin.sliderKvDeleteConfirm"))
+    ) {
+      return;
+    }
+    setError("");
+    setSliderMsg("");
+    try {
+      const r = await fetch(
+        `/api/home-slider/upload?id=${encodeURIComponent(raw)}`,
+        {
+          method: "DELETE",
+          headers: { "x-admin-secret": secret.trim() },
+          signal: sliderAdminFetchSignal(),
+        }
+      );
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || !d?.ok) {
+        setError(t("admin.sliderDeleteErr"));
+        await loadHomeSlider();
+        return;
+      }
+      if (Array.isArray(d.images)) {
+        setSliderImages(d.images);
+      }
+      setSliderMsg(t("admin.sliderKvDeleted"));
+    } catch {
+      setError(t("admin.errNet"));
+      await loadHomeSlider();
     }
   };
 
@@ -1721,6 +1808,28 @@ export default function AdminOrdersPage() {
                     <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
                       {t("admin.sliderHintFs")}
                     </p>
+                    <p className="mb-3 text-[11px] leading-relaxed text-amber-200/80">
+                      {t("admin.sliderKvHint")}
+                    </p>
+                    <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+                      <input
+                        ref={sliderFileRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        disabled={sliderUploading || !secret.trim()}
+                        className="max-w-full text-xs text-gray-400 file:mr-2 file:rounded-lg file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => void uploadSliderFromPhone()}
+                        disabled={sliderUploading || !secret.trim()}
+                        className="btn-primary shrink-0 text-sm disabled:opacity-50"
+                      >
+                        {sliderUploading
+                          ? t("admin.sliderUploadingKv")
+                          : t("admin.sliderUploadPhoneBtn")}
+                      </button>
+                    </div>
                     {sliderMsg ? (
                       <p className="mb-3 text-xs font-medium text-emerald-400/95">
                         {sliderMsg}
@@ -1738,13 +1847,25 @@ export default function AdminOrdersPage() {
                               alt=""
                               className="h-16 w-24 shrink-0 rounded object-cover"
                             />
-                            <span
-                              className="min-w-0 truncate font-mono text-[10px] text-gray-500"
-                              dir="ltr"
-                              title={img.url}
-                            >
-                              {img.url}
-                            </span>
+                            <div className="flex min-w-0 flex-1 flex-col items-stretch gap-1">
+                              <span
+                                className="truncate font-mono text-[10px] text-gray-500"
+                                dir="ltr"
+                                title={img.url}
+                              >
+                                {img.url}
+                              </span>
+                              {img.id?.startsWith("kv-") ? (
+                                <button
+                                  type="button"
+                                  onClick={() => void deleteSliderKvImage(img)}
+                                  disabled={sliderUploading || !secret.trim()}
+                                  className="self-start rounded border border-red-900/50 bg-red-950/20 px-2 py-0.5 text-[10px] text-red-300 hover:bg-red-950/40 disabled:opacity-50"
+                                >
+                                  {t("admin.sliderDeleteKv")}
+                                </button>
+                              ) : null}
+                            </div>
                           </li>
                         ))}
                       </ul>
