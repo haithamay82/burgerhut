@@ -2,7 +2,8 @@
  * PWA + מטמון מדיה מ-Vercel Blob: חוסך תעבורת Blob בכניסות חוזרות (תמונות בעיקר).
  * בקשות Range (נפוץ בווידאו) עוברות ישירות לרשת — לא שומרים חלקי 206 ב-cache.
  */
-const BLOB_CACHE = "bh-blob-media-v1";
+/** v2: לא מטמינים בקשות מ-destination=image ל-Blob — opaque מתוך SW שבר תמונות בסליידר */
+const BLOB_CACHE = "bh-blob-media-v2";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -37,8 +38,9 @@ async function cacheFirstBlob(request) {
   const response = await fetch(request);
   const cacheable =
     response &&
-    (response.ok || response.type === "opaque") &&
-    response.status !== 206;
+    response.ok &&
+    response.status !== 206 &&
+    (response.type === "basic" || response.type === "cors");
 
   if (cacheable) {
     try {
@@ -71,6 +73,16 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (request.headers.has("range")) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  /**
+   * <img src="https://…blob…"> — בקשות כאלה לרוב ב-no-cors; fetch מה-SW מחזיר opaque.
+   * שמירה ב-Cache API והחזרה שוברת תצוגה (מסגרות שחורות / אייקון שבור).
+   * תמונות מנות מ-/public או CDN אחר לא עוברות כאן — לכן רק הסליידר נפגע.
+   */
+  if (request.destination === "image") {
     event.respondWith(fetch(request));
     return;
   }
