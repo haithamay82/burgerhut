@@ -565,30 +565,30 @@ export default function SuccessPage() {
       )
     : t("success.waOrderRecordedNoId");
 
-  const waButtonStackClasses =
-    "btn-primary success-wa-btn-attention flex w-full flex-col items-stretch gap-3 px-4 py-4 text-center leading-snug";
+  const waSendClasses =
+    "btn-primary flex w-full justify-center px-4 py-3 text-center text-base font-extrabold text-black";
 
-  const waButtonTop = (
-    <>
+  const waPostButtonInfo = (
+    <div className="flex w-full flex-col items-center gap-3 text-center leading-snug">
       <span className="flex flex-col items-center gap-2">
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/25 text-2xl text-emerald-700">
+        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20 text-2xl text-emerald-400">
           ✓
         </span>
-        <span className="text-base font-extrabold leading-tight text-black">
+        <span className="text-base font-extrabold leading-tight text-gray-100">
           {orderRecordedLine}
         </span>
       </span>
-      <span className="block border-t border-black/15 pt-3 text-sm font-semibold whitespace-pre-line text-black">
+      <span className="block w-full border-t border-white/10 pt-3 text-sm font-semibold whitespace-pre-line text-gray-300">
         {waLinkLabel}
       </span>
-    </>
+    </div>
   );
 
   return (
     <Layout>
       <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
         {postPaymentWhatsAppContext && coupon?.code ? (
-          <section className="success-coupon-attention mb-4 w-full max-w-sm rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-900 via-slate-950 to-cyan-950 p-4 text-right text-white">
+          <section className="mb-4 w-full max-w-sm rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-900 via-slate-950 to-cyan-950 p-4 text-right text-white shadow-lg shadow-emerald-900/20">
             <div className="relative rounded-xl border border-white/10 bg-slate-950/70 p-3 pt-10">
               <img
                 src="/logo-burger-hut.png"
@@ -658,7 +658,7 @@ export default function SuccessPage() {
           </>
         ) : null}
         {showMergedWaButton ? (
-          <div className="mb-4 w-full max-w-xs">
+          <div className="mb-4 flex w-full max-w-xs flex-col items-stretch gap-4">
             {waLinkActive ? (
               <a
                 href={cardWaUrl}
@@ -680,27 +680,28 @@ export default function SuccessPage() {
                   }
                   setWaComposeAlreadyUsed(true);
                 }}
-                className={waButtonStackClasses}
+                className={waSendClasses}
               >
-                {waButtonTop}
+                {t("success.waSendOrder")}
               </a>
             ) : (
-              <>
-                <span
-                  className={`${waButtonStackClasses} cursor-not-allowed opacity-45 pointer-events-none select-none`}
-                  aria-disabled="true"
-                >
-                  {waButtonTop}
-                </span>
-                <p className="mt-2 text-[11px] leading-snug text-gray-500">
-                  {customerCouponsActive === null
-                    ? t("success.waPreparingShort")
-                    : couponFetchSettled
-                      ? t("success.waNoCouponLoaded")
-                      : t("success.waWaitForCoupon")}
-                </p>
-              </>
+              <span
+                className={`${waSendClasses} cursor-not-allowed opacity-45 pointer-events-none select-none`}
+                aria-disabled="true"
+              >
+                {t("success.waSendOrder")}
+              </span>
             )}
+            {waPostButtonInfo}
+            {!waLinkActive ? (
+              <p className="text-[11px] leading-snug text-gray-500">
+                {customerCouponsActive === null
+                  ? t("success.waPreparingShort")
+                  : couponFetchSettled
+                    ? t("success.waNoCouponLoaded")
+                    : t("success.waWaitForCoupon")}
+              </p>
+            ) : null}
           </div>
         ) : null}
         <Link
