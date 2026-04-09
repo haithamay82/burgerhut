@@ -965,9 +965,12 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const uploadSliderFromPhone = async () => {
+  const uploadSliderFromPhone = async (fileOverride) => {
     if (!secret.trim()) return;
-    const file = sliderFileRef.current?.files?.[0];
+    const file =
+      fileOverride instanceof File
+        ? fileOverride
+        : sliderFileRef.current?.files?.[0];
     if (!file) {
       setSliderMsg("");
       setError(t("admin.sliderErrMissing"));
@@ -1856,22 +1859,21 @@ export default function AdminOrdersPage() {
                     <p className="mb-3 text-[11px] leading-relaxed text-amber-200/80">
                       {t("admin.sliderKvHint")}
                     </p>
-                    <form
-                      className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center"
-                      onSubmit={(ev) => {
-                        ev.preventDefault();
-                        void uploadSliderFromPhone();
-                      }}
-                    >
+                    <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
                       <input
                         ref={sliderFileRef}
                         type="file"
                         accept="image/jpeg,image/png,image/webp,image/gif"
                         disabled={sliderUploading || !secret.trim()}
                         className="max-w-full text-xs text-gray-400 file:mr-2 file:rounded-lg file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-gray-200"
+                        onChange={(ev) => {
+                          const f = ev.target.files?.[0];
+                          if (f) void uploadSliderFromPhone(f);
+                        }}
                       />
                       <button
-                        type="submit"
+                        type="button"
+                        onClick={() => void uploadSliderFromPhone()}
                         disabled={sliderUploading || !secret.trim()}
                         className="btn-primary shrink-0 text-sm disabled:opacity-50"
                       >
@@ -1879,7 +1881,7 @@ export default function AdminOrdersPage() {
                           ? t("admin.sliderUploadingKv")
                           : t("admin.sliderUploadPhoneBtn")}
                       </button>
-                    </form>
+                    </div>
                     {sliderMsg ? (
                       <p className="mb-3 text-xs font-medium text-emerald-400/95">
                         {sliderMsg}

@@ -208,6 +208,24 @@ export default function HomeMain({
         onClose={() => setMealWizardItem(null)}
       />
 
+      <section
+        className="mb-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-3"
+        aria-labelledby="home-terms-heading"
+      >
+        <h3
+          id="home-terms-heading"
+          className="mb-2 text-sm font-semibold text-gray-100"
+        >
+          {t("home.termsTitle")}
+        </h3>
+        <p className="mb-2 text-[11px] leading-relaxed text-gray-300">
+          {t("home.termsLead")}
+        </p>
+        <p className="text-[11px] leading-relaxed text-gray-400">
+          {t("home.termsLawCitation")}
+        </p>
+      </section>
+
       <section className="mb-24 rounded-2xl border border-slate-800 bg-slate-900/60 p-3">
         <h3 className="mb-2 text-sm font-semibold">{t("home.contactTitle")}</h3>
         <div className="mb-3 space-y-1 text-xs text-gray-300">
