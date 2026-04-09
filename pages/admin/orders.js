@@ -235,7 +235,7 @@ export default function AdminOrdersPage() {
   const [catalogImageUploading, setCatalogImageUploading] = useState(false);
   const [promoOpen, setPromoOpen] = useState(false);
   /** סליידר מחוץ לפאנל הפרסום — מונע סגירה/באגים בנייד אחרי בורר קבצים */
-  const [sliderPanelOpen, setSliderPanelOpen] = useState(true);
+  const [sliderPanelOpen, setSliderPanelOpen] = useState(false);
   const [hoursPanelOpen, setHoursPanelOpen] = useState(false);
   const [discountPanelOpen, setDiscountPanelOpen] = useState(false);
   const [promo, setPromo] = useState(null);
@@ -766,7 +766,7 @@ export default function AdminOrdersPage() {
     setManualUnavailableIds([]);
     setPattyStock(null);
     setPromoOpen(false);
-    setSliderPanelOpen(true);
+    setSliderPanelOpen(false);
     setCatalogOpen(false);
     setInventoryOpen(false);
     setHoursPanelOpen(false);
