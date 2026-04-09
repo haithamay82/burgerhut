@@ -184,6 +184,13 @@ export default function HomeMain({
         </div>
       </section>
 
+      <div className="min-w-0 w-full max-w-full">
+        <HomeMediaSlider
+          initialImages={initialHomeSliderImages}
+          initialVersion={initialSliderVersion}
+        />
+      </div>
+
       <section className="flex min-w-0 flex-col gap-3 pb-36">
         {filteredItems.map((item) => (
           <div key={item.id} className="contents">
@@ -191,12 +198,6 @@ export default function HomeMain({
               item={item}
               onOpenMealWizard={setMealWizardItem}
             />
-            {activeCategory === "burgers" && item.id === "burger-160" ? (
-              <HomeMediaSlider
-                initialImages={initialHomeSliderImages}
-                initialVersion={initialSliderVersion}
-              />
-            ) : null}
           </div>
         ))}
       </section>

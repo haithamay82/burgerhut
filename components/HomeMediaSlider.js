@@ -53,7 +53,7 @@ export default function HomeMediaSlider({
     return () => {
       cancelled = true;
     };
-  }, [initialVersion]);
+  }, [initialVersion, initialImages]);
 
   const loopImages = useMemo(() => [...images, ...images], [images]);
 
