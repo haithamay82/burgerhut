@@ -547,6 +547,30 @@ const HE = {
   "admin.logoutBtn": "התנתק ומחק קוד מהמכשיר",
   "admin.logoutConfirm":
     "למחוק את קוד הניהול מהדפדפן ולסגור את הפאנל? (תצטרכו להזין שוב בפעם הבאה)",
+  "admin.newOrderAutoRefreshHint":
+    "ההזמנות והמכירות לפי יום מתעדכנות אוטומטית כל כ־15 שניות כשהדף פתוח.",
+  "admin.newOrderNotifyHint":
+    "לחיצה תפעיל התראות במסך, צליל ורטט, וגם התראות Push כשהאפליקציה סגורה — אם הוגדרו בשרת מפתחות VAPID ו־Redis (ראו .env.example).",
+  "admin.newOrderNotifyEnable": "אפשר התראות",
+  "admin.newOrderNotifyDenied":
+    "התראות חסומות בהגדרות הדפדפן. אפשר לאפשר בהגדרות האתר.",
+  "admin.newOrderNotifyTitle": "הזמנה חדשה — Burger Hut",
+  "admin.newOrderNotifyBodyOne": "התקבלה הזמנה מס׳ {n}.",
+  "admin.newOrderNotifyBodyMany": "התקבלו {c} הזמנות חדשות.",
+  "admin.pushSubscribeOk":
+    "התראות Push הופעלו — תקבלו התראה גם כשהאפליקציה סגורה (אם המכשיר והדפדפן מאפשרים).",
+  "admin.pushSubscribeSkip":
+    "התראות במסך פעילות. Push ברקע לא הוגדר בשרת (VAPID) או אין Redis — ראו הנחיות ב־.env.",
+  "admin.pushSubscribeErr": "לא ניתן היה לרשום Push. נסו שוב או בדקו חיבור.",
+  "admin.pushSubscribeRedis":
+    "Redis/KV מחובר אבל שמירת המנוי נכשלה. ודאו ש־Redis זמין.",
+  "admin.newOrderNotifyGrantedHint":
+    "התראות במסך מופעלות. למכשיר נייד מומלץ גם לרשום Push כדי לקבל התראה כשהאפליקציה סגורה.",
+  "admin.pushRegisterBtn": "רשום Push ברקע",
+  "admin.pushStatusLine":
+    "סטטוס שרת להתראות ברקע: VAPID ‏{vapid} · Redis ‏{redis} · מנויים שמורים בשרת: ‏{count}.",
+  "admin.pushStatusOn": "מוגדר",
+  "admin.pushStatusOff": "לא מוגדר",
   "admin.secretLabel": "קוד מנהל",
   "admin.secretPh": "סיסמה",
   "admin.load": "כניסה",
@@ -1338,6 +1362,29 @@ const AR = {
   "admin.logoutBtn": "تسجيل الخروج وحذف الرمز من الجهاز",
   "admin.logoutConfirm":
     "حذف رمز الإدارة من المتصفح وإغلاق اللوحة؟ (ستحتاجون لإدخال الرمز مجدداً لاحقاً)",
+  "admin.newOrderAutoRefreshHint":
+    "تُحدَّث الطلبات والمبيعات اليومية تلقائياً كل نحو 15 ثانية عندما تبقى الصفحة مفتوحة.",
+  "admin.newOrderNotifyHint":
+    "بالضغط تُفعَّل الإشعارات على الشاشة والصوت والاهتزاز، وPush عند إغلاق التطبيق — إذا ضُبطت مفاتيح VAPID وRedis على الخادم.",
+  "admin.newOrderNotifyEnable": "تفعيل الإشعارات",
+  "admin.newOrderNotifyDenied":
+    "الإشعارات محظورة في إعدادات المتصفح. يمكن السماح من إعدادات الموقع.",
+  "admin.newOrderNotifyTitle": "طلب جديد — Burger Hut",
+  "admin.newOrderNotifyBodyOne": "وصل الطلب رقم {n}.",
+  "admin.newOrderNotifyBodyMany": "وصلت {c} طلبات جديدة.",
+  "admin.pushSubscribeOk":
+    "تم تفعيل إشعارات Push — ستصلكم إشعار حتى عند إغلاق التطبيق (إن سمح الجهاز والمتصفح).",
+  "admin.pushSubscribeSkip":
+    "إشعارات أثناء فتح الصفحة فقط. Push في الخلفية غير مضبوط على الخادم (VAPID) أو لا يوجد Redis.",
+  "admin.pushSubscribeErr": "تعذّر تسجيل Push. حاولوا مرة أخرى.",
+  "admin.pushSubscribeRedis": "Redis متصل لكن فشل حفظ الاشتراك.",
+  "admin.newOrderNotifyGrantedHint":
+    "إشعارات الشاشة مفعّلة. على الجوال يُفضّل تسجيل Push لاستلام إشعار عند إغلاق التطبيق.",
+  "admin.pushRegisterBtn": "تسجيل Push في الخلفية",
+  "admin.pushStatusLine":
+    "حالة خادم إشعارات الخلفية: VAPID ‏{vapid} · Redis ‏{redis} · اشتراكات محفوظة: ‏{count}.",
+  "admin.pushStatusOn": "مضبوط",
+  "admin.pushStatusOff": "غير مضبوط",
   "admin.secretLabel": "رمز المشرف",
   "admin.secretPh": "كلمة المرور",
   "admin.load": "دخول",

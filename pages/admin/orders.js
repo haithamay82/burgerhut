@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { upload as uploadToBlob } from "@vercel/blob/client";
@@ -29,10 +29,67 @@ import {
   blobToBase64PngOrJpeg,
 } from "@/utils/prepareSliderImageForUpload";
 import { sortSaladsForDisplay } from "@/utils/saladDisplayOrder";
+import {
+  subscribeAdminWebPush,
+  unsubscribeAdminWebPush,
+} from "@/utils/adminPushClient";
 
 const INVENTORY_CATEGORIES = ["burgers", "crispy"];
 const CATALOG_CATEGORIES = ["burgers", "crispy", "sides", "drinks"];
 const CATALOG_ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+/** ריענון הזמנות בדף ניהול — לזיהוי הזמנות חדשות */
+const ADMIN_ORDERS_POLL_MS = 15000;
+
+function syncAdminOrdersKnownIdsRef(idsRef, ordersList) {
+  idsRef.current = new Set(
+    (ordersList || [])
+      .map((o) => String(o?.id || ""))
+      .filter(Boolean)
+  );
+}
+
+function playAdminNewOrderBeep() {
+  if (typeof window === "undefined") return;
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    const ctx = new AC();
+    const run = () => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = "sine";
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.23);
+    };
+    if (ctx.state === "suspended") {
+      void ctx.resume().then(run).catch(() => {});
+    } else {
+      run();
+    }
+    window.setTimeout(() => {
+      ctx.close().catch(() => {});
+    }, 400);
+  } catch {
+    /* ignore */
+  }
+}
+
+function vibrateAdminNewOrder() {
+  try {
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate([90, 60, 90]);
+    }
+  } catch {
+    /* ignore */
+  }
+}
 
 /** timeout ל-fetch של הגדרות סליידר */
 function sliderAdminFetchSignal() {
@@ -275,6 +332,13 @@ export default function AdminOrdersPage() {
   const sliderFileRef = useRef(null);
   const catalogImageFileRef = useRef(null);
   const adminSessionHydratedRef = useRef(false);
+  /** מזהי הזמנות אחרי טעינה/פולינג — לזיהוי שורות חדשות */
+  const ordersKnownIdsRef = useRef(new Set());
+  const [, setNotifyPermissionNonce] = useState(0);
+  const [adminPushMsg, setAdminPushMsg] = useState("");
+  /** סטטוס שרת Push (אחרי טעינת פאנל) — VAPID, Redis, מספר מנויים */
+  const [adminPushServerStatus, setAdminPushServerStatus] = useState(null);
+  const [adminClientReady, setAdminClientReady] = useState(false);
   const [sliderImages, setSliderImages] = useState([]);
   const [sliderDisplayEnabled, setSliderDisplayEnabled] = useState(true);
   const [sliderMsg, setSliderMsg] = useState("");
@@ -536,6 +600,7 @@ export default function AdminOrdersPage() {
     const effectiveSecret = String(secretOverride ?? secret).trim();
     if (!effectiveSecret) return;
     setError("");
+    setAdminPushMsg("");
     setLoading(true);
     try {
       const r = await fetch("/api/orders", {
@@ -563,7 +628,9 @@ export default function AdminOrdersPage() {
       }
       setSecret(effectiveSecret);
       writePersistedAdminSecret(effectiveSecret);
-      setOrders(data.orders || []);
+      const nextOrders = data.orders || [];
+      setOrders(nextOrders);
+      syncAdminOrdersKnownIdsRef(ordersKnownIdsRef, nextOrders);
       setLoaded(true);
       setHoursMsg("");
       setDiscountMsg("");
@@ -739,8 +806,9 @@ export default function AdminOrdersPage() {
   };
 
   const logoutAdmin = () => {
-    writePersistedAdminSecret("");
     if (typeof window !== "undefined") {
+      const s = secret.trim();
+      if (s) void unsubscribeAdminWebPush(s);
       try {
         window.sessionStorage.removeItem(ADMIN_PROMO_PANEL_SESSION_KEY);
         window.sessionStorage.removeItem(ADMIN_SLIDER_PANEL_SESSION_KEY);
@@ -748,7 +816,9 @@ export default function AdminOrdersPage() {
         /* ignore */
       }
     }
+    writePersistedAdminSecret("");
     adminSessionHydratedRef.current = false;
+    ordersKnownIdsRef.current = new Set();
     setSecret("");
     setError("");
     setOrders([]);
@@ -774,7 +844,33 @@ export default function AdminOrdersPage() {
     setCouponPanelOpen(false);
     setSiteVisitsPanelOpen(false);
     setCatalogModal(null);
+    setAdminPushServerStatus(null);
   };
+
+  const refreshAdminPushServerStatus = useCallback(async () => {
+    const s = secret.trim();
+    if (!s) {
+      setAdminPushServerStatus(null);
+      return;
+    }
+    try {
+      const r = await fetch(`/api/admin/push/status?_=${Date.now()}`, {
+        headers: { "x-admin-secret": s },
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) {
+        setAdminPushServerStatus({
+          vapidConfigured: Boolean(d.vapidConfigured),
+          redisConfigured: Boolean(d.redisConfigured),
+          subscriptionCount: Number(d.subscriptionCount) || 0,
+        });
+      } else {
+        setAdminPushServerStatus(null);
+      }
+    } catch {
+      setAdminPushServerStatus(null);
+    }
+  }, [secret]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -786,6 +882,18 @@ export default function AdminOrdersPage() {
     void load(undefined, stored);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- פעם אחת אחרי ריענון (מובייל / בורר קבצים)
   }, []);
+
+  useEffect(() => {
+    setAdminClientReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!loaded) {
+      setAdminPushServerStatus(null);
+      return;
+    }
+    void refreshAdminPushServerStatus();
+  }, [loaded, refreshAdminPushServerStatus]);
 
   useEffect(() => {
     if (!loaded || typeof window === "undefined") return;
@@ -800,6 +908,66 @@ export default function AdminOrdersPage() {
       /* ignore */
     }
   }, [loaded]);
+
+  useEffect(() => {
+    if (!loaded || typeof window === "undefined") return;
+    const s = secret.trim();
+    if (!s) return;
+
+    let cancelled = false;
+    const poll = async () => {
+      if (cancelled) return;
+      try {
+        const r = await fetch(`/api/orders?_=${Date.now()}`, {
+          headers: { "x-admin-secret": s },
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok || !data.ok) return;
+        const list = Array.isArray(data.orders) ? data.orders : [];
+        const known = ordersKnownIdsRef.current;
+        const newRows = list.filter((o) => o?.id && !known.has(String(o.id)));
+        if (newRows.length > 0) {
+          playAdminNewOrderBeep();
+          vibrateAdminNewOrder();
+          const title = t("admin.newOrderNotifyTitle");
+          const body =
+            newRows.length === 1
+              ? t("admin.newOrderNotifyBodyOne").replace(
+                  "{n}",
+                  String(newRows[0].orderNumber ?? "")
+                )
+              : t("admin.newOrderNotifyBodyMany").replace(
+                  "{c}",
+                  String(newRows.length)
+                );
+          if (
+            typeof Notification !== "undefined" &&
+            Notification.permission === "granted"
+          ) {
+            try {
+              new Notification(title, {
+                body,
+                icon: "/logo-burger-hut.png",
+                tag: `bh-ord-${Date.now()}`,
+              });
+            } catch {
+              /* ignore */
+            }
+          }
+        }
+        syncAdminOrdersKnownIdsRef(ordersKnownIdsRef, list);
+        setOrders(list);
+      } catch {
+        /* ignore */
+      }
+    };
+
+    const id = window.setInterval(poll, ADMIN_ORDERS_POLL_MS);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, [loaded, secret, t]);
 
   const deleteCoupon = async (code) => {
     if (!secret.trim() || !code) return;
@@ -851,7 +1019,11 @@ export default function AdminOrdersPage() {
         setError(t("admin.deleteErr"));
         return;
       }
-      setOrders((prev) => prev.filter((o) => o.id !== orderId));
+      setOrders((prev) => {
+        const next = prev.filter((o) => o.id !== orderId);
+        syncAdminOrdersKnownIdsRef(ordersKnownIdsRef, next);
+        return next;
+      });
     } catch {
       setError(t("admin.errNet"));
     } finally {
@@ -1532,6 +1704,106 @@ export default function AdminOrdersPage() {
 
           {loaded ? (
             <>
+              <p className="mb-3 text-[11px] leading-snug text-gray-500">
+                {t("admin.newOrderAutoRefreshHint")}
+              </p>
+              {adminClientReady && typeof Notification !== "undefined" ? (
+                <>
+                  {Notification.permission === "default" ? (
+                    <div className="mb-4 rounded-xl border border-amber-700/45 bg-amber-950/35 px-3 py-2.5 text-xs text-amber-100">
+                      <p className="mb-2 leading-snug">
+                        {t("admin.newOrderNotifyHint")}
+                      </p>
+                      <button
+                        type="button"
+                        className="rounded-lg border border-amber-500/60 bg-amber-900/40 px-3 py-1.5 text-[11px] font-semibold text-amber-50 hover:bg-amber-900/55"
+                        onClick={async () => {
+                          setAdminPushMsg("");
+                          try {
+                            await Notification.requestPermission();
+                          } catch {
+                            /* ignore */
+                          }
+                          setNotifyPermissionNonce((n) => n + 1);
+                          if (typeof Notification === "undefined") return;
+                          if (Notification.permission !== "granted") return;
+                          const r = await subscribeAdminWebPush(secret.trim());
+                          if (r.ok) {
+                            setAdminPushMsg(t("admin.pushSubscribeOk"));
+                            void refreshAdminPushServerStatus();
+                          } else if (
+                            r.error === "no_vapid" ||
+                            r.error === "push_unavailable"
+                          )
+                            setAdminPushMsg(t("admin.pushSubscribeSkip"));
+                          else if (r.error === "redis_not_configured")
+                            setAdminPushMsg(t("admin.pushSubscribeRedis"));
+                          else setAdminPushMsg(t("admin.pushSubscribeErr"));
+                        }}
+                      >
+                        {t("admin.newOrderNotifyEnable")}
+                      </button>
+                    </div>
+                  ) : Notification.permission === "granted" ? (
+                    <div className="mb-4 rounded-xl border border-emerald-800/50 bg-emerald-950/25 px-3 py-2.5 text-xs text-emerald-100/95">
+                      <p className="mb-2 leading-snug">
+                        {t("admin.newOrderNotifyGrantedHint")}
+                      </p>
+                      <button
+                        type="button"
+                        className="rounded-lg border border-emerald-600/50 bg-emerald-900/35 px-3 py-1.5 text-[11px] font-semibold text-emerald-50 hover:bg-emerald-900/50"
+                        onClick={async () => {
+                          setAdminPushMsg("");
+                          const r = await subscribeAdminWebPush(secret.trim());
+                          if (r.ok) {
+                            setAdminPushMsg(t("admin.pushSubscribeOk"));
+                            void refreshAdminPushServerStatus();
+                          } else if (
+                            r.error === "no_vapid" ||
+                            r.error === "push_unavailable"
+                          )
+                            setAdminPushMsg(t("admin.pushSubscribeSkip"));
+                          else if (r.error === "redis_not_configured")
+                            setAdminPushMsg(t("admin.pushSubscribeRedis"));
+                          else setAdminPushMsg(t("admin.pushSubscribeErr"));
+                        }}
+                      >
+                        {t("admin.pushRegisterBtn")}
+                      </button>
+                    </div>
+                  ) : Notification.permission === "denied" ? (
+                    <p className="mb-4 text-[11px] leading-snug text-gray-500">
+                      {t("admin.newOrderNotifyDenied")}
+                    </p>
+                  ) : null}
+                  {adminPushMsg ? (
+                    <p className="mb-4 text-[11px] leading-snug text-emerald-300/90">
+                      {adminPushMsg}
+                    </p>
+                  ) : null}
+                </>
+              ) : null}
+              {adminPushServerStatus ? (
+                <p className="mb-4 text-[11px] leading-snug text-gray-500">
+                  {t("admin.pushStatusLine")
+                    .replace(
+                      "{vapid}",
+                      adminPushServerStatus.vapidConfigured
+                        ? t("admin.pushStatusOn")
+                        : t("admin.pushStatusOff")
+                    )
+                    .replace(
+                      "{redis}",
+                      adminPushServerStatus.redisConfigured
+                        ? t("admin.pushStatusOn")
+                        : t("admin.pushStatusOff")
+                    )
+                    .replace(
+                      "{count}",
+                      String(adminPushServerStatus.subscriptionCount)
+                    )}
+                </p>
+              ) : null}
               <div className="mb-8 space-y-3">
               <button
                 type="button"

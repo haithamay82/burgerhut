@@ -1,4 +1,5 @@
 import { appendOrder, deleteOrderById, listOrders } from "@/lib/ordersStore";
+import { broadcastNewOrderToAdmins } from "@/lib/adminPushNotify";
 import {
   deductPattyStockForOrder,
   getInventoryPayload,
@@ -191,6 +192,10 @@ export default async function handler(req, res) {
         /* ignore coupon write failure after order creation */
       }
     }
+
+    void broadcastNewOrderToAdmins({
+      orderNumber: row.orderNumber,
+    }).catch(() => {});
 
     return res.status(201).json({ ok: true, order: row });
   }
