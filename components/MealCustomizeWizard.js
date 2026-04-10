@@ -525,23 +525,24 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
                       : "border-slate-700 text-gray-300"
                   }`}
                 >
-                  {x.image ? (
-                    <img
-                      src={x.image}
-                      alt={t(`salad.${x.id}`)}
-                      className="h-8 w-8 shrink-0 rounded-md border border-slate-700 object-cover"
-                    />
-                  ) : null}
-                  <span className="min-w-0 flex-1 leading-snug">
-                    {t(`salad.${x.id}`)}
-                    {extra > 0 ? (
-                      <span className="mr-1 text-[10px] text-gray-400 tabular-nums">
-                        {" "}
-                        {t("ui.saucePlus")}
-                        {formatIls(extra)}
-                      </span>
+                  <span className="flex min-w-0 flex-1 items-center gap-1.5">
+                    {x.image ? (
+                      <img
+                        src={x.image}
+                        alt={t(`salad.${x.id}`)}
+                        className="h-8 w-8 shrink-0 rounded-md border border-slate-700 object-cover"
+                      />
                     ) : null}
+                    <span className="min-w-0 flex-1 leading-snug">
+                      {t(`salad.${x.id}`)}
+                    </span>
                   </span>
+                  {extra > 0 ? (
+                    <span className="shrink-0 text-[10px] text-gray-400 tabular-nums">
+                      {t("ui.saucePlus")}
+                      {formatIls(extra)}
+                    </span>
+                  ) : null}
                   <input
                     type="checkbox"
                     className="hidden"
