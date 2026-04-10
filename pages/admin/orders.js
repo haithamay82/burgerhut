@@ -338,6 +338,8 @@ export default function AdminOrdersPage() {
   const [adminPushMsg, setAdminPushMsg] = useState("");
   /** סטטוס שרת Push (אחרי טעינת פאנל) — VAPID, Redis, מספר מנויים */
   const [adminPushServerStatus, setAdminPushServerStatus] = useState(null);
+  const [adminPushClearBusy, setAdminPushClearBusy] = useState(false);
+  const [adminPushClearMsg, setAdminPushClearMsg] = useState("");
   const [adminClientReady, setAdminClientReady] = useState(false);
   const [sliderImages, setSliderImages] = useState([]);
   const [sliderDisplayEnabled, setSliderDisplayEnabled] = useState(true);
@@ -845,6 +847,7 @@ export default function AdminOrdersPage() {
     setSiteVisitsPanelOpen(false);
     setCatalogModal(null);
     setAdminPushServerStatus(null);
+    setAdminPushClearMsg("");
   };
 
   const refreshAdminPushServerStatus = useCallback(async () => {
@@ -1772,9 +1775,10 @@ export default function AdminOrdersPage() {
                       </button>
                     </div>
                   ) : Notification.permission === "denied" ? (
-                    <p className="mb-4 text-[11px] leading-snug text-gray-500">
-                      {t("admin.newOrderNotifyDenied")}
-                    </p>
+                    <div className="mb-4 space-y-2 text-[11px] leading-snug text-gray-500">
+                      <p>{t("admin.newOrderNotifyDenied")}</p>
+                      <p className="text-gray-400">{t("admin.newOrderNotifyDeniedHelp")}</p>
+                    </div>
                   ) : null}
                   {adminPushMsg ? (
                     <p className="mb-4 text-[11px] leading-snug text-emerald-300/90">
@@ -1784,25 +1788,80 @@ export default function AdminOrdersPage() {
                 </>
               ) : null}
               {adminPushServerStatus ? (
-                <p className="mb-4 text-[11px] leading-snug text-gray-500">
-                  {t("admin.pushStatusLine")
-                    .replace(
-                      "{vapid}",
-                      adminPushServerStatus.vapidConfigured
-                        ? t("admin.pushStatusOn")
-                        : t("admin.pushStatusOff")
-                    )
-                    .replace(
-                      "{redis}",
-                      adminPushServerStatus.redisConfigured
-                        ? t("admin.pushStatusOn")
-                        : t("admin.pushStatusOff")
-                    )
-                    .replace(
-                      "{count}",
-                      String(adminPushServerStatus.subscriptionCount)
-                    )}
-                </p>
+                <div className="mb-4 space-y-2">
+                  <p className="text-[11px] leading-snug text-gray-500">
+                    {t("admin.pushStatusLine")
+                      .replace(
+                        "{vapid}",
+                        adminPushServerStatus.vapidConfigured
+                          ? t("admin.pushStatusOn")
+                          : t("admin.pushStatusOff")
+                      )
+                      .replace(
+                        "{redis}",
+                        adminPushServerStatus.redisConfigured
+                          ? t("admin.pushStatusOn")
+                          : t("admin.pushStatusOff")
+                      )
+                      .replace(
+                        "{count}",
+                        String(adminPushServerStatus.subscriptionCount)
+                      )}
+                  </p>
+                  {adminPushServerStatus.redisConfigured ? (
+                    <button
+                      type="button"
+                      disabled={
+                        adminPushClearBusy ||
+                        !secret.trim() ||
+                        adminPushServerStatus.subscriptionCount === 0
+                      }
+                      className="rounded-lg border border-red-900/55 bg-red-950/35 px-3 py-1.5 text-[11px] font-semibold text-red-200/95 hover:bg-red-950/55 disabled:cursor-not-allowed disabled:opacity-45"
+                      onClick={async () => {
+                        if (!secret.trim()) return;
+                        if (
+                          typeof window !== "undefined" &&
+                          !window.confirm(t("admin.pushClearAllConfirm"))
+                        ) {
+                          return;
+                        }
+                        setAdminPushClearMsg("");
+                        setAdminPushClearBusy(true);
+                        try {
+                          const r = await fetch("/api/admin/push/clear-all", {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                              "x-admin-secret": secret.trim(),
+                            },
+                          });
+                          const d = await r.json().catch(() => ({}));
+                          if (r.ok && d.ok) {
+                            setAdminPushClearMsg(t("admin.pushClearAllOk"));
+                            void refreshAdminPushServerStatus();
+                          } else if (d.error === "redis_not_configured") {
+                            setAdminPushClearMsg(t("admin.pushClearAllRedis"));
+                          } else {
+                            setAdminPushClearMsg(t("admin.pushClearAllErr"));
+                          }
+                        } catch {
+                          setAdminPushClearMsg(t("admin.pushClearAllErr"));
+                        } finally {
+                          setAdminPushClearBusy(false);
+                        }
+                      }}
+                    >
+                      {adminPushClearBusy
+                        ? t("admin.pushClearAllWorking")
+                        : t("admin.pushClearAllBtn")}
+                    </button>
+                  ) : null}
+                  {adminPushClearMsg ? (
+                    <p className="text-[11px] leading-snug text-amber-200/90">
+                      {adminPushClearMsg}
+                    </p>
+                  ) : null}
+                </div>
               ) : null}
               <div className="mb-8 space-y-3">
               <button

@@ -554,6 +554,8 @@ const HE = {
   "admin.newOrderNotifyEnable": "אפשר התראות",
   "admin.newOrderNotifyDenied":
     "התראות חסומות בהגדרות הדפדפן. אפשר לאפשר בהגדרות האתר.",
+  "admin.newOrderNotifyDeniedHelp":
+    "Chrome / Edge (מחשב): סמל המנעול או «ⓘ» ליד הכתובת → «הגדרות לאתר הזה» / Site settings → התראות → «אפשר». לאחר מכן רעננו את הדף. אנדרואיד (כרום): ⋮ → הגדרות → הגדרות אתר → התראות; או הגדרות המכשיר → אפליקציות → כרום → התראות. אייפון (אתר או PWA מהמסך הראשי): הגדרות → התראות → בחרו את האפליקציה או את Safari/דפדפן הרלוונטי → אפשרו; ל־PWA מותקן לפעמים תחת שם האתר או «התראות אפליקציות» (נדרש iOS 16.4+ ל־Web Push).",
   "admin.newOrderNotifyTitle": "הזמנה חדשה — Burger Hut",
   "admin.newOrderNotifyBodyOne": "התקבלה הזמנה מס׳ {n}.",
   "admin.newOrderNotifyBodyMany": "התקבלו {c} הזמנות חדשות.",
@@ -571,6 +573,13 @@ const HE = {
     "סטטוס שרת להתראות ברקע: VAPID ‏{vapid} · Redis ‏{redis} · מנויים שמורים בשרת: ‏{count}.",
   "admin.pushStatusOn": "מוגדר",
   "admin.pushStatusOff": "לא מוגדר",
+  "admin.pushClearAllBtn": "מחק את כל מנויי Push מהשרת",
+  "admin.pushClearAllConfirm":
+    "למחוק את כל מנויי ההתראות (Push) השמורים בשרת? אחרי מחיקה צריך לרשום מחדש «רשום Push ברקע» בכל מכשיר שצריך התראות.",
+  "admin.pushClearAllOk": "כל המנויים נמחקו מהשרת. רשמו מחדש Push במכשירים הנדרשים.",
+  "admin.pushClearAllErr": "מחיקת המנויים נכשלה. נסו שוב.",
+  "admin.pushClearAllRedis": "Redis לא זמין — לא ניתן למחוק מנויים.",
+  "admin.pushClearAllWorking": "מוחק…",
   "admin.secretLabel": "קוד מנהל",
   "admin.secretPh": "סיסמה",
   "admin.load": "כניסה",
@@ -1369,6 +1378,8 @@ const AR = {
   "admin.newOrderNotifyEnable": "تفعيل الإشعارات",
   "admin.newOrderNotifyDenied":
     "الإشعارات محظورة في إعدادات المتصفح. يمكن السماح من إعدادات الموقع.",
+  "admin.newOrderNotifyDeniedHelp":
+    "Chrome / Edge (كمبيوتر): أيقونة القفل أو «i» بجانب العنوان → «إعدادات الموقع» / Site settings → الإشعارات → «السماح». ثم حدّثوا الصفحة. أندرويد (Chrome): ⋮ → الإعدادات → إعدادات الموقع → الإشعارات؛ أو إعدادات الجهاز → التطبيقات → Chrome → الإشعارات. آيفون (موقع أو PWA من الشاشة الرئيسية): الإعدادات → الإشعارات → اختيار التطبيق أو Safari/المتصفح → السماح؛ قد يظهر اسم الموقع كتطبيق مثبّت (iOS 16.4+ لـ Web Push في PWA).",
   "admin.newOrderNotifyTitle": "طلب جديد — Burger Hut",
   "admin.newOrderNotifyBodyOne": "وصل الطلب رقم {n}.",
   "admin.newOrderNotifyBodyMany": "وصلت {c} طلبات جديدة.",
@@ -1385,6 +1396,13 @@ const AR = {
     "حالة خادم إشعارات الخلفية: VAPID ‏{vapid} · Redis ‏{redis} · اشتراكات محفوظة: ‏{count}.",
   "admin.pushStatusOn": "مضبوط",
   "admin.pushStatusOff": "غير مضبوط",
+  "admin.pushClearAllBtn": "حذف كل اشتراكات Push من الخادم",
+  "admin.pushClearAllConfirm":
+    "حذف كل اشتراكات الإشعارات (Push) المحفوظة على الخادم؟ بعد الحذف يلزم إعادة «تسجيل Push في الخلفية» على كل جهاز يحتاج إشعارات.",
+  "admin.pushClearAllOk": "تم حذف كل الاشتراكات. أعيدوا تسجيل Push على الأجهزة المطلوبة.",
+  "admin.pushClearAllErr": "فشل حذف الاشتراكات. حاولوا مرة أخرى.",
+  "admin.pushClearAllRedis": "Redis غير متاح — لا يمكن الحذف.",
+  "admin.pushClearAllWorking": "جارٍ الحذف…",
   "admin.secretLabel": "رمز المشرف",
   "admin.secretPh": "كلمة المرور",
   "admin.load": "دخول",
