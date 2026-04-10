@@ -30,6 +30,7 @@ import {
 } from "@/utils/prepareSliderImageForUpload";
 import { sortSaladsForDisplay } from "@/utils/saladDisplayOrder";
 import {
+  getAdminLocalPushSubscribed,
   subscribeAdminWebPush,
   unsubscribeAdminWebPush,
 } from "@/utils/adminPushClient";
@@ -334,7 +335,10 @@ export default function AdminOrdersPage() {
   const adminSessionHydratedRef = useRef(false);
   /** מזהי הזמנות אחרי טעינה/פולינג — לזיהוי שורות חדשות */
   const ordersKnownIdsRef = useRef(new Set());
-  const [, setNotifyPermissionNonce] = useState(0);
+  const [notifyPermissionNonce, setNotifyPermissionNonce] = useState(0);
+  /** null = לא רלוונטי או בודקים, true/false = יש מנוי מקומי ב-SW */
+  const [adminLocalPushSubscribed, setAdminLocalPushSubscribed] =
+    useState(null);
   const [adminPushMsg, setAdminPushMsg] = useState("");
   /** סטטוס שרת Push (אחרי טעינת פאנל) — VAPID, Redis, מספר מנויים */
   const [adminPushServerStatus, setAdminPushServerStatus] = useState(null);
@@ -848,6 +852,7 @@ export default function AdminOrdersPage() {
     setCatalogModal(null);
     setAdminPushServerStatus(null);
     setAdminPushClearMsg("");
+    setAdminLocalPushSubscribed(null);
   };
 
   const refreshAdminPushServerStatus = useCallback(async () => {
@@ -859,6 +864,7 @@ export default function AdminOrdersPage() {
     try {
       const r = await fetch(`/api/admin/push/status?_=${Date.now()}`, {
         headers: { "x-admin-secret": s },
+        cache: "no-store",
       });
       const d = await r.json().catch(() => ({}));
       if (r.ok && d.ok) {
@@ -889,6 +895,35 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     setAdminClientReady(true);
   }, []);
+
+  useEffect(() => {
+    if (!loaded || typeof window === "undefined") {
+      if (!loaded) setAdminLocalPushSubscribed(null);
+      return;
+    }
+    if (
+      !adminClientReady ||
+      typeof Notification === "undefined" ||
+      Notification.permission !== "granted"
+    ) {
+      setAdminLocalPushSubscribed(null);
+      return;
+    }
+    let cancelled = false;
+    const run = async () => {
+      const ok = await getAdminLocalPushSubscribed();
+      if (!cancelled) setAdminLocalPushSubscribed(ok);
+    };
+    void run();
+    const onVis = () => {
+      if (document.visibilityState === "visible") void run();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [loaded, adminClientReady, notifyPermissionNonce]);
 
   useEffect(() => {
     if (!loaded) {
@@ -1733,6 +1768,7 @@ export default function AdminOrdersPage() {
                           const r = await subscribeAdminWebPush(secret.trim());
                           if (r.ok) {
                             setAdminPushMsg(t("admin.pushSubscribeOk"));
+                            setAdminLocalPushSubscribed(true);
                             void refreshAdminPushServerStatus();
                           } else if (
                             r.error === "no_vapid" ||
@@ -1749,9 +1785,19 @@ export default function AdminOrdersPage() {
                     </div>
                   ) : Notification.permission === "granted" ? (
                     <div className="mb-4 rounded-xl border border-emerald-800/50 bg-emerald-950/25 px-3 py-2.5 text-xs text-emerald-100/95">
-                      <p className="mb-2 leading-snug">
-                        {t("admin.newOrderNotifyGrantedHint")}
-                      </p>
+                      {adminLocalPushSubscribed === true ? (
+                        <p className="mb-2 leading-snug">
+                          {t("admin.pushLocalActive")}
+                        </p>
+                      ) : adminLocalPushSubscribed === null ? (
+                        <p className="mb-2 leading-snug text-emerald-100/70">
+                          {t("admin.pushCheckingLocal")}
+                        </p>
+                      ) : (
+                        <p className="mb-2 leading-snug">
+                          {t("admin.newOrderNotifyGrantedHint")}
+                        </p>
+                      )}
                       <button
                         type="button"
                         className="rounded-lg border border-emerald-600/50 bg-emerald-900/35 px-3 py-1.5 text-[11px] font-semibold text-emerald-50 hover:bg-emerald-900/50"
@@ -1760,6 +1806,7 @@ export default function AdminOrdersPage() {
                           const r = await subscribeAdminWebPush(secret.trim());
                           if (r.ok) {
                             setAdminPushMsg(t("admin.pushSubscribeOk"));
+                            setAdminLocalPushSubscribed(true);
                             void refreshAdminPushServerStatus();
                           } else if (
                             r.error === "no_vapid" ||
@@ -1771,8 +1818,13 @@ export default function AdminOrdersPage() {
                           else setAdminPushMsg(t("admin.pushSubscribeErr"));
                         }}
                       >
-                        {t("admin.pushRegisterBtn")}
+                        {adminLocalPushSubscribed === true
+                          ? t("admin.pushReregisterBtn")
+                          : t("admin.pushRegisterBtn")}
                       </button>
+                      <p className="mt-2 leading-snug text-emerald-100/75">
+                        {t("admin.pushPerDeviceHint")}
+                      </p>
                     </div>
                   ) : Notification.permission === "denied" ? (
                     <div className="mb-4 space-y-2 text-[11px] leading-snug text-gray-500">
@@ -1834,13 +1886,25 @@ export default function AdminOrdersPage() {
                               "Content-Type": "application/json",
                               "x-admin-secret": secret.trim(),
                             },
+                            cache: "no-store",
                           });
                           const d = await r.json().catch(() => ({}));
                           if (r.ok && d.ok) {
                             setAdminPushClearMsg(t("admin.pushClearAllOk"));
+                            setAdminPushServerStatus((prev) =>
+                              prev
+                                ? {
+                                    ...prev,
+                                    subscriptionCount:
+                                      Number(d.subscriptionCount) || 0,
+                                  }
+                                : prev
+                            );
                             void refreshAdminPushServerStatus();
                           } else if (d.error === "redis_not_configured") {
                             setAdminPushClearMsg(t("admin.pushClearAllRedis"));
+                          } else if (d.error === "clear_verify_failed") {
+                            setAdminPushClearMsg(t("admin.pushClearAllVerifyErr"));
                           } else {
                             setAdminPushClearMsg(t("admin.pushClearAllErr"));
                           }

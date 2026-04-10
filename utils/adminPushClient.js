@@ -11,6 +11,24 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 /**
+ * האם קיים מנוי Push מקומי (Service Worker) במכשיר הזה.
+ * @returns {Promise<boolean>}
+ */
+export async function getAdminLocalPushSubscribed() {
+  if (typeof window === "undefined") return false;
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+    return false;
+  }
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    return Boolean(sub);
+  } catch {
+    return false;
+  }
+}
+
+/**
  * רישום Web Push למכשיר הנוכחי (אחרי הרשאת התראות).
  * @param {string} adminSecret
  * @returns {Promise<{ ok: true } | { ok: false, error: string }>}

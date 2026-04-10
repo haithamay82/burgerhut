@@ -1,5 +1,7 @@
-import { isRedisConfigured } from "@/lib/redis";
-import { countAdminPushSubscriptions } from "@/lib/adminPushSubscriptions";
+import {
+  countAdminPushSubscriptions,
+  isAdminPushStorageConfigured,
+} from "@/lib/adminPushSubscriptions";
 
 function authorize(req) {
   const secret = process.env.ADMIN_ORDERS_SECRET;
@@ -21,10 +23,14 @@ export default async function handler(req, res) {
     }
     return res.status(401).json({ ok: false, error: "unauthorized" });
   }
+  res.setHeader(
+    "Cache-Control",
+    "private, no-store, no-cache, must-revalidate, max-age=0"
+  );
   const pub = String(process.env.VAPID_PUBLIC_KEY || "").trim();
   const priv = String(process.env.VAPID_PRIVATE_KEY || "").trim();
   const vapidConfigured = Boolean(pub && priv);
-  const redisConfigured = isRedisConfigured();
+  const redisConfigured = isAdminPushStorageConfigured();
   const subscriptionCount = await countAdminPushSubscriptions();
   return res.status(200).json({
     ok: true,

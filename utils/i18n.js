@@ -569,6 +569,12 @@ const HE = {
   "admin.newOrderNotifyGrantedHint":
     "התראות במסך מופעלות. למכשיר נייד מומלץ גם לרשום Push כדי לקבל התראה כשהאפליקציה סגורה.",
   "admin.pushRegisterBtn": "רשום Push ברקע",
+  "admin.pushReregisterBtn": "עדכן רישום Push (מחדש)",
+  "admin.pushLocalActive":
+    "במכשיר הזה כבר רשום Push — לא חובה ללחוץ שוב בכל פתיחה של הניהול. אם שיניתם מפתחות בשרת או שההתראות לא מגיעות, לחצו «עדכן רישום».",
+  "admin.pushCheckingLocal": "בודקים אם המכשיר רשום ל-Push…",
+  "admin.pushPerDeviceHint":
+    "חשוב: כל מכשיר בנפרד. התראה בטלפון תגיע רק אם פתחתם את דף הניהול בטלפון והקשתם «רשום Push ברקע» שם — רישום מהמחשב לא מפעיל התראות על הטלפון.",
   "admin.pushStatusLine":
     "סטטוס שרת להתראות ברקע: VAPID ‏{vapid} · Redis ‏{redis} · מנויים שמורים בשרת: ‏{count}.",
   "admin.pushStatusOn": "מוגדר",
@@ -579,6 +585,8 @@ const HE = {
   "admin.pushClearAllOk": "כל המנויים נמחקו מהשרת. רשמו מחדש Push במכשירים הנדרשים.",
   "admin.pushClearAllErr": "מחיקת המנויים נכשלה. נסו שוב.",
   "admin.pushClearAllRedis": "Redis לא זמין — לא ניתן למחוק מנויים.",
+  "admin.pushClearAllVerifyErr":
+    "המחיקה לא אומתה (נשארו שדות ב־Redis). נסו שוב או בדקו במסוף Upstash/Vercel KV.",
   "admin.pushClearAllWorking": "מוחק…",
   "admin.secretLabel": "קוד מנהל",
   "admin.secretPh": "סיסמה",
@@ -1392,6 +1400,12 @@ const AR = {
   "admin.newOrderNotifyGrantedHint":
     "إشعارات الشاشة مفعّلة. على الجوال يُفضّل تسجيل Push لاستلام إشعار عند إغلاق التطبيق.",
   "admin.pushRegisterBtn": "تسجيل Push في الخلفية",
+  "admin.pushReregisterBtn": "تحديث تسجيل Push (من جديد)",
+  "admin.pushLocalActive":
+    "هذا الجهاز مسجّل مسبقاً لـ Push — لا حاجة للضغط مجدداً في كل مرة. إذا غيّرتم المفاتيح على الخادم أو لا تصل الإشعارات، اضغطوا «تحديث التسجيل».",
+  "admin.pushCheckingLocal": "جارٍ التحقق من تسجيل Push على الجهاز…",
+  "admin.pushPerDeviceHint":
+    "مهم: كل جهاز على حدة. لتصل الإشعار على الهاتف افتحوا صفحة الإدارة على الهاتف واضغطوا «تسجيل Push في الخلفية» هناك — التسجيل من الكمبيوتر لا يفعّل الإشعارات على الهاتف.",
   "admin.pushStatusLine":
     "حالة خادم إشعارات الخلفية: VAPID ‏{vapid} · Redis ‏{redis} · اشتراكات محفوظة: ‏{count}.",
   "admin.pushStatusOn": "مضبوط",
@@ -1402,6 +1416,8 @@ const AR = {
   "admin.pushClearAllOk": "تم حذف كل الاشتراكات. أعيدوا تسجيل Push على الأجهزة المطلوبة.",
   "admin.pushClearAllErr": "فشل حذف الاشتراكات. حاولوا مرة أخرى.",
   "admin.pushClearAllRedis": "Redis غير متاح — لا يمكن الحذف.",
+  "admin.pushClearAllVerifyErr":
+    "لم يُؤكَّد الحذف (بقيت حقول في Redis). حاولوا مرة أخرى أو راجعوا Upstash/Vercel KV.",
   "admin.pushClearAllWorking": "جارٍ الحذف…",
   "admin.secretLabel": "رمز المشرف",
   "admin.secretPh": "كلمة المرور",

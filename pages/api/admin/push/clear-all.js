@@ -20,12 +20,22 @@ export default async function handler(req, res) {
     }
     return res.status(401).json({ ok: false, error: "unauthorized" });
   }
+  res.setHeader(
+    "Cache-Control",
+    "private, no-store, no-cache, must-revalidate, max-age=0"
+  );
   const out = await clearAllAdminPushSubscriptions();
   if (!out.ok) {
     if (out.error === "redis_not_configured") {
       return res.status(503).json({ ok: false, error: "redis_not_configured" });
     }
+    if (out.error === "clear_verify_failed") {
+      return res.status(500).json({ ok: false, error: "clear_verify_failed" });
+    }
     return res.status(500).json({ ok: false, error: out.error || "clear_failed" });
   }
-  return res.status(200).json({ ok: true });
+  return res.status(200).json({
+    ok: true,
+    subscriptionCount: Number(out.subscriptionCount) || 0,
+  });
 }
