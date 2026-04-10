@@ -1,7 +1,10 @@
 import { FREE_SALADS } from "@/utils/menuData";
 
-/** סדר תצוגה קבוע: חסה → עגבניה → חמוצים → בצל (כמו FREE_SALADS) */
-const SALAD_IDS_ORDER = FREE_SALADS.map((s) => s.id);
+/** סדר תצוגה: חסה → עגבניה → חמוצים → בצל → קולסלאו (אם נבחר) */
+const SALAD_IDS_ORDER = [
+  ...FREE_SALADS.map((s) => s.id),
+  "salad_coleslaw",
+];
 const ORDER_SET = new Set(SALAD_IDS_ORDER);
 
 /**

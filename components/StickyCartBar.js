@@ -84,6 +84,14 @@ export default function StickyCartBar() {
                           .join(", ")}
                       </p>
                     ) : null}
+                    {typeof item.bunSauceOnBun === "boolean" ? (
+                      <p className="text-[11px] text-gray-400">
+                        {t("checkout.bunSauceOnBunPrefix")}:{" "}
+                        {item.bunSauceOnBun
+                          ? t("ui.bunSauceYes")
+                          : t("ui.bunSauceNo")}
+                      </p>
+                    ) : null}
                     {item.burgerDoneness?.label ? (
                       <p className="text-[11px] text-gray-400">
                         {t("checkout.donenessPrefix")}:{" "}

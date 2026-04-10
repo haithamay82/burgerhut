@@ -140,6 +140,11 @@ export function buildWhatsAppOrderText({
           .join(", ")}`
       );
     }
+    if (typeof item.bunSauceOnBun === "boolean") {
+      lines.push(
+        `   ${waBoldLabel(tr("wa.bunSauceOnBun"))}: ${item.bunSauceOnBun ? tr("ui.bunSauceYes") : tr("ui.bunSauceNo")}`
+      );
+    }
     if (item.burgerDoneness?.label) {
       lines.push(
         `   ${waBoldLabel(tr("wa.doneness"))}: ${String(item.burgerDoneness.label).trim()}`

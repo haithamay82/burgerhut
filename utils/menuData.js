@@ -13,6 +13,18 @@ export const FREE_SALADS = [
   { id: "salad_onion", image: "/menu/salad-onion.png" },
 ];
 
+/** סלטים במנת קריספי — אותם חינמיים + קולסלאו בתשלום */
+export const CRISPY_MEAL_SALADS = [
+  ...FREE_SALADS,
+  /** אין תמונה בפרויקט — רק טקסט + מחיר בוויזארד */
+  { id: "salad_coleslaw", price: 5 },
+];
+
+/** רשימת סלטים לוויזארד מנה לפי קטגוריה */
+export function mealSaladChoicesForCategory(category) {
+  return category === "crispy" ? CRISPY_MEAL_SALADS : FREE_SALADS;
+}
+
 /** תוספות לבורגר / לעוף (לפי התפריט המודפס) */
 export const BURGER_TOPPINGS = [
   { id: "cheddar", price: 5, image: "/menu/topping-cheddar.png" },

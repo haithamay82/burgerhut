@@ -2911,6 +2911,14 @@ export default function AdminOrdersPage() {
                                           .join(", ")}
                                       </p>
                                     ) : null}
+                                    {typeof it.bunSauceOnBun === "boolean" ? (
+                                      <p className="text-[11px] text-gray-400">
+                                        {t("checkout.bunSauceOnBunPrefix")}:{" "}
+                                        {it.bunSauceOnBun
+                                          ? t("ui.bunSauceYes")
+                                          : t("ui.bunSauceNo")}
+                                      </p>
+                                    ) : null}
                                     {it.burgerDoneness?.label ? (
                                       <p className="text-[11px] text-gray-400">
                                         {t("checkout.donenessPrefix")}:{" "}

@@ -8,8 +8,8 @@ import {
   DEFAULT_BURGER_DONENESS_ID,
   DOUBLE_CHEESE_TOPPING_IDS,
   EXTRA_SAUCES,
-  FREE_SALADS,
   KIDS_CRISPY_BREAD_CHOICES,
+  mealSaladChoicesForCategory,
 } from "@/utils/menuData";
 import { useMenuCatalog } from "@/contexts/MenuCatalogContext";
 import { menuItemName } from "@/utils/menuItemLabels";
@@ -64,6 +64,8 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
   const [requestedDrinkId, setRequestedDrinkId] = useState("");
   const [drinkMenuOpen, setDrinkMenuOpen] = useState(false);
   const [donenessId, setDonenessId] = useState(DEFAULT_BURGER_DONENESS_ID);
+  /** רוטב על הלחמניה — ברירת מחדל כן */
+  const [bunSauceOnBun, setBunSauceOnBun] = useState(true);
   /** cheddar/gouda: 1 = שכבה אחת, 2 = דבל */
   const [cheeseMode, setCheeseMode] = useState({});
 
@@ -98,8 +100,27 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
     [selectedSauces]
   );
 
+  const saladChoicesList = useMemo(
+    () => (item ? mealSaladChoicesForCategory(item.category) : []),
+    [item]
+  );
+
+  const saladsPrice = useMemo(
+    () =>
+      selectedSalads.reduce(
+        (sum, id) =>
+          sum +
+          (Number(saladChoicesList.find((r) => r.id === id)?.price) || 0),
+        0
+      ),
+    [selectedSalads, saladChoicesList]
+  );
+
   const unitPrice = item
-    ? (Number(item.basePrice) || 0) + toppingsPrice + saucesPrice
+    ? (Number(item.basePrice) || 0) +
+      toppingsPrice +
+      saucesPrice +
+      saladsPrice
     : 0;
   const drinkOptions = useMemo(
     () =>
@@ -134,6 +155,7 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
     setDrinkMenuOpen(false);
     setIsAdding(false);
     setDonenessId(DEFAULT_BURGER_DONENESS_ID);
+    setBunSauceOnBun(true);
     setCheeseMode({});
     setMealValidateOpen(false);
     setMealValidateMissing([]);
@@ -278,11 +300,16 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
   const performAddToCart = async () => {
     if (!item || blocked) return;
     const name = menuItemName(item, t, locale);
-    const salads = selectedSalads.map((id) => ({
-      id,
-      label: t(`salad.${id}`),
-      price: 0,
-    }));
+    const salads = selectedSalads.map((id) => {
+      const p =
+        Number(mealSaladChoicesForCategory(item.category).find((r) => r.id === id)?.price) ||
+        0;
+      return {
+        id,
+        label: t(`salad.${id}`),
+        price: p,
+      };
+    });
     const doubleWord = t("ui.doubleWord");
     const toppings = [];
     for (const cheeseId of DOUBLE_CHEESE_TOPPING_IDS) {
@@ -336,6 +363,7 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
       extras,
       quantity,
       price: finalUnitPrice,
+      bunSauceOnBun,
       ...(isBeefBurgerMeal
         ? {
             burgerDoneness: {
@@ -486,35 +514,77 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
             {t("ui.freeSalads")}
           </h3>
           <div className="grid grid-cols-2 gap-2">
-            {FREE_SALADS.map((x) => (
-              <label
-                key={x.id}
-                className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-2 py-1.5 text-[11px] ${
-                  selectedSalads.includes(x.id)
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-slate-700 text-gray-300"
-                }`}
-              >
-                {x.image ? (
-                  <img
-                    src={x.image}
-                    alt={t(`salad.${x.id}`)}
-                    className="h-8 w-8 shrink-0 rounded-md border border-slate-700 object-cover"
+            {saladChoicesList.map((x) => {
+              const extra = Number(x.price) || 0;
+              return (
+                <label
+                  key={x.id}
+                  className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-2 py-1.5 text-[11px] ${
+                    selectedSalads.includes(x.id)
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-slate-700 text-gray-300"
+                  }`}
+                >
+                  {x.image ? (
+                    <img
+                      src={x.image}
+                      alt={t(`salad.${x.id}`)}
+                      className="h-8 w-8 shrink-0 rounded-md border border-slate-700 object-cover"
+                    />
+                  ) : null}
+                  <span className="min-w-0 flex-1 leading-snug">
+                    {t(`salad.${x.id}`)}
+                    {extra > 0 ? (
+                      <span className="mr-1 text-[10px] text-gray-400 tabular-nums">
+                        {" "}
+                        {t("ui.saucePlus")}
+                        {formatIls(extra)}
+                      </span>
+                    ) : null}
+                  </span>
+                  <input
+                    type="checkbox"
+                    className="hidden"
+                    checked={selectedSalads.includes(x.id)}
+                    onChange={() =>
+                      toggleInList(x.id, selectedSalads, setSelectedSalads)
+                    }
                   />
-                ) : null}
-                <span className="min-w-0 flex-1 leading-snug">
-                  {t(`salad.${x.id}`)}
-                </span>
-                <input
-                  type="checkbox"
-                  className="hidden"
-                  checked={selectedSalads.includes(x.id)}
-                  onChange={() =>
-                    toggleInList(x.id, selectedSalads, setSelectedSalads)
-                  }
-                />
-              </label>
-            ))}
+                </label>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="mb-6 space-y-2 text-xs">
+          <h3 className="text-[11px] font-semibold text-gray-300">
+            {t("ui.bunSauceOnBunTitle")}
+          </h3>
+          <div className="flex flex-wrap gap-1.5">
+            <button
+              type="button"
+              disabled={blocked}
+              onClick={() => setBunSauceOnBun(true)}
+              className={`rounded-full border px-2.5 py-2 text-[11px] ${
+                bunSauceOnBun
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-slate-700 text-gray-300"
+              }`}
+            >
+              {t("ui.bunSauceYes")}
+            </button>
+            <button
+              type="button"
+              disabled={blocked}
+              onClick={() => setBunSauceOnBun(false)}
+              className={`rounded-full border px-2.5 py-2 text-[11px] ${
+                !bunSauceOnBun
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-slate-700 text-gray-300"
+              }`}
+            >
+              {t("ui.bunSauceNo")}
+            </button>
           </div>
         </section>
 

@@ -45,7 +45,13 @@ export function customizationKey(item) {
   const doneness = String(item.burgerDoneness?.id ?? "").trim();
   const notes = String(item.sellerNotes ?? "").trim();
   const requestedDrink = String(item.requestedDrinkId ?? "").trim();
-  return `${pid}|${size}|${variant}|${doneness}|${salads}|${tops}|${extras}|${requestedDrink}|${notes}`;
+  const bun =
+    item.bunSauceOnBun === false
+      ? "0"
+      : item.bunSauceOnBun === true
+        ? "1"
+        : "";
+  return `${pid}|${size}|${variant}|${doneness}|${salads}|${tops}|${extras}|${requestedDrink}|${bun}|${notes}`;
 }
 
 function newCartLineId(productId) {

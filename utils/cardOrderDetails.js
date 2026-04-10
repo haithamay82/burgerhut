@@ -18,6 +18,10 @@ export function buildCardOrderDetailsFromItems(items) {
       burgerDonenessLabel: item.burgerDoneness?.label
         ? String(item.burgerDoneness.label).trim() || undefined
         : undefined,
+      bunSauceOnBun:
+        typeof item.bunSauceOnBun === "boolean"
+          ? item.bunSauceOnBun
+          : undefined,
       toppings: tops,
       salads: sals,
       extras: exs,
