@@ -16,8 +16,7 @@ export const FREE_SALADS = [
 /** סלטים במנת קריספי — אותם חינמיים + קולסלאו בתשלום */
 export const CRISPY_MEAL_SALADS = [
   ...FREE_SALADS,
-  /** אין תמונה בפרויקט — רק טקסט + מחיר בוויזארד */
-  { id: "salad_coleslaw", price: 5 },
+  { id: "salad_coleslaw", image: "/menu/salad-coleslaw.png", price: 5 },
 ];
 
 /** רשימת סלטים לוויזארד מנה לפי קטגוריה */
