@@ -50,7 +50,7 @@ function Quadrant({ gridArea, category, items, t, locale }) {
     >
       <h2
         style={{
-          fontSize: "13pt",
+          fontSize: "16.9pt",
           fontWeight: 700,
           margin: "0 0 2mm",
           paddingBottom: "1.2mm",
@@ -78,21 +78,21 @@ function Quadrant({ gridArea, category, items, t, locale }) {
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "2mm",
-                marginBottom: "1.6mm",
-                fontSize: "10.5pt",
-                lineHeight: 1.3,
+                gap: "2.6mm",
+                marginBottom: "2.1mm",
+                fontSize: "13.65pt",
+                lineHeight: 1.35,
               }}
             >
               {row.image ? (
                 <img
                   src={resolveImageSrc(row.image)}
                   alt=""
-                  width={36}
-                  height={36}
+                  width={43}
+                  height={43}
                   style={{
                     objectFit: "cover",
-                    borderRadius: 3,
+                    borderRadius: 4,
                     flexShrink: 0,
                   }}
                 />
@@ -110,7 +110,7 @@ function Quadrant({ gridArea, category, items, t, locale }) {
         <p
           style={{
             margin: 0,
-            fontSize: "10pt",
+            fontSize: "13pt",
             color: "#94a3b8",
           }}
         >
@@ -158,8 +158,8 @@ const AdminMenuExportSheet = forwardRef(function AdminMenuExportSheet(
           style={{
             display: "block",
             margin: "0 auto 2mm",
-            maxHeight: "22mm",
-            maxWidth: "78mm",
+            maxHeight: "66mm",
+            maxWidth: "198mm",
             width: "auto",
             height: "auto",
             objectFit: "contain",
@@ -167,7 +167,7 @@ const AdminMenuExportSheet = forwardRef(function AdminMenuExportSheet(
         />
         <h1
           style={{
-            fontSize: "20pt",
+            fontSize: "26pt",
             fontWeight: 700,
             margin: 0,
             textAlign: "center",
