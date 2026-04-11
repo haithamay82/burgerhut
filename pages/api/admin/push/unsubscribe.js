@@ -1,4 +1,8 @@
-import { removeAdminPushSubscriptionByEndpoint } from "@/lib/adminPushSubscriptions";
+import {
+  removeAdminPushSubscriptionByEndpoint,
+  removeAdminPushSubscriptionByPushClientId,
+} from "@/lib/adminPushSubscriptions";
+import { isValidPushClientId } from "@/utils/adminPushClientId";
 
 function authorize(req) {
   const secret = process.env.ADMIN_ORDERS_SECRET;
@@ -20,10 +24,16 @@ export default async function handler(req, res) {
     }
     return res.status(401).json({ ok: false, error: "unauthorized" });
   }
+  const pushClientId = String(req.body?.pushClientId || "").trim();
   const endpoint = String(req.body?.endpoint || "").trim();
-  if (!endpoint) {
-    return res.status(400).json({ ok: false, error: "missing_endpoint" });
+  if (!endpoint && !isValidPushClientId(pushClientId)) {
+    return res.status(400).json({ ok: false, error: "missing_push_identity" });
   }
-  await removeAdminPushSubscriptionByEndpoint(endpoint);
+  if (isValidPushClientId(pushClientId)) {
+    await removeAdminPushSubscriptionByPushClientId(pushClientId);
+  }
+  if (endpoint) {
+    await removeAdminPushSubscriptionByEndpoint(endpoint);
+  }
   return res.status(200).json({ ok: true });
 }

@@ -1,3 +1,8 @@
+import {
+  getOrCreateAdminPushDeviceId,
+  isValidPushClientId,
+} from "@/utils/adminPushClientId";
+
 /** @param {string} base64String */
 function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -63,18 +68,28 @@ export async function subscribeAdminWebPush(adminSecret) {
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(String(rj.publicKey)),
     });
+    const pushClientId = getOrCreateAdminPushDeviceId();
+    if (!isValidPushClientId(pushClientId)) {
+      return { ok: false, error: "no_push_client_id" };
+    }
     const r = await fetch("/api/admin/push/subscribe", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-admin-secret": secret,
       },
-      body: JSON.stringify({ subscription: sub.toJSON() }),
+      body: JSON.stringify({
+        subscription: sub.toJSON(),
+        pushClientId,
+      }),
     });
     const d = await r.json().catch(() => ({}));
     if (!r.ok || !d.ok) {
       if (d.error === "redis_not_configured") {
         return { ok: false, error: "redis_not_configured" };
+      }
+      if (d.error === "invalid_push_client_id") {
+        return { ok: false, error: "invalid_push_client_id" };
       }
       return { ok: false, error: d.error || "subscribe_failed" };
     }
@@ -97,13 +112,17 @@ export async function unsubscribeAdminWebPush(adminSecret) {
     const sub = await reg.pushManager.getSubscription();
     if (!sub) return;
     const endpoint = sub.endpoint;
+    const pushClientId = getOrCreateAdminPushDeviceId();
     await fetch("/api/admin/push/unsubscribe", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-admin-secret": secret,
       },
-      body: JSON.stringify({ endpoint }),
+      body: JSON.stringify({
+        endpoint,
+        ...(isValidPushClientId(pushClientId) ? { pushClientId } : {}),
+      }),
     }).catch(() => {});
     await sub.unsubscribe();
   } catch {

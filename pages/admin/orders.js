@@ -1777,6 +1777,11 @@ export default function AdminOrdersPage() {
                             setAdminPushMsg(t("admin.pushSubscribeSkip"));
                           else if (r.error === "redis_not_configured")
                             setAdminPushMsg(t("admin.pushSubscribeRedis"));
+                          else if (
+                            r.error === "no_push_client_id" ||
+                            r.error === "invalid_push_client_id"
+                          )
+                            setAdminPushMsg(t("admin.pushSubscribeClientId"));
                           else setAdminPushMsg(t("admin.pushSubscribeErr"));
                         }}
                       >
@@ -1815,6 +1820,11 @@ export default function AdminOrdersPage() {
                             setAdminPushMsg(t("admin.pushSubscribeSkip"));
                           else if (r.error === "redis_not_configured")
                             setAdminPushMsg(t("admin.pushSubscribeRedis"));
+                          else if (
+                            r.error === "no_push_client_id" ||
+                            r.error === "invalid_push_client_id"
+                          )
+                            setAdminPushMsg(t("admin.pushSubscribeClientId"));
                           else setAdminPushMsg(t("admin.pushSubscribeErr"));
                         }}
                       >

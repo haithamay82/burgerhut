@@ -1,4 +1,5 @@
 import { saveAdminPushSubscription } from "@/lib/adminPushSubscriptions";
+import { isValidPushClientId } from "@/utils/adminPushClientId";
 
 function authorize(req) {
   const secret = process.env.ADMIN_ORDERS_SECRET;
@@ -24,7 +25,11 @@ export default async function handler(req, res) {
   if (!sub || typeof sub !== "object" || !String(sub.endpoint || "").trim()) {
     return res.status(400).json({ ok: false, error: "invalid_subscription" });
   }
-  const out = await saveAdminPushSubscription(sub);
+  const pushClientId = String(req.body?.pushClientId || "").trim();
+  if (!isValidPushClientId(pushClientId)) {
+    return res.status(400).json({ ok: false, error: "invalid_push_client_id" });
+  }
+  const out = await saveAdminPushSubscription(sub, pushClientId);
   if (!out.ok) {
     if (out.error === "redis_not_configured") {
       return res.status(503).json({ ok: false, error: "redis_not_configured" });

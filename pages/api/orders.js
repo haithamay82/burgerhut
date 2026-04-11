@@ -193,9 +193,13 @@ export default async function handler(req, res) {
       }
     }
 
-    void broadcastNewOrderToAdmins({
-      orderNumber: row.orderNumber,
-    }).catch(() => {});
+    try {
+      await broadcastNewOrderToAdmins({
+        orderNumber: row.orderNumber,
+      });
+    } catch (e) {
+      console.warn("[adminPush] broadcast failed", e?.message || e);
+    }
 
     return res.status(201).json({ ok: true, order: row });
   }
