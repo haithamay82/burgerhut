@@ -3837,7 +3837,6 @@ export default function AdminOrdersPage() {
         <AdminMenuExportSheet
           ref={menuExportRef}
           items={mergedCatalogItems}
-          categories={CATALOG_CATEGORIES}
           t={t}
           locale={locale}
         />
