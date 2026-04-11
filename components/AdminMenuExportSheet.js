@@ -27,15 +27,10 @@ const QUADRANT_LAYOUT = [
   { gridArea: "crispy", category: "crispy" },
 ];
 
-/** קטגוריות עם הרבה פריטים — שתי עמודות כדי שייכנסו לרבע */
-const TWO_COLUMN_CATEGORIES = new Set(["burgers", "drinks"]);
-
 function Quadrant({ gridArea, category, items, t, locale }) {
   const catItems = items
     .filter((row) => row.category === category)
     .sort((a, b) => a.basePrice - b.basePrice);
-
-  const twoColumns = TWO_COLUMN_CATEGORIES.has(category);
 
   return (
     <div
@@ -75,53 +70,39 @@ function Quadrant({ gridArea, category, items, t, locale }) {
             flex: 1,
             minHeight: 0,
             overflow: "hidden",
-            ...(twoColumns
-              ? {
-                  columnCount: 2,
-                  columnGap: "2.2mm",
-                  columnFill: "balance",
-                }
-              : {}),
           }}
         >
           {catItems.map((row) => (
             <li
               key={row.id}
               style={{
-                breakInside: "avoid",
-                pageBreakInside: "avoid",
+                display: "flex",
+                alignItems: "center",
+                gap: "1.4mm",
                 marginBottom: "1mm",
+                fontSize: "9pt",
+                lineHeight: 1.22,
               }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "1.4mm",
-                  fontSize: "9pt",
-                  lineHeight: 1.22,
-                }}
-              >
-                {row.image ? (
-                  <img
-                    src={resolveImageSrc(row.image)}
-                    alt=""
-                    width={30}
-                    height={30}
-                    style={{
-                      objectFit: "cover",
-                      borderRadius: 3,
-                      flexShrink: 0,
-                    }}
-                  />
-                ) : null}
-                <span style={{ flex: 1, minWidth: 0 }}>
-                  {menuItemName(row, t, locale)}
-                </span>
-                <span style={{ fontWeight: 700, flexShrink: 0 }}>
-                  ₪{row.basePrice}
-                </span>
-              </div>
+              {row.image ? (
+                <img
+                  src={resolveImageSrc(row.image)}
+                  alt=""
+                  width={30}
+                  height={30}
+                  style={{
+                    objectFit: "cover",
+                    borderRadius: 3,
+                    flexShrink: 0,
+                  }}
+                />
+              ) : null}
+              <span style={{ flex: 1, minWidth: 0 }}>
+                {menuItemName(row, t, locale)}
+              </span>
+              <span style={{ fontWeight: 700, flexShrink: 0 }}>
+                ₪{row.basePrice}
+              </span>
             </li>
           ))}
         </ul>
