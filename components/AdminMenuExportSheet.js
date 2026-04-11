@@ -149,7 +149,7 @@ const AdminMenuExportSheet = forwardRef(function AdminMenuExportSheet(
         style={{
           flexShrink: 0,
           textAlign: "center",
-          marginBottom: "1mm",
+          marginBottom: "0.5mm",
         }}
       >
         <img
@@ -157,7 +157,7 @@ const AdminMenuExportSheet = forwardRef(function AdminMenuExportSheet(
           alt=""
           style={{
             display: "block",
-            margin: "0 auto 0.5mm",
+            margin: "0 auto 0",
             maxHeight: "60mm",
             maxWidth: "186mm",
             width: "auto",
@@ -174,7 +174,7 @@ const AdminMenuExportSheet = forwardRef(function AdminMenuExportSheet(
             textAlign: "center",
             color: "#0f172a",
             direction: "rtl",
-            lineHeight: 1.15,
+            lineHeight: 1.05,
           }}
         >
           {t("admin.menuExportSheetTitle")}
@@ -189,7 +189,8 @@ const AdminMenuExportSheet = forwardRef(function AdminMenuExportSheet(
             "drinks burgers"
             "sides crispy"`,
           gridTemplateColumns: "1fr 1fr",
-          gridTemplateRows: "1fr 1fr",
+          /* יותר גובה לשתייה + בורגרים; פחות לתוספות + קריספי (פחות פריטים) */
+          gridTemplateRows: "minmax(0, 2.7fr) minmax(0, 1fr)",
           gap: "1.8mm",
         }}
       >
