@@ -27,10 +27,15 @@ const QUADRANT_LAYOUT = [
   { gridArea: "crispy", category: "crispy" },
 ];
 
+/** שורה תחתונה — פחות ריווח פנימי כדי שכל התוספות (כולל צ'יפס וצ'דר) ייכנסו */
+const BOTTOM_QUADRANT = new Set(["sides", "crispy"]);
+
 function Quadrant({ gridArea, category, items, t, locale }) {
   const catItems = items
     .filter((row) => row.category === category)
     .sort((a, b) => a.basePrice - b.basePrice);
+
+  const bottom = BOTTOM_QUADRANT.has(category);
 
   return (
     <div
@@ -40,7 +45,7 @@ function Quadrant({ gridArea, category, items, t, locale }) {
         boxSizing: "border-box",
         border: "1px solid #cbd5e1",
         borderRadius: 3,
-        padding: "1.5mm 2mm",
+        padding: bottom ? "1mm 1.8mm" : "1.5mm 2mm",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
@@ -52,8 +57,8 @@ function Quadrant({ gridArea, category, items, t, locale }) {
         style={{
           fontSize: "15.4pt",
           fontWeight: 700,
-          margin: "0 0 1mm",
-          paddingBottom: "0.8mm",
+          margin: bottom ? "0 0 0.6mm" : "0 0 1mm",
+          paddingBottom: bottom ? "0.5mm" : "0.8mm",
           borderBottom: "1px solid #94a3b8",
           color: "#b45309",
           flexShrink: 0,
@@ -78,8 +83,8 @@ function Quadrant({ gridArea, category, items, t, locale }) {
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "2mm",
-                marginBottom: "1.4mm",
+                gap: bottom ? "1.5mm" : "2mm",
+                marginBottom: bottom ? "0.85mm" : "1.4mm",
                 fontSize: "12.6pt",
                 lineHeight: 1.3,
               }}
@@ -211,8 +216,10 @@ const AdminMenuExportSheet = forwardRef(function AdminMenuExportSheet(
             "sides crispy"`,
           gridTemplateColumns: "1fr 1fr",
           /* יותר גובה לשתייה + בורגרים; פחות לתוספות + קריספי (פחות פריטים) */
-          gridTemplateRows: "minmax(0, 2.7fr) minmax(0, 1fr)",
-          gap: "1.8mm",
+          gridTemplateRows: "minmax(0, 2.62fr) minmax(0, 1.08fr)",
+          /* rowGap קטן: פחות רווח בין שתייה לתוספות (ובין בורגרים לקריספי) */
+          rowGap: "0.5mm",
+          columnGap: "1.5mm",
         }}
       >
         {QUADRANT_LAYOUT.map(({ gridArea, category }) => (
