@@ -149,9 +149,27 @@ const AdminMenuExportSheet = forwardRef(function AdminMenuExportSheet(
         style={{
           flexShrink: 0,
           textAlign: "center",
-          marginBottom: "0.5mm",
+          position: "relative",
+          zIndex: 2,
+          backgroundColor: "#ffffff",
+          marginBottom: "2mm",
+          paddingBottom: "2mm",
         }}
       >
+        <h1
+          style={{
+            fontSize: "32pt",
+            fontWeight: 700,
+            margin: "0 0 1mm",
+            paddingTop: 0,
+            textAlign: "center",
+            color: "#0f172a",
+            direction: "rtl",
+            lineHeight: 1.05,
+          }}
+        >
+          {t("admin.menuExportSheetTitle")}
+        </h1>
         <img
           src={resolveImageSrc("/logo-burger-hut.png")}
           alt=""
@@ -165,25 +183,13 @@ const AdminMenuExportSheet = forwardRef(function AdminMenuExportSheet(
             objectFit: "contain",
           }}
         />
-        <h1
-          style={{
-            fontSize: "32pt",
-            fontWeight: 700,
-            margin: 0,
-            paddingTop: 0,
-            textAlign: "center",
-            color: "#0f172a",
-            direction: "rtl",
-            lineHeight: 1.05,
-          }}
-        >
-          {t("admin.menuExportSheetTitle")}
-        </h1>
       </header>
       <div
         style={{
           flex: 1,
           minHeight: 0,
+          position: "relative",
+          zIndex: 1,
           display: "grid",
           gridTemplateAreas: `
             "drinks burgers"
