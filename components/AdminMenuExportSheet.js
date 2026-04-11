@@ -27,10 +27,15 @@ const QUADRANT_LAYOUT = [
   { gridArea: "crispy", category: "crispy" },
 ];
 
+/** קטגוריות עם הרבה פריטים — שתי עמודות כדי שייכנסו לרבע */
+const TWO_COLUMN_CATEGORIES = new Set(["burgers", "drinks"]);
+
 function Quadrant({ gridArea, category, items, t, locale }) {
   const catItems = items
     .filter((row) => row.category === category)
     .sort((a, b) => a.basePrice - b.basePrice);
+
+  const twoColumns = TWO_COLUMN_CATEGORIES.has(category);
 
   return (
     <div
@@ -40,7 +45,7 @@ function Quadrant({ gridArea, category, items, t, locale }) {
         boxSizing: "border-box",
         border: "1px solid #cbd5e1",
         borderRadius: 3,
-        padding: "2mm 2.5mm",
+        padding: "1.5mm 2mm",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
@@ -50,10 +55,10 @@ function Quadrant({ gridArea, category, items, t, locale }) {
     >
       <h2
         style={{
-          fontSize: "16.9pt",
+          fontSize: "11pt",
           fontWeight: 700,
-          margin: "0 0 2mm",
-          paddingBottom: "1.2mm",
+          margin: "0 0 1mm",
+          paddingBottom: "0.8mm",
           borderBottom: "1px solid #94a3b8",
           color: "#b45309",
           flexShrink: 0,
@@ -70,39 +75,53 @@ function Quadrant({ gridArea, category, items, t, locale }) {
             flex: 1,
             minHeight: 0,
             overflow: "hidden",
+            ...(twoColumns
+              ? {
+                  columnCount: 2,
+                  columnGap: "2.2mm",
+                  columnFill: "balance",
+                }
+              : {}),
           }}
         >
           {catItems.map((row) => (
             <li
               key={row.id}
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "2.6mm",
-                marginBottom: "2.1mm",
-                fontSize: "13.65pt",
-                lineHeight: 1.35,
+                breakInside: "avoid",
+                pageBreakInside: "avoid",
+                marginBottom: "1mm",
               }}
             >
-              {row.image ? (
-                <img
-                  src={resolveImageSrc(row.image)}
-                  alt=""
-                  width={43}
-                  height={43}
-                  style={{
-                    objectFit: "cover",
-                    borderRadius: 4,
-                    flexShrink: 0,
-                  }}
-                />
-              ) : null}
-              <span style={{ flex: 1, minWidth: 0 }}>
-                {menuItemName(row, t, locale)}
-              </span>
-              <span style={{ fontWeight: 700, flexShrink: 0 }}>
-                ₪{row.basePrice}
-              </span>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "1.4mm",
+                  fontSize: "9pt",
+                  lineHeight: 1.22,
+                }}
+              >
+                {row.image ? (
+                  <img
+                    src={resolveImageSrc(row.image)}
+                    alt=""
+                    width={30}
+                    height={30}
+                    style={{
+                      objectFit: "cover",
+                      borderRadius: 3,
+                      flexShrink: 0,
+                    }}
+                  />
+                ) : null}
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  {menuItemName(row, t, locale)}
+                </span>
+                <span style={{ fontWeight: 700, flexShrink: 0 }}>
+                  ₪{row.basePrice}
+                </span>
+              </div>
             </li>
           ))}
         </ul>
@@ -110,7 +129,7 @@ function Quadrant({ gridArea, category, items, t, locale }) {
         <p
           style={{
             margin: 0,
-            fontSize: "13pt",
+            fontSize: "9pt",
             color: "#94a3b8",
           }}
         >
@@ -135,7 +154,7 @@ const AdminMenuExportSheet = forwardRef(function AdminMenuExportSheet(
         width: "210mm",
         height: "297mm",
         boxSizing: "border-box",
-        padding: "5mm 6mm",
+        padding: "4mm 5mm",
         backgroundColor: "#ffffff",
         color: "#111827",
         fontFamily: 'system-ui, "Segoe UI", Arial, sans-serif',
@@ -149,7 +168,7 @@ const AdminMenuExportSheet = forwardRef(function AdminMenuExportSheet(
         style={{
           flexShrink: 0,
           textAlign: "center",
-          marginBottom: "2mm",
+          marginBottom: "1mm",
         }}
       >
         <img
@@ -157,9 +176,9 @@ const AdminMenuExportSheet = forwardRef(function AdminMenuExportSheet(
           alt=""
           style={{
             display: "block",
-            margin: "0 auto 2mm",
-            maxHeight: "66mm",
-            maxWidth: "198mm",
+            margin: "0 auto 0.5mm",
+            maxHeight: "20mm",
+            maxWidth: "62mm",
             width: "auto",
             height: "auto",
             objectFit: "contain",
@@ -167,12 +186,14 @@ const AdminMenuExportSheet = forwardRef(function AdminMenuExportSheet(
         />
         <h1
           style={{
-            fontSize: "26pt",
+            fontSize: "16pt",
             fontWeight: 700,
             margin: 0,
+            paddingTop: 0,
             textAlign: "center",
             color: "#0f172a",
             direction: "rtl",
+            lineHeight: 1.15,
           }}
         >
           {t("admin.menuExportSheetTitle")}
@@ -188,7 +209,7 @@ const AdminMenuExportSheet = forwardRef(function AdminMenuExportSheet(
             "sides crispy"`,
           gridTemplateColumns: "1fr 1fr",
           gridTemplateRows: "1fr 1fr",
-          gap: "2mm",
+          gap: "1.8mm",
         }}
       >
         {QUADRANT_LAYOUT.map(({ gridArea, category }) => (
