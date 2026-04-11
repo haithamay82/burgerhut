@@ -151,17 +151,40 @@ const AdminMenuExportSheet = forwardRef(function AdminMenuExportSheet(
           textAlign: "center",
           position: "relative",
           zIndex: 2,
-          backgroundColor: "#ffffff",
-          marginBottom: "2mm",
-          paddingBottom: "2mm",
+          margin: 0,
+          padding: 0,
+          backgroundColor: "transparent",
+          marginBottom: "1mm",
         }}
       >
+        {/* lineHeight:0 מבטל רווח תחתון מזויף מתחת לתמונה (baseline) */}
+        <div
+          style={{
+            lineHeight: 0,
+            margin: 0,
+            padding: 0,
+          }}
+        >
+          <img
+            src={resolveImageSrc("/logo-burger-hut.png")}
+            alt=""
+            style={{
+              display: "block",
+              margin: "0 auto",
+              maxHeight: "60mm",
+              maxWidth: "186mm",
+              width: "auto",
+              height: "auto",
+              objectFit: "contain",
+            }}
+          />
+        </div>
         <h1
           style={{
             fontSize: "32pt",
             fontWeight: 700,
-            margin: "0 0 1mm",
-            paddingTop: 0,
+            margin: 0,
+            padding: 0,
             textAlign: "center",
             color: "#0f172a",
             direction: "rtl",
@@ -170,19 +193,6 @@ const AdminMenuExportSheet = forwardRef(function AdminMenuExportSheet(
         >
           {t("admin.menuExportSheetTitle")}
         </h1>
-        <img
-          src={resolveImageSrc("/logo-burger-hut.png")}
-          alt=""
-          style={{
-            display: "block",
-            margin: "0 auto 0",
-            maxHeight: "60mm",
-            maxWidth: "186mm",
-            width: "auto",
-            height: "auto",
-            objectFit: "contain",
-          }}
-        />
       </header>
       <div
         style={{
