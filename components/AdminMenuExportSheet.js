@@ -50,7 +50,7 @@ function Quadrant({ gridArea, category, items, t, locale }) {
     >
       <h2
         style={{
-          fontSize: "11pt",
+          fontSize: "15.4pt",
           fontWeight: 700,
           margin: "0 0 1mm",
           paddingBottom: "0.8mm",
@@ -78,18 +78,18 @@ function Quadrant({ gridArea, category, items, t, locale }) {
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "1.4mm",
-                marginBottom: "1mm",
-                fontSize: "9pt",
-                lineHeight: 1.22,
+                gap: "2mm",
+                marginBottom: "1.4mm",
+                fontSize: "12.6pt",
+                lineHeight: 1.3,
               }}
             >
               {row.image ? (
                 <img
                   src={resolveImageSrc(row.image)}
                   alt=""
-                  width={30}
-                  height={30}
+                  width={33}
+                  height={33}
                   style={{
                     objectFit: "cover",
                     borderRadius: 3,
@@ -110,7 +110,7 @@ function Quadrant({ gridArea, category, items, t, locale }) {
         <p
           style={{
             margin: 0,
-            fontSize: "9pt",
+            fontSize: "12.6pt",
             color: "#94a3b8",
           }}
         >
@@ -158,8 +158,8 @@ const AdminMenuExportSheet = forwardRef(function AdminMenuExportSheet(
           style={{
             display: "block",
             margin: "0 auto 0.5mm",
-            maxHeight: "20mm",
-            maxWidth: "62mm",
+            maxHeight: "60mm",
+            maxWidth: "186mm",
             width: "auto",
             height: "auto",
             objectFit: "contain",
@@ -167,7 +167,7 @@ const AdminMenuExportSheet = forwardRef(function AdminMenuExportSheet(
         />
         <h1
           style={{
-            fontSize: "16pt",
+            fontSize: "32pt",
             fontWeight: 700,
             margin: 0,
             paddingTop: 0,
