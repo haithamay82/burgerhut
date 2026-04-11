@@ -43,6 +43,8 @@ import {
   subscribeAdminWebPush,
   unsubscribeAdminWebPush,
 } from "@/utils/adminPushClient";
+import html2canvas from "html2canvas";
+import AdminMenuExportSheet from "@/components/AdminMenuExportSheet";
 
 const INVENTORY_CATEGORIES = ["burgers", "crispy"];
 const CATALOG_CATEGORIES = ["burgers", "crispy", "sides", "drinks"];
@@ -298,6 +300,8 @@ export default function AdminOrdersPage() {
   const [catalogEditor, setCatalogEditor] = useState(() => emptyCatalogEditor());
   const [catalogSaving, setCatalogSaving] = useState(false);
   const [catalogMsg, setCatalogMsg] = useState("");
+  const [menuExportBusy, setMenuExportBusy] = useState(false);
+  const [menuExportErr, setMenuExportErr] = useState("");
   const [catalogModal, setCatalogModal] = useState(null);
   const [catalogImageUploading, setCatalogImageUploading] = useState(false);
   const [promoOpen, setPromoOpen] = useState(false);
@@ -341,6 +345,7 @@ export default function AdminOrdersPage() {
   const promoFileRef = useRef(null);
   const sliderFileRef = useRef(null);
   const catalogImageFileRef = useRef(null);
+  const menuExportRef = useRef(null);
   const adminSessionHydratedRef = useRef(false);
   /** מזהי הזמנות אחרי טעינה/פולינג — לזיהוי שורות חדשות */
   const ordersKnownIdsRef = useRef(new Set());
@@ -1688,6 +1693,72 @@ export default function AdminOrdersPage() {
     selectedDayKey != null ? ordersByDay.get(selectedDayKey) ?? [] : [];
   const nowTs = Date.now();
 
+  const exportMenuSheetPng = async () => {
+    const el = menuExportRef.current;
+    if (!el || menuExportBusy) return;
+    setMenuExportBusy(true);
+    setMenuExportErr("");
+    try {
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+      });
+      const a = document.createElement("a");
+      a.download = "burger-hut-menu.png";
+      a.href = canvas.toDataURL("image/png");
+      a.click();
+    } catch {
+      setMenuExportErr(t("admin.catalogExportErr"));
+    } finally {
+      setMenuExportBusy(false);
+    }
+  };
+
+  const exportMenuSheetPdf = async () => {
+    const el = menuExportRef.current;
+    if (!el || menuExportBusy) return;
+    setMenuExportBusy(true);
+    setMenuExportErr("");
+    try {
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+      });
+      const { jsPDF } = await import("jspdf");
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const imgW = pageW;
+      const imgH = (canvas.height * imgW) / canvas.width;
+      let heightLeft = imgH;
+      let position = 0;
+      pdf.addImage(imgData, "PNG", 0, position, imgW, imgH);
+      heightLeft -= pageH;
+      while (heightLeft > 0) {
+        position = heightLeft - imgH;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgW, imgH);
+        heightLeft -= pageH;
+      }
+      pdf.save("burger-hut-menu.pdf");
+    } catch {
+      setMenuExportErr(t("admin.catalogExportErr"));
+    } finally {
+      setMenuExportBusy(false);
+    }
+  };
+
   return (
     <>
       <Head>
@@ -1984,6 +2055,36 @@ export default function AdminOrdersPage() {
                   <p className="mb-4 text-[11px] text-gray-500">
                     {t("admin.catalogHint")}
                   </p>
+                  <p className="mb-2 text-[11px] text-gray-500">
+                    {t("admin.catalogExportHint")}
+                  </p>
+                  <div className="mb-4 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      disabled={menuExportBusy || !mergedCatalogItems.length}
+                      onClick={() => void exportMenuSheetPng()}
+                      className="rounded-lg border border-emerald-800/60 bg-emerald-950/25 px-3 py-1.5 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-950/40 disabled:opacity-50"
+                    >
+                      {menuExportBusy
+                        ? t("admin.catalogExportBusy")
+                        : t("admin.catalogExportPng")}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={menuExportBusy || !mergedCatalogItems.length}
+                      onClick={() => void exportMenuSheetPdf()}
+                      className="rounded-lg border border-sky-800/60 bg-sky-950/25 px-3 py-1.5 text-[11px] font-semibold text-sky-200 hover:bg-sky-950/40 disabled:opacity-50"
+                    >
+                      {menuExportBusy
+                        ? t("admin.catalogExportBusy")
+                        : t("admin.catalogExportPdf")}
+                    </button>
+                  </div>
+                  {menuExportErr ? (
+                    <p className="mb-3 text-xs text-red-400/95">
+                      {menuExportErr}
+                    </p>
+                  ) : null}
                   {catalogSaving ? (
                     <p className="mb-3 text-xs text-amber-400/90">
                       {t("admin.catalogSaving")}
@@ -3732,6 +3833,15 @@ export default function AdminOrdersPage() {
           </div>
         ) : null}
       </div>
+      {loaded && mergedCatalogItems.length > 0 ? (
+        <AdminMenuExportSheet
+          ref={menuExportRef}
+          items={mergedCatalogItems}
+          categories={CATALOG_CATEGORIES}
+          t={t}
+          locale={locale}
+        />
+      ) : null}
     </>
   );
 }
