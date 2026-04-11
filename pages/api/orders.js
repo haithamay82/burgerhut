@@ -12,7 +12,10 @@ import {
   computePattyShortfalls,
 } from "@/utils/burgerPattyPrep";
 import { getCatalogEditor } from "@/lib/catalogStore";
-import { BURGER_TOPPING_IDS } from "@/utils/menuData";
+import {
+  BURGER_TOPPING_IDS,
+  INVENTORY_MANAGED_SALAD_IDS,
+} from "@/utils/menuData";
 import { mainMealProductIdsFromEditor } from "@/utils/mergeMenuCatalog";
 import { isOrderingAllowedAt } from "@/utils/orderingHours";
 import { getBusinessHours } from "@/lib/businessHoursStore";
@@ -102,6 +105,19 @@ export default async function handler(req, res) {
             typeof tid === "string" &&
             BURGER_TOPPING_IDS.has(tid) &&
             unavailable.has(tid)
+          ) {
+            return res.status(400).json({ ok: false, error: "item_unavailable" });
+          }
+        }
+      }
+      const sals = line.salads;
+      if (Array.isArray(sals)) {
+        for (const sal of sals) {
+          const sid = sal?.id;
+          if (
+            typeof sid === "string" &&
+            INVENTORY_MANAGED_SALAD_IDS.has(sid) &&
+            unavailable.has(sid)
           ) {
             return res.status(400).json({ ok: false, error: "item_unavailable" });
           }

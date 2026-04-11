@@ -4,7 +4,16 @@ import Link from "next/link";
 import { upload as uploadToBlob } from "@vercel/blob/client";
 import { useLocale } from "@/contexts/LocaleContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
-import { BURGER_TOPPINGS, MENU_ITEMS } from "@/utils/menuData";
+import {
+  BURGER_TOPPINGS,
+  CRISPY_MEAL_SALADS,
+  INVENTORY_MANAGED_SALAD_IDS,
+  MENU_ITEMS,
+} from "@/utils/menuData";
+
+const INVENTORY_MANAGED_SALADS = CRISPY_MEAL_SALADS.filter((r) =>
+  INVENTORY_MANAGED_SALAD_IDS.has(r.id)
+);
 import {
   emptyCatalogEditor,
   mergeMenuItemsFromEditor,
@@ -368,6 +377,22 @@ export default function AdminOrdersPage() {
     }
     return map;
   }, [orders]);
+
+  /** סה״כ מכירות מזון ודמי משלוח לחודש הנצפה בלוח (Asia/Jerusalem) */
+  const calendarMonthSalesTotals = useMemo(() => {
+    const { y: yy, m: mm } = calView;
+    const dim = daysInMonth(yy, mm);
+    let food = 0;
+    let delivery = 0;
+    for (let d = 1; d <= dim; d += 1) {
+      const key = dayKeyFromParts(yy, mm, d);
+      const arr = ordersByDay.get(key);
+      if (!arr?.length) continue;
+      food += dayFoodSalesTotal(arr);
+      delivery += dayDeliveryFeesTotal(arr);
+    }
+    return { food, delivery };
+  }, [ordersByDay, calView]);
 
   const weekdayLabels = useMemo(
     () => weekdayShortLabels(locale),
@@ -2233,6 +2258,38 @@ export default function AdminOrdersPage() {
                         })}
                       </ul>
                     </div>
+                    {INVENTORY_MANAGED_SALADS.length > 0 ? (
+                      <div>
+                        <h3 className="mb-2 text-xs font-semibold text-primary">
+                          {t("admin.inventorySalads")}
+                        </h3>
+                        <ul className="space-y-2">
+                          {INVENTORY_MANAGED_SALADS.map((row) => {
+                            const available =
+                              !inventoryEffectiveUnavailableSet.has(row.id);
+                            return (
+                              <li key={row.id}>
+                                <label className="flex cursor-pointer items-start gap-2 text-xs text-gray-300">
+                                  <input
+                                    type="checkbox"
+                                    checked={available}
+                                    disabled={invSaving}
+                                    onChange={(e) =>
+                                      toggleMainItemAvailable(
+                                        row.id,
+                                        e.target.checked
+                                      )
+                                    }
+                                    className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-600 bg-slate-900 text-primary focus:ring-primary"
+                                  />
+                                  <span>{t(`salad.${row.id}`)}</span>
+                                </label>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    ) : null}
                   </div>
                 </section>
               ) : null}
@@ -3088,6 +3145,23 @@ export default function AdminOrdersPage() {
                   >
                     ›
                   </button>
+                </div>
+
+                <div className="mb-4 rounded-lg border border-slate-700/60 bg-slate-950/40 px-3 py-2.5 text-sm">
+                  <p className="text-gray-400">
+                    {t("admin.monthSalesTotal")}{" "}
+                    <span className="font-bold tabular-nums text-amber-400">
+                      ₪{calendarMonthSalesTotals.food.toFixed(2)}
+                    </span>
+                  </p>
+                  {calendarMonthSalesTotals.delivery > 0 ? (
+                    <p className="mt-1 text-xs text-gray-500">
+                      {t("admin.monthDeliveryFeesTotal")}{" "}
+                      <span className="font-semibold tabular-nums text-gray-300">
+                        ₪{calendarMonthSalesTotals.delivery.toFixed(2)}
+                      </span>
+                    </p>
+                  ) : null}
                 </div>
 
                 <div className="mb-6" dir="ltr">

@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo, useState } from "react";
 import { sumCartLines } from "@/utils/cartMoney";
+import { INVENTORY_MANAGED_SALAD_IDS } from "@/utils/menuData";
 
 const CartContext = createContext(null);
 
@@ -19,10 +20,22 @@ export function lineHasUnavailableInventory(line, isUnavailable) {
   const pid = cartLineProductId(line);
   if (pid && isUnavailable(pid)) return true;
   const tops = line.toppings;
-  if (!Array.isArray(tops)) return false;
-  return tops.some(
-    (top) => typeof top?.id === "string" && isUnavailable(top.id)
-  );
+  if (Array.isArray(tops)) {
+    const badTop = tops.some(
+      (top) => typeof top?.id === "string" && isUnavailable(top.id)
+    );
+    if (badTop) return true;
+  }
+  const sals = line.salads;
+  if (Array.isArray(sals)) {
+    return sals.some(
+      (sal) =>
+        typeof sal?.id === "string" &&
+        INVENTORY_MANAGED_SALAD_IDS.has(sal.id) &&
+        isUnavailable(sal.id)
+    );
+  }
+  return false;
 }
 
 /** Same dish + same meal options → one cart row (quantity). Any difference → new row. */

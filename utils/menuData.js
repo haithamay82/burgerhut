@@ -24,6 +24,9 @@ export function mealSaladChoicesForCategory(category) {
   return category === "crispy" ? CRISPY_MEAL_SALADS : FREE_SALADS;
 }
 
+/** סלטים שניתן לסמן כלא זמינים במלאי (כרגע קולסלאו במנת קריספי) */
+export const INVENTORY_MANAGED_SALAD_IDS = new Set(["salad_coleslaw"]);
+
 /** תוספות לבורגר / לעוף (לפי התפריט המודפס) */
 export const BURGER_TOPPINGS = [
   { id: "cheddar", price: 5, image: "/menu/topping-cheddar.png" },
@@ -370,4 +373,5 @@ export const BURGER_TOPPING_IDS = new Set(BURGER_TOPPINGS.map((r) => r.id));
 export const MANAGED_INVENTORY_IDS = new Set([
   ...MAIN_MENU_PRODUCT_IDS,
   ...BURGER_TOPPING_IDS,
+  ...INVENTORY_MANAGED_SALAD_IDS,
 ]);

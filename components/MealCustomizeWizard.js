@@ -10,6 +10,7 @@ import {
   EXTRA_SAUCES,
   KIDS_CRISPY_BREAD_CHOICES,
   mealSaladChoicesForCategory,
+  INVENTORY_MANAGED_SALAD_IDS,
 } from "@/utils/menuData";
 import { useMenuCatalog } from "@/contexts/MenuCatalogContext";
 import { menuItemName } from "@/utils/menuItemLabels";
@@ -516,13 +517,21 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
           <div className="grid grid-cols-2 gap-2">
             {saladChoicesList.map((x) => {
               const extra = Number(x.price) || 0;
+              const saladOos =
+                INVENTORY_MANAGED_SALAD_IDS.has(x.id) && isUnavailable(x.id);
               return (
                 <label
                   key={x.id}
-                  className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-2 py-1.5 text-[11px] ${
-                    selectedSalads.includes(x.id)
+                  className={`flex items-center gap-1.5 rounded-full border px-2 py-1.5 text-[11px] ${
+                    saladOos
+                      ? "cursor-not-allowed border-slate-800 bg-slate-900/50 text-gray-500 opacity-75"
+                      : "cursor-pointer"
+                  } ${
+                    !saladOos && selectedSalads.includes(x.id)
                       ? "border-primary bg-primary/10 text-primary"
-                      : "border-slate-700 text-gray-300"
+                      : !saladOos
+                        ? "border-slate-700 text-gray-300"
+                        : ""
                   }`}
                 >
                   <span className="flex min-w-0 flex-1 items-center gap-1.5">
@@ -535,6 +544,11 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
                     ) : null}
                     <span className="min-w-0 flex-1 leading-snug">
                       {t(`salad.${x.id}`)}
+                      {saladOos ? (
+                        <span className="mr-1 block text-[10px] text-amber-600">
+                          {t("ui.saladOutOfStock")}
+                        </span>
+                      ) : null}
                     </span>
                   </span>
                   {extra > 0 ? (
@@ -546,10 +560,12 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
                   <input
                     type="checkbox"
                     className="hidden"
+                    disabled={blocked || saladOos}
                     checked={selectedSalads.includes(x.id)}
-                    onChange={() =>
-                      toggleInList(x.id, selectedSalads, setSelectedSalads)
-                    }
+                    onChange={() => {
+                      if (saladOos) return;
+                      toggleInList(x.id, selectedSalads, setSelectedSalads);
+                    }}
                   />
                 </label>
               );
