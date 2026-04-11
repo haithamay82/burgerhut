@@ -50,10 +50,10 @@ function Quadrant({ gridArea, category, items, t, locale }) {
     >
       <h2
         style={{
-          fontSize: "9pt",
+          fontSize: "13pt",
           fontWeight: 700,
-          margin: "0 0 1.5mm",
-          paddingBottom: "1mm",
+          margin: "0 0 2mm",
+          paddingBottom: "1.2mm",
           borderBottom: "1px solid #94a3b8",
           color: "#b45309",
           flexShrink: 0,
@@ -78,21 +78,21 @@ function Quadrant({ gridArea, category, items, t, locale }) {
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "1.2mm",
-                marginBottom: "1mm",
-                fontSize: "6.75pt",
-                lineHeight: 1.25,
+                gap: "2mm",
+                marginBottom: "1.6mm",
+                fontSize: "10.5pt",
+                lineHeight: 1.3,
               }}
             >
               {row.image ? (
                 <img
                   src={resolveImageSrc(row.image)}
                   alt=""
-                  width={22}
-                  height={22}
+                  width={36}
+                  height={36}
                   style={{
                     objectFit: "cover",
-                    borderRadius: 2,
+                    borderRadius: 3,
                     flexShrink: 0,
                   }}
                 />
@@ -110,7 +110,7 @@ function Quadrant({ gridArea, category, items, t, locale }) {
         <p
           style={{
             margin: 0,
-            fontSize: "7pt",
+            fontSize: "10pt",
             color: "#94a3b8",
           }}
         >
@@ -157,9 +157,9 @@ const AdminMenuExportSheet = forwardRef(function AdminMenuExportSheet(
           alt=""
           style={{
             display: "block",
-            margin: "0 auto 1.5mm",
-            maxHeight: "11mm",
-            maxWidth: "48mm",
+            margin: "0 auto 2mm",
+            maxHeight: "22mm",
+            maxWidth: "78mm",
             width: "auto",
             height: "auto",
             objectFit: "contain",
@@ -167,7 +167,7 @@ const AdminMenuExportSheet = forwardRef(function AdminMenuExportSheet(
         />
         <h1
           style={{
-            fontSize: "14pt",
+            fontSize: "20pt",
             fontWeight: 700,
             margin: 0,
             textAlign: "center",
