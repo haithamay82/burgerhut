@@ -181,14 +181,19 @@ const AdminMenuExportSheet = forwardRef(function AdminMenuExportSheet(
         </div>
         <h1
           style={{
+            position: "relative",
+            zIndex: 3,
+            /* ריפוד תחתון בתוך קובץ הלוגו — מושכים את «תפריט» למעלה כדי לרחף מעל הלבן */
+            margin: "-10mm 0 0",
+            padding: 0,
             fontSize: "32pt",
             fontWeight: 700,
-            margin: 0,
-            padding: 0,
             textAlign: "center",
             color: "#0f172a",
             direction: "rtl",
             lineHeight: 1.05,
+            textShadow:
+              "0 0 10px #fff, 0 0 6px #fff, 0 1px 0 #fff",
           }}
         >
           {t("admin.menuExportSheetTitle")}
