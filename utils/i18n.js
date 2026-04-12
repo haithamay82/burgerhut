@@ -316,7 +316,7 @@ const HE = {
   "checkout.cardUnavailableBanner": "עדיין אין אשראי אינטרנט",
   "checkout.cardUnavailableSubline": "שבוע הבא יהיה",
   "checkout.cardUnavailableBitHint": "כרגע שלמו מזומן או ביט",
-  "checkout.submit": "סיום הזמנה ותשלום",
+  "checkout.submit": "לחץ לתשלום",
   "checkout.submitting": "מעבדים…",
   "checkout.cardHypNotConfigured":
     "תשלום אשראי אינו מוגדר בשרת. פנו לחנות או בחרו מזומן/ביט. (בעלי האתר: יש להשלים משתני Hyp בקובץ .env.local או ב-Vercel.)",
@@ -1167,7 +1167,7 @@ const AR = {
   "checkout.cardUnavailableBanner": "لا يتوفر دفع البطاقة عبر الإنترنت بعد",
   "checkout.cardUnavailableSubline": "سيكون الأسبوع القادم",
   "checkout.cardUnavailableBitHint": "ادفعوا نقداً أو عبر بيت الآن",
-  "checkout.submit": "اكمال الطلب والدفع",
+  "checkout.submit": "اضغط للدفع",
   "checkout.submitting": "جارٍ معالجة الطلب...",
   "checkout.cardHypNotConfigured":
     "الدفع بالبطاقة غير مهيأ على الخادم. تواصلوا مع المتجر أو اختاروا كاش أو Bit. (لمالك الموقع: أكملوا متغيرات Hyp في .env.local أو Vercel.)",
