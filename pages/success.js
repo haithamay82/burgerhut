@@ -735,6 +735,10 @@ export default function SuccessPage() {
               rel="noopener noreferrer"
               onClick={(e) => {
                 e.preventDefault();
+                const capEl = couponCaptureRef.current;
+                const couponCode = coupon?.code ? String(coupon.code) : "";
+                const wa = cardWaUrl;
+
                 fireDeferredAdminPushNotify({
                   orderRowId: waAdminPushPayload?.orderRowId,
                   orderNumber: waAdminPushPayload?.orderNumber,
@@ -754,31 +758,25 @@ export default function SuccessPage() {
                 } catch {
                   /* ignore */
                 }
-                setWaComposeAlreadyUsed(true);
-                const wa = cardWaUrl;
+
                 const opened = window.open(wa, "_blank", "noopener,noreferrer");
                 const popupBlocked = !opened || opened.closed;
-                if (popupBlocked) {
-                  if (coupon?.code && couponCaptureRef.current) {
-                    void downloadCouponElementAsPng(
-                      couponCaptureRef.current,
-                      coupon.code
-                    )
-                      .catch(() => {})
-                      .finally(() => {
-                        window.location.href = wa;
-                      });
-                  } else {
-                    window.location.href = wa;
+
+                const runAfterOpen = async () => {
+                  try {
+                    if (couponCode && capEl) {
+                      await downloadCouponElementAsPng(capEl, couponCode);
+                    }
+                  } catch {
+                    /* ignore */
+                  } finally {
+                    setWaComposeAlreadyUsed(true);
+                    if (popupBlocked) {
+                      window.location.href = wa;
+                    }
                   }
-                  return;
-                }
-                if (coupon?.code && couponCaptureRef.current) {
-                  void downloadCouponElementAsPng(
-                    couponCaptureRef.current,
-                    coupon.code
-                  ).catch(() => {});
-                }
+                };
+                void runAfterOpen();
               }}
               className={waSendClasses}
             >
