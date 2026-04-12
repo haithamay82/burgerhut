@@ -71,6 +71,12 @@ export default async function handler(req, res) {
           ) {
             return res.status(200).json({ ok: true, coupon: existingCoupon });
           }
+          try {
+            await redis.del(`coupon:${existingCode}`);
+            await redis.del(`coupon:order:${orderId}`);
+          } catch {
+            /* ignore */
+          }
           return res.status(200).json({
             ok: true,
             coupon: null,
