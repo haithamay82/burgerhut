@@ -274,6 +274,8 @@ const HE = {
 
   "cart.label": "עגלה",
   "cart.items": "פריטים",
+  "cart.unitsOne": "פריט אחד",
+  "cart.unitsMany": "{count} פריטים",
   "cart.checkout": "לתשלום",
   "cart.showCart": "הצג עגלה",
   "cart.hideCart": "הסתר עגלה",
@@ -1122,6 +1124,8 @@ const AR = {
 
   "cart.label": "السلة",
   "cart.items": "منتجات",
+  "cart.unitsOne": "منتج واحد",
+  "cart.unitsMany": "{count} منتجات",
   "cart.checkout": "عرض السلة والدفع",
   "cart.showCart": "عرض السلة",
   "cart.hideCart": "إخفاء السلة",

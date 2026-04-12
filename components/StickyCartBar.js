@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   useCart,
@@ -28,6 +28,20 @@ export default function StickyCartBar() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [panelOpen]);
+
+  const totalUnits = useMemo(
+    () =>
+      items.reduce(
+        (sum, it) => sum + Math.max(1, Number(it.quantity) || 0),
+        0
+      ),
+    [items]
+  );
+  const unitsSummaryText = useMemo(() => {
+    if (totalUnits <= 0) return "";
+    if (totalUnits === 1) return t("cart.unitsOne");
+    return t("cart.unitsMany").replace("{count}", String(totalUnits));
+  }, [totalUnits, t]);
 
   if (!items.length) return null;
 
@@ -190,7 +204,7 @@ export default function StickyCartBar() {
             <div className="min-w-0 flex-1 basis-[8rem]">
               <span className="text-xs text-gray-400">{t("cart.label")}</span>
               <p className="text-sm font-semibold">
-                {items.length} {t("cart.items")} • ₪{formatIls(total)}
+                {unitsSummaryText} • ₪{formatIls(total)}
               </p>
             </div>
             <button
