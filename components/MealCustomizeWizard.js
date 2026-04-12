@@ -79,6 +79,8 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
   const blocked = isOutOfStock;
   const isKidsCrispyBurger = item?.id === CRISPY_CHICKEN_KIDS_PRODUCT_ID;
   const isAdultCrispyBurger = item?.id === CRISPY_CHICKEN_BURGER_PRODUCT_ID;
+  /** רוטב על לחמניה: מוסתר רק בקריספי מבוגרים כשמסומן «בלי עגולה» */
+  const showBunSauceOnMeal = !isAdultCrispyBurger || !adultCrispyBli;
   const toppingChoices =
     item?.category === "crispy" ? CRISPY_MEAL_TOPPINGS : BURGER_TOPPINGS;
   const isBeefBurgerMeal = item?.category === "burgers";
@@ -366,7 +368,7 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
       extras,
       quantity,
       price: finalUnitPrice,
-      ...(!isAdultCrispyBurger ? { bunSauceOnBun } : {}),
+      ...(showBunSauceOnMeal ? { bunSauceOnBun } : {}),
       ...(isBeefBurgerMeal
         ? {
             burgerDoneness: {
@@ -575,7 +577,7 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
           </div>
         </section>
 
-        {!isAdultCrispyBurger ? (
+        {showBunSauceOnMeal ? (
           <section className="mb-6 space-y-2 text-xs">
             <h3 className="text-[11px] font-semibold text-gray-300">
               {t("ui.bunSauceOnBunTitle")}
