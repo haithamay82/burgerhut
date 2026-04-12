@@ -1,4 +1,7 @@
-import { generateCoupon } from "@/lib/coupon";
+import {
+  generateCoupon,
+  MIN_COUPON_DISPLAY_VALUE_NIS,
+} from "@/lib/coupon";
 import { redis, isRedisConfigured } from "@/lib/redis";
 import { getDiscountConfig } from "@/lib/discountStore";
 
@@ -61,7 +64,18 @@ export default async function handler(req, res) {
           Number.isFinite(existingPct) &&
           Math.abs(existingPct - couponPct) < 0.001;
         if (isSameCalcBase) {
-          return res.status(200).json({ ok: true, coupon: existingCoupon });
+          const existingVal = Number(existingCoupon.value);
+          if (
+            Number.isFinite(existingVal) &&
+            existingVal >= MIN_COUPON_DISPLAY_VALUE_NIS
+          ) {
+            return res.status(200).json({ ok: true, coupon: existingCoupon });
+          }
+          return res.status(200).json({
+            ok: true,
+            coupon: null,
+            enabled: true,
+          });
         }
       }
     }
@@ -72,6 +86,14 @@ export default async function handler(req, res) {
       amount,
       percentage: couponPct,
     });
+
+    if (!coupon) {
+      return res.status(200).json({
+        ok: true,
+        coupon: null,
+        enabled: true,
+      });
+    }
 
     await redis.set(`coupon:${coupon.code}`, coupon, { ex: TTL_SECONDS });
     await redis.set(`coupon:order:${orderId}`, coupon.code, { ex: TTL_SECONDS });

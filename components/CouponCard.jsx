@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
+import { downloadCouponElementAsPng } from "@/utils/couponImageDownload";
 
 function formatDate(ts, locale) {
   const d = new Date(Number(ts) || Date.now());
@@ -38,18 +39,7 @@ export default function CouponCard({ coupon }) {
     if (!cardRef.current || downloading) return;
     setDownloading(true);
     try {
-      const { default: html2canvas } = await import("html2canvas");
-      const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: "#0b1220",
-        scale: 2,
-      });
-      const dataUrl = canvas.toDataURL("image/png");
-      const a = document.createElement("a");
-      a.href = dataUrl;
-      a.download = `coupon-${coupon.code || "BH"}.png`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      await downloadCouponElementAsPng(cardRef.current, coupon.code);
     } catch {
       /* ignore */
     } finally {
