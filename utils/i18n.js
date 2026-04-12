@@ -48,7 +48,7 @@ const HE = {
     "המסעדה תיפתח בשעה 16:00 — ניתן לעשות הזמנה משעה 10:00 עד שעת הסגירה באותו יום.",
   "home.preOrderBanner":
     "אפשר לשלוח הזמנות עכשיו. תחילת עבודה שעה {openTime}",
-  "home.orderingClosedBannerDayOff": "המסעדה סגורה היום",
+  "home.orderingClosedBannerDayOff": "המסעדה סגורה ביום שני",
   "home.discountAnnounceWithReason":
     "עקב {reason} מחכה לכם הנחה של {percent}% בקניה מעל {min}.",
   "home.discountAnnounceNoReason":
@@ -898,7 +898,7 @@ const AR = {
     "يفتح المطعم الساعة 16:00 — يمكن تقديم الطلب من الساعة 10:00 حتى وقت الإغلاق في ذلك اليوم.",
   "home.preOrderBanner":
     "يمكن إرسال الطلبات الآن. بداية العمل الساعة {openTime}",
-  "home.orderingClosedBannerDayOff": "المطعم مغلق اليوم",
+  "home.orderingClosedBannerDayOff": "المطعم مغلق يوم الاثنين",
   "home.discountAnnounceWithReason":
     "بسبب {reason} يمكنكم الحصول على خصم بنسبة {percent}% عند الشراء فوق {min}.",
   "home.discountAnnounceNoReason":
