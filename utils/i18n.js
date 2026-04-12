@@ -456,7 +456,7 @@ const HE = {
     "תודה! ההזמנה נרשמה.",
   "success.descCard":
     "תודה! התשלום התקבל וההזמנה נרשמה במערכת.",
-  "success.waSendOrder": "פתחו ווטסאפ ושלחו את ההזמנה",
+  "success.waSendOrder": "שלח את ההזמנה למסעדה",
   "success.waOrderRecordedWithId": "הזמנתך #{order} מוכנה לשליחה",
   "success.waOrderRecordedNoId": "הזמנתך מוכנה לשליחה",
   "success.waActionAlert": "עדיין לא סיימתם — חסרה שליחה בווטסאפ",
@@ -1315,7 +1315,7 @@ const AR = {
     "شكراً! تم تسجيل الطلب في النظام. إذا فتح واتساب — راجِع الرسالة وأرسلها للمتجر.",
   "success.descCard":
     "شكراً! تم استلام الدفع وتسجيل الطلب.",
-  "success.waSendOrder": "افتحوا واتساب وأرسلوا الطلب",
+  "success.waSendOrder": "أرسل الطلب إلى المطعم",
   "success.waOrderRecordedWithId": "طلبك #{order} جاهز للإرسال",
   "success.waOrderRecordedNoId": "طلبك جاهز للإرسال",
   "success.waActionAlert": "لم تنتهِ الخطوة — يلزم الإرسال عبر واتساب",
