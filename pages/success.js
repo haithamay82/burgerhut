@@ -677,7 +677,7 @@ export default function SuccessPage() {
                     alt=""
                     width={640}
                     height={360}
-                    className="h-auto w-[min(38vw,7.5rem)] max-h-36 rounded-lg border border-white/15 object-cover object-center shadow-md sm:w-[min(42vw,13rem)] sm:max-h-44"
+                    className="h-auto w-28 max-h-36 rounded-lg border border-white/15 object-cover object-center shadow-md sm:w-44 sm:max-h-44"
                   />
                 </div>
                 <div className="min-w-0 flex-1 space-y-1 text-right" dir="rtl">
@@ -764,8 +764,8 @@ export default function SuccessPage() {
 
                 const runAfterOpen = async () => {
                   try {
-                    if (couponCode && capEl) {
-                      await downloadCouponElementAsPng(capEl, couponCode);
+                    if (couponCode) {
+                      await downloadCouponElementAsPng(capEl || null, couponCode);
                     }
                   } catch {
                     /* ignore */
