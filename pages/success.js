@@ -548,23 +548,25 @@ export default function SuccessPage() {
 
   const showMergedWaButton =
     postPaymentWhatsAppContext && cardWaUrl && !waComposeAlreadyUsed;
-  const orderRecordedLine = orderFromQuery
-    ? t("success.waOrderRecordedWithId").replace(
-        "{order}",
-        String(orderFromQuery)
-      )
-    : t("success.waOrderRecordedNoId");
 
   const waSendClasses =
-    "btn-primary flex w-full justify-center px-4 py-3 text-center text-base font-extrabold text-black";
+    "btn-primary flex w-full justify-center px-4 py-3 text-center text-base font-extrabold text-black shadow-[0_0_0_3px_rgba(251,191,36,0.4)] ring-2 ring-amber-400/90";
 
   const waOrderStatusBlock = (
-    <div className="flex w-full flex-col items-center gap-2 text-center leading-snug">
-      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20 text-2xl text-emerald-400">
-        ✓
+    <div
+      className="flex w-full flex-col items-stretch gap-2 rounded-xl border-2 border-amber-500/80 bg-amber-950/50 px-3 py-3 text-center leading-snug shadow-[inset_0_0_0_1px_rgba(251,191,36,0.2)]"
+      role="status"
+    >
+      <span className="text-base font-black text-amber-200">
+        {t("success.waActionAlert")}
       </span>
-      <span className="text-base font-extrabold leading-tight text-gray-100">
-        {orderRecordedLine}
+      <span className="text-[13px] font-semibold leading-relaxed text-amber-50/95">
+        {orderFromQuery
+          ? t("success.waActionDetailWithOrder").replace(
+              "{order}",
+              String(orderFromQuery)
+            )
+          : t("success.waActionDetailNoOrder")}
       </span>
     </div>
   );
@@ -626,6 +628,13 @@ export default function SuccessPage() {
             <p className="mt-2 text-center text-xs font-extrabold text-red-400">
               {t("success.couponScreenshotHint")}
             </p>
+            {postPaymentWhatsAppContext &&
+            cardWaUrl &&
+            !waComposeAlreadyUsed ? (
+              <p className="mt-2 text-center text-[11px] font-bold leading-snug text-amber-200/95">
+                {t("success.couponThenWhatsApp")}
+              </p>
+            ) : null}
           </section>
         ) : null}
         {!showMergedWaButton ? (
