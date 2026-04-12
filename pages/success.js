@@ -601,6 +601,22 @@ export default function SuccessPage() {
     !waComposeAlreadyUsed &&
     couponReadyForWaButton;
 
+  /**
+   * לא להציג ✓/«התקבלה» בזמן המתנה לקופון ולווטסאפ (אשראי/מזומן/חזרה מ-Hyp).
+   * ביט בלי קישור wa בדף — ממשיכים להציג הצלחה רגילה.
+   */
+  const mayStillNeedWaComposer =
+    Boolean(cardWaUrl) ||
+    method === "card" ||
+    method === "cash" ||
+    Boolean(payDoneMarker);
+  const hideSuccessCheckUntilWaSent =
+    postPaymentWhatsAppContext &&
+    !waComposeAlreadyUsed &&
+    mayStillNeedWaComposer;
+  const showSuccessCheckBlock =
+    !hideSuccessCheckUntilWaSent && !showMergedWaButton;
+
   const waSendClasses =
     "btn-primary flex w-full justify-center px-4 py-3 text-center text-base font-extrabold text-black shadow-[0_0_0_3px_rgba(251,191,36,0.4)] ring-2 ring-amber-400/90";
 
@@ -663,7 +679,7 @@ export default function SuccessPage() {
             </p>
           </section>
         ) : null}
-        {!showMergedWaButton ? (
+        {showSuccessCheckBlock ? (
           <>
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 text-3xl text-emerald-400">
               ✓
