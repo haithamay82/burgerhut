@@ -609,13 +609,6 @@ export default function SuccessPage() {
             <p className="mt-2 text-center text-xs font-extrabold text-red-400">
               {t("success.couponScreenshotHint")}
             </p>
-            {postPaymentWhatsAppContext &&
-            cardWaUrl &&
-            !waComposeAlreadyUsed ? (
-              <p className="mt-2 text-center text-[11px] font-bold leading-snug text-amber-200/95">
-                {t("success.couponThenWhatsApp")}
-              </p>
-            ) : null}
           </section>
         ) : null}
         {!showMergedWaButton ? (

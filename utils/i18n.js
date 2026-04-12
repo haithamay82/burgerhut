@@ -459,8 +459,6 @@ const HE = {
   "success.waSendOrder": "שלח את ההזמנה למסעדה",
   "success.waOrderRecordedWithId": "הזמנתך #{order} מוכנה לשליחה",
   "success.waOrderRecordedNoId": "הזמנתך מוכנה לשליחה",
-  "success.couponThenWhatsApp":
-    "אפשר לצלם את המסך כדי לשמור את הקופון — ואז חשוב ללחוץ על הכפתור למטה ולשלוח את ההזמנה בווטסאפ.",
   "success.waWaitForCoupon": "ממתינים לקופון… אחרי שיוצג אפשר יהיה לשלוח לווטסאפ.",
   "success.waPreparingShort": "רגע…",
   "success.waNoCouponLoaded":
@@ -1313,8 +1311,6 @@ const AR = {
   "success.waSendOrder": "أرسل الطلب إلى المطعم",
   "success.waOrderRecordedWithId": "طلبك #{order} جاهز للإرسال",
   "success.waOrderRecordedNoId": "طلبك جاهز للإرسال",
-  "success.couponThenWhatsApp":
-    "يمكنكم التقاط الشاشة لحفظ الكوبون — ثم اضغطوا الزر أدناه وأرسلوا الطلب عبر واتساب.",
   "success.waWaitForCoupon":
     "جاري تحميل الكوبون… بعد ظهوره يمكن الإرسال عبر واتساب.",
   "success.waPreparingShort": "لحظة…",
