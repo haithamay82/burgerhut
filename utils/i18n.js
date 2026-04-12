@@ -135,6 +135,12 @@ const HE = {
   "menu.crispy-chicken-burger-kids.name":
     "קריספי צ׳יקן ילדים (עגולה/טורטיה קטנה)",
   "menu.crispy-chicken-burger-kids.desc": "קריספי בעגולה/טורטיה.",
+  "menu.crispy-chicken-burger-kids.lineNameRoundSmall":
+    "קריספי צ׳יקן ילדים עגולה קטנה",
+  "menu.crispy-chicken-burger-kids.lineNameSmallTortilla":
+    "קריספי צ׳יקן ילדים טורטיה קטנה",
+  "menu.crispy-chicken-burger-kids.lineNameNoBread":
+    "קריספי צ׳יקן ילדים בלי לחם",
   "menu.crispy-chicken-tortilla-large.name": "קריספי צ׳יקן טורטיה גדולה",
   "menu.crispy-chicken-tortilla-large.desc": "טורטיה עם עוף קריספי — מנה גדולה.",
   "menu.side-fries.name": "צ׳יפס",
@@ -205,8 +211,8 @@ const HE = {
 
   "ui.freeSalads": "סלטים",
   "ui.adultCrispyNoRound": "בלי עגולה",
-  "ui.kidsCrispyBread.title": "עגולה / טורטיה קטנה / בלי לחם",
-  "ui.kidsCrispyBread.round": "עגולה",
+  "ui.kidsCrispyBread.title": "עגולה קטנה / טורטיה קטנה / בלי לחם",
+  "ui.kidsCrispyBread.round": "עגולה קטנה",
   "ui.kidsCrispyBread.small_tortilla": "טורטיה קטנה",
   "ui.kidsCrispyBread.none": "בלי לחם",
   "ui.saucePricingHint":
@@ -977,6 +983,12 @@ const AR = {
   "menu.crispy-chicken-burger-kids.name":
     "كريسبي تشيكن أطفال (مدورة/تورتيلا صغيرة)",
   "menu.crispy-chicken-burger-kids.desc": "كريسبي — مدورة أو تورتيلا.",
+  "menu.crispy-chicken-burger-kids.lineNameRoundSmall":
+    "كريسبي تشيكن أطفال — خبز مدور صغير",
+  "menu.crispy-chicken-burger-kids.lineNameSmallTortilla":
+    "كريسبي تشيكن أطفال — تورتيلا صغيرة",
+  "menu.crispy-chicken-burger-kids.lineNameNoBread":
+    "كريسبي تشيكن أطفال — بدون خبز",
   "menu.crispy-chicken-tortilla-large.name": "كريسبي تشيكن تورتيلا كبيرة",
   "menu.crispy-chicken-tortilla-large.desc": "تورتيلا بدجاج مقرمش — حجم كبير.",
   "menu.side-fries.name": "بطاطا",
@@ -1047,8 +1059,8 @@ const AR = {
 
   "ui.freeSalads": "سلطة",
   "ui.adultCrispyNoRound": "بدون خبز مدور",
-  "ui.kidsCrispyBread.title": "مدورة / تورتيلا صغيرة / بدون خبز",
-  "ui.kidsCrispyBread.round": "مدورة",
+  "ui.kidsCrispyBread.title": "مدورة صغيرة / تورتيلا صغيرة / بدون خبز",
+  "ui.kidsCrispyBread.round": "مدورة صغيرة",
   "ui.kidsCrispyBread.small_tortilla": "تورتيلا صغيرة",
   "ui.kidsCrispyBread.none": "بدون خبز",
   "ui.saucePricingHint":

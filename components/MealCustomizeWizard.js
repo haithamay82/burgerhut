@@ -79,8 +79,10 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
   const blocked = isOutOfStock;
   const isKidsCrispyBurger = item?.id === CRISPY_CHICKEN_KIDS_PRODUCT_ID;
   const isAdultCrispyBurger = item?.id === CRISPY_CHICKEN_BURGER_PRODUCT_ID;
-  /** רוטב על לחמניה: מוסתר רק בקריספי מבוגרים כשמסומן «בלי עגולה» */
-  const showBunSauceOnMeal = !isAdultCrispyBurger || !adultCrispyBli;
+  /** רוטב על לחמניה: מוסתר בקריספי מבוגרים עם «בלי עגולה», ובקריספי ילדים עם «בלי לחם» */
+  const showBunSauceOnMeal =
+    (!isAdultCrispyBurger || !adultCrispyBli) &&
+    (!isKidsCrispyBurger || kidsBreadChoice !== "none");
   const toppingChoices =
     item?.category === "crispy" ? CRISPY_MEAL_TOPPINGS : BURGER_TOPPINGS;
   const isBeefBurgerMeal = item?.category === "burgers";
@@ -302,11 +304,21 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
 
   const performAddToCart = async () => {
     if (!item || blocked) return;
-    const name = isAdultCrispyBurger
-      ? adultCrispyBli
+    let name;
+    if (isAdultCrispyBurger) {
+      name = adultCrispyBli
         ? t("menu.crispy-chicken-burger.lineNameNoRound")
-        : t("menu.crispy-chicken-burger.lineNameRound")
-      : menuItemName(item, t, locale);
+        : t("menu.crispy-chicken-burger.lineNameRound");
+    } else if (isKidsCrispyBurger) {
+      const kidNames = {
+        round: "menu.crispy-chicken-burger-kids.lineNameRoundSmall",
+        small_tortilla: "menu.crispy-chicken-burger-kids.lineNameSmallTortilla",
+        none: "menu.crispy-chicken-burger-kids.lineNameNoBread",
+      };
+      name = t(kidNames[kidsBreadChoice] || kidNames.round);
+    } else {
+      name = menuItemName(item, t, locale);
+    }
     const salads = selectedSalads.map((id) => {
       const p =
         Number(mealSaladChoicesForCategory(item.category).find((r) => r.id === id)?.price) ||
@@ -344,11 +356,6 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
       label: t(`sauce.${row.id}`),
       price: row.charge,
     }));
-    let variantLabel;
-    if (isKidsCrispyBurger) {
-      variantLabel = t(`ui.kidsCrispyBread.${kidsBreadChoice}`);
-    }
-
     const notesTrim = sellerNotes.trim();
     const requestedDrinkLabel = requestedDrinkId
       ? menuItemName(
@@ -377,7 +384,7 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
             },
           }
         : {}),
-      ...(variantLabel ? { variantLabel } : {}),
+      ...(isKidsCrispyBurger ? { kidsBreadChoice } : {}),
       ...(requestedDrinkId
         ? { requestedDrinkId, requestedDrinkLabel, requestedDrinkPrice }
         : {}),

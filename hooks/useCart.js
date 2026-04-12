@@ -54,6 +54,7 @@ export function customizationKey(item) {
     .sort()
     .join(",");
   const variant = item.variantLabel ?? "";
+  const kidsBread = String(item.kidsBreadChoice ?? "").trim();
   const size = item.sizeLabel ?? "";
   const doneness = String(item.burgerDoneness?.id ?? "").trim();
   const notes = String(item.sellerNotes ?? "").trim();
@@ -64,7 +65,7 @@ export function customizationKey(item) {
       : item.bunSauceOnBun === true
         ? "1"
         : "";
-  return `${pid}|${size}|${variant}|${doneness}|${salads}|${tops}|${extras}|${requestedDrink}|${bun}|${notes}`;
+  return `${pid}|${size}|${variant}|${kidsBread}|${doneness}|${salads}|${tops}|${extras}|${requestedDrink}|${bun}|${notes}`;
 }
 
 function newCartLineId(productId) {
