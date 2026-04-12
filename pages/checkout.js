@@ -606,6 +606,10 @@ export default function CheckoutPage() {
     );
 
     const persistOrder = async (channel) => {
+      const deferAdminPush =
+        channel === "checkout_bit" ||
+        channel === "checkout_card" ||
+        channel === "checkout_cash";
       try {
         const response = await fetch("/api/orders", {
           method: "POST",
@@ -619,6 +623,7 @@ export default function CheckoutPage() {
             couponCode: appliedCoupon?.code || undefined,
             deferCouponConsume:
               channel === "checkout_bit" || channel === "checkout_card",
+            deferAdminPush,
           }),
         });
         const data = await response.json().catch(() => ({}));
@@ -628,6 +633,7 @@ export default function CheckoutPage() {
             error: data?.error || "request_failed",
             pattyShortfalls: data?.pattyShortfalls,
             pattyAffectedLines: data?.pattyAffectedLines,
+            adminPushConfirmSecret: null,
           };
         }
         return {
@@ -635,9 +641,10 @@ export default function CheckoutPage() {
           error: null,
           pattyShortfalls: undefined,
           pattyAffectedLines: undefined,
+          adminPushConfirmSecret: data?.adminPushConfirmSecret || null,
         };
       } catch {
-        return { order: null, error: "network" };
+        return { order: null, error: "network", adminPushConfirmSecret: null };
       }
     };
 
@@ -648,6 +655,7 @@ export default function CheckoutPage() {
           error: poErr,
           pattyShortfalls: cashPattySf,
           pattyAffectedLines: cashPattyLines,
+          adminPushConfirmSecret: cashPushSecret,
         } = await persistOrder("checkout_cash");
         if (poErr === "item_unavailable" || poErr === "insufficient_patties") {
           await refreshInventory();
@@ -695,6 +703,8 @@ export default function CheckoutPage() {
                 locale,
                 waGrandTotal: persistTotal,
                 couponRewardBaseNis,
+                orderRowId: savedOrder?.id,
+                adminPushConfirmSecret: cashPushSecret || undefined,
               })
             );
           } catch {
@@ -716,6 +726,7 @@ export default function CheckoutPage() {
           error: poErr,
           pattyShortfalls: bitPattySf,
           pattyAffectedLines: bitPattyLines,
+          adminPushConfirmSecret: bitPushSecret,
         } = await persistOrder("checkout_bit");
         if (poErr === "item_unavailable" || poErr === "insufficient_patties") {
           await refreshInventory();
@@ -760,6 +771,8 @@ export default function CheckoutPage() {
                 items,
                 payment: form.payment,
                 orderNumber: savedOrder?.orderNumber,
+                orderRowId: savedOrder?.id,
+                adminPushConfirmSecret: bitPushSecret || undefined,
                 locale,
                 waGrandTotal: persistTotal,
                 couponRewardBaseNis,
@@ -789,6 +802,7 @@ export default function CheckoutPage() {
         error: cardPoErr,
         pattyShortfalls: cardPattySf,
         pattyAffectedLines: cardPattyLines,
+        adminPushConfirmSecret: cardPushSecret,
       } = await persistOrder("checkout_card");
       if (
         cardPoErr === "item_unavailable" ||
@@ -836,6 +850,8 @@ export default function CheckoutPage() {
               items,
               payment: form.payment,
               orderNumber: savedCardOrder?.orderNumber,
+              orderRowId: savedCardOrder?.id,
+              adminPushConfirmSecret: cardPushSecret || undefined,
               locale,
               waGrandTotal: persistTotal,
               couponRewardBaseNis,

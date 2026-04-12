@@ -9,6 +9,7 @@ import {
   BIT_PAY_WA_SENT_ORDER_KEY,
   PENDING_ORDER_KEY,
 } from "@/utils/checkoutSessionKeys";
+import { fireDeferredAdminPushNotify } from "@/utils/fireDeferredAdminPushNotify";
 import { consumePendingOrderForCheckoutResume } from "@/utils/checkoutResumeFromPending";
 
 function normalizeIsraeliPhone(phone) {
@@ -151,6 +152,11 @@ export default function BitPayPage() {
       payment: payment || "bit",
       orderNumber,
       locale: waLocale,
+    });
+    fireDeferredAdminPushNotify({
+      orderRowId: payload.orderRowId,
+      orderNumber: payload.orderNumber,
+      adminPushConfirmSecret: payload.adminPushConfirmSecret,
     });
     const deferredCouponCode = String(customer?.couponCode || "")
       .trim()

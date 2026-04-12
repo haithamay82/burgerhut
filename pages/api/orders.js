@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { appendOrder, deleteOrderById, listOrders } from "@/lib/ordersStore";
 import { broadcastNewOrderToAdmins } from "@/lib/adminPushNotify";
 import {
@@ -75,6 +76,7 @@ export default async function handler(req, res) {
       meta,
       couponCode,
       deferCouponConsume,
+      deferAdminPush,
     } = req.body || {};
 
     if (!customer || typeof customer !== "object") {
@@ -171,13 +173,30 @@ export default async function handler(req, res) {
 
     const computed = sumTotal(items);
     const clientTotal = Number(total);
+    const bodyMeta =
+      meta && typeof meta === "object" && !Array.isArray(meta) ? { ...meta } : {};
+    const deferPush = Boolean(deferAdminPush);
+    let adminPushConfirmSecret = null;
+    let orderMeta = bodyMeta;
+    if (deferPush) {
+      adminPushConfirmSecret = crypto.randomBytes(16).toString("hex");
+      orderMeta = {
+        ...bodyMeta,
+        adminPushDeferred: true,
+        adminPushSecretHash: crypto
+          .createHash("sha256")
+          .update(adminPushConfirmSecret)
+          .digest("hex"),
+      };
+    }
+
     const row = await appendOrder({
       customer,
       items,
       payment: payment || "cash",
       total: Number.isFinite(clientTotal) ? clientTotal : computed,
       channel: channel || "checkout",
-      meta: meta || {},
+      meta: orderMeta,
     });
 
     if (pattyPrepForDeduction) {
@@ -209,15 +228,21 @@ export default async function handler(req, res) {
       }
     }
 
-    try {
-      await broadcastNewOrderToAdmins({
-        orderNumber: row.orderNumber,
-      });
-    } catch (e) {
-      console.warn("[adminPush] broadcast failed", e?.message || e);
+    if (!deferPush) {
+      try {
+        await broadcastNewOrderToAdmins({
+          orderNumber: row.orderNumber,
+        });
+      } catch (e) {
+        console.warn("[adminPush] broadcast failed", e?.message || e);
+      }
     }
 
-    return res.status(201).json({ ok: true, order: row });
+    const out = { ok: true, order: row };
+    if (adminPushConfirmSecret) {
+      out.adminPushConfirmSecret = adminPushConfirmSecret;
+    }
+    return res.status(201).json(out);
   }
 
   if (req.method === "DELETE") {

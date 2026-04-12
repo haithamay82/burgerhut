@@ -15,6 +15,7 @@ import {
   SUCCESS_WA_SNAPSHOT_KEY,
   writeSuccessWaRestore,
 } from "@/utils/checkoutSessionKeys";
+import { fireDeferredAdminPushNotify } from "@/utils/fireDeferredAdminPushNotify";
 
 function deferredCouponClaimStorageKey(orderNumber, code) {
   return `bh_deferred_coupon_claimed_${String(orderNumber)}_${String(code)}`;
@@ -121,6 +122,8 @@ export default function SuccessPage() {
    */
   const [customerCouponsActive, setCustomerCouponsActive] = useState(null);
   const [waComposeAlreadyUsed, setWaComposeAlreadyUsed] = useState(false);
+  /** לאחר מעבר ל־deferAdminPush — לחיצה על ווטסאפ מפעילה Web Push למנהלים */
+  const [waAdminPushPayload, setWaAdminPushPayload] = useState(null);
 
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
@@ -136,7 +139,10 @@ export default function SuccessPage() {
       method === "card" ||
       method === "cash" ||
       hasValidCardSuccessSnapshot();
-    if (!allowSnapshotLoad) return;
+    if (!allowSnapshotLoad) {
+      setWaAdminPushPayload(null);
+      return;
+    }
 
     const methodStr = String(method || "");
 
@@ -196,6 +202,29 @@ export default function SuccessPage() {
               restored.deferredCouponClaimOrderNumber,
               restored.deferredCouponCode
             );
+          }
+          if (
+            restored.adminPushOrderRowId &&
+            restored.adminPushConfirmSecret
+          ) {
+            const onum =
+              restored.adminPushOrderNumber != null &&
+              String(restored.adminPushOrderNumber).trim() !== ""
+                ? String(restored.adminPushOrderNumber)
+                : orderFromQuery != null && String(orderFromQuery).trim() !== ""
+                  ? String(orderFromQuery)
+                  : "";
+            if (onum) {
+              setWaAdminPushPayload({
+                orderRowId: String(restored.adminPushOrderRowId),
+                orderNumber: onum,
+                adminPushConfirmSecret: String(restored.adminPushConfirmSecret),
+              });
+            } else {
+              setWaAdminPushPayload(null);
+            }
+          } else {
+            setWaAdminPushPayload(null);
           }
           return;
         }
@@ -264,6 +293,25 @@ export default function SuccessPage() {
       }
       setCardWaUrl(url);
       setCardOrder(nextCardOrder);
+      if (snap.orderRowId && snap.adminPushConfirmSecret) {
+        const onum =
+          snapOrderNum != null && String(snapOrderNum).trim() !== ""
+            ? String(snapOrderNum)
+            : orderFromQuery != null && String(orderFromQuery).trim() !== ""
+              ? String(orderFromQuery)
+              : "";
+        if (onum) {
+          setWaAdminPushPayload({
+            orderRowId: String(snap.orderRowId),
+            orderNumber: onum,
+            adminPushConfirmSecret: String(snap.adminPushConfirmSecret),
+          });
+        } else {
+          setWaAdminPushPayload(null);
+        }
+      } else {
+        setWaAdminPushPayload(null);
+      }
       if (
         payDoneMarker &&
         snap.orderNumber != null &&
@@ -290,6 +338,9 @@ export default function SuccessPage() {
               ? snap.orderNumber
               : null,
           deferredCouponCode: deferredCouponCode || undefined,
+          adminPushOrderRowId: snap.orderRowId,
+          adminPushOrderNumber: snapOrderNum ?? undefined,
+          adminPushConfirmSecret: snap.adminPushConfirmSecret,
         });
         if (methodStr === "cash") {
           try {
@@ -526,28 +577,29 @@ export default function SuccessPage() {
     }).format(d);
   };
 
-  /**
-   * אחרי תשלום אשראי (חזרה מ-Hyp): כפתור «שלח את ההזמנה» פעיל כשיש waUrl,
-   * בלי להמתין לקופון. אחרת: קופון כבוי / קופון נטען / סיום ניסיון יצירת קופון.
-   */
   const postPaymentWhatsAppContext =
     Boolean(payDoneMarker) ||
     method === "card" ||
     method === "cash" ||
     (Boolean(cardWaUrl) && Boolean(cardOrder));
 
-  const waLinkActive =
-    customerCouponsActive === false ||
-    Boolean(coupon?.code) ||
-    couponFetchSettled ||
-    (Boolean(payDoneMarker) && Boolean(cardWaUrl)) ||
-    (String(method) === "card" && Boolean(cardWaUrl)) ||
-    (Boolean(cardWaUrl) &&
-      Boolean(cardOrder) &&
-      method !== "cash");
+  /** כפתור ווטסאפ רק אחרי שהקופון הוצג (כשמסלול הקופון פעיל), או מיד כשקופונים כבויים */
+  const couponCreateAmtBtn = couponCreateAmountFromCardOrder(cardOrder);
+  const cannotCreateCouponBtn =
+    !cardOrder?.orderId || couponCreateAmtBtn <= 0;
+  const couponReadyForWaButton =
+    customerCouponsActive === false
+      ? couponFetchSettled
+      : customerCouponsActive === true
+        ? Boolean(coupon?.code) ||
+          (couponFetchSettled && cannotCreateCouponBtn)
+        : false;
 
   const showMergedWaButton =
-    postPaymentWhatsAppContext && cardWaUrl && !waComposeAlreadyUsed;
+    postPaymentWhatsAppContext &&
+    cardWaUrl &&
+    !waComposeAlreadyUsed &&
+    couponReadyForWaButton;
 
   const waSendClasses =
     "btn-primary flex w-full justify-center px-4 py-3 text-center text-base font-extrabold text-black shadow-[0_0_0_3px_rgba(251,191,36,0.4)] ring-2 ring-amber-400/90";
@@ -627,49 +679,48 @@ export default function SuccessPage() {
         ) : null}
         {showMergedWaButton ? (
           <div className="mb-4 flex w-full max-w-xs flex-col items-stretch gap-4">
-            {waLinkActive ? (
-              <a
-                href={cardWaUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => {
-                  const mk = buildSuccessPageMatchKey({
-                    method,
-                    orderOn: orderFromQuery,
-                    hypReturn: payDoneMarker,
-                  });
-                  try {
-                    window.sessionStorage.setItem(
-                      SUCCESS_WA_SENT_KEY,
-                      JSON.stringify({ matchKey: mk, savedAt: Date.now() })
-                    );
-                  } catch {
-                    /* ignore */
-                  }
-                  setWaComposeAlreadyUsed(true);
-                }}
-                className={waSendClasses}
-              >
-                {t("success.waSendOrder")}
-              </a>
-            ) : (
-              <span
-                className={`${waSendClasses} cursor-not-allowed opacity-45 pointer-events-none select-none`}
-                aria-disabled="true"
-              >
-                {t("success.waSendOrder")}
-              </span>
-            )}
-            {!waLinkActive ? (
-              <p className="text-[11px] leading-snug text-gray-500">
-                {customerCouponsActive === null
-                  ? t("success.waPreparingShort")
-                  : couponFetchSettled
-                    ? t("success.waNoCouponLoaded")
-                    : t("success.waWaitForCoupon")}
-              </p>
-            ) : null}
+            <a
+              href={cardWaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => {
+                fireDeferredAdminPushNotify({
+                  orderRowId: waAdminPushPayload?.orderRowId,
+                  orderNumber: waAdminPushPayload?.orderNumber,
+                  adminPushConfirmSecret:
+                    waAdminPushPayload?.adminPushConfirmSecret,
+                });
+                const mk = buildSuccessPageMatchKey({
+                  method,
+                  orderOn: orderFromQuery,
+                  hypReturn: payDoneMarker,
+                });
+                try {
+                  window.sessionStorage.setItem(
+                    SUCCESS_WA_SENT_KEY,
+                    JSON.stringify({ matchKey: mk, savedAt: Date.now() })
+                  );
+                } catch {
+                  /* ignore */
+                }
+                setWaComposeAlreadyUsed(true);
+              }}
+              className={waSendClasses}
+            >
+              {t("success.waSendOrder")}
+            </a>
           </div>
+        ) : postPaymentWhatsAppContext &&
+          cardWaUrl &&
+          !waComposeAlreadyUsed &&
+          !couponReadyForWaButton ? (
+          <p className="mb-4 max-w-xs text-center text-[11px] leading-snug text-gray-500">
+            {customerCouponsActive === null
+              ? t("success.waPreparingShort")
+              : !couponFetchSettled
+                ? t("success.waWaitForCoupon")
+                : t("success.waNoCouponLoaded")}
+          </p>
         ) : null}
       </div>
     </Layout>

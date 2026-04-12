@@ -154,6 +154,8 @@ export default function CardPayPage() {
           items: pending.items,
           payment: pending.payment,
           orderNumber: pending.orderNumber,
+          orderRowId: pending.orderRowId,
+          adminPushConfirmSecret: pending.adminPushConfirmSecret,
           cardUniqueId:
             typeof pending.cardUniqueId === "string"
               ? pending.cardUniqueId
