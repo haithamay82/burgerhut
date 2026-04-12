@@ -552,25 +552,6 @@ export default function SuccessPage() {
   const waSendClasses =
     "btn-primary flex w-full justify-center px-4 py-3 text-center text-base font-extrabold text-black shadow-[0_0_0_3px_rgba(251,191,36,0.4)] ring-2 ring-amber-400/90";
 
-  const waOrderStatusBlock = (
-    <div
-      className="flex w-full flex-col items-stretch gap-2 rounded-xl border-2 border-amber-500/80 bg-amber-950/50 px-3 py-3 text-center leading-snug shadow-[inset_0_0_0_1px_rgba(251,191,36,0.2)]"
-      role="status"
-    >
-      <span className="text-base font-black text-amber-200">
-        {t("success.waActionAlert")}
-      </span>
-      <span className="text-[13px] font-semibold leading-relaxed text-amber-50/95">
-        {orderFromQuery
-          ? t("success.waActionDetailWithOrder").replace(
-              "{order}",
-              String(orderFromQuery)
-            )
-          : t("success.waActionDetailNoOrder")}
-      </span>
-    </div>
-  );
-
   return (
     <Layout>
       <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
@@ -653,7 +634,6 @@ export default function SuccessPage() {
         ) : null}
         {showMergedWaButton ? (
           <div className="mb-4 flex w-full max-w-xs flex-col items-stretch gap-4">
-            {waOrderStatusBlock}
             {waLinkActive ? (
               <a
                 href={cardWaUrl}
