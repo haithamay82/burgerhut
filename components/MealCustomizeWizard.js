@@ -300,7 +300,11 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
 
   const performAddToCart = async () => {
     if (!item || blocked) return;
-    const name = menuItemName(item, t, locale);
+    const name = isAdultCrispyBurger
+      ? adultCrispyBli
+        ? t("menu.crispy-chicken-burger.lineNameNoRound")
+        : t("menu.crispy-chicken-burger.lineNameRound")
+      : menuItemName(item, t, locale);
     const salads = selectedSalads.map((id) => {
       const p =
         Number(mealSaladChoicesForCategory(item.category).find((r) => r.id === id)?.price) ||
@@ -341,8 +345,6 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
     let variantLabel;
     if (isKidsCrispyBurger) {
       variantLabel = t(`ui.kidsCrispyBread.${kidsBreadChoice}`);
-    } else if (isAdultCrispyBurger && adultCrispyBli) {
-      variantLabel = t("ui.adultCrispyNoRound");
     }
 
     const notesTrim = sellerNotes.trim();
@@ -364,7 +366,7 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
       extras,
       quantity,
       price: finalUnitPrice,
-      bunSauceOnBun,
+      ...(!isAdultCrispyBurger ? { bunSauceOnBun } : {}),
       ...(isBeefBurgerMeal
         ? {
             burgerDoneness: {
@@ -573,37 +575,39 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
           </div>
         </section>
 
-        <section className="mb-6 space-y-2 text-xs">
-          <h3 className="text-[11px] font-semibold text-gray-300">
-            {t("ui.bunSauceOnBunTitle")}
-          </h3>
-          <div className="flex flex-wrap gap-1.5">
-            <button
-              type="button"
-              disabled={blocked}
-              onClick={() => setBunSauceOnBun(true)}
-              className={`rounded-full border px-2.5 py-2 text-[11px] ${
-                bunSauceOnBun
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-slate-700 text-gray-300"
-              }`}
-            >
-              {t("ui.bunSauceYes")}
-            </button>
-            <button
-              type="button"
-              disabled={blocked}
-              onClick={() => setBunSauceOnBun(false)}
-              className={`rounded-full border px-2.5 py-2 text-[11px] ${
-                !bunSauceOnBun
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-slate-700 text-gray-300"
-              }`}
-            >
-              {t("ui.bunSauceNo")}
-            </button>
-          </div>
-        </section>
+        {!isAdultCrispyBurger ? (
+          <section className="mb-6 space-y-2 text-xs">
+            <h3 className="text-[11px] font-semibold text-gray-300">
+              {t("ui.bunSauceOnBunTitle")}
+            </h3>
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                disabled={blocked}
+                onClick={() => setBunSauceOnBun(true)}
+                className={`rounded-full border px-2.5 py-2 text-[11px] ${
+                  bunSauceOnBun
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-slate-700 text-gray-300"
+                }`}
+              >
+                {t("ui.bunSauceYes")}
+              </button>
+              <button
+                type="button"
+                disabled={blocked}
+                onClick={() => setBunSauceOnBun(false)}
+                className={`rounded-full border px-2.5 py-2 text-[11px] ${
+                  !bunSauceOnBun
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-slate-700 text-gray-300"
+                }`}
+              >
+                {t("ui.bunSauceNo")}
+              </button>
+            </div>
+          </section>
+        ) : null}
 
         {isBeefBurgerMeal ? (
           <section className="mb-6 space-y-2 text-xs">

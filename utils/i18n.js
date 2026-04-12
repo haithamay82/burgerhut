@@ -128,8 +128,10 @@ const HE = {
   "menu.burger-600.name": "בורגר 600 גר׳",
   "menu.burger-600.desc":
     "בורגר — 600 גרם. קציצות במנה: 3×200 גר׳ (ניתן גם 2×220 + 160 גר׳).",
-  "menu.crispy-chicken-burger.name": "קריספי צ׳יקן בורגר (עגולה/בלי עגולה)",
+  "menu.crispy-chicken-burger.name": "קריספי צ׳יקן (עגולה/בלי עגולה)",
   "menu.crispy-chicken-burger.desc": "קריספי בעגולה או בלי עגולה.",
+  "menu.crispy-chicken-burger.lineNameRound": "קריספי צ׳יקן עגולה",
+  "menu.crispy-chicken-burger.lineNameNoRound": "קריספי צ׳יקן בלי עגולה",
   "menu.crispy-chicken-burger-kids.name":
     "קריספי צ׳יקן ילדים (עגולה/טורטיה קטנה)",
   "menu.crispy-chicken-burger-kids.desc": "קריספי בעגולה/טורטיה.",
@@ -968,8 +970,10 @@ const AR = {
   "menu.burger-600.name": "برجر 600غ",
   "menu.burger-600.desc":
     "برجر — 600 غرام. أقراص البرجر في الوجبة: 3×200غ (أو بديل 2×220 + 160غ).",
-  "menu.crispy-chicken-burger.name": "برجر كريسبي تشيكن (مدورة/بدون مدورة)",
+  "menu.crispy-chicken-burger.name": "كريسبي تشيكن (مدورة/بدون مدورة)",
   "menu.crispy-chicken-burger.desc": "كريسبي — بخبز مدور أو بدون.",
+  "menu.crispy-chicken-burger.lineNameRound": "كريسبي تشيكن مدورة",
+  "menu.crispy-chicken-burger.lineNameNoRound": "كريسبي تشيكن بدون مدورة",
   "menu.crispy-chicken-burger-kids.name":
     "كريسبي تشيكن أطفال (مدورة/تورتيلا صغيرة)",
   "menu.crispy-chicken-burger-kids.desc": "كريسبي — مدورة أو تورتيلا.",
