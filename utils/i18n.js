@@ -459,10 +459,7 @@ const HE = {
   "success.waSendOrder": "שלח את ההזמנה למסעדה",
   "success.waOrderRecordedWithId": "הזמנתך #{order} מוכנה לשליחה",
   "success.waOrderRecordedNoId": "הזמנתך מוכנה לשליחה",
-  "success.waWaitForCoupon": "ממתינים לקופון… אחרי שיוצג אפשר יהיה לשלוח לווטסאפ.",
-  "success.waPreparingShort": "רגע…",
-  "success.waNoCouponLoaded":
-    "לא הוצג קופון. נסו לרענן את הדף; אם זה נמשך — חזרו לתפריט או צרו קשר עם המסעדה.",
+  "success.loadingProgressAria": "טוען, נא להמתין",
   "success.couponTitle": "🎁 קיבלת קופון!",
   "success.couponValue": "💰 ₪{value} הנחה",
   "success.couponCode": "🔢 קוד: {code}",
@@ -1311,11 +1308,7 @@ const AR = {
   "success.waSendOrder": "أرسل الطلب إلى المطعم",
   "success.waOrderRecordedWithId": "طلبك #{order} جاهز للإرسال",
   "success.waOrderRecordedNoId": "طلبك جاهز للإرسال",
-  "success.waWaitForCoupon":
-    "جاري تحميل الكوبون… بعد ظهوره يمكن الإرسال عبر واتساب.",
-  "success.waPreparingShort": "لحظة…",
-  "success.waNoCouponLoaded":
-    "لم يظهر الكوبون. حدّث الصفحة؛ إن استمر ذلك ارجعوا للقائمة أو تواصلوا مع المطعم.",
+  "success.loadingProgressAria": "جارٍ التحميل، يرجى الانتظار",
   "success.couponTitle": "🎁 حصلت على كوبون!",
   "success.couponValue": "💰 خصم ₪{value}",
   "success.couponCode": "🔢 الرمز: {code}",

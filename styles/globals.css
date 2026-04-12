@@ -84,6 +84,38 @@ body {
   animation: successWaButtonPulse 0.65s ease-in-out infinite;
 }
 
+/* עמוד success — סרגל טעינה בלתי־מוגבל בזמן המתנה לקופון */
+@keyframes successIndeterminateProgress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+.success-loading-bar-track {
+  height: 0.45rem;
+  width: 100%;
+  max-width: 20rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: rgb(30 41 59 / 0.9);
+}
+
+.success-loading-bar-fill {
+  height: 100%;
+  width: 38%;
+  border-radius: 9999px;
+  background: linear-gradient(
+    90deg,
+    rgba(245, 158, 11, 0.2),
+    rgba(251, 191, 36, 0.95),
+    rgba(245, 158, 11, 0.2)
+  );
+  animation: successIndeterminateProgress 1.05s ease-in-out infinite;
+}
+
 /* כפתור «הורד אפליקציה» בראש דף הבית — הבהוב בולט */
 @keyframes pwaInstallAttention {
   0%,
@@ -166,6 +198,11 @@ body {
     animation: none;
     opacity: 1;
     box-shadow: 0 0 24px -4px rgba(59, 130, 246, 0.45);
+  }
+
+  .success-loading-bar-fill {
+    animation: none;
+    transform: translateX(31%);
   }
 }
 

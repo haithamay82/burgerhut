@@ -730,13 +730,16 @@ export default function SuccessPage() {
           cardWaUrl &&
           !waComposeAlreadyUsed &&
           !couponReadyForWaButton ? (
-          <p className="mb-4 max-w-xs text-center text-[11px] leading-snug text-gray-500">
-            {customerCouponsActive === null
-              ? t("success.waPreparingShort")
-              : !couponFetchSettled
-                ? t("success.waWaitForCoupon")
-                : t("success.waNoCouponLoaded")}
-          </p>
+          <div
+            className="success-loading-bar-track mb-4 shrink-0"
+            role="progressbar"
+            aria-busy="true"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={t("success.loadingProgressAria")}
+          >
+            <div className="success-loading-bar-fill" />
+          </div>
         ) : null}
       </div>
     </Layout>
