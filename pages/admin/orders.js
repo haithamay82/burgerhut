@@ -1969,11 +1969,7 @@ export default function AdminOrdersPage() {
                   {adminPushServerStatus.redisConfigured ? (
                     <button
                       type="button"
-                      disabled={
-                        adminPushClearBusy ||
-                        !secret.trim() ||
-                        adminPushServerStatus.subscriptionCount === 0
-                      }
+                      disabled={adminPushClearBusy || !secret.trim()}
                       className="rounded-lg border border-red-900/55 bg-red-950/35 px-3 py-1.5 text-[11px] font-semibold text-red-200/95 hover:bg-red-950/55 disabled:cursor-not-allowed disabled:opacity-45"
                       onClick={async () => {
                         if (!secret.trim()) return;
