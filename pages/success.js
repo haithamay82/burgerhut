@@ -272,7 +272,8 @@ export default function SuccessPage() {
             : null;
       const nextCardOrder = {
         orderId: String(
-          snap.cardUniqueId ??
+          snap.orderRowId ??
+            snap.cardUniqueId ??
             snap.orderNumber ??
             orderFromQuery ??
             payDoneMarker ??

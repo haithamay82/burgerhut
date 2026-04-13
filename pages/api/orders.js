@@ -1,5 +1,9 @@
 import crypto from "crypto";
-import { appendOrder, deleteOrderById, listOrders } from "@/lib/ordersStore";
+import {
+  appendOrder,
+  deleteOrderById,
+  listOrdersForAdmin,
+} from "@/lib/ordersStore";
 import { broadcastNewOrderToAdmins } from "@/lib/adminPushNotify";
 import {
   deductPattyStockForOrder,
@@ -62,7 +66,7 @@ export default async function handler(req, res) {
       }
       return res.status(401).json({ ok: false, error: "unauthorized" });
     }
-    const orders = await listOrders();
+    const orders = await listOrdersForAdmin();
     return res.status(200).json({ ok: true, orders });
   }
 

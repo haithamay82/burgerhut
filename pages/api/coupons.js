@@ -30,7 +30,7 @@ export default async function handler(req, res) {
       const couponKeys = Array.isArray(keys) ? keys : [];
       const rowsRaw = await Promise.all(couponKeys.map((k) => redis.get(k)));
       const rows = rowsRaw
-        .filter((x) => x && typeof x === "object")
+        .filter((x) => x && typeof x === "object" && !x.couponAdminHidden)
         .map((x) => ({
           code: String(x.code || "").trim().toUpperCase(),
           value: Number(x.value) || 0,

@@ -1,4 +1,5 @@
 import { broadcastNewOrderToAdmins } from "@/lib/adminPushNotify";
+import { revealCouponForOrderRowAfterWaSent } from "@/lib/couponAdminVisibility";
 import { completeDeferredAdminPush } from "@/lib/ordersStore";
 
 export default async function handler(req, res) {
@@ -8,6 +9,7 @@ export default async function handler(req, res) {
   }
 
   const { orderId, orderNumber, adminPushConfirmSecret } = req.body || {};
+  const orderRowId = String(orderId || "").trim();
   const result = await completeDeferredAdminPush(
     orderId,
     orderNumber,
@@ -17,6 +19,13 @@ export default async function handler(req, res) {
   if (!result.ok) {
     return res.status(400).json({ ok: false, error: result.error });
   }
+
+  try {
+    await revealCouponForOrderRowAfterWaSent(orderRowId);
+  } catch (e) {
+    console.warn("[adminPush] coupon reveal failed", e?.message || e);
+  }
+
   if (result.already) {
     return res.status(200).json({ ok: true, already: true });
   }

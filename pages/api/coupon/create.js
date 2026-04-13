@@ -2,6 +2,11 @@ import {
   generateCoupon,
   MIN_COUPON_DISPLAY_VALUE_NIS,
 } from "@/lib/coupon";
+import {
+  findOrderById,
+  findOrderByOrderNumber,
+  isOrderHeldForCustomerWhatsApp,
+} from "@/lib/ordersStore";
 import { redis, isRedisConfigured } from "@/lib/redis";
 import { getDiscountConfig } from "@/lib/discountStore";
 
@@ -17,19 +22,21 @@ export default async function handler(req, res) {
   }
 
   const body = req.body || {};
-  const orderId = String(body.orderId || "").trim();
+  const requestOrderId = String(body.orderId || "").trim();
   const orderNumberBody = body.orderNumber;
   const sourceOrderNumber =
     orderNumberBody !== undefined &&
     orderNumberBody !== null &&
     String(orderNumberBody).trim() !== ""
       ? String(orderNumberBody).trim()
-      : /^\d+$/.test(orderId)
-        ? orderId
+      : /^\d+$/.test(requestOrderId)
+        ? requestOrderId
         : "";
   /** לרוב: מזון נטו אחרי מבצע/קופון (בלי דמי משלוח) — ראו couponRewardBaseNis בצ'קאאוט */
   const amount = Number(body.amount);
-  if (!orderId) return res.status(400).json({ ok: false, error: "missing_order_id" });
+  if (!requestOrderId) {
+    return res.status(400).json({ ok: false, error: "missing_order_id" });
+  }
   if (!Number.isFinite(amount) || amount <= 0) {
     return res.status(400).json({ ok: false, error: "invalid_amount" });
   }
@@ -46,7 +53,25 @@ export default async function handler(req, res) {
   }
 
   try {
-    const existing = await redis.get(`coupon:order:${orderId}`);
+    let orderRowForMeta = await findOrderById(requestOrderId);
+    if (!orderRowForMeta) {
+      const on = Number(orderNumberBody);
+      if (Number.isFinite(on)) {
+        orderRowForMeta = await findOrderByOrderNumber(on);
+      }
+    }
+    const couponOrderKeyId =
+      orderRowForMeta?.id != null && String(orderRowForMeta.id).trim() !== ""
+        ? String(orderRowForMeta.id).trim()
+        : requestOrderId;
+    const orderHeldForCustomerWa = Boolean(
+      orderRowForMeta && isOrderHeldForCustomerWhatsApp(orderRowForMeta)
+    );
+
+    let existing = await redis.get(`coupon:order:${couponOrderKeyId}`);
+    if (!existing && couponOrderKeyId !== requestOrderId) {
+      existing = await redis.get(`coupon:order:${requestOrderId}`);
+    }
     const existingCode =
       typeof existing === "string"
         ? existing
@@ -69,11 +94,31 @@ export default async function handler(req, res) {
             Number.isFinite(existingVal) &&
             existingVal >= MIN_COUPON_DISPLAY_VALUE_NIS
           ) {
+            if (
+              orderHeldForCustomerWa &&
+              !existingCoupon.couponAdminHidden
+            ) {
+              const patched = {
+                ...existingCoupon,
+                couponAdminHidden: true,
+              };
+              try {
+                await redis.set(`coupon:${existingCode}`, patched, {
+                  ex: TTL_SECONDS,
+                });
+              } catch {
+                /* ignore */
+              }
+              return res.status(200).json({ ok: true, coupon: patched });
+            }
             return res.status(200).json({ ok: true, coupon: existingCoupon });
           }
           try {
             await redis.del(`coupon:${existingCode}`);
-            await redis.del(`coupon:order:${orderId}`);
+            await redis.del(`coupon:order:${couponOrderKeyId}`);
+            if (couponOrderKeyId !== requestOrderId) {
+              await redis.del(`coupon:order:${requestOrderId}`);
+            }
           } catch {
             /* ignore */
           }
@@ -87,7 +132,7 @@ export default async function handler(req, res) {
     }
 
     const coupon = generateCoupon({
-      orderId,
+      orderId: couponOrderKeyId,
       sourceOrderNumber,
       amount,
       percentage: couponPct,
@@ -101,8 +146,21 @@ export default async function handler(req, res) {
       });
     }
 
+    if (orderHeldForCustomerWa) {
+      coupon.couponAdminHidden = true;
+    }
+
     await redis.set(`coupon:${coupon.code}`, coupon, { ex: TTL_SECONDS });
-    await redis.set(`coupon:order:${orderId}`, coupon.code, { ex: TTL_SECONDS });
+    await redis.set(`coupon:order:${couponOrderKeyId}`, coupon.code, {
+      ex: TTL_SECONDS,
+    });
+    if (couponOrderKeyId !== requestOrderId) {
+      try {
+        await redis.del(`coupon:order:${requestOrderId}`);
+      } catch {
+        /* ignore */
+      }
+    }
 
     return res.status(200).json({ ok: true, coupon });
   } catch (e) {
