@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Layout from "@/components/Layout";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -16,7 +16,6 @@ import {
   writeSuccessWaRestore,
 } from "@/utils/checkoutSessionKeys";
 import { fireDeferredAdminPushNotify } from "@/utils/fireDeferredAdminPushNotify";
-import { downloadCouponElementAsPng } from "@/utils/couponImageDownload";
 import { MIN_COUPON_DISPLAY_VALUE_NIS } from "@/lib/coupon";
 
 function deferredCouponClaimStorageKey(orderNumber, code) {
@@ -126,7 +125,6 @@ export default function SuccessPage() {
   const [waComposeAlreadyUsed, setWaComposeAlreadyUsed] = useState(false);
   /** לאחר מעבר ל־deferAdminPush — לחיצה על ווטסאפ מפעילה Web Push למנהלים */
   const [waAdminPushPayload, setWaAdminPushPayload] = useState(null);
-  const couponCaptureRef = useRef(null);
 
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
@@ -656,10 +654,7 @@ export default function SuccessPage() {
       <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
         {postPaymentWhatsAppContext && coupon?.code ? (
           <section className="mb-4 w-full max-w-sm rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-900 via-slate-950 to-cyan-950 p-4 text-right text-white shadow-lg shadow-emerald-900/20">
-            <div
-              ref={couponCaptureRef}
-              className="relative rounded-xl border border-white/10 bg-slate-950/70 p-3 pt-10"
-            >
+            <div className="relative rounded-xl border border-white/10 bg-slate-950/70 p-3 pt-10">
               <img
                 src="/logo-burger-hut.png"
                 alt="Burger Hut"
@@ -735,8 +730,6 @@ export default function SuccessPage() {
               rel="noopener noreferrer"
               onClick={(e) => {
                 e.preventDefault();
-                const capEl = couponCaptureRef.current;
-                const couponCode = coupon?.code ? String(coupon.code) : "";
                 const wa = cardWaUrl;
 
                 fireDeferredAdminPushNotify({
@@ -761,22 +754,10 @@ export default function SuccessPage() {
 
                 const opened = window.open(wa, "_blank", "noopener,noreferrer");
                 const popupBlocked = !opened || opened.closed;
-
-                const runAfterOpen = async () => {
-                  try {
-                    if (couponCode) {
-                      await downloadCouponElementAsPng(capEl || null, couponCode);
-                    }
-                  } catch {
-                    /* ignore */
-                  } finally {
-                    setWaComposeAlreadyUsed(true);
-                    if (popupBlocked) {
-                      window.location.href = wa;
-                    }
-                  }
-                };
-                void runAfterOpen();
+                setWaComposeAlreadyUsed(true);
+                if (popupBlocked) {
+                  window.location.href = wa;
+                }
               }}
               className={waSendClasses}
             >

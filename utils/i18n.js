@@ -467,13 +467,6 @@ const HE = {
   "success.couponRedeemSite": "למימוש כנסו ל־burgerhut.co.il",
   "success.couponCopy": "העתקת קוד",
   "success.couponCopied": "הקוד הועתק",
-  "success.couponDownload": "הורדה כתמונה",
-  "success.couponDownloadBusy": "מכין הורדה…",
-  "success.couponSaveThenContinue":
-    "שמור את הקופון ב-Photos/Files ואז לחץ המשך לווטסאפ.",
-  "success.couponContinueWa": "המשך לווטסאפ אחרי שמירה",
-  "success.couponShareCancelled":
-    "השמירה בוטלה או נכשלה. שמור קופון ואז נסה שוב.",
   "success.couponScreenshotHint":
     "צלם את המסך כדי לשמור את הקופון לשימוש בפעם הבאה!",
   "success.back": "חזרה לתפריט",
@@ -1316,13 +1309,6 @@ const AR = {
   "success.couponRedeemSite": "للاستفادة ادخل إلى burgerhut.co.il",
   "success.couponCopy": "نسخ الرمز",
   "success.couponCopied": "تم نسخ الرمز",
-  "success.couponDownload": "تنزيل كصورة",
-  "success.couponDownloadBusy": "جاري تجهيز الصورة…",
-  "success.couponSaveThenContinue":
-    "احفظ الكوبون في Photos/Files ثم اضغط متابعة إلى واتساب.",
-  "success.couponContinueWa": "متابعة إلى واتساب بعد الحفظ",
-  "success.couponShareCancelled":
-    "تم إلغاء الحفظ أو فشل. احفظ الكوبون ثم أعد المحاولة.",
   "success.couponScreenshotHint":
     "التقط الشاشة لحفظ الكوبون لاستخدامه في الطلب القادم!",
   "success.back": "العودة للقائمة",
