@@ -177,18 +177,9 @@ export default function StickyCartBar() {
                       >
                         −
                       </button>
-                      <div className="flex min-w-[1.5rem] flex-col items-center gap-0.5">
-                        <span className="w-full text-center text-sm">
-                          {item.quantity}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => removeItem(item.id)}
-                          className="text-[11px] leading-none text-red-400"
-                        >
-                          {t("checkout.remove")}
-                        </button>
-                      </div>
+                      <span className="min-w-[1.5rem] text-center text-sm">
+                        {item.quantity}
+                      </span>
                       <button
                         type="button"
                         onClick={() =>
@@ -200,9 +191,21 @@ export default function StickyCartBar() {
                         +
                       </button>
                     </div>
-                    <p className="text-sm font-semibold text-primary">
-                      ₪{formatIls(lineTotal(item))}
-                    </p>
+                    <div
+                      className="flex max-w-full items-center justify-end gap-2"
+                      dir="ltr"
+                    >
+                      <p className="text-sm font-semibold text-primary">
+                        ₪{formatIls(lineTotal(item))}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => removeItem(item.id)}
+                        className="shrink-0 text-[11px] leading-none text-red-400 hover:text-red-300"
+                      >
+                        {t("checkout.remove")}
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
