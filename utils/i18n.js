@@ -234,6 +234,7 @@ const HE = {
   "ui.crispyToppings": "תוספות לקריספי",
   "ui.extraSauces": "תוספות רטבים בצד",
   "ui.addToCart": "הוספה לעגלה",
+  "ui.updateMealInCart": "עדכן בסל",
   "ui.pattyInsufficientForMeal":
     "מסוג המנה הזאת נותרו לפי המלאי: {count}.\nהורידו את הכמות או בחרו מנה אחרת.",
   "ui.pattyInsufficientForMealFallback":
@@ -281,6 +282,7 @@ const HE = {
   "cart.hideCart": "הסתר עגלה",
   "cart.panelTitle": "העגלה שלך",
   "cart.closePanel": "סגור",
+  "cart.editMeal": "עריכה",
   "cart.menuStillVisibleHint":
     "ניתן לגלול למעלה — התפריט והקטגוריות נשארים זמינים.",
 
@@ -1074,6 +1076,7 @@ const AR = {
   "ui.crispyToppings": "إضافات الكرسبي",
   "ui.extraSauces": "صلصات إضافية على الجانب",
   "ui.addToCart": "أضف إلى السلة",
+  "ui.updateMealInCart": "تحديث في السلة",
   "ui.pattyInsufficientForMeal":
     "من هذا النوع بقي بالمخزون (مع السلة): {count}.\nخفّضوا الكمية أو اختاروا طبقاً آخر.",
   "ui.pattyInsufficientForMealFallback":
@@ -1121,6 +1124,7 @@ const AR = {
   "cart.hideCart": "إخفاء السلة",
   "cart.panelTitle": "سلتك",
   "cart.closePanel": "إغلاق",
+  "cart.editMeal": "تعديل",
   "cart.menuStillVisibleHint":
     "يمكنك التمرير لأعلى — القائمة والتصنيفات لا تزال متاحة.",
 

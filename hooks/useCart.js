@@ -112,6 +112,33 @@ export function CartProvider({ children }) {
     setItems((prev) => prev.filter((item) => item.id !== id));
   };
 
+  /** עדכון שורת בורגר/קריספי קיימת (אותו id) — בלי מחיקה ומיזוג לשורה אחרת */
+  const replaceCartLine = (lineId, nextPayload) => {
+    const lid = String(lineId || "").trim();
+    if (!lid) return;
+    setItems((prev) =>
+      prev.map((row) => {
+        if (row.id !== lid) return row;
+        const pid =
+          cartLineProductId(nextPayload) || cartLineProductId(row) || "item";
+        const qty = Math.max(
+          1,
+          Number(
+            nextPayload.quantity !== undefined && nextPayload.quantity !== null
+              ? nextPayload.quantity
+              : row.quantity
+          ) || 1
+        );
+        return {
+          ...nextPayload,
+          id: lid,
+          productId: pid,
+          quantity: qty,
+        };
+      })
+    );
+  };
+
   const clearCart = () => setItems([]);
 
   /** שחזור עגלה (למשל אחרי «חזרה» ממסך ביט/אשראי) */
@@ -140,6 +167,7 @@ export function CartProvider({ children }) {
     addItem,
     updateQuantity,
     removeItem,
+    replaceCartLine,
     clearCart,
     replaceCart,
     total

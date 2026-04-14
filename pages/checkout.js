@@ -8,6 +8,11 @@ import {
   cartLineProductId,
   lineHasUnavailableInventory,
 } from "@/hooks/useCart";
+import { useMealWizard } from "@/contexts/MealWizardContext";
+import {
+  isEditableMealCartLine,
+  mealCatalogItemForCartLine,
+} from "@/utils/mealCartLineEdit";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useInventory } from "@/contexts/InventoryContext";
 import { useMenuCatalog } from "@/contexts/MenuCatalogContext";
@@ -66,7 +71,8 @@ export default function CheckoutPage() {
   const { orderingAllowed } = useOrderingHours();
   const { items, total, updateQuantity, removeItem, clearCart } = useCart();
   const { isUnavailable, refresh: refreshInventory } = useInventory();
-  const { mainMealProductIds } = useMenuCatalog();
+  const { mainMealProductIds, menuItems } = useMenuCatalog();
+  const { openMealEditLine } = useMealWizard();
 
   const [form, setForm] = useState({
     firstName: "",
@@ -997,6 +1003,21 @@ export default function CheckoutPage() {
                         <span className="w-full text-center text-sm">
                           {item.quantity}
                         </span>
+                        {isEditableMealCartLine(item, menuItems) ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const cat = mealCatalogItemForCartLine(
+                                item,
+                                menuItems
+                              );
+                              if (cat) openMealEditLine(cat, item);
+                            }}
+                            className="text-[11px] leading-none text-sky-400 hover:text-sky-300"
+                          >
+                            {t("cart.editMeal")}
+                          </button>
+                        ) : null}
                         <button
                           type="button"
                           onClick={() => removeItem(item.id)}

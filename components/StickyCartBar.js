@@ -5,14 +5,22 @@ import {
   cartLineProductId,
   lineHasUnavailableInventory,
 } from "@/hooks/useCart";
+import { useMealWizard } from "@/contexts/MealWizardContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useInventory } from "@/contexts/InventoryContext";
+import { useMenuCatalog } from "@/contexts/MenuCatalogContext";
+import {
+  isEditableMealCartLine,
+  mealCatalogItemForCartLine,
+} from "@/utils/mealCartLineEdit";
 import { formatIls, lineTotal, safePrice } from "@/utils/cartMoney";
 import { sortSaladsForDisplay } from "@/utils/saladDisplayOrder";
 
 export default function StickyCartBar() {
   const { t } = useLocale();
   const { items, total, updateQuantity, removeItem } = useCart();
+  const { menuItems } = useMenuCatalog();
+  const { openMealEditLine } = useMealWizard();
   const { isUnavailable } = useInventory();
   const [panelOpen, setPanelOpen] = useState(false);
 
@@ -161,6 +169,21 @@ export default function StickyCartBar() {
                         <span className="w-full text-center text-sm">
                           {item.quantity}
                         </span>
+                        {isEditableMealCartLine(item, menuItems) ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const cat = mealCatalogItemForCartLine(
+                                item,
+                                menuItems
+                              );
+                              if (cat) openMealEditLine(cat, item);
+                            }}
+                            className="text-[11px] leading-none text-sky-400 hover:text-sky-300"
+                          >
+                            {t("cart.editMeal")}
+                          </button>
+                        ) : null}
                         <button
                           type="button"
                           onClick={() => removeItem(item.id)}

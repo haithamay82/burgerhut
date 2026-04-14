@@ -3,7 +3,7 @@ import PromoVideoOverlay from "@/components/PromoVideoOverlay";
 import StickyCartBar from "@/components/StickyCartBar";
 import { useOrderingHours } from "@/contexts/OrderingHoursContext";
 import MenuItemCard from "@/components/MenuItemCard";
-import MealCustomizeWizard from "@/components/MealCustomizeWizard";
+import { useMealWizard } from "@/contexts/MealWizardContext";
 import { CATEGORIES } from "@/utils/menuData";
 import { useMenuCatalog } from "@/contexts/MenuCatalogContext";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -30,7 +30,7 @@ export default function HomeMain({
     !restaurantOpen &&
     todayScheduledOpen;
   const [activeCategory, setActiveCategory] = useState("burgers");
-  const [mealWizardItem, setMealWizardItem] = useState(null);
+  const { openMealFromMenu } = useMealWizard();
   const [discountCfg, setDiscountCfg] = useState({
     enabled: false,
     percent: 0,
@@ -194,7 +194,7 @@ export default function HomeMain({
             <div key={item.id} className="contents">
               <MenuItemCard
                 item={item}
-                onOpenMealWizard={setMealWizardItem}
+                onOpenMealWizard={openMealFromMenu}
               />
             </div>
           );
@@ -215,12 +215,6 @@ export default function HomeMain({
           return [row];
         })}
       </section>
-
-      <MealCustomizeWizard
-        item={mealWizardItem}
-        open={mealWizardItem != null}
-        onClose={() => setMealWizardItem(null)}
-      />
 
       <section
         className="mb-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-3"

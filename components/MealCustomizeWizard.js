@@ -16,7 +16,7 @@ import { useMenuCatalog } from "@/contexts/MenuCatalogContext";
 import { menuItemName } from "@/utils/menuItemLabels";
 import { formatIls } from "@/utils/cartMoney";
 import { computeSaucesCharge, marginalSauceCharge } from "@/utils/saucePricing";
-import { useCart } from "@/hooks/useCart";
+import { useCart, customizationKey } from "@/hooks/useCart";
 import {
   simulateCartAfterAdd,
   pattyInsufficientAddToCartMessage,
@@ -44,10 +44,16 @@ function computeMissingMealSelections(selectedSalads, selectedSauces) {
   return missing;
 }
 
-export default function MealCustomizeWizard({ item, open, onClose }) {
+export default function MealCustomizeWizard({
+  item,
+  open,
+  onClose,
+  initialCartLine = null,
+  replaceLineId = null,
+}) {
   const { t, locale } = useLocale();
   const { menuItems } = useMenuCatalog();
-  const { addItem, items: cartItems } = useCart();
+  const { addItem, replaceCartLine, items: cartItems } = useCart();
   const { isUnavailable, unavailableIds } = useInventory();
 
   const [selectedSalads, setSelectedSalads] = useState([]);
@@ -147,8 +153,64 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
   );
   const finalUnitPrice = unitPrice + requestedDrinkPrice;
 
+  const editHydrateKey = useMemo(() => {
+    if (!replaceLineId || !initialCartLine) return "";
+    try {
+      return `${replaceLineId}|${customizationKey(initialCartLine)}`;
+    } catch {
+      return String(replaceLineId);
+    }
+  }, [replaceLineId, initialCartLine]);
+
   useEffect(() => {
     if (!open || !item) return;
+    const editing = Boolean(replaceLineId && initialCartLine);
+    if (editing) {
+      const line = initialCartLine;
+      setQuantity(Math.max(1, Number(line.quantity) || 1));
+      setSelectedSalads([...(line.salads || []).map((s) => s.id).filter(Boolean)]);
+      setSelectedSauces([...(line.extras || []).map((e) => e.id).filter(Boolean)]);
+      const topsFromLine = line.toppings || [];
+      const nextCheese = {};
+      const nextPlain = [];
+      for (const top of topsFromLine) {
+        const id = top?.id;
+        if (!id) continue;
+        if (DOUBLE_CHEESE_TOPPING_IDS.has(id)) {
+          nextCheese[id] = top.layers === 2 ? 2 : 1;
+        } else {
+          nextPlain.push(id);
+        }
+      }
+      setCheeseMode(nextCheese);
+      setSelectedToppings(nextPlain);
+      setKidsBreadChoice(
+        line.kidsBreadChoice && typeof line.kidsBreadChoice === "string"
+          ? line.kidsBreadChoice
+          : "round"
+      );
+      setAdultCrispyBli(
+        typeof line.adultCrispyBli === "boolean"
+          ? line.adultCrispyBli
+          : line.name === t("menu.crispy-chicken-burger.lineNameNoRound")
+      );
+      setDonenessId(
+        String(line.burgerDoneness?.id || "").trim() ||
+          DEFAULT_BURGER_DONENESS_ID
+      );
+      if (typeof line.bunSauceOnBun === "boolean") {
+        setBunSauceOnBun(line.bunSauceOnBun);
+      } else {
+        setBunSauceOnBun(true);
+      }
+      setRequestedDrinkId(String(line.requestedDrinkId || "").trim());
+      setSellerNotes(String(line.sellerNotes || ""));
+      setDrinkMenuOpen(false);
+      setIsAdding(false);
+      setMealValidateOpen(false);
+      setMealValidateMissing([]);
+      return;
+    }
     setSelectedSalads([]);
     setSelectedToppings([]);
     setSelectedSauces([]);
@@ -164,7 +226,7 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
     setCheeseMode({});
     setMealValidateOpen(false);
     setMealValidateMissing([]);
-  }, [open, item?.id]);
+  }, [open, item?.id, editHydrateKey, t]);
 
   useEffect(() => {
     if (!open) return;
@@ -385,13 +447,17 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
           }
         : {}),
       ...(isKidsCrispyBurger ? { kidsBreadChoice } : {}),
+      ...(isAdultCrispyBurger ? { adultCrispyBli } : {}),
       ...(requestedDrinkId
         ? { requestedDrinkId, requestedDrinkLabel, requestedDrinkPrice }
         : {}),
       ...(notesTrim ? { sellerNotes: notesTrim } : {}),
     };
 
-    const afterMerge = simulateCartAfterAdd(cartItems, linePayload);
+    const baseCart = replaceLineId
+      ? cartItems.filter((row) => row.id !== replaceLineId)
+      : cartItems;
+    const afterMerge = simulateCartAfterAdd(baseCart, linePayload);
     const pattyCheck = await validatePattyStockForSimulatedCart(
       afterMerge,
       item.id
@@ -404,7 +470,11 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
     }
 
     setIsAdding(true);
-    addItem(linePayload);
+    if (replaceLineId) {
+      replaceCartLine(replaceLineId, linePayload);
+    } else {
+      addItem(linePayload);
+    }
     setTimeout(() => {
       setIsAdding(false);
       handleClose();
@@ -964,7 +1034,11 @@ export default function MealCustomizeWizard({ item, open, onClose }) {
             disabled={isAdding || blocked || mealValidateOpen}
             className="btn-primary flex-1 py-2.5 text-sm disabled:opacity-50"
           >
-            {isAdding ? t("ui.added") : t("ui.addToCart")}
+            {isAdding
+              ? t("ui.added")
+              : replaceLineId
+                ? t("ui.updateMealInCart")
+                : t("ui.addToCart")}
           </button>
         </div>
       </footer>

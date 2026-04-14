@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import "@/styles/globals.css";
 import { CartProvider } from "@/hooks/useCart";
+import { MealWizardProvider } from "@/contexts/MealWizardContext";
 import { LocaleProvider } from "@/contexts/LocaleContext";
 import { MenuCatalogProvider } from "@/contexts/MenuCatalogContext";
 import { InventoryProvider } from "@/contexts/InventoryContext";
@@ -114,7 +115,9 @@ export default function App({ Component, pageProps }) {
         <CartProvider>
           <MenuCatalogProvider>
             <InventoryProvider>
-              <Component {...pageProps} />
+              <MealWizardProvider>
+                <Component {...pageProps} />
+              </MealWizardProvider>
             </InventoryProvider>
           </MenuCatalogProvider>
         </CartProvider>
