@@ -2,14 +2,70 @@ import { getTranslator, t as tFn } from "@/utils/i18n";
 
 import { cartLineProductId } from "@/hooks/useCart";
 import { formatIls, lineTotal } from "@/utils/cartMoney";
+import { MENU_ITEMS } from "@/utils/menuData";
 import { sortSaladsForDisplay } from "@/utils/saladDisplayOrder";
 
+const MENU_CATEGORY_BY_PRODUCT_ID = new Map(
+  MENU_ITEMS.map((row) => [row.id, row.category])
+);
+
+/**
+ * קטגוריית מוצר לשורת עגלה — לפי מזהה מהתפריט הסטטי, ואז heuristics / menuCategory.
+ * מונע סיווג שגוי של שתייה (למשל drink-xl) כמנה ראשית כשחסר menuCategory.
+ */
+function catalogCategoryForCartLine(item) {
+  const pid = String(cartLineProductId(item) || "").trim();
+  if (pid && MENU_CATEGORY_BY_PRODUCT_ID.has(pid)) {
+    return MENU_CATEGORY_BY_PRODUCT_ID.get(pid);
+  }
+  const field = String(item?.menuCategory || "").trim().toLowerCase();
+  if (field) return field;
+  if (pid.startsWith("crispy-")) return "crispy";
+  if (
+    pid.startsWith("burger-") ||
+    pid.startsWith("kids-burger-") ||
+    pid.startsWith("smash-burger-")
+  ) {
+    return "burgers";
+  }
+  return null;
+}
+
 function toppingsWaLabelKey(item) {
-  if (item?.menuCategory === "crispy") return "wa.toppingsCrispy";
-  if (item?.menuCategory === "burgers") return "wa.toppings";
-  const pid = String(cartLineProductId(item) || "");
-  if (pid.startsWith("crispy-")) return "wa.toppingsCrispy";
+  const cat = catalogCategoryForCartLine(item);
+  if (cat === "crispy") return "wa.toppingsCrispy";
   return "wa.toppings";
+}
+
+/** בורגר / קריספי — לפני צ'יפס, שתייה ושאר הקטגוריות בהודעת ווטסאפ */
+function isMainMealCartLineForWa(item) {
+  const c = catalogCategoryForCartLine(item);
+  return c === "burgers" || c === "crispy";
+}
+
+function partitionCartItemsForWa(items) {
+  const list = Array.isArray(items) ? items : [];
+  const mains = [];
+  const others = [];
+  for (const it of list) {
+    (isMainMealCartLineForWa(it) ? mains : others).push(it);
+  }
+  return { mains, others };
+}
+
+/** בהודעה: כל שורות הקריספי (לפי סדר העגלה), ואז כל הבורגרים */
+function sortMainMealsForWa(mains) {
+  return [...mains]
+    .map((item, idx) => ({ item, idx }))
+    .sort((a, b) => {
+      const ca = catalogCategoryForCartLine(a.item);
+      const cb = catalogCategoryForCartLine(b.item);
+      const ra = ca === "crispy" ? 0 : ca === "burgers" ? 1 : 2;
+      const rb = cb === "crispy" ? 0 : cb === "burgers" ? 1 : 2;
+      if (ra !== rb) return ra - rb;
+      return a.idx - b.idx;
+    })
+    .map((x) => x.item);
 }
 
 /** כותרת/תווית בווטסאפ — *מודגש* (לא כופלים אם כבר עטוף ב־*) */
@@ -113,7 +169,10 @@ export function buildWhatsAppOrderText({
   lines.push("");
   lines.push(`${waBoldLabel(tr("wa.details"))}:`);
 
-  cart.items.forEach((item, index) => {
+  const { mains, others } = partitionCartItemsForWa(cart.items);
+  const mainsOrdered = sortMainMealsForWa(mains);
+
+  const pushWaCartLine = (item, displayIndex) => {
     const lineExtras = [item.sizeLabel, item.variantLabel]
       .filter(Boolean)
       .join(" · ");
@@ -122,7 +181,7 @@ export function buildWhatsAppOrderText({
     const quantitySuffix =
       Number.isFinite(qty) && qty > 1 ? ` x${qty}` : "";
     lines.push(
-      `*${index + 1}. ${item.name}${quantitySuffix}*${lineSuffix}`
+      `*${displayIndex}. ${item.name}${quantitySuffix}*${lineSuffix}`
     );
     if (item.requestedDrinkLabel && String(item.requestedDrinkLabel).trim()) {
       const drinkPrice =
@@ -168,7 +227,23 @@ export function buildWhatsAppOrderText({
     lines.push(
       `   ${waBoldLabel(tr("wa.linePrice"))}: ₪${formatIls(lineTotal(item))}`
     );
-  });
+  };
+
+  let n = 0;
+  for (const item of mainsOrdered) {
+    n += 1;
+    pushWaCartLine(item, n);
+  }
+  if (others.length > 0) {
+    if (mainsOrdered.length > 0) {
+      lines.push("");
+      lines.push(waBoldLabel(tr("wa.nonMealItemsHeader")));
+    }
+    for (const item of others) {
+      n += 1;
+      pushWaCartLine(item, n);
+    }
+  }
 
   lines.push("");
   const foodSubtotal = cart.items.reduce((s, item) => s + lineTotal(item), 0);
