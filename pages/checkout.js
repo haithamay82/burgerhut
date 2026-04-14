@@ -913,7 +913,6 @@ export default function CheckoutPage() {
           <h3 className="mb-2 text-sm font-semibold">{t("checkout.summary")}</h3>
           <div className="space-y-2">
             {items.map((item, index) => {
-              const pid = cartLineProductId(item);
               const lineOos = lineHasUnavailableInventory(item, isUnavailable);
               return (
                 <div
@@ -921,7 +920,24 @@ export default function CheckoutPage() {
                   className="flex items-start justify-between gap-2 rounded-lg bg-slate-900/70 p-2"
                 >
                   <div className="flex-1">
-                    <p className="text-sm font-semibold">{item.name}</p>
+                    <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                      <span className="text-sm font-semibold">{item.name}</span>
+                      {isEditableMealCartLine(item, menuItems) ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const cat = mealCatalogItemForCartLine(
+                              item,
+                              menuItems
+                            );
+                            if (cat) openMealEditLine(cat, item);
+                          }}
+                          className="shrink-0 text-[11px] font-semibold leading-none text-sky-400 underline-offset-2 hover:text-sky-300 hover:underline"
+                        >
+                          {t("cart.editMeal")}
+                        </button>
+                      ) : null}
+                    </div>
                     {item.sizeLabel && (
                       <p className="text-[11px] text-gray-400">
                         {t("checkout.size")}: {item.sizeLabel}
@@ -1003,21 +1019,6 @@ export default function CheckoutPage() {
                         <span className="w-full text-center text-sm">
                           {item.quantity}
                         </span>
-                        {isEditableMealCartLine(item, menuItems) ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const cat = mealCatalogItemForCartLine(
-                                item,
-                                menuItems
-                              );
-                              if (cat) openMealEditLine(cat, item);
-                            }}
-                            className="text-[11px] leading-none text-sky-400 hover:text-sky-300"
-                          >
-                            {t("cart.editMeal")}
-                          </button>
-                        ) : null}
                         <button
                           type="button"
                           onClick={() => removeItem(item.id)}

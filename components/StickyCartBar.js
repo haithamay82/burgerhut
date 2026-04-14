@@ -1,10 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  useCart,
-  cartLineProductId,
-  lineHasUnavailableInventory,
-} from "@/hooks/useCart";
+import { useCart, lineHasUnavailableInventory } from "@/hooks/useCart";
 import { useMealWizard } from "@/contexts/MealWizardContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useInventory } from "@/contexts/InventoryContext";
@@ -77,7 +73,6 @@ export default function StickyCartBar() {
             </p>
             <div className="space-y-2">
               {items.map((item, index) => {
-                const pid = cartLineProductId(item);
                 const lineOos = lineHasUnavailableInventory(item, isUnavailable);
                 return (
                 <div
@@ -85,9 +80,26 @@ export default function StickyCartBar() {
                   className="flex items-start justify-between gap-2 rounded-lg bg-slate-900/80 p-2 text-xs"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold leading-snug">
-                      {item.name}
-                    </p>
+                    <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                      <span className="text-sm font-semibold leading-snug">
+                        {item.name}
+                      </span>
+                      {isEditableMealCartLine(item, menuItems) ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const cat = mealCatalogItemForCartLine(
+                              item,
+                              menuItems
+                            );
+                            if (cat) openMealEditLine(cat, item);
+                          }}
+                          className="shrink-0 text-[11px] font-semibold leading-none text-sky-400 underline-offset-2 hover:text-sky-300 hover:underline"
+                        >
+                          {t("cart.editMeal")}
+                        </button>
+                      ) : null}
+                    </div>
                     {item.sizeLabel ? (
                       <p className="mt-0.5 text-[11px] text-gray-400">
                         {t("checkout.size")}: {item.sizeLabel}
@@ -169,21 +181,6 @@ export default function StickyCartBar() {
                         <span className="w-full text-center text-sm">
                           {item.quantity}
                         </span>
-                        {isEditableMealCartLine(item, menuItems) ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const cat = mealCatalogItemForCartLine(
-                                item,
-                                menuItems
-                              );
-                              if (cat) openMealEditLine(cat, item);
-                            }}
-                            className="text-[11px] leading-none text-sky-400 hover:text-sky-300"
-                          >
-                            {t("cart.editMeal")}
-                          </button>
-                        ) : null}
                         <button
                           type="button"
                           onClick={() => removeItem(item.id)}
