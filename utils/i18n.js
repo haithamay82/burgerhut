@@ -154,6 +154,13 @@ const HE = {
   "menu.side-mix.name": "מיקס",
   "menu.side-mix.desc": "מיקס: צ׳יפס זיגזג, פוטטו, טבעות בצל וכדורי פירה.",
   "menu.side-chips-cheddar-symphony.name": "סימפוניית צ׳יפס וצ׳דר",
+  "menu.side-mozzarella-sticks.name": "אצבעות מוצרלה",
+  "menu.side-mozzarella-sticks.desc": "6 אצבעות מוצרלה.",
+  "menu.side-home-fries.name": "הום פרייז",
+  "menu.side-home-fries.desc": "קוביות תפוחי אדמה מטוגנות ברוטב מתוק, מעוטרות בשומשום.",
+  "menu.side-home-fries-spicy.name": "הום פרייז חריף",
+  "menu.side-home-fries-spicy.desc":
+    "קוביות תפוחי אדמה מטוגנות ברוטב מתוק־חריף, מעוטרות בשומשום.",
   "menu.side-chips-cheddar-symphony.desc":
     "צ׳יפס זיגזג עם רוטב גבינת צ׳דר.",
   "menu.drink-cola.name": "קוקה קולה",
@@ -1006,6 +1013,13 @@ const AR = {
   "menu.side-mix.name": "ميكس",
   "menu.side-mix.desc": "بطاطا متموجة، بطاطا حلوة، حلقات بصل وكرات بوريه.",
   "menu.side-chips-cheddar-symphony.name": "بطاطا مع صلصة شيدر",
+  "menu.side-mozzarella-sticks.name": "أصابع موزاريلا",
+  "menu.side-mozzarella-sticks.desc": "٦ أصابع موزاريلا.",
+  "menu.side-home-fries.name": "هوم فرايز",
+  "menu.side-home-fries.desc": "مكعبات بطاطا مقلية بصلصة حلوة، مع بذور سمسم.",
+  "menu.side-home-fries-spicy.name": "هوم فرايز حار",
+  "menu.side-home-fries-spicy.desc":
+    "مكعبات بطاطا مقلية بصلصة حلوة وحارة، مع بذور سمسم.",
   "menu.side-chips-cheddar-symphony.desc":
     "بطاطا متموجة مع صلصة جبنة شيدر.",
   "menu.drink-cola.name": "كوكا كولا",

@@ -135,6 +135,9 @@ const IMG_SIDE_ONION_RINGS = "/menu/side-onion-rings.png";
 const IMG_SIDE_MASHED_BALLS = "/menu/side-mashed-balls.png";
 const IMG_SIDE_CHIPS_CHEDDAR_SYMPHONY =
   "/menu/side-chips-cheddar-symphony.png";
+const IMG_SIDE_MOZZARELLA_STICKS = "/menu/side-mozzarella-sticks.png";
+const IMG_SIDE_HOME_FRIES = "/menu/side-home-fries.png";
+const IMG_SIDE_HOME_FRIES_SPICY = "/menu/side-home-fries-spicy.png";
 
 export const MENU_ITEMS = [
   {
@@ -274,6 +277,24 @@ export const MENU_ITEMS = [
     basePrice: 25,
     category: "sides",
     image: IMG_SIDE_CHIPS_CHEDDAR_SYMPHONY,
+  },
+  {
+    id: "side-mozzarella-sticks",
+    basePrice: 25,
+    category: "sides",
+    image: IMG_SIDE_MOZZARELLA_STICKS,
+  },
+  {
+    id: "side-home-fries",
+    basePrice: 30,
+    category: "sides",
+    image: IMG_SIDE_HOME_FRIES,
+  },
+  {
+    id: "side-home-fries-spicy",
+    basePrice: 30,
+    category: "sides",
+    image: IMG_SIDE_HOME_FRIES_SPICY,
   },
   {
     id: "drink-cola",
