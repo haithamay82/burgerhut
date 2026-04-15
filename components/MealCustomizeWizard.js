@@ -184,6 +184,13 @@ export default function MealCustomizeWizard({
     }
   }, [replaceLineId, initialCartLine]);
 
+  const specialFixedMealToppingsText = useMemo(() => {
+    if (!item?.id) return "";
+    const key = `menu.${item.id}.fixedMealToppings`;
+    const v = t(key);
+    return v === key ? "" : String(v).trim();
+  }, [item?.id, t]);
+
   useEffect(() => {
     if (!open || !item) return;
     const editing = Boolean(replaceLineId && initialCartLine);
@@ -653,6 +660,22 @@ export default function MealCustomizeWizard({
             >
               {t("ui.adultCrispyNoRound")}
             </button>
+          </section>
+        ) : null}
+
+        {isSpecialRestrictedWizard && specialFixedMealToppingsText ? (
+          <section className="mb-6 space-y-1.5 text-xs" aria-live="polite">
+            <div className="flex flex-wrap items-baseline justify-between gap-2 gap-y-1">
+              <h3 className="text-[11px] font-semibold text-gray-300">
+                {t("ui.specialFixedToppingsTitle")}
+              </h3>
+              <span className="shrink-0 text-[10px] font-semibold text-amber-500/95">
+                {t("ui.specialFixedToppingsHint")}
+              </span>
+            </div>
+            <p className="rounded-lg border border-slate-700/80 bg-slate-900/55 px-3 py-2.5 text-[11px] leading-relaxed text-gray-300">
+              {specialFixedMealToppingsText}
+            </p>
           </section>
         ) : null}
 
