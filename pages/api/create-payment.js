@@ -15,6 +15,10 @@ import {
   parseApiSignResponse,
   describeApiSignRequestForLog,
   payProtocolSignFieldPresence,
+  buildInvoiceHeshDesc,
+  computeInvoiceDeliveryPrefs,
+  sanitizeHypInvoiceEmail,
+  normalizeIsraeliCellForHyp,
 } from "@/lib/hypPayProtocol";
 import { formatFetchErrorDetail } from "@/lib/fetchErrorDetail";
 
@@ -73,6 +77,12 @@ export default async function handler(req, res) {
   const customerName =
     typeof body.customerName === "string" ? body.customerName.trim() : "";
   const phone = typeof body.phone === "string" ? body.phone.trim() : "";
+  const emailRaw =
+    typeof body.email === "string"
+      ? body.email.trim()
+      : typeof body.customerEmail === "string"
+        ? body.customerEmail.trim()
+        : "";
 
   const uniqueid =
     typeof body.uniqueId === "string" && body.uniqueId.trim()
@@ -98,6 +108,16 @@ export default async function handler(req, res) {
       ? [firstName, lastName].filter(Boolean).join(" ")
       : customerName;
 
+  const invPrefs = computeInvoiceDeliveryPrefs({
+    email: emailRaw,
+    phone,
+  });
+  const heshDesc = buildInvoiceHeshDesc({
+    locale: lang === "ENG" ? "en" : "he",
+    orderNumber: orderNum,
+    amountNis: totalAmount,
+  });
+
   const signOpts = {
     host: getHypPayBase(),
     masof: getHypMasofForPay(),
@@ -111,9 +131,22 @@ export default async function handler(req, res) {
     clientLastName: lastName,
     customerName: displayName,
     phone,
+    customerEmail: emailRaw,
+    invoiceEmail: invPrefs.sendEmailInvoice,
+    invoiceSms: invPrefs.sendSmsInvoice,
+    heshDesc,
   };
 
   const apiSignUrl = buildApiSignUrl(signOpts);
+
+  if (process.env.NODE_ENV === "development") {
+    console.log("[api/create-payment] invoice routing (no PII):", {
+      SendHesh: invPrefs.sendEmailInvoice,
+      sendHeshSMS: invPrefs.sendSmsInvoice,
+      hasEmail: Boolean(sanitizeHypInvoiceEmail(emailRaw)),
+      hasCell: normalizeIsraeliCellForHyp(phone).ok,
+    });
+  }
 
   if (shouldLogHypDevRequestDetails()) {
     console.log(
@@ -132,6 +165,19 @@ export default async function handler(req, res) {
     console.log(
       "[api/create-payment][dev] outbound APISign:",
       JSON.stringify(describeApiSignRequestForLog(apiSignUrl), null, 2)
+    );
+    console.log(
+      "[api/create-payment][dev] invoice flags (no PII):",
+      JSON.stringify(
+        {
+          SendHesh: invPrefs.sendEmailInvoice,
+          sendHeshSMS: invPrefs.sendSmsInvoice,
+          hasEmail: Boolean(sanitizeHypInvoiceEmail(emailRaw)),
+          hasCell: normalizeIsraeliCellForHyp(phone).ok,
+        },
+        null,
+        2
+      )
     );
   }
 

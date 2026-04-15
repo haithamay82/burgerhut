@@ -42,6 +42,7 @@ function buildCheckoutDraftSnapshot(form, geo, deliveryMapPoint) {
       firstName: form.firstName,
       lastName: form.lastName,
       phone: form.phone,
+      email: form.email,
       orderType: form.orderType,
       payment: form.payment,
       deliveryZone: form.deliveryZone,
@@ -78,6 +79,7 @@ export default function CheckoutPage() {
     firstName: "",
     lastName: "",
     phone: "",
+    email: "",
     orderType: "delivery",
     payment: "cash",
     deliveryZone: "",
@@ -485,11 +487,15 @@ export default function CheckoutPage() {
     const firstName = form.firstName.trim();
     const lastName = form.lastName.trim();
     const name = [firstName, lastName].filter(Boolean).join(" ");
+    const emailTrim = form.email.trim();
     const base = {
       firstName,
       lastName,
       name,
       phone: form.phone.trim(),
+      ...(emailTrim && emailTrim.includes("@")
+        ? { email: emailTrim.slice(0, 120) }
+        : {}),
       orderType: form.orderType,
     };
     if (form.orderType === "pickup") {
@@ -1191,6 +1197,19 @@ export default function CheckoutPage() {
             {errors.phone && (
               <p className="mt-1 text-[11px] text-red-400">{errors.phone}</p>
             )}
+            <label className="mt-2 block text-[11px] font-semibold text-gray-400">
+              {t("checkout.emailOptional")}
+              <input
+                type="email"
+                name="email"
+                autoComplete="email"
+                inputMode="email"
+                value={form.email}
+                onChange={handleChange}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs outline-none focus:border-primary"
+                placeholder={t("checkout.emailPlaceholder")}
+              />
+            </label>
           </div>
 
           <div>

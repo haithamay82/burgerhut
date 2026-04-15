@@ -307,6 +307,8 @@ const HE = {
   "checkout.firstNamePh": "הקלידו שם פרטי",
   "checkout.lastNamePh": "הקלידו שם משפחה",
   "checkout.phone": "טלפון",
+  "checkout.emailOptional": "אימייל (אופציונלי — לחשבונית)",
+  "checkout.emailPlaceholder": "לדוגמה: name@example.com",
   "checkout.orderType": "סוג הזמנה",
   "checkout.delivery": "משלוח",
   "checkout.pickup": "איסוף מהמסעדה",
@@ -458,6 +460,12 @@ const HE = {
     "תודה! ההזמנה נרשמה.",
   "success.descCard":
     "תודה! התשלום התקבל וההזמנה נרשמה במערכת.",
+  "success.invoiceSentEmailAndSms":
+    "החשבונית נשלחה לכתובת האימייל ולמספר הטלפון שהוזנו בהזמנה (אם הופעלו חשבוניות ו־SMS במסוף).",
+  "success.invoiceSentEmailOnly":
+    "החשבונית נשלחה לכתובת האימייל שהוזנה בהזמנה (אם הופעל מודול חשבוניות במסוף).",
+  "success.invoiceSentSmsOnly":
+    "החשבונית נשלחה ב־SMS למספר הטלפון שהוזן בהזמנה (אם הופעלו חשבוניות וחבילת SMS במסוף).",
   "success.waSendOrder": "שלח את ההזמנה למסעדה",
   "success.waOrderRecordedWithId": "הזמנתך #{order} מוכנה לשליחה",
   "success.waOrderRecordedNoId": "הזמנתך מוכנה לשליחה",
@@ -1150,6 +1158,8 @@ const AR = {
   "checkout.firstNamePh": "اكتب الاسم الأول",
   "checkout.lastNamePh": "اكتب اسم العائلة",
   "checkout.phone": "رقم الهاتف",
+  "checkout.emailOptional": "البريد (اختياري — للفاتورة)",
+  "checkout.emailPlaceholder": "مثال: name@example.com",
   "checkout.orderType": "نوع الطلب",
   "checkout.delivery": "توصيل",
   "checkout.pickup": "استلام من المحل",
@@ -1303,6 +1313,12 @@ const AR = {
     "شكراً! تم تسجيل الطلب في النظام. إذا فتح واتساب — راجِع الرسالة وأرسلها للمتجر.",
   "success.descCard":
     "شكراً! تم استلام الدفع وتسجيل الطلب.",
+  "success.invoiceSentEmailAndSms":
+    "أُرسلت الفاتورة إلى البريد الإلكتروني ورقم الهاتف المدخلين في الطلب (عند تفعيل الفوترة وSMS في الطرفية).",
+  "success.invoiceSentEmailOnly":
+    "أُرسلت الفاتورة إلى البريد الإلكتروني المدخل في الطلب (عند تفعيل وحدة الفوترة في الطرفية).",
+  "success.invoiceSentSmsOnly":
+    "أُرسلت الفاتورة عبر SMS إلى رقم الهاتف المدخل في الطلب (عند تفعيل الفوترة وحزمة SMS في الطرفية).",
   "success.waSendOrder": "أرسل الطلب إلى المطعم",
   "success.waOrderRecordedWithId": "طلبك #{order} جاهز للإرسال",
   "success.waOrderRecordedNoId": "طلبك جاهز للإرسال",

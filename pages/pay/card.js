@@ -9,6 +9,7 @@ import {
 } from "@/utils/checkoutSessionKeys";
 import { buildCardOrderDetailsFromItems } from "@/utils/cardOrderDetails";
 import { consumePendingOrderForCheckoutResume } from "@/utils/checkoutResumeFromPending";
+import { computeInvoiceDeliveryPrefs } from "@/lib/hypPayProtocol";
 
 export default function CardPayPage() {
   const router = useRouter();
@@ -66,6 +67,7 @@ export default function CardPayPage() {
           lastName: pending.customer?.lastName || "",
           customerName: pending.customer?.name || "",
           phone: pending.customer?.phone || "",
+          email: pending.customer?.email || "",
           orderDetails: buildCardOrderDetailsFromItems(pending.items),
           orderNumber: pending.orderNumber,
           uniqueId:
@@ -149,6 +151,10 @@ export default function CardPayPage() {
       }
 
       try {
+        const invoiceDelivery = computeInvoiceDeliveryPrefs({
+          email: pending.customer?.email,
+          phone: pending.customer?.phone,
+        });
         writeCardSuccessSnapshot({
           customer: pending.customer,
           items: pending.items,
@@ -163,6 +169,7 @@ export default function CardPayPage() {
           locale: pending.locale,
           waGrandTotal: pending.waGrandTotal,
           couponRewardBaseNis: pending.couponRewardBaseNis,
+          invoiceDelivery,
         });
       } catch {
         /* ignore */

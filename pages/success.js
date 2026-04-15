@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import Layout from "@/components/Layout";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -17,6 +17,10 @@ import {
 } from "@/utils/checkoutSessionKeys";
 import { fireDeferredAdminPushNotify } from "@/utils/fireDeferredAdminPushNotify";
 import { MIN_COUPON_DISPLAY_VALUE_NIS } from "@/lib/coupon";
+import {
+  computeInvoiceDeliveryPrefs,
+  readHypCallbackQueryFromHref,
+} from "@/lib/hypPayProtocol";
 
 function deferredCouponClaimStorageKey(orderNumber, code) {
   return `bh_deferred_coupon_claimed_${String(orderNumber)}_${String(code)}`;
@@ -567,6 +571,67 @@ export default function SuccessPage() {
     };
   }, [router.isReady, payDoneMarker, method, cardOrder, customerCouponsActive]);
 
+  const cardInvoiceNotice = useMemo(() => {
+    if (!payDoneMarker || method !== "card" || typeof window === "undefined") {
+      return null;
+    }
+    const p = readHypCallbackQueryFromHref(window.location.href);
+    const ccode = String(p.CCode ?? p.ccode ?? "").trim();
+    if (ccode !== "0") return null;
+    let inv = null;
+    try {
+      const raw = readCardSuccessSnapshotRaw();
+      if (!raw) return null;
+      const snap = JSON.parse(raw);
+      inv =
+        snap.invoiceDelivery ||
+        computeInvoiceDeliveryPrefs({
+          email: snap.customer?.email,
+          phone: snap.customer?.phone,
+        });
+    } catch {
+      return null;
+    }
+    if (!inv || (!inv.sendEmailInvoice && !inv.sendSmsInvoice)) {
+      return null;
+    }
+    if (inv.sendEmailInvoice && inv.sendSmsInvoice) {
+      return t("success.invoiceSentEmailAndSms");
+    }
+    if (inv.sendEmailInvoice) return t("success.invoiceSentEmailOnly");
+    return t("success.invoiceSentSmsOnly");
+  }, [payDoneMarker, method, t, router.asPath]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (process.env.NODE_ENV !== "development") return;
+    if (!payDoneMarker || method !== "card") return;
+    const p = readHypCallbackQueryFromHref(window.location.href);
+    if (String(p.CCode ?? p.ccode ?? "").trim() !== "0") return;
+    let inv = null;
+    try {
+      const raw = readCardSuccessSnapshotRaw();
+      if (!raw) return;
+      const snap = JSON.parse(raw);
+      inv =
+        snap.invoiceDelivery ||
+        computeInvoiceDeliveryPrefs({
+          email: snap.customer?.email,
+          phone: snap.customer?.phone,
+        });
+    } catch {
+      return;
+    }
+    if (!inv?.sendEmailInvoice && !inv?.sendSmsInvoice) return;
+    const heshRaw = p.Hesh ?? p.hesh;
+    const heshNum = Number(heshRaw);
+    if (!Number.isFinite(heshNum) || heshNum === 0) {
+      console.warn(
+        "[success][dev] Invoice was requested (email/SMS) but Hesh is missing or 0 — check terminal invoice module and SMS package."
+      );
+    }
+  }, [payDoneMarker, method, router.asPath]);
+
   const title = payDoneMarker
     ? t("success.paymentCompleted")
     : method === "online"
@@ -708,6 +773,14 @@ export default function SuccessPage() {
               {t("success.couponScreenshotHint")}
             </p>
           </section>
+        ) : null}
+        {cardInvoiceNotice ? (
+          <p
+            className="mb-4 max-w-md rounded-xl border border-sky-700/50 bg-sky-950/40 px-4 py-3 text-center text-sm leading-snug text-sky-100/95"
+            dir="rtl"
+          >
+            {cardInvoiceNotice}
+          </p>
         ) : null}
         {showSuccessCheckBlock ? (
           <>
