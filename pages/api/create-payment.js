@@ -16,6 +16,7 @@ import {
   describeApiSignRequestForLog,
   payProtocolSignFieldPresence,
   buildInvoiceHeshDesc,
+  buildPritimHeshDescFromOrderDetails,
   computeInvoiceDeliveryPrefs,
   sanitizeHypInvoiceEmail,
   normalizeIsraeliCellForHyp,
@@ -112,11 +113,23 @@ export default async function handler(req, res) {
     email: emailRaw,
     phone,
   });
-  const heshDesc = buildInvoiceHeshDesc({
-    locale: lang === "ENG" ? "en" : "he",
-    orderNumber: orderNum,
-    amountNis: totalAmount,
-  });
+  const orderDetails = Array.isArray(body.orderDetails) ? body.orderDetails : [];
+  const pritimPack = buildPritimHeshDescFromOrderDetails(
+    orderDetails,
+    totalAmount
+  );
+  let heshDesc;
+  let pritim = false;
+  if (pritimPack.ok && pritimPack.heshDesc) {
+    heshDesc = pritimPack.heshDesc;
+    pritim = true;
+  } else {
+    heshDesc = buildInvoiceHeshDesc({
+      orderNumber: orderNum,
+      amountNis: totalAmount,
+    });
+    pritim = false;
+  }
 
   const signOpts = {
     host: getHypPayBase(),
@@ -135,6 +148,7 @@ export default async function handler(req, res) {
     invoiceEmail: invPrefs.sendEmailInvoice,
     invoiceSms: invPrefs.sendSmsInvoice,
     heshDesc,
+    pritim,
   };
 
   const apiSignUrl = buildApiSignUrl(signOpts);
