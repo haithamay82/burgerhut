@@ -649,14 +649,38 @@ export default function SuccessPage() {
     } catch {
       return null;
     }
-    if (!inv || (!inv.sendEmailInvoice && !inv.sendSmsInvoice)) {
-      return null;
+    if (!inv) return null;
+
+    const infoCls =
+      "mb-4 max-w-md rounded-xl border border-sky-700/50 bg-sky-950/40 px-4 py-3 text-center text-sm leading-snug text-sky-100/95";
+    const warnCls =
+      "mb-4 max-w-md rounded-xl border border-amber-700/50 bg-amber-950/35 px-4 py-3 text-center text-sm leading-snug text-amber-50/95";
+
+    if (!inv.sendEmailInvoice && !inv.sendSmsInvoice) {
+      return {
+        text: t("success.invoiceCheckoutHintNoChannel"),
+        className: warnCls,
+      };
+    }
+    const heshRaw = p.Hesh ?? p.hesh;
+    const heshNum = Number(heshRaw);
+    const heshOk = Number.isFinite(heshNum) && heshNum !== 0;
+    if (!heshOk) {
+      return {
+        text: t("success.invoiceHypNoReceipt"),
+        className: warnCls,
+      };
     }
     if (inv.sendEmailInvoice && inv.sendSmsInvoice) {
-      return t("success.invoiceSentEmailAndSms");
+      return {
+        text: t("success.invoiceSentEmailAndSms"),
+        className: infoCls,
+      };
     }
-    if (inv.sendEmailInvoice) return t("success.invoiceSentEmailOnly");
-    return t("success.invoiceSentSmsOnly");
+    if (inv.sendEmailInvoice) {
+      return { text: t("success.invoiceSentEmailOnly"), className: infoCls };
+    }
+    return { text: t("success.invoiceSentSmsOnly"), className: infoCls };
   }, [payDoneMarker, method, t, router.asPath]);
 
   useEffect(() => {
@@ -833,10 +857,10 @@ export default function SuccessPage() {
         ) : null}
         {cardInvoiceNotice ? (
           <p
-            className="mb-4 max-w-md rounded-xl border border-sky-700/50 bg-sky-950/40 px-4 py-3 text-center text-sm leading-snug text-sky-100/95"
+            className={cardInvoiceNotice.className}
             dir="rtl"
           >
-            {cardInvoiceNotice}
+            {cardInvoiceNotice.text}
           </p>
         ) : null}
         {showSuccessCheckBlock ? (
