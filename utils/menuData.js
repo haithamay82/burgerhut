@@ -6,6 +6,12 @@ export const CATEGORIES = [
   { id: "drinks" },
 ];
 
+/**
+ * דף הבית: טאב «מיוחדים» — כבוי זמנית כדי שלא יזמינו בזמן עבודה על המערכת.
+ * להחזיר ל־true כשמוכנים להציג שוב.
+ */
+export const SHOW_SPECIALS_IN_HOME_MENU = true;
+
 /** סלטים בחינם — לכל מנה */
 export const FREE_SALADS = [
   { id: "salad_lettuce", image: "/menu/salad-lettuce.png" },
@@ -141,6 +147,12 @@ const IMG_SIDE_HOME_FRIES = "/menu/side-home-fries.png";
 const IMG_SIDE_HOME_FRIES_SPICY = "/menu/side-home-fries-spicy.png";
 /** עד עדכון תמונות — placeholder אחיד */
 const IMG_SPECIAL_BURGER_PLACEHOLDER = "/menu/burger-200.png";
+const IMG_SPECIAL_TRUFFLE_KING = "/menu/special-truffle-king.png";
+const IMG_SPECIAL_BBQ_SMOKE = "/menu/special-bbq-smoke.png";
+const IMG_SPECIAL_FIRE_BURGER = "/menu/special-fire-burger.png";
+const IMG_SPECIAL_CHEESE_BOMB = "/menu/special-cheese-bomb.png";
+const IMG_SPECIAL_LAMB_BACON_DELUXE = "/menu/special-lamb-bacon-deluxe.png";
+const IMG_SPECIAL_CORNED_BEEF_STACK = "/menu/special-corned-beef-stack.png";
 
 export const MENU_ITEMS = [
   {
@@ -231,37 +243,37 @@ export const MENU_ITEMS = [
     id: "special-truffle-king",
     basePrice: 75,
     category: "specials",
-    image: IMG_SPECIAL_BURGER_PLACEHOLDER,
+    image: IMG_SPECIAL_TRUFFLE_KING,
   },
   {
     id: "special-bbq-smoke",
     basePrice: 85,
     category: "specials",
-    image: IMG_SPECIAL_BURGER_PLACEHOLDER,
+    image: IMG_SPECIAL_BBQ_SMOKE,
   },
   {
     id: "special-fire-burger",
     basePrice: 80,
     category: "specials",
-    image: IMG_SPECIAL_BURGER_PLACEHOLDER,
+    image: IMG_SPECIAL_FIRE_BURGER,
   },
   {
     id: "special-cheese-bomb",
     basePrice: 85,
     category: "specials",
-    image: IMG_SPECIAL_BURGER_PLACEHOLDER,
+    image: IMG_SPECIAL_CHEESE_BOMB,
   },
   {
     id: "special-lamb-bacon-deluxe",
     basePrice: 85,
     category: "specials",
-    image: IMG_SPECIAL_BURGER_PLACEHOLDER,
+    image: IMG_SPECIAL_LAMB_BACON_DELUXE,
   },
   {
     id: "special-corned-beef-stack",
     basePrice: 80,
     category: "specials",
-    image: IMG_SPECIAL_BURGER_PLACEHOLDER,
+    image: IMG_SPECIAL_CORNED_BEEF_STACK,
   },
   {
     id: "crispy-chicken-burger",

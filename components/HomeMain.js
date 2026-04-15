@@ -4,7 +4,7 @@ import StickyCartBar from "@/components/StickyCartBar";
 import { useOrderingHours } from "@/contexts/OrderingHoursContext";
 import MenuItemCard from "@/components/MenuItemCard";
 import { useMealWizard } from "@/contexts/MealWizardContext";
-import { CATEGORIES } from "@/utils/menuData";
+import { CATEGORIES, SHOW_SPECIALS_IN_HOME_MENU } from "@/utils/menuData";
 import { useMenuCatalog } from "@/contexts/MenuCatalogContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import { formatIls } from "@/utils/cartMoney";
@@ -31,6 +31,9 @@ export default function HomeMain({
     todayScheduledOpen;
   const [activeCategory, setActiveCategory] = useState("burgers");
   const { openMealFromMenu, addSpecialMealQuick } = useMealWizard();
+  const homeCategories = CATEGORIES.filter(
+    (c) => SHOW_SPECIALS_IN_HOME_MENU || c.id !== "specials"
+  );
   const [discountCfg, setDiscountCfg] = useState({
     enabled: false,
     percent: 0,
@@ -72,6 +75,12 @@ export default function HomeMain({
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!SHOW_SPECIALS_IN_HOME_MENU && activeCategory === "specials") {
+      setActiveCategory("burgers");
+    }
+  }, [activeCategory]);
 
   const showClosedTodayFloat = !orderingAllowed && !todayScheduledOpen;
 
@@ -186,22 +195,24 @@ export default function HomeMain({
                 </button>
               ))}
             </div>
-            <div className="mt-1.5 grid w-full grid-cols-4 gap-1.5">
-              <button
-                type="button"
-                onClick={() => setActiveCategory("specials")}
-                className={`flex min-h-[2.5rem] w-full items-center justify-center rounded-full border px-1 py-1.5 text-center text-[12px] font-semibold leading-tight shadow-md backdrop-blur-sm transition-colors ${
-                  activeCategory === "specials"
-                    ? "border-primary bg-primary text-black shadow-lg ring-2 ring-primary/40"
-                    : "border-white/25 bg-black/50 text-gray-100 hover:border-white/40 hover:bg-black/65"
-                }`}
-              >
-                {t("cat.specials")}
-              </button>
-            </div>
+            {SHOW_SPECIALS_IN_HOME_MENU ? (
+              <div className="mt-1.5 grid w-full grid-cols-4 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setActiveCategory("specials")}
+                  className={`flex min-h-[2.5rem] w-full items-center justify-center rounded-full border px-1 py-1.5 text-center text-[12px] font-semibold leading-tight shadow-md backdrop-blur-sm transition-colors ${
+                    activeCategory === "specials"
+                      ? "border-primary bg-primary text-black shadow-lg ring-2 ring-primary/40"
+                      : "border-white/25 bg-black/50 text-gray-100 hover:border-white/40 hover:bg-black/65"
+                  }`}
+                >
+                  {t("cat.specials")}
+                </button>
+              </div>
+            ) : null}
           </div>
           <div className="hidden w-full sm:flex sm:flex-nowrap sm:items-center sm:justify-center sm:gap-2">
-            {CATEGORIES.map((cat) => (
+            {homeCategories.map((cat) => (
               <button
                 key={cat.id}
                 type="button"
