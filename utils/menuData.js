@@ -313,7 +313,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "drink-xl",
-    basePrice: 6,
+    basePrice: 1, // זמני — להחזיר ל־6
     category: "drinks",
     image: IMG_DRINK_XL,
   },
