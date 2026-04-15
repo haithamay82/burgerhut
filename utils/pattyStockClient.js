@@ -58,21 +58,44 @@ export function pattyInsufficientAddToCartMessage(t, check) {
  */
 export async function validatePattyStockForSimulatedCart(
   lines,
-  hintProductId
+  hintProductId,
+  hintSpecialPattyGrams
 ) {
-  const items = lines.map((it) => ({
-    productId: cartLineProductId(it),
-    quantity: Math.max(1, Number(it.quantity) || 1),
-  }));
+  const items = lines.map((it) => {
+    const pid = String(cartLineProductId(it) || "");
+    const base = {
+      productId: pid,
+      quantity: Math.max(1, Number(it.quantity) || 1),
+    };
+    if (pid.startsWith("special-")) {
+      return {
+        ...base,
+        specialPattyGrams: Number(it.specialPattyGrams) === 220 ? 220 : 200,
+      };
+    }
+    return base;
+  });
   const hint =
     typeof hintProductId === "string" && hintProductId.trim()
       ? hintProductId.trim()
+      : undefined;
+  const hintSp =
+    hint && hint.startsWith("special-")
+      ? Number(hintSpecialPattyGrams) === 220
+        ? 220
+        : 200
       : undefined;
   try {
     const r = await fetch("/api/inventory/validate-patties", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items, ...(hint ? { hintProductId: hint } : {}) }),
+      body: JSON.stringify({
+        items,
+        ...(hint ? { hintProductId: hint } : {}),
+        ...(hint && hint.startsWith("special-")
+          ? { hintSpecialPattyGrams: hintSp }
+          : {}),
+      }),
     });
     const d = await r.json().catch(() => ({}));
     if (!r.ok) return { ok: false, error: "network" };

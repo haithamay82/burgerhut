@@ -1,5 +1,6 @@
 import { lineTotal } from "@/utils/cartMoney";
 import { sortSaladsForDisplay } from "@/utils/saladDisplayOrder";
+import { cartLineProductId } from "@/hooks/useCart";
 
 /** פירוט שורות ל־Hyp / לוג — תוספות ומחיר שורה */
 export function buildCardOrderDetailsFromItems(items) {
@@ -10,6 +11,12 @@ export function buildCardOrderDetailsFromItems(items) {
       (x) => x.label || x.name || x.id
     );
     const exs = (item.extras || []).map((x) => x.label || x.name || x.id);
+    const pid = String(cartLineProductId(item) || "");
+    const specialPattyGramsValue = pid.startsWith("special-")
+      ? Number(item.specialPattyGrams) === 220
+        ? 220
+        : 200
+      : undefined;
     return {
       name: item.name,
       quantity: item.quantity,
@@ -35,6 +42,9 @@ export function buildCardOrderDetailsFromItems(items) {
       sellerNotes: item.sellerNotes
         ? String(item.sellerNotes).trim() || undefined
         : undefined,
+      ...(specialPattyGramsValue != null
+        ? { specialPattyGrams: specialPattyGramsValue }
+        : {}),
     };
   });
 }

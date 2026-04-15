@@ -43,10 +43,15 @@ export default async function handler(req, res) {
     /** @type {{ pattyCeiling?: number, pattyQtyAttempted?: number }} */
     const capPayload = {};
     if (hintPid) {
+      const hintGrams =
+        typeof body.hintSpecialPattyGrams === "number"
+          ? body.hintSpecialPattyGrams
+          : Number(body.hintSpecialPattyGrams);
       const ceiling = maxPattyUnitsForProductWithOtherCartLines(
         items,
         hintPid,
-        inv.pattyStock
+        inv.pattyStock,
+        Number.isFinite(hintGrams) ? hintGrams : undefined
       );
       if (ceiling != null) {
         const have = sumQuantityForProductInItems(items, hintPid);

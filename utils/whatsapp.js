@@ -202,6 +202,13 @@ export function buildWhatsAppOrderText({
           .join(", ")}`
       );
     }
+    const waPid = String(item.productId || "").trim();
+    if (waPid.startsWith("special-")) {
+      const g = Number(item.specialPattyGrams) === 220 ? 220 : 200;
+      lines.push(
+        `   ${waBoldLabel(tr("wa.specialPatty"))}: ${g}${tr("wa.gramsUnit")}`
+      );
+    }
     if (typeof item.bunSauceOnBun === "boolean") {
       lines.push(
         `   ${waBoldLabel(tr("wa.bunSauceOnBun"))}: ${item.bunSauceOnBun ? tr("ui.bunSauceYes") : tr("ui.bunSauceNo")}`

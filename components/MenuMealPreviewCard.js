@@ -52,12 +52,12 @@ export default function MenuMealPreviewCard({
       </div>
       <div className="border-t border-slate-800 p-3">
         {item?.category === "specials" ? (
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+          <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => onOpenSpecialSaladsEdit?.(item)}
               disabled={isOutOfStock}
-              className="btn-primary flex-1 text-sm disabled:opacity-50"
+              className="btn-primary min-h-[2.75rem] w-full min-w-0 px-2 text-xs font-semibold leading-tight disabled:opacity-50 sm:text-sm"
             >
               {t("ui.editComponents")}
             </button>
@@ -65,7 +65,7 @@ export default function MenuMealPreviewCard({
               type="button"
               onClick={() => onSpecialQuickAdd?.(item)}
               disabled={isOutOfStock}
-              className="flex-1 rounded-xl border-2 border-primary/80 bg-slate-900/80 py-2.5 text-sm font-bold text-primary transition-colors hover:bg-primary/10 disabled:opacity-50"
+              className="min-h-[2.75rem] w-full min-w-0 rounded-xl border-2 border-primary/80 bg-slate-900/80 px-2 text-xs font-bold leading-tight text-primary transition-colors hover:bg-primary/10 disabled:opacity-50 sm:text-sm"
             >
               {t("ui.addSpecialToCart")}
             </button>

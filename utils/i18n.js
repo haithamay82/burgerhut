@@ -296,7 +296,10 @@ const HE = {
   "ui.wizardAllOnOneScreen":
     "כל האפשרויות למטה — גללו, בחרו והוסיפו לעגלה בתחתית המסך.",
   "ui.wizardSpecialSaladsOnly":
-    "ניתן לשנות סלטים בלבד. הסלטים המסומנים תואמים למנה — אפשר להסיר או להחזיר חינם.",
+    "תוספות המנה (גבינה, קציצה נוספת וכו׳) קבועות. ניתן לערוך: סלטים, מידת עשייה, רטבים בצד ושתייה — גללו והוסיפו לעגלה למטה.",
+  "ui.specialPattyTitle": "קציצה",
+  "ui.specialPatty200": "200 גר׳",
+  "ui.specialPatty220": "220 גר׳ (+₪5)",
   "ui.addDrinkQuestion": "להוסיף שתיה?",
   "ui.addDrinkSelectPlaceholder": "בחרו משקה מהרשימה",
   "ui.sellerNotes": "הערות למוכר",
@@ -561,6 +564,8 @@ const HE = {
   "wa.salads": "סלטים",
   "wa.bunSauceOnBun": "רוטב על הלחמניה",
   "wa.doneness": "מידת העשייה",
+  "wa.specialPatty": "קציצה",
+  "wa.gramsUnit": " גר׳",
   "wa.sauces": "תוספות רטבים בצד",
   "wa.linePrice": "מחיר",
   "wa.drink": "שתיה",
@@ -1177,7 +1182,10 @@ const AR = {
   "ui.wizardAllOnOneScreen":
     "كل الخيارات أدناه — مرّروا واختاروا، ثم أضيفوا للسلة في الأسفل.",
   "ui.wizardSpecialSaladsOnly":
-    "يمكن تعديل السلطات فقط. السلطات المحددة تطابق الوجبة — يمكن إزالتها أو إعادتها مجاناً.",
+    "إضافات الوجبة (جبن، قرص إضافي…) ثابتة. يمكن تعديل: السلطات، درجة النضج، الصلصات الجانبية والمشروب — مرّروا وأضيفوا للسلة في الأسفل.",
+  "ui.specialPattyTitle": "القرص",
+  "ui.specialPatty200": "200غ",
+  "ui.specialPatty220": "220غ (+₪5)",
   "ui.addDrinkQuestion": "إضافة مشروب؟",
   "ui.addDrinkSelectPlaceholder": "اختروا مشروباً من القائمة",
   "ui.sellerNotes": "ملاحظات للبائع",
@@ -1446,6 +1454,8 @@ const AR = {
   "wa.salads": "سلطة",
   "wa.bunSauceOnBun": "صلصة على الخبز",
   "wa.doneness": "درجة التسوية",
+  "wa.specialPatty": "القرص",
+  "wa.gramsUnit": " غ",
   "wa.sauces": "صلصات إضافية على الجانب",
   "wa.linePrice": "السعر",
   "wa.drink": "مشروب",

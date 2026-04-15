@@ -73,5 +73,6 @@ export function buildSpecialBurgerCartLine({
     quantity: q,
     price: unitPrice,
     burgerDoneness: don,
+    specialPattyGrams: 200,
   };
 }

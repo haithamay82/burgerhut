@@ -1,5 +1,27 @@
 import { cartLineProductId } from "@/hooks/useCart";
 
+/** @param {unknown} it — שורת עגלה או { productId, specialPattyGrams } */
+export function specialPattyGramsFromLine(it) {
+  const pid = String(cartLineProductId(it) || "");
+  if (!pid.startsWith("special-")) return null;
+  return Number(it?.specialPattyGrams) === 220 ? 220 : 200;
+}
+
+/**
+ * מערך משקלי קציצות לשורת הזמנה (מנות מיוחדות: 200 או 220 לפי בחירה).
+ * @param {unknown} it
+ * @returns {number[] | null}
+ */
+export function pattyGramsArrayForOrderItem(it) {
+  const pid = String(cartLineProductId(it) || "");
+  const base = PATTIES_BY_PRODUCT_ID[pid];
+  if (!base) return null;
+  if (pid.startsWith("special-")) {
+    return [specialPattyGramsFromLine(it)];
+  }
+  return base;
+}
+
 /**
  * מיפוי מנה (בורגר בלבד) → משקלי קציצות בגרמים לפי טבלת המטבח.
  * 600ג׳: ברירת מחדל 3×200; קיימת חלופה 220+220+160 — מוצגת בהערה בניהול.
@@ -41,7 +63,7 @@ export function aggregatePattyCountsFromOrderItems(items) {
 
   for (const it of items) {
     const pid = String(cartLineProductId(it) || "");
-    const patties = PATTIES_BY_PRODUCT_ID[pid];
+    const patties = pattyGramsArrayForOrderItem(it);
     if (!patties) continue;
     const q = Math.max(1, Number(it.quantity) || 1);
     if (pid === "burger-600") qty600 += q;
@@ -62,9 +84,14 @@ export function hasAnyPattyPrep({ counts, qty600 }) {
  * @param {string} pid
  * @param {number} qty
  */
-export function canBuildBurgerWithPattyStock(stock, pid, qty) {
-  const patties = PATTIES_BY_PRODUCT_ID[pid];
+export function canBuildBurgerWithPattyStock(stock, pid, qty, specialPattyGrams) {
+  const pidStr = String(pid || "");
+  let patties = PATTIES_BY_PRODUCT_ID[pidStr];
   if (!patties) return true;
+  if (pidStr.startsWith("special-")) {
+    const g = Number(specialPattyGrams) === 220 ? 220 : 200;
+    patties = [g];
+  }
   const q = Math.max(1, Math.floor(Number(qty) || 1));
   /** @type {Record<number, number>} */
   const need = { 120: 0, 160: 0, 200: 0, 220: 0 };
@@ -82,9 +109,15 @@ export function canBuildBurgerWithPattyStock(stock, pid, qty) {
  * @returns {string[]}
  */
 export function computeAutoUnavailableBurgerIds(stock) {
-  return Object.keys(PATTIES_BY_PRODUCT_ID).filter(
-    (pid) => !canBuildBurgerWithPattyStock(stock, pid, 1)
-  );
+  return Object.keys(PATTIES_BY_PRODUCT_ID).filter((pid) => {
+    if (String(pid).startsWith("special-")) {
+      return (
+        !canBuildBurgerWithPattyStock(stock, pid, 1, 200) &&
+        !canBuildBurgerWithPattyStock(stock, pid, 1, 220)
+      );
+    }
+    return !canBuildBurgerWithPattyStock(stock, pid, 1);
+  });
 }
 
 /**
@@ -110,10 +143,14 @@ export function pattyDemandFitsStock(counts, stock) {
 export function maxPattyUnitsForProductWithOtherCartLines(
   items,
   productId,
-  stock
+  stock,
+  hintSpecialPattyGrams
 ) {
   const pid = String(productId || "");
-  const patties = PATTIES_BY_PRODUCT_ID[pid];
+  const patties =
+    pid.startsWith("special-") && PATTIES_BY_PRODUCT_ID[pid]
+      ? [Number(hintSpecialPattyGrams) === 220 ? 220 : 200]
+      : PATTIES_BY_PRODUCT_ID[pid];
   if (!patties || !stock || typeof stock !== "object") return null;
 
   const others = (Array.isArray(items) ? items : []).filter(
@@ -188,7 +225,7 @@ export function collectPattyAffectedLines(items, deficientGrams) {
   if (!Array.isArray(items)) return rows;
   for (const it of items) {
     const pid = String(cartLineProductId(it) || "");
-    const patties = PATTIES_BY_PRODUCT_ID[pid];
+    const patties = pattyGramsArrayForOrderItem(it);
     if (!patties) continue;
     if (!patties.some((g) => gramSet.has(g))) continue;
     const q = Math.max(1, Number(it.quantity) || 1);

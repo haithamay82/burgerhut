@@ -65,7 +65,14 @@ export function customizationKey(item) {
       : item.bunSauceOnBun === true
         ? "1"
         : "";
-  return `${pid}|${size}|${variant}|${kidsBread}|${doneness}|${salads}|${tops}|${extras}|${requestedDrink}|${bun}|${notes}`;
+  const specialPatty =
+    String(pid).startsWith("special-")
+      ? Number(item.specialPattyGrams) === 220
+        ? "220"
+        : "200"
+      : "";
+  const base = `${pid}|${size}|${variant}|${kidsBread}|${doneness}|${salads}|${tops}|${extras}|${requestedDrink}|${bun}|${notes}`;
+  return specialPatty ? `${base}|${specialPatty}` : base;
 }
 
 function newCartLineId(productId) {
