@@ -1395,48 +1395,20 @@ export default function CheckoutPage() {
         <div className="mt-2 border-t border-slate-800 pt-3">
           <h3 className="mb-2 text-sm font-semibold">{t("checkout.payment")}</h3>
           <div className="grid grid-cols-3 gap-2 items-end">
-            {PAYMENT_METHODS.map((m) => {
-              if (m.id === "card") {
-                return (
-                  <div key={m.id} className="flex flex-col gap-1.5">
-                    <p className="text-center text-[10px] font-semibold leading-tight text-red-400">
-                      {t("checkout.cardUnavailableBanner")}
-                    </p>
-                    <p className="text-center text-[9px] leading-tight text-red-300/85">
-                      {t("checkout.cardUnavailableSubline")}
-                    </p>
-                    <p className="text-center text-[9px] font-medium leading-tight text-amber-200/95">
-                      {t("checkout.cardUnavailableBitHint")}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => selectPayment(m.id)}
-                      className={`w-full rounded-full border-2 px-2 py-2 text-[11px] font-semibold transition-colors ${
-                        form.payment === m.id
-                          ? "border-red-500 bg-red-950/80 text-red-100"
-                          : "border-red-700 bg-red-950/45 text-red-200 hover:border-red-600 hover:bg-red-950/65"
-                      }`}
-                    >
-                      {t(`payment.${m.id}`)}
-                    </button>
-                  </div>
-                );
-              }
-              return (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => selectPayment(m.id)}
-                  className={`rounded-full border px-3 py-2 text-[11px] ${
-                    form.payment === m.id
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-slate-700 text-gray-300"
-                  }`}
-                >
-                  {t(`payment.${m.id}`)}
-                </button>
-              );
-            })}
+            {PAYMENT_METHODS.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => selectPayment(m.id)}
+                className={`rounded-full border px-3 py-2 text-[11px] ${
+                  form.payment === m.id
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-slate-700 text-gray-300"
+                }`}
+              >
+                {t(`payment.${m.id}`)}
+              </button>
+            ))}
           </div>
         </div>
 
