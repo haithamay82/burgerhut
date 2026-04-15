@@ -30,7 +30,7 @@ export default function HomeMain({
     !restaurantOpen &&
     todayScheduledOpen;
   const [activeCategory, setActiveCategory] = useState("burgers");
-  const { openMealFromMenu } = useMealWizard();
+  const { openMealFromMenu, addSpecialMealQuick } = useMealWizard();
   const [discountCfg, setDiscountCfg] = useState({
     enabled: false,
     percent: 0,
@@ -168,14 +168,45 @@ export default function HomeMain({
           aria-hidden
         />
         <div className="relative z-10 flex min-h-[9.5rem] w-full min-w-0 items-center px-2 py-6 sm:min-h-[11rem] sm:px-3 md:min-h-[12.5rem]">
-          {/* מובייל: חמש עמודות — שורה אחת; מסכים רחבים: שורה אחת ממורכזת בלי wrap */}
-          <div className="grid w-full grid-cols-5 gap-1.5 sm:flex sm:w-full sm:flex-nowrap sm:items-center sm:justify-center sm:gap-2">
+          {/* מובייל: מיוחדים בשורה שנייה מתחת לבורגרים; מסכים רחבים: שורה אחת עם כל הקטגוריות */}
+          <div className="w-full sm:hidden">
+            <div className="grid w-full grid-cols-4 gap-1.5">
+              {["burgers", "crispy", "sides", "drinks"].map((catId) => (
+                <button
+                  key={catId}
+                  type="button"
+                  onClick={() => setActiveCategory(catId)}
+                  className={`flex min-h-[2.5rem] w-full items-center justify-center rounded-full border px-1 py-1.5 text-center text-[12px] font-semibold leading-tight shadow-md backdrop-blur-sm transition-colors ${
+                    activeCategory === catId
+                      ? "border-primary bg-primary text-black shadow-lg ring-2 ring-primary/40"
+                      : "border-white/25 bg-black/50 text-gray-100 hover:border-white/40 hover:bg-black/65"
+                  }`}
+                >
+                  {t(`cat.${catId}`)}
+                </button>
+              ))}
+            </div>
+            <div className="mt-1.5 grid w-full grid-cols-4 gap-1.5">
+              <button
+                type="button"
+                onClick={() => setActiveCategory("specials")}
+                className={`flex min-h-[2.5rem] w-full items-center justify-center rounded-full border px-1 py-1.5 text-center text-[12px] font-semibold leading-tight shadow-md backdrop-blur-sm transition-colors ${
+                  activeCategory === "specials"
+                    ? "border-primary bg-primary text-black shadow-lg ring-2 ring-primary/40"
+                    : "border-white/25 bg-black/50 text-gray-100 hover:border-white/40 hover:bg-black/65"
+                }`}
+              >
+                {t("cat.specials")}
+              </button>
+            </div>
+          </div>
+          <div className="hidden w-full sm:flex sm:flex-nowrap sm:items-center sm:justify-center sm:gap-2">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
                 type="button"
                 onClick={() => setActiveCategory(cat.id)}
-                className={`flex min-h-[2.5rem] w-full items-center justify-center rounded-full border px-1 py-1.5 text-center text-[12px] font-semibold leading-tight shadow-md backdrop-blur-sm transition-colors sm:min-h-0 sm:w-auto sm:whitespace-nowrap sm:px-4 sm:py-2 sm:text-[16.8px] sm:leading-normal ${
+                className={`flex min-h-[2.5rem] w-full min-w-0 max-w-[11rem] flex-1 items-center justify-center rounded-full border px-2 py-1.5 text-center text-[12px] font-semibold leading-tight shadow-md backdrop-blur-sm transition-colors sm:min-h-0 sm:w-auto sm:max-w-none sm:flex-none sm:whitespace-nowrap sm:px-4 sm:py-2 sm:text-[16.8px] sm:leading-normal ${
                   activeCategory === cat.id
                     ? "border-primary bg-primary text-black shadow-lg ring-2 ring-primary/40"
                     : "border-white/25 bg-black/50 text-gray-100 hover:border-white/40 hover:bg-black/65"
@@ -195,6 +226,10 @@ export default function HomeMain({
               <MenuItemCard
                 item={item}
                 onOpenMealWizard={openMealFromMenu}
+                onOpenSpecialSaladsEdit={(it) =>
+                  openMealFromMenu(it, { mode: "editSalads" })
+                }
+                onSpecialQuickAdd={addSpecialMealQuick}
               />
             </div>
           );

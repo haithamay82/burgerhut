@@ -3,7 +3,12 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { menuItemDesc, menuItemName } from "@/utils/menuItemLabels";
 import { useInventory } from "@/contexts/InventoryContext";
 
-export default function MenuMealPreviewCard({ item, onOpenWizard }) {
+export default function MenuMealPreviewCard({
+  item,
+  onOpenWizard,
+  onOpenSpecialSaladsEdit,
+  onSpecialQuickAdd,
+}) {
   const { t, locale } = useLocale();
   const { isUnavailable } = useInventory();
   const isOutOfStock = isUnavailable(item.id);
@@ -46,14 +51,35 @@ export default function MenuMealPreviewCard({ item, onOpenWizard }) {
         </div>
       </div>
       <div className="border-t border-slate-800 p-3">
-        <button
-          type="button"
-          onClick={() => onOpenWizard(item)}
-          disabled={isOutOfStock}
-          className="btn-primary w-full text-sm disabled:opacity-50"
-        >
-          {t("ui.openCustomize")}
-        </button>
+        {item?.category === "specials" ? (
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+            <button
+              type="button"
+              onClick={() => onOpenSpecialSaladsEdit?.(item)}
+              disabled={isOutOfStock}
+              className="btn-primary flex-1 text-sm disabled:opacity-50"
+            >
+              {t("ui.editComponents")}
+            </button>
+            <button
+              type="button"
+              onClick={() => onSpecialQuickAdd?.(item)}
+              disabled={isOutOfStock}
+              className="flex-1 rounded-xl border-2 border-primary/80 bg-slate-900/80 py-2.5 text-sm font-bold text-primary transition-colors hover:bg-primary/10 disabled:opacity-50"
+            >
+              {t("ui.addSpecialToCart")}
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => onOpenWizard(item)}
+            disabled={isOutOfStock}
+            className="btn-primary w-full text-sm disabled:opacity-50"
+          >
+            {t("ui.openCustomize")}
+          </button>
+        )}
       </div>
     </div>
   );

@@ -6,20 +6,34 @@ import {
   useState,
 } from "react";
 import MealCustomizeWizard from "@/components/MealCustomizeWizard";
+import { useCart } from "@/hooks/useCart";
+import { useLocale } from "@/contexts/LocaleContext";
+import {
+  simulateCartAfterAdd,
+  pattyInsufficientAddToCartMessage,
+  validatePattyStockForSimulatedCart,
+} from "@/utils/pattyStockClient";
+import {
+  buildSpecialBurgerCartLine,
+  defaultSaladsForSpecialProductId,
+} from "@/utils/specialBurgerDefaults";
 
 const MealWizardContext = createContext(null);
 
 export function MealWizardProvider({ children }) {
   const [wizard, setWizard] = useState(null);
+  const { t, locale } = useLocale();
+  const { addItem, items: cartItems } = useCart();
 
   const closeMealWizard = useCallback(() => setWizard(null), []);
 
-  const openMealFromMenu = useCallback((item) => {
+  const openMealFromMenu = useCallback((item, opts = {}) => {
     if (!item) return;
     setWizard({
       item,
       initialCartLine: null,
       replaceLineId: null,
+      specialWizardMode: opts.mode ?? null,
     });
   }, []);
 
@@ -29,16 +43,46 @@ export function MealWizardProvider({ children }) {
       item: catalogItem,
       initialCartLine: cartLine,
       replaceLineId: String(cartLine.id),
+      specialWizardMode: null,
     });
   }, []);
+
+  const addSpecialMealQuick = useCallback(
+    async (item) => {
+      if (!item || item.category !== "specials") return;
+      const saladIds = defaultSaladsForSpecialProductId(item.id);
+      const linePayload = buildSpecialBurgerCartLine({
+        item,
+        selectedSaladIds: saladIds,
+        quantity: 1,
+        t,
+        locale,
+        burgerDoneness: null,
+      });
+      const afterMerge = simulateCartAfterAdd(cartItems, linePayload);
+      const pattyCheck = await validatePattyStockForSimulatedCart(
+        afterMerge,
+        item.id
+      );
+      if (!pattyCheck.ok) {
+        if (typeof window !== "undefined") {
+          window.alert(pattyInsufficientAddToCartMessage(t, pattyCheck));
+        }
+        return;
+      }
+      addItem(linePayload);
+    },
+    [addItem, cartItems, locale, t]
+  );
 
   const value = useMemo(
     () => ({
       openMealFromMenu,
       openMealEditLine,
       closeMealWizard,
+      addSpecialMealQuick,
     }),
-    [openMealFromMenu, openMealEditLine, closeMealWizard]
+    [openMealFromMenu, openMealEditLine, closeMealWizard, addSpecialMealQuick]
   );
 
   return (
@@ -50,6 +94,7 @@ export function MealWizardProvider({ children }) {
         onClose={closeMealWizard}
         initialCartLine={wizard?.initialCartLine ?? null}
         replaceLineId={wizard?.replaceLineId ?? null}
+        specialWizardMode={wizard?.specialWizardMode ?? null}
       />
     </MealWizardContext.Provider>
   );

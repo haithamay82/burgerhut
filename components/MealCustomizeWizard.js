@@ -13,6 +13,7 @@ import {
   INVENTORY_MANAGED_SALAD_IDS,
 } from "@/utils/menuData";
 import { isBeefBurgerStyleCategory } from "@/utils/menuMealCategories";
+import { defaultSaladsForSpecialProductId } from "@/utils/specialBurgerDefaults";
 import { useMenuCatalog } from "@/contexts/MenuCatalogContext";
 import { menuItemName } from "@/utils/menuItemLabels";
 import { formatIls } from "@/utils/cartMoney";
@@ -51,6 +52,7 @@ export default function MealCustomizeWizard({
   onClose,
   initialCartLine = null,
   replaceLineId = null,
+  specialWizardMode = null,
 }) {
   const { t, locale } = useLocale();
   const { menuItems } = useMenuCatalog();
@@ -86,30 +88,40 @@ export default function MealCustomizeWizard({
   const blocked = isOutOfStock;
   const isKidsCrispyBurger = item?.id === CRISPY_CHICKEN_KIDS_PRODUCT_ID;
   const isAdultCrispyBurger = item?.id === CRISPY_CHICKEN_BURGER_PRODUCT_ID;
-  /** רוטב על לחמניה: מוסתר בקריספי מבוגרים עם «בלי עגולה», ובקריספי ילדים עם «בלי לחם» */
-  const showBunSauceOnMeal =
-    (!isAdultCrispyBurger || !adultCrispyBli) &&
-    (!isKidsCrispyBurger || kidsBreadChoice !== "none");
   const toppingChoices =
     item?.category === "crispy" ? CRISPY_MEAL_TOPPINGS : BURGER_TOPPINGS;
   const isBeefBurgerMeal = isBeefBurgerStyleCategory(item?.category);
+  const isSpecialMealCat = item?.category === "specials";
+  const isSpecialSaladsOnlyUI =
+    isSpecialMealCat &&
+    (specialWizardMode === "editSalads" ||
+      Boolean(replaceLineId && initialCartLine));
+  /** רוטב על לחמניה: מוסתר בקריספי מבוגרים עם «בלי עגולה», ובקריספי ילדים עם «בלי לחם»; במנות מיוחדים — רק סלטים */
+  const showBunSauceOnMeal =
+    !isSpecialSaladsOnlyUI &&
+    (!isAdultCrispyBurger || !adultCrispyBli) &&
+    (!isKidsCrispyBurger || kidsBreadChoice !== "none");
 
-  const toppingsPrice =
-    selectedToppings.reduce(
-      (sum, id) =>
-        sum + (toppingChoices.find((x) => x.id === id)?.price || 0),
-      0
-    ) +
-    [...DOUBLE_CHEESE_TOPPING_IDS].reduce((sum, cheeseId) => {
-      const layers = cheeseMode[cheeseId];
-      if (!layers) return sum;
-      const p = toppingChoices.find((x) => x.id === cheeseId)?.price || 0;
-      return sum + p * layers;
-    }, 0);
+  const toppingsPrice = isSpecialSaladsOnlyUI
+    ? 0
+    : selectedToppings.reduce(
+        (sum, id) =>
+          sum + (toppingChoices.find((x) => x.id === id)?.price || 0),
+        0
+      ) +
+      [...DOUBLE_CHEESE_TOPPING_IDS].reduce((sum, cheeseId) => {
+        const layers = cheeseMode[cheeseId];
+        if (!layers) return sum;
+        const p = toppingChoices.find((x) => x.id === cheeseId)?.price || 0;
+        return sum + p * layers;
+      }, 0);
 
   const { total: saucesPrice, details: sauceChargeDetails } = useMemo(
-    () => computeSaucesCharge(selectedSauces),
-    [selectedSauces]
+    () =>
+      isSpecialSaladsOnlyUI
+        ? { total: 0, details: [] }
+        : computeSaucesCharge(selectedSauces),
+    [selectedSauces, isSpecialSaladsOnlyUI]
   );
 
   const saladChoicesList = useMemo(
@@ -204,10 +216,40 @@ export default function MealCustomizeWizard({
       } else {
         setBunSauceOnBun(true);
       }
-      setRequestedDrinkId(String(line.requestedDrinkId || "").trim());
+      setRequestedDrinkId(
+        item.category === "specials"
+          ? ""
+          : String(line.requestedDrinkId || "").trim()
+      );
       setSellerNotes(String(line.sellerNotes || ""));
+      if (item.category === "specials") {
+        setSelectedToppings([]);
+        setSelectedSauces([]);
+        setCheeseMode({});
+      }
       setDrinkMenuOpen(false);
       setIsAdding(false);
+      setMealValidateOpen(false);
+      setMealValidateMissing([]);
+      return;
+    }
+    if (
+      item.category === "specials" &&
+      specialWizardMode === "editSalads"
+    ) {
+      setQuantity(1);
+      setSelectedSalads(defaultSaladsForSpecialProductId(item.id));
+      setSelectedToppings([]);
+      setSelectedSauces([]);
+      setKidsBreadChoice("round");
+      setAdultCrispyBli(false);
+      setSellerNotes("");
+      setRequestedDrinkId("");
+      setDrinkMenuOpen(false);
+      setIsAdding(false);
+      setDonenessId(DEFAULT_BURGER_DONENESS_ID);
+      setBunSauceOnBun(true);
+      setCheeseMode({});
       setMealValidateOpen(false);
       setMealValidateMissing([]);
       return;
@@ -227,7 +269,7 @@ export default function MealCustomizeWizard({
     setCheeseMode({});
     setMealValidateOpen(false);
     setMealValidateMissing([]);
-  }, [open, item?.id, editHydrateKey, t]);
+  }, [open, item?.id, editHydrateKey, specialWizardMode, t]);
 
   useEffect(() => {
     if (!open) return;
@@ -394,31 +436,36 @@ export default function MealCustomizeWizard({
     });
     const doubleWord = t("ui.doubleWord");
     const toppings = [];
-    for (const cheeseId of DOUBLE_CHEESE_TOPPING_IDS) {
-      const layers = cheeseMode[cheeseId];
-      if (!layers) continue;
-      const p = toppingChoices.find((x) => x.id === cheeseId)?.price || 0;
-      const baseLabel = t(`topping.${cheeseId}`);
-      toppings.push({
-        id: cheeseId,
-        label:
-          layers === 2 ? `${baseLabel} ${doubleWord}` : baseLabel,
-        price: p * layers,
-        ...(layers === 2 ? { layers: 2 } : {}),
-      });
+    if (item.category !== "specials") {
+      for (const cheeseId of DOUBLE_CHEESE_TOPPING_IDS) {
+        const layers = cheeseMode[cheeseId];
+        if (!layers) continue;
+        const p = toppingChoices.find((x) => x.id === cheeseId)?.price || 0;
+        const baseLabel = t(`topping.${cheeseId}`);
+        toppings.push({
+          id: cheeseId,
+          label:
+            layers === 2 ? `${baseLabel} ${doubleWord}` : baseLabel,
+          price: p * layers,
+          ...(layers === 2 ? { layers: 2 } : {}),
+        });
+      }
+      for (const id of selectedToppings) {
+        toppings.push({
+          id,
+          label: t(`topping.${id}`),
+          price: toppingChoices.find((x) => x.id === id)?.price,
+        });
+      }
     }
-    for (const id of selectedToppings) {
-      toppings.push({
-        id,
-        label: t(`topping.${id}`),
-        price: toppingChoices.find((x) => x.id === id)?.price,
-      });
-    }
-    const extras = sauceChargeDetails.map((row) => ({
-      id: row.id,
-      label: t(`sauce.${row.id}`),
-      price: row.charge,
-    }));
+    const extras =
+      item.category === "specials"
+        ? []
+        : sauceChargeDetails.map((row) => ({
+            id: row.id,
+            label: t(`sauce.${row.id}`),
+            price: row.charge,
+          }));
     const notesTrim = sellerNotes.trim();
     const requestedDrinkLabel = requestedDrinkId
       ? menuItemName(
@@ -449,7 +496,7 @@ export default function MealCustomizeWizard({
         : {}),
       ...(isKidsCrispyBurger ? { kidsBreadChoice } : {}),
       ...(isAdultCrispyBurger ? { adultCrispyBli } : {}),
-      ...(requestedDrinkId
+      ...(item.category !== "specials" && requestedDrinkId
         ? { requestedDrinkId, requestedDrinkLabel, requestedDrinkPrice }
         : {}),
       ...(notesTrim ? { sellerNotes: notesTrim } : {}),
@@ -484,6 +531,10 @@ export default function MealCustomizeWizard({
 
   const handleAdd = () => {
     if (!item || blocked) return;
+    if (isSpecialSaladsOnlyUI) {
+      void performAddToCart();
+      return;
+    }
     const missing = computeMissingMealSelections(
       selectedSalads,
       selectedSauces
@@ -527,7 +578,9 @@ export default function MealCustomizeWizard({
             {name}
           </h2>
           <p className="mt-1 text-[11px] leading-snug text-gray-500">
-            {t("ui.wizardAllOnOneScreen")}
+            {isSpecialSaladsOnlyUI
+              ? t("ui.wizardSpecialSaladsOnly")
+              : t("ui.wizardAllOnOneScreen")}
           </p>
         </div>
         <button
@@ -689,7 +742,7 @@ export default function MealCustomizeWizard({
           </section>
         ) : null}
 
-        {isBeefBurgerMeal ? (
+        {isBeefBurgerMeal && !isSpecialSaladsOnlyUI ? (
           <section className="mb-6 space-y-2 text-xs">
             <h3 className="text-[11px] font-semibold text-gray-300">
               {t("ui.donenessTitle")}
@@ -714,6 +767,8 @@ export default function MealCustomizeWizard({
           </section>
         ) : null}
 
+        {!isSpecialSaladsOnlyUI ? (
+          <>
         <section className="mb-6 space-y-2 text-xs">
           <h3 className="text-[11px] font-semibold text-gray-300">
             {item?.category === "crispy"
@@ -897,7 +952,10 @@ export default function MealCustomizeWizard({
             })}
           </div>
         </section>
+          </>
+        ) : null}
 
+        {!isSpecialSaladsOnlyUI ? (
         <div className="mb-4 space-y-1.5">
           <label
             htmlFor="meal-requested-drink"
@@ -965,6 +1023,7 @@ export default function MealCustomizeWizard({
             ) : null}
           </div>
         </div>
+        ) : null}
 
         <div className="mb-4 space-y-1.5">
           <label
