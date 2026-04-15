@@ -87,7 +87,7 @@ const HE = {
   "pwa.confirmCancel": "לא עכשיו",
   "cat.burgers": "בורגרים",
   "cat.crispy": "קריספי צ׳יקן",
-  "cat.sides": "תוספות צ׳יפס",
+  "cat.sides": "תוספות",
   "cat.drinks": "שתייה",
 
   "menu.kids-burger-120.name": "בורגר ילדים 120 גר׳",
