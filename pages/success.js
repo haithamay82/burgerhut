@@ -133,6 +133,60 @@ export default function SuccessPage() {
   /** תאימות לאחור: סשן ישן עם deferAdminPush + סוד אישור */
   const [waAdminPushPayload, setWaAdminPushPayload] = useState(null);
 
+  /** אשראי: שחרור הזמנה לניהול פעם אחת רק אחרי Hyp CCode=0 */
+  useEffect(() => {
+    if (!router.isReady || typeof window === "undefined") return;
+    if (!payDoneMarker) return;
+    const hypQ = readHypCallbackQueryFromHref(window.location.href);
+    if (String(hypQ.CCode ?? hypQ.ccode ?? "").trim() !== "0") return;
+
+    let raw;
+    try {
+      raw = readCardSuccessSnapshotRaw();
+    } catch {
+      return;
+    }
+    if (!raw) return;
+    let snap;
+    try {
+      snap = JSON.parse(raw);
+    } catch {
+      return;
+    }
+    if (String(snap?.payment || "") !== "card") return;
+    const orderRowId =
+      snap.orderRowId != null && String(snap.orderRowId).trim() !== ""
+        ? String(snap.orderRowId).trim()
+        : "";
+    const onRaw = snap.orderNumber;
+    const orderNumber =
+      onRaw != null && String(onRaw).trim() !== ""
+        ? String(onRaw).trim()
+        : "";
+    const adminPushConfirmSecret = String(
+      snap.adminPushConfirmSecret || ""
+    ).trim();
+    if (!orderRowId || !orderNumber || !adminPushConfirmSecret) return;
+
+    const firedKey = `bh_card_admin_released_${orderRowId}`;
+    try {
+      if (window.sessionStorage.getItem(firedKey)) return;
+    } catch {
+      return;
+    }
+
+    fireDeferredAdminPushNotify({
+      orderRowId,
+      orderNumber,
+      adminPushConfirmSecret,
+    });
+    try {
+      window.sessionStorage.setItem(firedKey, "1");
+    } catch {
+      /* ignore */
+    }
+  }, [router.isReady, router.asPath, payDoneMarker]);
+
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
     if (payDoneMarker) {

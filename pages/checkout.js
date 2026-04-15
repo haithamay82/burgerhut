@@ -631,25 +631,29 @@ export default function CheckoutPage() {
             couponCode: appliedCoupon?.code || undefined,
             deferCouponConsume:
               channel === "checkout_bit" || channel === "checkout_card",
+            /** אשראי: רק אחרי אישור Hyp — לא לשדר לניהול לפני תשלום מוצלח */
+            ...(channel === "checkout_card" ? { deferAdminPush: true } : {}),
           }),
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-        return {
-          order: null,
-          error: data?.error || "request_failed",
-          pattyShortfalls: data?.pattyShortfalls,
-          pattyAffectedLines: data?.pattyAffectedLines,
-        };
+          return {
+            order: null,
+            error: data?.error || "request_failed",
+            pattyShortfalls: data?.pattyShortfalls,
+            pattyAffectedLines: data?.pattyAffectedLines,
+            adminPushConfirmSecret: null,
+          };
         }
         return {
           order: data?.order || null,
           error: null,
           pattyShortfalls: undefined,
           pattyAffectedLines: undefined,
+          adminPushConfirmSecret: data?.adminPushConfirmSecret ?? null,
         };
       } catch {
-        return { order: null, error: "network" };
+        return { order: null, error: "network", adminPushConfirmSecret: null };
       }
     };
 
@@ -803,6 +807,7 @@ export default function CheckoutPage() {
         error: cardPoErr,
         pattyShortfalls: cardPattySf,
         pattyAffectedLines: cardPattyLines,
+        adminPushConfirmSecret: cardPushSecret,
       } = await persistOrder("checkout_card");
       if (
         cardPoErr === "item_unavailable" ||
@@ -851,6 +856,7 @@ export default function CheckoutPage() {
               payment: form.payment,
               orderNumber: savedCardOrder?.orderNumber,
               orderRowId: savedCardOrder?.id,
+              adminPushConfirmSecret: cardPushSecret || undefined,
               locale,
               waGrandTotal: persistTotal,
               couponRewardBaseNis,
