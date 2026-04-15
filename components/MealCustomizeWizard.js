@@ -34,7 +34,7 @@ const MEAL_VALIDATE_I18N = {
   sauces: "ui.mealValidateSauces",
 };
 
-/** מנת מיוחדים — מעבר מ־200 ל־220 גר׳ */
+/** מנת מיוחדים — קציצה אחת: 200 או 220 גר׳; 220 בתוספת מחיר */
 const SPECIAL_PATTY_220_EXTRA_NIS = 5;
 
 /**
