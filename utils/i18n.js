@@ -86,6 +86,7 @@ const HE = {
   "pwa.confirmInstall": "התקן",
   "pwa.confirmCancel": "לא עכשיו",
   "cat.burgers": "בורגרים",
+  "cat.specials": "מיוחדים",
   "cat.crispy": "קריספי צ׳יקן",
   "cat.sides": "תוספות",
   "cat.drinks": "שתייה",
@@ -128,6 +129,24 @@ const HE = {
   "menu.burger-600.name": "בורגר 600 גר׳",
   "menu.burger-600.desc":
     "בורגר — 600 גרם. קציצות במנה: 3×200 גר׳ (ניתן גם 2×220 + 160 גר׳).",
+  "menu.special-truffle-king.name": "Truffle King",
+  "menu.special-truffle-king.desc":
+    "קציצת בקר, גבינת גאודה, פטריות מוקפצות, איולי כמהין, חסה ובצל סגול. טעם יוקרתי ועשיר.",
+  "menu.special-bbq-smoke.name": "BBQ Smoke",
+  "menu.special-bbq-smoke.desc":
+    "קציצת בקר, אסאדו מפורק, גבינת צ׳דר, רוטב BBQ, בצל מקורמל, חמוצים וחסה. טעם מעושן ומתקתק.",
+  "menu.special-fire-burger.name": "Fire Burger",
+  "menu.special-fire-burger.desc":
+    "קציצת בקר, גבינת צ׳דר, חלפיניו, בצל קריספי, מיונז חריף וסחוג, חסה ועגבנייה. חריף ומלא טעם.",
+  "menu.special-cheese-bomb.name": "Cheese Bomb",
+  "menu.special-cheese-bomb.desc":
+    "קציצה ממולאת גבינה, גבינת צ׳דר מעל, רוטב צ׳דר, חסה, עגבנייה, בצל סגול וחמוצים. נמס ומפוצץ גבינה.",
+  "menu.special-lamb-bacon-deluxe.name": "Lamb Bacon Deluxe",
+  "menu.special-lamb-bacon-deluxe.desc":
+    "קציצת בקר, פייקון טלה קריספי, גבינת צ׳דר, בצל מקורמל, חסה, עגבנייה, מיונז ורוטב BBQ עדין. עשיר ומעושן.",
+  "menu.special-corned-beef-stack.name": "Corned Beef Stack",
+  "menu.special-corned-beef-stack.desc":
+    "קציצת בקר, קורנדביף עגל, גבינת גאודה, חמוצים, בצל סגול, חסה ורוטב חרדל דבש או מיונז עדין. בסגנון דלי.",
   "menu.crispy-chicken-burger.name": "קריספי צ׳יקן (עגולה/בלי עגולה)",
   "menu.crispy-chicken-burger.desc": "קריספי בעגולה או בלי עגולה.",
   "menu.crispy-chicken-burger.lineNameRound": "קריספי צ׳יקן עגולה",
@@ -944,6 +963,7 @@ const AR = {
   "pwa.confirmInstall": "تثبيت",
   "pwa.confirmCancel": "ليس الآن",
   "cat.burgers": "برجر",
+  "cat.specials": "مميز",
   "cat.crispy": "دجاج مقرمش",
   "cat.sides": "بطاطا وإضافات",
   "cat.drinks": "مشروبات",
@@ -986,6 +1006,24 @@ const AR = {
   "menu.burger-600.name": "برجر 600غ",
   "menu.burger-600.desc":
     "برجر — 600 غرام. أقراص البرجر في الوجبة: 3×200غ (أو بديل 2×220 + 160غ).",
+  "menu.special-truffle-king.name": "Truffle King",
+  "menu.special-truffle-king.desc":
+    "لحم بقري، جودا، فطر مقلي، أيولي ترفل، خس وبصل أحمر. نكهة غنية.",
+  "menu.special-bbq-smoke.name": "BBQ Smoke",
+  "menu.special-bbq-smoke.desc":
+    "لحم بقري، أسادو مفتت، شيدر، صلصة باربيكيو، بصل كراميل، مخلل وخس. مدخن وحلو.",
+  "menu.special-fire-burger.name": "Fire Burger",
+  "menu.special-fire-burger.desc":
+    "لحم بقري، شيدر، هالبينيو، بصل مقرمش، مايونيز حار وسحوق، خس وطماطم. حار.",
+  "menu.special-cheese-bomb.name": "Cheese Bomb",
+  "menu.special-cheese-bomb.desc":
+    "قرص محشو جبن، شيدر فوق، صلصة شيدر، خس، طماطم، بصل أحمر ومخلل. جبن ذائب.",
+  "menu.special-lamb-bacon-deluxe.name": "Lamb Bacon Deluxe",
+  "menu.special-lamb-bacon-deluxe.desc":
+    "لحم بقري، بايكون غنم مقرمش، شيدر، بصل كراميل، خس، طماطم، مايونيز وباربيكيو خفيف.",
+  "menu.special-corned-beef-stack.name": "Corned Beef Stack",
+  "menu.special-corned-beef-stack.desc":
+    "لحم بقري، كورند بيف عجل، جودا، مخلل، بصل أحمر، خس وصلصة عسل خردل أو مايونيز خفيف.",
   "menu.crispy-chicken-burger.name": "كريسبي تشيكن (مدورة/بدون مدورة)",
   "menu.crispy-chicken-burger.desc": "كريسبي — بخبز مدور أو بدون.",
   "menu.crispy-chicken-burger.lineNameRound": "كريسبي تشيكن مدورة",

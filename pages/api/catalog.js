@@ -5,7 +5,13 @@ import {
   mergeMenuItemsFromEditor,
 } from "@/utils/mergeMenuCatalog";
 
-const ALLOWED_CATEGORIES = new Set(["burgers", "crispy", "sides", "drinks"]);
+const ALLOWED_CATEGORIES = new Set([
+  "burgers",
+  "specials",
+  "crispy",
+  "sides",
+  "drinks",
+]);
 const ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function authorize(req) {

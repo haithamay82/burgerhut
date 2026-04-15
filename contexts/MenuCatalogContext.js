@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import { MENU_ITEMS as STATIC_MENU_ITEMS } from "@/utils/menuData";
+import { isMealWizardCategory } from "@/utils/menuMealCategories";
 
 const MenuCatalogContext = createContext(null);
 
@@ -42,9 +43,7 @@ export function MenuCatalogProvider({ children }) {
 
   const mainMealProductIds = useMemo(() => {
     return new Set(
-      menuItems
-        .filter((x) => x.category === "burgers" || x.category === "crispy")
-        .map((x) => x.id)
+      menuItems.filter((x) => isMealWizardCategory(x?.category)).map((x) => x.id)
     );
   }, [menuItems]);
 

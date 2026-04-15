@@ -1,9 +1,9 @@
 import MenuMealPreviewCard from "@/components/MenuMealPreviewCard";
 import SimpleMenuItemCard from "@/components/SimpleMenuItemCard";
+import { isMealWizardCategory } from "@/utils/menuMealCategories";
 
 export default function MenuItemCard({ item, onOpenMealWizard }) {
-  const isMeal =
-    item.category === "burgers" || item.category === "crispy";
+  const isMeal = isMealWizardCategory(item?.category);
   if (isMeal) {
     return (
       <MenuMealPreviewCard item={item} onOpenWizard={onOpenMealWizard} />

@@ -12,6 +12,7 @@ import {
   mealSaladChoicesForCategory,
   INVENTORY_MANAGED_SALAD_IDS,
 } from "@/utils/menuData";
+import { isBeefBurgerStyleCategory } from "@/utils/menuMealCategories";
 import { useMenuCatalog } from "@/contexts/MenuCatalogContext";
 import { menuItemName } from "@/utils/menuItemLabels";
 import { formatIls } from "@/utils/cartMoney";
@@ -91,7 +92,7 @@ export default function MealCustomizeWizard({
     (!isKidsCrispyBurger || kidsBreadChoice !== "none");
   const toppingChoices =
     item?.category === "crispy" ? CRISPY_MEAL_TOPPINGS : BURGER_TOPPINGS;
-  const isBeefBurgerMeal = item?.category === "burgers";
+  const isBeefBurgerMeal = isBeefBurgerStyleCategory(item?.category);
 
   const toppingsPrice =
     selectedToppings.reduce(

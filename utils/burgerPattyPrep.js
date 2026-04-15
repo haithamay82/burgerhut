@@ -5,6 +5,12 @@ import { cartLineProductId } from "@/hooks/useCart";
  * 600ג׳: ברירת מחדל 3×200; קיימת חלופה 220+220+160 — מוצגת בהערה בניהול.
  */
 export const PATTIES_BY_PRODUCT_ID = {
+  "special-truffle-king": [200],
+  "special-bbq-smoke": [200],
+  "special-fire-burger": [200],
+  "special-cheese-bomb": [200],
+  "special-lamb-bacon-deluxe": [200],
+  "special-corned-beef-stack": [200],
   "kids-burger-120": [120],
   "burger-160": [160],
   "burger-200": [200],

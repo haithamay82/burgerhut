@@ -1,6 +1,7 @@
 import { cartLineProductId } from "@/hooks/useCart";
+import { isMealWizardCategory } from "@/utils/menuMealCategories";
 
-/** בורגר / קריספי בלבד — לא צ'יפס, שתייה וכו׳ */
+/** בורגר / קריספי / מיוחדים בלבד — לא צ'יפס, שתייה וכו׳ */
 export function isEditableMealCartLine(line, menuItems) {
   if (!line || !Array.isArray(menuItems)) return false;
   const pid = cartLineProductId(line);
@@ -9,7 +10,7 @@ export function isEditableMealCartLine(line, menuItems) {
     line.menuCategory ||
     menuItems.find((m) => m && m.id === pid)?.category ||
     "";
-  if (cat !== "burgers" && cat !== "crispy") return false;
+  if (!isMealWizardCategory(cat)) return false;
   return menuItems.some((m) => m && m.id === pid);
 }
 

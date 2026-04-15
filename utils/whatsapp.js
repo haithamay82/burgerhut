@@ -21,6 +21,7 @@ function catalogCategoryForCartLine(item) {
   const field = String(item?.menuCategory || "").trim().toLowerCase();
   if (field) return field;
   if (pid.startsWith("crispy-")) return "crispy";
+  if (pid.startsWith("special-")) return "specials";
   if (
     pid.startsWith("burger-") ||
     pid.startsWith("kids-burger-") ||
@@ -40,7 +41,7 @@ function toppingsWaLabelKey(item) {
 /** בורגר / קריספי — לפני צ'יפס, שתייה ושאר הקטגוריות בהודעת ווטסאפ */
 function isMainMealCartLineForWa(item) {
   const c = catalogCategoryForCartLine(item);
-  return c === "burgers" || c === "crispy";
+  return c === "burgers" || c === "crispy" || c === "specials";
 }
 
 function partitionCartItemsForWa(items) {
@@ -60,8 +61,10 @@ function sortMainMealsForWa(mains) {
     .sort((a, b) => {
       const ca = catalogCategoryForCartLine(a.item);
       const cb = catalogCategoryForCartLine(b.item);
-      const ra = ca === "crispy" ? 0 : ca === "burgers" ? 1 : 2;
-      const rb = cb === "crispy" ? 0 : cb === "burgers" ? 1 : 2;
+      const rank = (c) =>
+        c === "crispy" ? 0 : c === "burgers" ? 1 : c === "specials" ? 2 : 3;
+      const ra = rank(ca);
+      const rb = rank(cb);
       if (ra !== rb) return ra - rb;
       return a.idx - b.idx;
     })

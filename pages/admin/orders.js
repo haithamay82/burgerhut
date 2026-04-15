@@ -46,8 +46,8 @@ import {
 import html2canvas from "html2canvas";
 import AdminMenuExportSheet from "@/components/AdminMenuExportSheet";
 
-const INVENTORY_CATEGORIES = ["burgers", "crispy"];
-const CATALOG_CATEGORIES = ["burgers", "crispy", "sides", "drinks"];
+const INVENTORY_CATEGORIES = ["burgers", "specials", "crispy"];
+const CATALOG_CATEGORIES = ["burgers", "specials", "crispy", "sides", "drinks"];
 const CATALOG_ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 /** ריענון הזמנות בדף ניהול — לזיהוי הזמנות חדשות */
@@ -412,7 +412,10 @@ export default function AdminOrdersPage() {
   const mergedMainForInventory = useMemo(
     () =>
       mergedCatalogItems.filter(
-        (row) => row.category === "burgers" || row.category === "crispy"
+        (row) =>
+          row.category === "burgers" ||
+          row.category === "specials" ||
+          row.category === "crispy"
       ),
     [mergedCatalogItems]
   );

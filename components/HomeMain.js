@@ -168,8 +168,8 @@ export default function HomeMain({
           aria-hidden
         />
         <div className="relative z-10 flex min-h-[9.5rem] w-full min-w-0 items-center px-2 py-6 sm:min-h-[11rem] sm:px-3 md:min-h-[12.5rem]">
-          {/* מובייל: ארבע עמודות — שורה אחת; מסכים רחבים: שורה אחת ממורכזת בלי wrap */}
-          <div className="grid w-full grid-cols-4 gap-1.5 sm:flex sm:w-full sm:flex-nowrap sm:items-center sm:justify-center sm:gap-2">
+          {/* מובייל: חמש עמודות — שורה אחת; מסכים רחבים: שורה אחת ממורכזת בלי wrap */}
+          <div className="grid w-full grid-cols-5 gap-1.5 sm:flex sm:w-full sm:flex-nowrap sm:items-center sm:justify-center sm:gap-2">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.id}

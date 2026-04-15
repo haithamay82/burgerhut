@@ -18,11 +18,13 @@ function resolveImageSrc(url) {
 /**
  * פריסת A4: רשת פיזית (LTR) כדי ש«ימין/שמאל» יתאימו לדף.
  * שמאל עליון: שתייה | ימין עליון: בורגרים
+ * שורה אמצעית: מיוחדים (רוחב מלא)
  * שמאל תחתון: תוספות | ימין תחתון: קריספי
  */
 const QUADRANT_LAYOUT = [
   { gridArea: "drinks", category: "drinks" },
   { gridArea: "burgers", category: "burgers" },
+  { gridArea: "specials", category: "specials", columnSpan: "1 / -1" },
   { gridArea: "sides", category: "sides" },
   { gridArea: "crispy", category: "crispy" },
 ];
@@ -30,7 +32,7 @@ const QUADRANT_LAYOUT = [
 /** שורה תחתונה — פחות ריווח פנימי כדי שכל התוספות (כולל צ'יפס וצ'דר) ייכנסו */
 const BOTTOM_QUADRANT = new Set(["sides", "crispy"]);
 
-function Quadrant({ gridArea, category, items, t, locale }) {
+function Quadrant({ gridArea, category, items, t, locale, columnSpan }) {
   const catItems = items
     .filter((row) => row.category === category)
     .sort((a, b) => a.basePrice - b.basePrice);
@@ -41,6 +43,7 @@ function Quadrant({ gridArea, category, items, t, locale }) {
     <div
       style={{
         gridArea,
+        ...(columnSpan ? { gridColumn: columnSpan } : {}),
         direction: "rtl",
         boxSizing: "border-box",
         border: "1px solid #cbd5e1",
@@ -213,20 +216,23 @@ const AdminMenuExportSheet = forwardRef(function AdminMenuExportSheet(
           display: "grid",
           gridTemplateAreas: `
             "drinks burgers"
+            "specials specials"
             "sides crispy"`,
           gridTemplateColumns: "1fr 1fr",
-          /* יותר גובה לשתייה + בורגרים; פחות לתוספות + קריספי (פחות פריטים) */
-          gridTemplateRows: "minmax(0, 2.62fr) minmax(0, 1.08fr)",
+          /* יותר גובה לשתייה + בורגרים; שורת מיוחדים; תוספות + קריספי */
+          gridTemplateRows:
+            "minmax(0, 2.35fr) minmax(0, 0.88fr) minmax(0, 1.02fr)",
           /* rowGap קטן: פחות רווח בין שתייה לתוספות (ובין בורגרים לקריספי) */
           rowGap: "0.5mm",
           columnGap: "1.5mm",
         }}
       >
-        {QUADRANT_LAYOUT.map(({ gridArea, category }) => (
+        {QUADRANT_LAYOUT.map(({ gridArea, category, columnSpan }) => (
           <Quadrant
             key={gridArea}
             gridArea={gridArea}
             category={category}
+            columnSpan={columnSpan}
             items={items}
             t={t}
             locale={locale}

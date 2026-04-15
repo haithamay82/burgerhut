@@ -1,5 +1,6 @@
 export const CATEGORIES = [
   { id: "burgers" },
+  { id: "specials" },
   { id: "crispy" },
   { id: "sides" },
   { id: "drinks" },
@@ -138,6 +139,8 @@ const IMG_SIDE_CHIPS_CHEDDAR_SYMPHONY =
 const IMG_SIDE_MOZZARELLA_STICKS = "/menu/side-mozzarella-sticks.png";
 const IMG_SIDE_HOME_FRIES = "/menu/side-home-fries.png";
 const IMG_SIDE_HOME_FRIES_SPICY = "/menu/side-home-fries-spicy.png";
+/** עד עדכון תמונות — placeholder אחיד */
+const IMG_SPECIAL_BURGER_PLACEHOLDER = "/menu/burger-200.png";
 
 export const MENU_ITEMS = [
   {
@@ -223,6 +226,42 @@ export const MENU_ITEMS = [
     basePrice: 114,
     category: "burgers",
     image: IMG_BURGER_600,
+  },
+  {
+    id: "special-truffle-king",
+    basePrice: 79,
+    category: "specials",
+    image: IMG_SPECIAL_BURGER_PLACEHOLDER,
+  },
+  {
+    id: "special-bbq-smoke",
+    basePrice: 79,
+    category: "specials",
+    image: IMG_SPECIAL_BURGER_PLACEHOLDER,
+  },
+  {
+    id: "special-fire-burger",
+    basePrice: 79,
+    category: "specials",
+    image: IMG_SPECIAL_BURGER_PLACEHOLDER,
+  },
+  {
+    id: "special-cheese-bomb",
+    basePrice: 79,
+    category: "specials",
+    image: IMG_SPECIAL_BURGER_PLACEHOLDER,
+  },
+  {
+    id: "special-lamb-bacon-deluxe",
+    basePrice: 79,
+    category: "specials",
+    image: IMG_SPECIAL_BURGER_PLACEHOLDER,
+  },
+  {
+    id: "special-corned-beef-stack",
+    basePrice: 79,
+    category: "specials",
+    image: IMG_SPECIAL_BURGER_PLACEHOLDER,
   },
   {
     id: "crispy-chicken-burger",
@@ -377,7 +416,7 @@ export const MENU_ITEMS = [
 ];
 
 /** מנות עיקריות (בורגרים + קריספי) לניהול מלאי */
-const MAIN_MEAL_CATEGORIES = new Set(["burgers", "crispy"]);
+const MAIN_MEAL_CATEGORIES = new Set(["burgers", "crispy", "specials"]);
 
 export const MAIN_MENU_ITEMS = MENU_ITEMS.filter((row) =>
   MAIN_MEAL_CATEGORIES.has(row.category)

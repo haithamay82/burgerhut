@@ -1,6 +1,12 @@
 import { MENU_ITEMS } from "@/utils/menuData";
 
-const ALLOWED_CATEGORIES = new Set(["burgers", "crispy", "sides", "drinks"]);
+const ALLOWED_CATEGORIES = new Set([
+  "burgers",
+  "specials",
+  "crispy",
+  "sides",
+  "drinks",
+]);
 
 /** @typedef {{ hiddenIds?: string[], customItems?: object[], overrides?: Record<string, object> }} CatalogEditor */
 
@@ -105,7 +111,12 @@ export function mainMealProductIdsFromEditor(editor) {
   const items = mergeMenuItemsFromEditor(editor);
   return new Set(
     items
-      .filter((x) => x.category === "burgers" || x.category === "crispy")
+      .filter(
+        (x) =>
+          x.category === "burgers" ||
+          x.category === "crispy" ||
+          x.category === "specials"
+      )
       .map((x) => x.id)
   );
 }
