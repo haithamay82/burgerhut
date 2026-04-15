@@ -15,7 +15,10 @@ import {
   SUCCESS_WA_SNAPSHOT_KEY,
   writeSuccessWaRestore,
 } from "@/utils/checkoutSessionKeys";
-import { fireDeferredAdminPushNotify } from "@/utils/fireDeferredAdminPushNotify";
+import {
+  fireCouponRevealAfterWhatsAppCompose,
+  fireDeferredAdminPushNotify,
+} from "@/utils/fireDeferredAdminPushNotify";
 import { MIN_COUPON_DISPLAY_VALUE_NIS } from "@/lib/coupon";
 import {
   computeInvoiceDeliveryPrefs,
@@ -127,7 +130,7 @@ export default function SuccessPage() {
    */
   const [customerCouponsActive, setCustomerCouponsActive] = useState(null);
   const [waComposeAlreadyUsed, setWaComposeAlreadyUsed] = useState(false);
-  /** לאחר מעבר ל־deferAdminPush — לחיצה על ווטסאפ מפעילה Web Push למנהלים */
+  /** תאימות לאחור: סשן ישן עם deferAdminPush + סוד אישור */
   const [waAdminPushPayload, setWaAdminPushPayload] = useState(null);
 
   useEffect(() => {
@@ -806,12 +809,17 @@ export default function SuccessPage() {
                 e.preventDefault();
                 const wa = cardWaUrl;
 
-                fireDeferredAdminPushNotify({
-                  orderRowId: waAdminPushPayload?.orderRowId,
-                  orderNumber: waAdminPushPayload?.orderNumber,
-                  adminPushConfirmSecret:
-                    waAdminPushPayload?.adminPushConfirmSecret,
-                });
+                if (
+                  waAdminPushPayload?.orderRowId &&
+                  waAdminPushPayload?.orderNumber &&
+                  waAdminPushPayload?.adminPushConfirmSecret
+                ) {
+                  fireDeferredAdminPushNotify(waAdminPushPayload);
+                } else if (cardOrder?.orderId) {
+                  fireCouponRevealAfterWhatsAppCompose({
+                    orderRowId: String(cardOrder.orderId).trim(),
+                  });
+                }
                 const mk = buildSuccessPageMatchKey({
                   method,
                   orderOn: orderFromQuery,

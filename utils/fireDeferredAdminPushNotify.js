@@ -1,5 +1,5 @@
 /**
- * מודיע למנהלים (Web Push) אחרי שליחת ווטסאפ — רק להזמנות שנוצרו עם deferAdminPush.
+ * תאימות לאחור: הזמנות ישנות עם deferAdminPush — אישור Web Push אחרי ווטסאפ.
  * @param {{ orderRowId?: string, orderNumber?: string|number, adminPushConfirmSecret?: string }} p
  */
 export function fireDeferredAdminPushNotify(p) {
@@ -19,5 +19,20 @@ export function fireDeferredAdminPushNotify(p) {
       orderNumber,
       adminPushConfirmSecret,
     }),
+  }).catch(() => {});
+}
+
+/**
+ * אחרי לחיצה על ווטסאפ — חשיפת קופון מוסתר בממשק מנהל (אם רלוונטי).
+ * @param {{ orderRowId?: string }} p
+ */
+export function fireCouponRevealAfterWhatsAppCompose(p) {
+  if (typeof window === "undefined") return;
+  const orderId = String(p?.orderRowId || "").trim();
+  if (!orderId) return;
+  void fetch("/api/orders/reveal-coupon-after-wa", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ orderId }),
   }).catch(() => {});
 }
