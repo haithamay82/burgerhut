@@ -175,7 +175,7 @@ export default function HomeMain({
                 key={cat.id}
                 type="button"
                 onClick={() => setActiveCategory(cat.id)}
-                className={`flex min-h-[2.5rem] w-full items-center justify-center rounded-full border px-1 py-1.5 text-center text-[10px] font-semibold leading-tight shadow-md backdrop-blur-sm transition-colors sm:min-h-0 sm:w-auto sm:whitespace-nowrap sm:px-4 sm:py-2 sm:text-sm sm:leading-normal ${
+                className={`flex min-h-[2.5rem] w-full items-center justify-center rounded-full border px-1 py-1.5 text-center text-[12px] font-semibold leading-tight shadow-md backdrop-blur-sm transition-colors sm:min-h-0 sm:w-auto sm:whitespace-nowrap sm:px-4 sm:py-2 sm:text-[16.8px] sm:leading-normal ${
                   activeCategory === cat.id
                     ? "border-primary bg-primary text-black shadow-lg ring-2 ring-primary/40"
                     : "border-white/25 bg-black/50 text-gray-100 hover:border-white/40 hover:bg-black/65"
