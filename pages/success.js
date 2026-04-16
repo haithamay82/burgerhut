@@ -777,6 +777,11 @@ export default function SuccessPage() {
     !waComposeAlreadyUsed &&
     couponReadyForWaButton;
 
+  /** מסך כפתור ווטסאפ אחרי אשראי מאושר (כולל חזרה מ־Hyp עם מזהה בעמוד) */
+  const showCardWaHeadlineCopy =
+    showMergedWaButton &&
+    (method === "card" || Boolean(payDoneMarker));
+
   /**
    * לא להציג ✓/«התקבלה» בזמן המתנה לקופון ולווטסאפ (אשראי/מזומן/חזרה מ-Hyp).
    * ביט בלי קישור wa בדף — ממשיכים להציג הצלחה רגילה.
@@ -878,7 +883,17 @@ export default function SuccessPage() {
           </>
         ) : null}
         {showMergedWaButton ? (
-          <div className="mb-4 flex w-full max-w-xs flex-col items-stretch gap-4">
+          <div className="mb-4 flex w-full max-w-md flex-col items-center gap-4 px-3 text-center">
+            {showCardWaHeadlineCopy ? (
+              <div className="w-full space-y-2">
+                <h2 className="text-xl font-extrabold leading-snug text-white sm:text-2xl">
+                  {t("success.waCardHeadline")}
+                </h2>
+                <p className="text-base font-semibold text-slate-200 sm:text-lg">
+                  {t("success.waCardNowLine")}
+                </p>
+              </div>
+            ) : null}
             <a
               href={cardWaUrl}
               target="_blank"
@@ -919,7 +934,7 @@ export default function SuccessPage() {
                   window.location.href = wa;
                 }
               }}
-              className={waSendClasses}
+              className={`${waSendClasses} w-full max-w-xs`}
             >
               {t("success.waSendOrder")}
             </a>
