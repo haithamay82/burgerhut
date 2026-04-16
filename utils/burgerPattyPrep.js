@@ -1,14 +1,18 @@
 import { cartLineProductId } from "@/hooks/useCart";
 
+/** מנה מיוחדת Cheese Bomb — קציצה 240 גר׳; מלאי כ־2×120 גר׳ */
+export const SPECIAL_CHEESE_BOMB_ID = "special-cheese-bomb";
+
 /** @param {unknown} it — שורת עגלה או { productId, specialPattyGrams } */
 export function specialPattyGramsFromLine(it) {
   const pid = String(cartLineProductId(it) || "");
   if (!pid.startsWith("special-")) return null;
+  if (pid === SPECIAL_CHEESE_BOMB_ID) return null;
   return Number(it?.specialPattyGrams) === 220 ? 220 : 200;
 }
 
 /**
- * מערך משקלי קציצות לשורת הזמנה (מנות מיוחדות: 200 או 220 לפי בחירה).
+ * מערך משקלי קציצות לשורת הזמנה (מנות מיוחדות: 200 או 220 לפי בחירה; Cheese Bomb — 2×120).
  * @param {unknown} it
  * @returns {number[] | null}
  */
@@ -16,6 +20,9 @@ export function pattyGramsArrayForOrderItem(it) {
   const pid = String(cartLineProductId(it) || "");
   const base = PATTIES_BY_PRODUCT_ID[pid];
   if (!base) return null;
+  if (pid === SPECIAL_CHEESE_BOMB_ID) {
+    return [120, 120];
+  }
   if (pid.startsWith("special-")) {
     return [specialPattyGramsFromLine(it)];
   }
@@ -30,7 +37,7 @@ export const PATTIES_BY_PRODUCT_ID = {
   "special-truffle-king": [200],
   "special-bbq-smoke": [200],
   "special-fire-burger": [200],
-  "special-cheese-bomb": [200],
+  "special-cheese-bomb": [120, 120],
   "special-lamb-bacon-deluxe": [200],
   "special-corned-beef-stack": [200],
   "kids-burger-120": [120],
@@ -89,8 +96,10 @@ export function canBuildBurgerWithPattyStock(stock, pid, qty, specialPattyGrams)
   let patties = PATTIES_BY_PRODUCT_ID[pidStr];
   if (!patties) return true;
   if (pidStr.startsWith("special-")) {
-    const g = Number(specialPattyGrams) === 220 ? 220 : 200;
-    patties = [g];
+    patties =
+      pidStr === SPECIAL_CHEESE_BOMB_ID
+        ? [120, 120]
+        : [Number(specialPattyGrams) === 220 ? 220 : 200];
   }
   const q = Math.max(1, Math.floor(Number(qty) || 1));
   /** @type {Record<number, number>} */
@@ -111,6 +120,9 @@ export function canBuildBurgerWithPattyStock(stock, pid, qty, specialPattyGrams)
 export function computeAutoUnavailableBurgerIds(stock) {
   return Object.keys(PATTIES_BY_PRODUCT_ID).filter((pid) => {
     if (String(pid).startsWith("special-")) {
+      if (pid === SPECIAL_CHEESE_BOMB_ID) {
+        return !canBuildBurgerWithPattyStock(stock, pid, 1, undefined);
+      }
       return (
         !canBuildBurgerWithPattyStock(stock, pid, 1, 200) &&
         !canBuildBurgerWithPattyStock(stock, pid, 1, 220)
@@ -148,9 +160,11 @@ export function maxPattyUnitsForProductWithOtherCartLines(
 ) {
   const pid = String(productId || "");
   const patties =
-    pid.startsWith("special-") && PATTIES_BY_PRODUCT_ID[pid]
-      ? [Number(hintSpecialPattyGrams) === 220 ? 220 : 200]
-      : PATTIES_BY_PRODUCT_ID[pid];
+    pid === SPECIAL_CHEESE_BOMB_ID
+      ? [120, 120]
+      : pid.startsWith("special-") && PATTIES_BY_PRODUCT_ID[pid]
+        ? [Number(hintSpecialPattyGrams) === 220 ? 220 : 200]
+        : PATTIES_BY_PRODUCT_ID[pid];
   if (!patties || !stock || typeof stock !== "object") return null;
 
   const others = (Array.isArray(items) ? items : []).filter(

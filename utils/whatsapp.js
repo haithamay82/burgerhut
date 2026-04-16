@@ -4,6 +4,7 @@ import { cartLineProductId } from "@/hooks/useCart";
 import { formatIls, lineTotal } from "@/utils/cartMoney";
 import { MENU_ITEMS } from "@/utils/menuData";
 import { sortSaladsForDisplay } from "@/utils/saladDisplayOrder";
+import { specialBurgerMenuDescription } from "@/utils/specialBurgerMealDescription";
 
 const MENU_CATEGORY_BY_PRODUCT_ID = new Map(
   MENU_ITEMS.map((row) => [row.id, row.category])
@@ -202,8 +203,18 @@ export function buildWhatsAppOrderText({
           .join(", ")}`
       );
     }
-    const waPid = String(item.productId || "").trim();
-    if (waPid.startsWith("special-")) {
+    const waPid = String(cartLineProductId(item) || "").trim();
+    const specialMealDesc = specialBurgerMenuDescription(locale, waPid);
+    if (specialMealDesc) {
+      lines.push(
+        `   ${waBoldLabel(tr("checkout.specialMealComponentsPrefix"))}: ${specialMealDesc}`
+      );
+    }
+    if (waPid === "special-cheese-bomb") {
+      lines.push(
+        `   ${waBoldLabel(tr("wa.specialPatty"))}: ${tr("wa.cheeseBombPattyLine")}`
+      );
+    } else if (waPid.startsWith("special-")) {
       const g = Number(item.specialPattyGrams) === 220 ? 220 : 200;
       lines.push(
         `   ${waBoldLabel(tr("wa.specialPatty"))}: ${g}${tr("wa.gramsUnit")}`

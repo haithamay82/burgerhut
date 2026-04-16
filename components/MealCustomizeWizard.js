@@ -97,6 +97,7 @@ export default function MealCustomizeWizard({
     item?.category === "crispy" ? CRISPY_MEAL_TOPPINGS : BURGER_TOPPINGS;
   const isBeefBurgerMeal = isBeefBurgerStyleCategory(item?.category);
   const isSpecialMealCat = item?.category === "specials";
+  const isSpecialCheeseBomb = item?.id === "special-cheese-bomb";
   /** מנות מיוחדות: בלי תוספות מנה (גבינה/קציצה וכו׳); סלטים + עשייה + רטבים + שתייה */
   const isSpecialRestrictedWizard =
     isSpecialMealCat &&
@@ -144,7 +145,9 @@ export default function MealCustomizeWizard({
   );
 
   const specialPattyUpcharge =
-    item?.category === "specials" && Number(specialPattyGrams) === 220
+    item?.category === "specials" &&
+    !isSpecialCheeseBomb &&
+    Number(specialPattyGrams) === 220
       ? SPECIAL_PATTY_220_EXTRA_NIS
       : 0;
 
@@ -515,7 +518,7 @@ export default function MealCustomizeWizard({
         ? { requestedDrinkId, requestedDrinkLabel, requestedDrinkPrice }
         : {}),
       ...(notesTrim ? { sellerNotes: notesTrim } : {}),
-      ...(item.category === "specials"
+      ...(item.category === "specials" && !isSpecialCheeseBomb
         ? {
             specialPattyGrams:
               Number(specialPattyGrams) === 220 ? 220 : 200,
@@ -530,7 +533,9 @@ export default function MealCustomizeWizard({
     const pattyCheck = await validatePattyStockForSimulatedCart(
       afterMerge,
       item.id,
-      item.category === "specials" ? specialPattyGrams : undefined
+      item.category === "specials" && !isSpecialCheeseBomb
+        ? specialPattyGrams
+        : undefined
     );
     if (!pattyCheck.ok) {
       if (typeof window !== "undefined") {
@@ -597,7 +602,9 @@ export default function MealCustomizeWizard({
           </h2>
           <p className="mt-1 text-[11px] leading-snug text-gray-500">
             {isSpecialRestrictedWizard
-              ? t("ui.wizardSpecialSaladsOnly")
+              ? isSpecialCheeseBomb
+                ? t("ui.wizardSpecialSaladsOnlyCheeseBomb")
+                : t("ui.wizardSpecialSaladsOnly")
               : t("ui.wizardAllOnOneScreen")}
           </p>
         </div>
@@ -679,7 +686,7 @@ export default function MealCustomizeWizard({
           </section>
         ) : null}
 
-        {isSpecialRestrictedWizard ? (
+        {isSpecialRestrictedWizard && !isSpecialCheeseBomb ? (
           <section className="mb-6 space-y-2 text-xs">
             <h3 className="text-[11px] font-semibold text-gray-300">
               {t("ui.specialPattyTitle")}

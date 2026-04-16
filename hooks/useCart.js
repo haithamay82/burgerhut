@@ -66,7 +66,7 @@ export function customizationKey(item) {
         ? "1"
         : "";
   const specialPatty =
-    String(pid).startsWith("special-")
+    String(pid).startsWith("special-") && pid !== "special-cheese-bomb"
       ? Number(item.specialPattyGrams) === 220
         ? "220"
         : "200"

@@ -68,6 +68,9 @@ export async function validatePattyStockForSimulatedCart(
       quantity: Math.max(1, Number(it.quantity) || 1),
     };
     if (pid.startsWith("special-")) {
+      if (pid === "special-cheese-bomb") {
+        return { ...base };
+      }
       return {
         ...base,
         specialPattyGrams: Number(it.specialPattyGrams) === 220 ? 220 : 200,
@@ -80,7 +83,7 @@ export async function validatePattyStockForSimulatedCart(
       ? hintProductId.trim()
       : undefined;
   const hintSp =
-    hint && hint.startsWith("special-")
+    hint && hint.startsWith("special-") && hint !== "special-cheese-bomb"
       ? Number(hintSpecialPattyGrams) === 220
         ? 220
         : 200

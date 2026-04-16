@@ -12,11 +12,14 @@ export function buildCardOrderDetailsFromItems(items) {
     );
     const exs = (item.extras || []).map((x) => x.label || x.name || x.id);
     const pid = String(cartLineProductId(item) || "");
-    const specialPattyGramsValue = pid.startsWith("special-")
-      ? Number(item.specialPattyGrams) === 220
-        ? 220
-        : 200
-      : undefined;
+    const specialPattyGramsValue =
+      pid === "special-cheese-bomb"
+        ? undefined
+        : pid.startsWith("special-")
+          ? Number(item.specialPattyGrams) === 220
+            ? 220
+            : 200
+          : undefined;
     return {
       name: item.name,
       quantity: item.quantity,

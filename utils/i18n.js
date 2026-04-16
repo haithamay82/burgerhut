@@ -146,9 +146,9 @@ const HE = {
     "גבינת צ׳דר, חלפיניו, בצל מקורמל, מיונז חריף, פלפל חריף.",
   "menu.special-cheese-bomb.name": "Cheese Bomb",
   "menu.special-cheese-bomb.desc":
-    "קציצה 200 גרם, ממולאת בגבינת גאודה, גבינת צ׳דר מעל, רוטב צ׳דר בצד, חסה, עגבנייה, בצל סגול וחמוצים. נמס ומפוצץ גבינה.",
+    "קציצה של 240 גרם ממולאת בגבינת צ׳דר, גבינת גאודה מעל, רוטב צ׳דר בצד, חסה, עגבנייה, בצל סגול וחמוצים. נמס ומפוצץ גבינה.",
   "menu.special-cheese-bomb.fixedMealToppings":
-    "גבינת גאודה במילוי הקציצה, גבינת צ׳דר מעל, רוטב צ׳דר בצד.",
+    "קציצה 240 גר׳ (מלאי: 2×120 גר׳), גבינת צ׳דר במילוי, גבינת גאודה מעל, רוטב צ׳דר בצד.",
   "menu.special-lamb-bacon-deluxe.name": "Lamb Bacon Deluxe",
   "menu.special-lamb-bacon-deluxe.desc":
     "קציצה 200 גרם, פייקון טלה קריספי, גבינת צ׳דר, בצל מקורמל, חסה, עגבנייה, מיונז ורוטב BBQ עדין. עשיר ומעושן.",
@@ -309,6 +309,8 @@ const HE = {
     "כל האפשרויות למטה — גללו, בחרו והוסיפו לעגלה בתחתית המסך.",
   "ui.wizardSpecialSaladsOnly":
     "תוספות המנה (גבינה, מה שמגיע על המנה וכו׳) קבועות לפי המתכון. במנה קציצה אחת — בוחרים משקל 200 או 220 גר׳ למטה. ניתן לערוך גם סלטים, מידת עשייה, רטבים בצד ושתייה — גללו והוסיפו לעגלה למטה.",
+  "ui.wizardSpecialSaladsOnlyCheeseBomb":
+    "תוספות המנה קבועות לפי המתכון. קציצה 240 גר׳ (למלאי נגרעות 2 קציצות של 120 גר׳). ניתן לערוך סלטים, מידת עשייה, רטבים בצד ושתייה — גללו והוסיפו לעגלה למטה.",
   "ui.specialPattyTitle": "משקל הקציצה",
   "ui.specialPatty200": "200 גר׳",
   "ui.specialPatty220": "220 גר׳ (+₪5)",
@@ -340,6 +342,7 @@ const HE = {
   "checkout.size": "גודל",
   "checkout.variant": "הגשה",
   "checkout.saladsPrefix": "סלטים",
+  "checkout.specialMealComponentsPrefix": "מרכיבים",
   "checkout.bunSauceOnBunPrefix": "רוטב על הלחמניה",
   "checkout.donenessPrefix": "מידת העשייה",
   "checkout.toppingsPrefix": "תוספות לבורגר",
@@ -579,6 +582,7 @@ const HE = {
   "wa.bunSauceOnBun": "רוטב על הלחמניה",
   "wa.doneness": "מידת העשייה",
   "wa.specialPatty": "משקל קציצה",
+  "wa.cheeseBombPattyLine": "240 גר׳ (למלאי: 2×120 גר׳)",
   "wa.gramsUnit": " גר׳",
   "wa.sauces": "תוספות רטבים בצד",
   "wa.linePrice": "מחיר",
@@ -1046,9 +1050,9 @@ const AR = {
     "شيدر، هالبينيو، بصل كراميل، مايونيز حار، فلفل حار.",
   "menu.special-cheese-bomb.name": "Cheese Bomb",
   "menu.special-cheese-bomb.desc":
-    "قرص 200غ محشو جودا، شيدر فوق، صلصة شيدر على الجانب، خس، طماطم، بصل أحمر ومخلل. جبن ذائب.",
+    "قرص 240غ محشو شيدر، جودا فوق، صلصة شيدر على الجانب، خس، طماطم، بصل أحمر ومخلل. جبن ذائب.",
   "menu.special-cheese-bomb.fixedMealToppings":
-    "جودا محشو في القرص، شيدر فوق، صلصة شيدر على الجانب.",
+    "قرص 240غ (مخزون: 2×120غ)، شيدر في الحشو، جودا فوق، صلصة شيدر على الجانب.",
   "menu.special-lamb-bacon-deluxe.name": "Lamb Bacon Deluxe",
   "menu.special-lamb-bacon-deluxe.desc":
     "قرص 200غ، بايكون غنم مقرمش، شيدر، بصل كراميل، خس، طماطم، مايونيز وباربيكيو خفيف.",
@@ -1209,6 +1213,8 @@ const AR = {
     "كل الخيارات أدناه — مرّروا واختاروا، ثم أضيفوا للسلة في الأسفل.",
   "ui.wizardSpecialSaladsOnly":
     "إضافات الوجبة (جبن، ما يأتي مع الوجبة…) ثابتة حسب الوصفة. في الوجبة قرص واحد — تختارون وزناً 200 أو 220غ أدناه. يمكن أيضاً تعديل السلطات، درجة النضج، الصلصات الجانبية والمشروب — مرّروا وأضيفوا للسلة في الأسفل.",
+  "ui.wizardSpecialSaladsOnlyCheeseBomb":
+    "إضافات الوجبة ثابتة حسب الوصفة. قرص 240غ (يُخصم من المخزون قرصان 120غ). يمكن تعديل السلطات ودرجة النضج والصلصات الجانبية والمشروب — مرّروا وأضيفوا للسلة في الأسفل.",
   "ui.specialPattyTitle": "وزن القرص",
   "ui.specialPatty200": "200غ",
   "ui.specialPatty220": "220غ (+₪5)",
@@ -1240,6 +1246,7 @@ const AR = {
   "checkout.size": "الحجم",
   "checkout.variant": "التقديم",
   "checkout.saladsPrefix": "سلطة",
+  "checkout.specialMealComponentsPrefix": "المكوّنات",
   "checkout.bunSauceOnBunPrefix": "صلصة على الخبز",
   "checkout.donenessPrefix": "درجة التسوية",
   "checkout.toppingsPrefix": "إضافات البرجر",
@@ -1483,6 +1490,7 @@ const AR = {
   "wa.bunSauceOnBun": "صلصة على الخبز",
   "wa.doneness": "درجة التسوية",
   "wa.specialPatty": "وزن القرص",
+  "wa.cheeseBombPattyLine": "240غ (مخزون: 2×120غ)",
   "wa.gramsUnit": " غ",
   "wa.sauces": "صلصات إضافية على الجانب",
   "wa.linePrice": "السعر",

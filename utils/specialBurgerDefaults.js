@@ -73,6 +73,8 @@ export function buildSpecialBurgerCartLine({
     quantity: q,
     price: unitPrice,
     burgerDoneness: don,
-    specialPattyGrams: 200,
+    ...(item.id === "special-cheese-bomb"
+      ? {}
+      : { specialPattyGrams: 200 }),
   };
 }

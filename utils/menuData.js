@@ -259,7 +259,7 @@ export const MENU_ITEMS = [
   },
   {
     id: "special-cheese-bomb",
-    basePrice: 85,
+    basePrice: 90,
     category: "specials",
     image: IMG_SPECIAL_CHEESE_BOMB,
   },

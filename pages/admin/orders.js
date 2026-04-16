@@ -38,6 +38,8 @@ import {
   blobToBase64PngOrJpeg,
 } from "@/utils/prepareSliderImageForUpload";
 import { sortSaladsForDisplay } from "@/utils/saladDisplayOrder";
+import { cartLineProductId } from "@/hooks/useCart";
+import { specialBurgerMenuDescription } from "@/utils/specialBurgerMealDescription";
 import {
   getAdminLocalPushSubscribed,
   subscribeAdminWebPush,
@@ -3490,6 +3492,23 @@ export default function AdminOrdersPage() {
                                           .join(", ")}
                                       </p>
                                     ) : null}
+                                    {(() => {
+                                      const pid = cartLineProductId(it);
+                                      const mealDesc =
+                                        specialBurgerMenuDescription(
+                                          locale,
+                                          pid
+                                        );
+                                      if (!mealDesc) return null;
+                                      return (
+                                        <p className="text-[11px] text-gray-400">
+                                          {t(
+                                            "checkout.specialMealComponentsPrefix"
+                                          )}
+                                          : {mealDesc}
+                                        </p>
+                                      );
+                                    })()}
                                     {typeof it.bunSauceOnBun === "boolean" ? (
                                       <p className="text-[11px] text-gray-400">
                                         {t("checkout.bunSauceOnBunPrefix")}:{" "}
