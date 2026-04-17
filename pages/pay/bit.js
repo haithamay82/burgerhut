@@ -19,16 +19,21 @@ function normalizeIsraeliPhone(phone) {
   return p;
 }
 
+/**
+ * קישורי עומק לביט — ללא מסמך רשמי מבנק הפועלים.
+ * ניסיון: `send` לפני `pay` — לרוב מסלול «העברה» לפי מספר טלפון + סכום,
+ * גם כשאין איש קשר שמור, כדי שהלקוח יוכל לאשר/להשלים סכום ולהמשיך.
+ */
 function buildBitDeepLinks({ to, amount }) {
   const cleanTo = normalizeIsraeliPhone(to);
   const cleanAmount = String(amount || "").trim();
 
+  const q = `phone=${encodeURIComponent(cleanTo)}&amount=${encodeURIComponent(cleanAmount)}`;
+
   return [
-    `bit://pay?phone=${encodeURIComponent(cleanTo)}&amount=${encodeURIComponent(cleanAmount)}`,
-    `bit://send?phone=${encodeURIComponent(cleanTo)}&amount=${encodeURIComponent(cleanAmount)}`,
-    `intent://pay?phone=${encodeURIComponent(cleanTo)}&amount=${encodeURIComponent(
-      cleanAmount
-    )}#Intent;scheme=bit;package=com.ideomobile.hapoalim;end`,
+    `bit://send?${q}`,
+    `bit://pay?${q}`,
+    `intent://send?${q}#Intent;scheme=bit;package=com.ideomobile.hapoalim;end`,
   ];
 }
 
