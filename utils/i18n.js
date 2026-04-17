@@ -369,7 +369,7 @@ const HE = {
   "checkout.payment": "תשלום",
   "checkout.restaurantClosedNow": "המסעדה סגורה כעת.",
   "checkout.restaurantClosedHoursHint": "ראה זמני עבודה בדף הראשי",
-  "checkout.submit": "לחץ לתשלום",
+  "checkout.submit": "המשך",
   "checkout.submitting": "מעבדים…",
   "checkout.cardHypNotConfigured":
     "תשלום אשראי אינו מוגדר בשרת. פנו לחנות או בחרו מזומן/ביט. (בעלי האתר: יש להשלים משתני Hyp בקובץ .env.local או ב-Vercel.)",
@@ -520,6 +520,8 @@ const HE = {
   "success.invoiceHypNoReceipt":
     "האתר ביקש חשבונית לפי הפרטים שהזנתם, אך בכתובת החזרה מהמסוף לא מופיע מספר חשבונית (Hesh). בדקו במסוף Hyp שהופעל מודול חשבוניות ודוא״ל, בתיקיית דואר נכנס ובספאם. סכום קטן (למשל 1 ₪) לא אמור למנוע זאת בקוד האתר.",
   "success.waSendOrder": "שלח את ההזמנה למסעדה",
+  "success.waCashHeadline": "הזמנתך נרשמה במערכת",
+  "success.waCashSubline": "שלח אותה כדי לתאם זמן הכנה וקבלה",
   "success.waCardHeadline": "מעולה! יש לנו הזמנה",
   "success.waCardNowLine": "עכשיו:",
   "success.waOrderRecordedWithId": "הזמנתך #{order} מוכנה לשליחה",
@@ -1279,7 +1281,7 @@ const AR = {
   "checkout.restaurantClosedNow": "المطعم مغلق حالياً.",
   "checkout.restaurantClosedHoursHint":
     "اطّلع على ساعات العمل في الصفحة الرئيسية",
-  "checkout.submit": "اضغط للدفع",
+  "checkout.submit": "متابعة",
   "checkout.submitting": "جارٍ معالجة الطلب...",
   "checkout.cardHypNotConfigured":
     "الدفع بالبطاقة غير مهيأ على الخادم. تواصلوا مع المتجر أو اختاروا كاش أو Bit. (لمالك الموقع: أكملوا متغيرات Hyp في .env.local أو Vercel.)",
@@ -1431,6 +1433,8 @@ const AR = {
   "success.invoiceHypNoReceipt":
     "طلب الموقع فاتورة وفق بياناتكم، لكن عنوان العودة من البوابة لا يحتوي رقم مستند (Hesh). تحققوا من تفعيل وحدة الفوترة والبريد في طرفية Hyp، والوارد والبريد المزعج. مبلغ صغير (مثل 1 ₪) لا يمنع ذلك في كود الموقع.",
   "success.waSendOrder": "أرسل الطلب إلى المطعم",
+  "success.waCashHeadline": "تم تسجيل طلبك في النظام",
+  "success.waCashSubline": "أرسله لتنسيق وقت التحضير والاستلام",
   "success.waCardHeadline": "رائع! لدينا طلبيتك",
   "success.waCardNowLine": "الآن:",
   "success.waOrderRecordedWithId": "طلبك #{order} جاهز للإرسال",

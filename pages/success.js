@@ -782,6 +782,10 @@ export default function SuccessPage() {
     showMergedWaButton &&
     (method === "card" || Boolean(payDoneMarker));
 
+  /** מזומן: טקסט מעל כפתור ווטסאפ לתיאום הכנה וקבלה */
+  const showCashWaHeadlineCopy =
+    showMergedWaButton && method === "cash";
+
   /**
    * לא להציג ✓/«התקבלה» בזמן המתנה לקופון ולווטסאפ (אשראי/מזומן/חזרה מ-Hyp).
    * ביט בלי קישור wa בדף — ממשיכים להציג הצלחה רגילה.
@@ -891,6 +895,15 @@ export default function SuccessPage() {
                 </h2>
                 <p className="text-base font-semibold text-slate-200 sm:text-lg">
                   {t("success.waCardNowLine")}
+                </p>
+              </div>
+            ) : showCashWaHeadlineCopy ? (
+              <div className="w-full space-y-2">
+                <h2 className="text-xl font-extrabold leading-snug text-white sm:text-2xl">
+                  {t("success.waCashHeadline")}
+                </h2>
+                <p className="text-base font-semibold text-slate-200 sm:text-lg">
+                  {t("success.waCashSubline")}
                 </p>
               </div>
             ) : null}
