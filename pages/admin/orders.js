@@ -41,6 +41,7 @@ import { sortSaladsForDisplay } from "@/utils/saladDisplayOrder";
 import { cartLineProductId } from "@/hooks/useCart";
 import { formatIls } from "@/utils/cartMoney";
 import { specialBurgerMenuDescription } from "@/utils/specialBurgerMealDescription";
+import { buildOrderItemsHeadlinesPlain } from "@/utils/whatsapp";
 import {
   getAdminLocalPushSubscribed,
   subscribeAdminWebPush,
@@ -106,8 +107,8 @@ function vibrateAdminNewOrder() {
   }
 }
 
-/** התאמה לטקסט הזמנה בווטסאפ / Web Push — מס׳ #n ושורות קופון כשיש */
-function buildAdminDesktopNewOrderBody(t, order) {
+/** התאמה ל־Web Push: מס׳ הזמנה, קופון, ורשימת פריטים 1,2,… כמו בווטסאפ */
+function buildAdminDesktopNewOrderBody(t, order, locale = "he") {
   const n = String(order?.orderNumber ?? "").trim();
   let body = n
     ? t("admin.newOrderNotifyBodyOne").replace("{n}", n)
@@ -122,6 +123,11 @@ function buildAdminDesktopNewOrderBody(t, order) {
   }
   if (code) {
     body += t("admin.newOrderNotifyCouponCode").replace("{code}", code);
+  }
+  const items = order?.items;
+  if (Array.isArray(items) && items.length) {
+    const loc = locale === "ar" ? "ar" : "he";
+    body += `\n\n${buildOrderItemsHeadlinesPlain(items, loc)}`;
   }
   return body;
 }
@@ -1026,7 +1032,7 @@ export default function AdminOrdersPage() {
           const title = t("admin.newOrderNotifyTitle");
           const body =
             newRows.length === 1
-              ? buildAdminDesktopNewOrderBody(t, newRows[0])
+              ? buildAdminDesktopNewOrderBody(t, newRows[0], locale)
               : t("admin.newOrderNotifyBodyMany").replace(
                   "{c}",
                   String(newRows.length)
@@ -1058,7 +1064,7 @@ export default function AdminOrdersPage() {
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [loaded, secret, t]);
+  }, [loaded, secret, t, locale]);
 
   const deleteCoupon = async (code) => {
     if (!secret.trim() || !code) return;

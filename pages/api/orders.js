@@ -238,6 +238,7 @@ export default async function handler(req, res) {
           orderNumber: row.orderNumber,
           couponCode: row.customer?.couponCode,
           couponDiscountNis: row.customer?.couponDiscountNis,
+          items: row.items,
         });
       } catch (e) {
         console.warn("[adminPush] broadcast failed", e?.message || e);

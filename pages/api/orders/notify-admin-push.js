@@ -35,11 +35,16 @@ export default async function handler(req, res) {
 
   let couponCode;
   let couponDiscountNis;
+  /** @type {unknown[]|undefined} */
+  let orderItems;
   try {
     const order = await findOrderById(orderRowId);
     if (order?.customer && typeof order.customer === "object") {
       couponCode = order.customer.couponCode;
       couponDiscountNis = order.customer.couponDiscountNis;
+    }
+    if (Array.isArray(order?.items)) {
+      orderItems = order.items;
     }
   } catch {
     /* ignore */
@@ -50,6 +55,7 @@ export default async function handler(req, res) {
       orderNumber: result.orderNumber,
       couponCode,
       couponDiscountNis,
+      items: orderItems,
     });
   } catch (e) {
     console.warn("[adminPush] deferred broadcast failed", e?.message || e);

@@ -324,6 +324,65 @@ export function buildWhatsAppOrderText({
   return lines.join("\n");
 }
 
+const ADMIN_PUSH_ORDER_ITEMS_MAX_CHARS = 3200;
+
+/**
+ * פריטי עגלה במספור 1, 2, … — אותו סדר ושורת כותרת כמו בווטסאפ (טקסט רגיל, בלי *).
+ * לתוכן התראות ניהול / Push (לא מספר הזמנה של המערכת).
+ * @param {unknown[]} items
+ * @param {'he'|'ar'} [locale]
+ * @param {{ maxChars?: number }} [opts]
+ */
+export function buildOrderItemsHeadlinesPlain(
+  items,
+  locale = "he",
+  opts = {}
+) {
+  const maxRaw = Number(opts.maxChars);
+  const maxChars =
+    Number.isFinite(maxRaw) && maxRaw > 200
+      ? Math.floor(maxRaw)
+      : ADMIN_PUSH_ORDER_ITEMS_MAX_CHARS;
+  const tr = getTranslator(locale === "ar" ? "ar" : "he");
+  const list = Array.isArray(items) ? items : [];
+  const { mains, others } = partitionCartItemsForWa(list);
+  const mainsOrdered = sortMainMealsForWa(mains);
+  const linesOut = [];
+  const pushHeadline = (item, displayIndex) => {
+    const lineExtras = [item.sizeLabel, item.variantLabel]
+      .filter(Boolean)
+      .join(" · ");
+    const lineSuffix = lineExtras ? ` — ${lineExtras}` : "";
+    const qty = Number(item.quantity);
+    const quantitySuffix =
+      Number.isFinite(qty) && qty > 1 ? ` x${qty}` : "";
+    const name = String(item.name || "").trim() || "—";
+    linesOut.push(`${displayIndex}. ${name}${quantitySuffix}${lineSuffix}`);
+  };
+  let n = 0;
+  for (const item of mainsOrdered) {
+    n += 1;
+    pushHeadline(item, n);
+  }
+  if (others.length > 0) {
+    if (mainsOrdered.length > 0) {
+      const hdr = String(tr("wa.nonMealItemsHeader") || "")
+        .replace(/\*/g, "")
+        .trim();
+      if (hdr) linesOut.push(hdr);
+    }
+    for (const item of others) {
+      n += 1;
+      pushHeadline(item, n);
+    }
+  }
+  let text = linesOut.join("\n");
+  if (text.length > maxChars) {
+    text = `${text.slice(0, Math.max(0, maxChars - 40))}\n…`;
+  }
+  return text;
+}
+
 export function buildWhatsAppMessage(params) {
   return encodeURIComponent(buildWhatsAppOrderText(params));
 }
