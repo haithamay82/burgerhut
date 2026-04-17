@@ -1,13 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import Layout from "@/components/Layout";
-import { buildWhatsAppUrl, openWhatsAppComposeUrl } from "@/utils/whatsapp";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useCart } from "@/hooks/useCart";
 import {
-  BIT_DEFERRED_COUPON_CLAIM_KEY,
-  BIT_PAY_WA_SENT_ORDER_KEY,
   PENDING_ORDER_KEY,
+  SUCCESS_WA_SNAPSHOT_KEY,
 } from "@/utils/checkoutSessionKeys";
 import { fireCouponRevealAfterWhatsAppCompose } from "@/utils/fireDeferredAdminPushNotify";
 import { consumePendingOrderForCheckoutResume } from "@/utils/checkoutResumeFromPending";
@@ -39,10 +37,8 @@ export default function BitPayPage() {
   const { amount, to } = router.query;
   const [status, setStatus] = useState("");
   const [isSendingWa, setIsSendingWa] = useState(false);
-  /** יש הזמנה ממתינה עם פריטים — רק אז מציגים בלוק ווטסאפ */
+  /** יש הזמנה ממתינה עם פריטים — בלוק המשך למסך הצלחה */
   const [waPendingOk, setWaPendingOk] = useState(false);
-  /** כבר נלחץ «שלח לווטסאפ» להזמנה הזו */
-  const [waOrderComposeDone, setWaOrderComposeDone] = useState(false);
   const [bitOrderNumber, setBitOrderNumber] = useState(null);
   const [bitPaidConfirmed, setBitPaidConfirmed] = useState(false);
 
@@ -62,12 +58,7 @@ export default function BitPayPage() {
         return;
       }
       const on = p.orderNumber;
-      const sentFor =
-        on != null && on !== ""
-          ? window.sessionStorage.getItem(BIT_PAY_WA_SENT_ORDER_KEY)
-          : null;
       setWaPendingOk(true);
-      setWaOrderComposeDone(sentFor === String(on));
       setBitOrderNumber(
         on != null && on !== "" ? String(on).trim() : null
       );
@@ -117,10 +108,10 @@ export default function BitPayPage() {
     router.push("/checkout");
   };
 
-  const sendOrderWhatsApp = async () => {
+  const continueToSuccess = async () => {
     if (typeof window === "undefined" || !bitPaidConfirmed) return;
     setIsSendingWa(true);
-    setStatus(t("bit.waOpening"));
+    setStatus("");
 
     const raw = window.sessionStorage.getItem(PENDING_ORDER_KEY);
     if (!raw) {
@@ -138,8 +129,8 @@ export default function BitPayPage() {
       return;
     }
 
-    const { customer, items, payment, orderNumber, locale: savedLocale } = payload;
-    const waLocale = savedLocale === "he" || savedLocale === "ar" ? savedLocale : locale;
+    const { customer, items, payment, orderNumber, locale: savedLocale } =
+      payload;
 
     if (!items?.length) {
       setStatus(t("bit.errEmptyCart"));
@@ -147,24 +138,6 @@ export default function BitPayPage() {
       return;
     }
 
-    const orderTotal = items.reduce(
-      (s, i) => s + Number(i.price) * Number(i.quantity),
-      0
-    );
-    const waTotal =
-      typeof payload.waGrandTotal === "number" &&
-      Number.isFinite(payload.waGrandTotal)
-        ? payload.waGrandTotal
-        : orderTotal;
-
-    const waUrl = buildWhatsAppUrl({
-      customer,
-      cart: { items },
-      total: waTotal,
-      payment: payment || "bit",
-      orderNumber,
-      locale: waLocale,
-    });
     const hasDeferredNotify =
       payload.orderRowId &&
       payload.orderNumber != null &&
@@ -199,45 +172,38 @@ export default function BitPayPage() {
         orderRowId: String(payload.orderRowId).trim(),
       });
     }
-    const deferredCouponCode = String(customer?.couponCode || "")
-      .trim()
-      .toUpperCase();
-    if (
-      deferredCouponCode &&
-      orderNumber != null &&
-      String(orderNumber).trim() !== ""
-    ) {
-      try {
-        window.sessionStorage.setItem(
-          BIT_DEFERRED_COUPON_CLAIM_KEY,
-          JSON.stringify({
-            orderNumber: String(orderNumber),
-            couponCode: deferredCouponCode,
-            savedAt: Date.now(),
-          })
-        );
-      } catch {
-        /* ignore */
-      }
+
+    const waLocale =
+      savedLocale === "he" || savedLocale === "ar" ? savedLocale : locale;
+    try {
+      window.sessionStorage.setItem(
+        SUCCESS_WA_SNAPSHOT_KEY,
+        JSON.stringify({
+          customer,
+          items,
+          payment: payment || "bit",
+          orderNumber: payload.orderNumber,
+          locale: waLocale,
+          waGrandTotal:
+            typeof payload.waGrandTotal === "number" &&
+            Number.isFinite(payload.waGrandTotal)
+              ? payload.waGrandTotal
+              : undefined,
+          couponRewardBaseNis: payload.couponRewardBaseNis,
+          orderRowId: payload.orderRowId,
+        })
+      );
+    } catch {
+      setStatus(t("bit.errNoSession"));
+      setIsSendingWa(false);
+      return;
     }
+
     window.sessionStorage.removeItem(PENDING_ORDER_KEY);
     setWaPendingOk(false);
-    try {
-      if (orderNumber != null && `${orderNumber}`.trim()) {
-        window.sessionStorage.setItem(
-          BIT_PAY_WA_SENT_ORDER_KEY,
-          String(orderNumber)
-        );
-      }
-    } catch {
-      /* ignore */
-    }
-    setWaOrderComposeDone(true);
-    const how = openWhatsAppComposeUrl(waUrl);
     setIsSendingWa(false);
-    if (how === "new_tab") {
-      router.push("/success?method=bit");
-    }
+    const on = encodeURIComponent(String(orderNumber ?? "").trim());
+    await router.push(`/success?method=bit&on=${on}`);
   };
 
   return (
@@ -293,7 +259,7 @@ export default function BitPayPage() {
           {t("bit.openApp")}
         </button>
 
-        {waPendingOk && !waOrderComposeDone ? (
+        {waPendingOk ? (
           <div className="space-y-3 border-t border-slate-800 pt-3">
             <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-200">
               <input
@@ -306,11 +272,11 @@ export default function BitPayPage() {
             </label>
             <button
               type="button"
-              onClick={() => void sendOrderWhatsApp()}
+              onClick={() => void continueToSuccess()}
               disabled={!bitPaidConfirmed || isSendingWa}
               className="btn-primary inline-flex w-full items-center justify-center whitespace-pre-line px-4 py-3 text-center leading-snug disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isSendingWa ? t("bit.waOpening") : t("bit.waBtn")}
+              {isSendingWa ? t("checkout.submitting") : t("checkout.submit")}
             </button>
           </div>
         ) : null}

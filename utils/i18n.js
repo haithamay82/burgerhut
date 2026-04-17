@@ -501,8 +501,7 @@ const HE = {
   "success.titleOnline": "מעבר לדף התשלום",
   "success.titleOk": "ההזמנה התקבלה!",
   "success.descOnline": "בסביבת ייצור תועברו לספק תשלום (PayMe / Tranzila).",
-  "success.descBit":
-    "תודה! ההזמנה נרשמה. אם נפתח ווטסאפ — שלחו את ההודעה לחנות.",
+  "success.descBit": "תודה! ההזמנה נרשמה.",
   "success.descCash":
     "תודה! ההזמנה נרשמה.",
   "success.descCard":
@@ -551,13 +550,12 @@ const HE = {
   "bit.title": "תשלום בביט",
   "bit.subtitle": "שלמו באפליקציית ביט בטלפון (האפליקציה חייבת להיות מותקנת).",
   "bit.payIntro":
-    "זה המספר שלנו לקבל ביט: 0504847599\nשמרו אותו בטלפון שלכם בורגר האט\nוהעבירו את הסכום — עלות ההזמנה: ₪{amount}",
+    "זה המספר שלנו לקבלת ביט: 0504847599\nשמרו אותו בטלפון שלכם בורגר האט\nוהעבירו את הסכום — עלות ההזמנה: ₪{amount}",
   "bit.payForOrderLine": "תשלום עבור הזמנה מספר: {orderNumber}",
   "bit.copyNumber": "העתק מספר",
   "bit.copyAmount": "העתק סכום",
   "bit.openApp": "פתיחת אפליקציית ביט",
   "bit.paidCheckbox": "שילמתי בביט",
-  "bit.waBtn": "שלח את ההזמנה",
   "bit.errNotifyAdmin": "לא ניתן לשלוח את ההזמנה לניהול. נסו שוב.",
   "bit.waOpening": "פותח…",
   "bit.errNoSession": "אין נתוני הזמנה. חזרו לעגלה והשלימו שוב.",
@@ -1413,8 +1411,7 @@ const AR = {
   "success.titleOk": "تم استلام طلبك!",
   "success.descOnline":
     "في البيئة الحقيقية سيتم تحويلك الآن إلى PayMe / Tranzila لإتمام الدفع.",
-  "success.descBit":
-    "شكراً! تم تسجيل الطلب في النظام. إذا فتح واتساب — أكمل الإرسال للمتجر.",
+  "success.descBit": "شكراً! تم تسجيل الطلب في النظام.",
   "success.descCash":
     "شكراً! تم تسجيل الطلب في النظام. إذا فتح واتساب — راجِع الرسالة وأرسلها للمتجر.",
   "success.descCard":
@@ -1469,7 +1466,6 @@ const AR = {
   "bit.copyAmount": "نسخ المبلغ",
   "bit.openApp": "فتح تطبيق Bit الآن",
   "bit.paidCheckbox": "دفعت عبر Bit",
-  "bit.waBtn": "أرسل الطلب",
   "bit.errNotifyAdmin": "تعذر إرسال الطلب للإدارة. أعيدوا المحاولة.",
   "bit.waOpening": "جارٍ الفتح…",
   "bit.errNoSession":

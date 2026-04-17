@@ -200,6 +200,7 @@ export default function SuccessPage() {
       Boolean(payDoneMarker) ||
       method === "card" ||
       method === "cash" ||
+      method === "bit" ||
       hasValidCardSuccessSnapshot();
     if (!allowSnapshotLoad) {
       setWaAdminPushPayload(null);
@@ -297,7 +298,7 @@ export default function SuccessPage() {
 
     try {
       let raw;
-      if (methodStr === "cash") {
+      if (methodStr === "cash" || methodStr === "bit") {
         raw = window.sessionStorage.getItem(SUCCESS_WA_SNAPSHOT_KEY);
       } else {
         raw = readCardSuccessSnapshotRaw();
@@ -405,7 +406,7 @@ export default function SuccessPage() {
           adminPushOrderNumber: snapOrderNum ?? undefined,
           adminPushConfirmSecret: snap.adminPushConfirmSecret,
         });
-        if (methodStr === "cash") {
+        if (methodStr === "cash" || methodStr === "bit") {
           try {
             window.sessionStorage.removeItem(SUCCESS_WA_SNAPSHOT_KEY);
           } catch {
@@ -470,6 +471,7 @@ export default function SuccessPage() {
       Boolean(payDoneMarker) ||
       method === "card" ||
       method === "cash" ||
+      method === "bit" ||
       Boolean(cardWaUrl) ||
       hasValidCardSuccessSnapshot();
     if (!waAuxFlow) return;
@@ -505,6 +507,7 @@ export default function SuccessPage() {
       Boolean(payDoneMarker) ||
       method === "card" ||
       method === "cash" ||
+      method === "bit" ||
       Boolean(cardWaUrl) ||
       hasValidCardSuccessSnapshot();
     if (!waAuxFlow) {
@@ -535,6 +538,7 @@ export default function SuccessPage() {
       Boolean(payDoneMarker) ||
       method === "card" ||
       method === "cash" ||
+      method === "bit" ||
       Boolean(cardWaUrl) ||
       hasValidCardSuccessSnapshot();
     if (!waAuxFlow) {
@@ -749,6 +753,7 @@ export default function SuccessPage() {
     Boolean(payDoneMarker) ||
     method === "card" ||
     method === "cash" ||
+    method === "bit" ||
     (Boolean(cardWaUrl) && Boolean(cardOrder));
 
   /** כפתור ווטסאפ רק אחרי שהקופון הוצג (כשמסלול הקופון פעיל), או מיד כשקופונים כבויים */
@@ -782,18 +787,18 @@ export default function SuccessPage() {
     showMergedWaButton &&
     (method === "card" || Boolean(payDoneMarker));
 
-  /** מזומן: טקסט מעל כפתור ווטסאפ לתיאום הכנה וקבלה */
+  /** מזומן / ביט: טקסט מעל כפתור ווטסאפ לתיאום הכנה וקבלה */
   const showCashWaHeadlineCopy =
-    showMergedWaButton && method === "cash";
+    showMergedWaButton && (method === "cash" || method === "bit");
 
   /**
-   * לא להציג ✓/«התקבלה» בזמן המתנה לקופון ולווטסאפ (אשראי/מזומן/חזרה מ-Hyp).
-   * ביט בלי קישור wa בדף — ממשיכים להציג הצלחה רגילה.
+   * לא להציג ✓/«התקבלה» בזמן המתנה לקופון ולווטסאפ (אשראי/מזומן/ביט/חזרה מ-Hyp).
    */
   const mayStillNeedWaComposer =
     Boolean(cardWaUrl) ||
     method === "card" ||
     method === "cash" ||
+    method === "bit" ||
     Boolean(payDoneMarker);
   const hideSuccessCheckUntilWaSent =
     postPaymentWhatsAppContext &&
