@@ -1,6 +1,8 @@
 /** sessionStorage — הזמנה ממתינה (ביט/אשראי) ושחזור טיוטת checkout */
 export const PENDING_ORDER_KEY = "burgerhut_pending_order";
 export const CHECKOUT_RESUME_KEY = "burgerhut_checkout_resume";
+/** localStorage — שם וטלפון לשחזור בצ'קאאוט (רק אם הלקוח לחץ «שמור לפעם הבאה») */
+export const CHECKOUT_SAVED_CONTACT_KEY = "burgerhut_checkout_saved_contact";
 /** נתונים לווטסאפ אחרי תשלום אשראי (נשמר לפני מעבר ל-Hyp) */
 export const CARD_SUCCESS_SNAPSHOT_KEY = "burgerhut_card_success_snapshot";
 /** נתונים לווטסאפ אחרי הצלחת הזמנה (מזומן/אשראי) למסך success */

@@ -23,6 +23,7 @@ import { RESTAURANT_COORDS } from "@/utils/deliveryPricing";
 import {
   PENDING_ORDER_KEY,
   CHECKOUT_RESUME_KEY,
+  CHECKOUT_SAVED_CONTACT_KEY,
   SUCCESS_WA_SNAPSHOT_KEY,
 } from "@/utils/checkoutSessionKeys";
 import { insufficientPattiesUiMessage } from "@/utils/pattyCheckoutErrorText";
@@ -106,6 +107,7 @@ export default function CheckoutPage() {
 
   const [errors, setErrors] = useState({});
   const [cartPattyError, setCartPattyError] = useState("");
+  const [contactSavedFlash, setContactSavedFlash] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [discountCfg, setDiscountCfg] = useState({
     enabled: false,
@@ -200,6 +202,37 @@ export default function CheckoutPage() {
     }
     try {
       window.sessionStorage.removeItem(CHECKOUT_RESUME_KEY);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(CHECKOUT_SAVED_CONTACT_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      if (!saved || typeof saved !== "object") return;
+      const fn = String(saved.firstName || "").trim();
+      const ln = String(saved.lastName || "").trim();
+      const ph = String(saved.phone || "").trim();
+      if (!fn && !ln && !ph) return;
+      setForm((prev) => {
+        if (
+          prev.firstName.trim() ||
+          prev.lastName.trim() ||
+          prev.phone.trim()
+        ) {
+          return prev;
+        }
+        return {
+          ...prev,
+          firstName: fn,
+          lastName: ln,
+          phone: ph,
+        };
+      });
     } catch {
       /* ignore */
     }
@@ -624,6 +657,28 @@ export default function CheckoutPage() {
       return;
     }
     updateQuantity(item.id, nextQty);
+  };
+
+  const saveContactForNextTime = () => {
+    const fn = form.firstName.trim();
+    const ln = form.lastName.trim();
+    const ph = form.phone.trim();
+    if (!fn || !ln || !ph || typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(
+        CHECKOUT_SAVED_CONTACT_KEY,
+        JSON.stringify({
+          firstName: fn,
+          lastName: ln,
+          phone: ph,
+          savedAt: Date.now(),
+        })
+      );
+      setContactSavedFlash(true);
+      window.setTimeout(() => setContactSavedFlash(false), 2800);
+    } catch {
+      /* ignore */
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -1238,6 +1293,21 @@ export default function CheckoutPage() {
             {errors.phone && (
               <p className="mt-1 text-[11px] text-red-400">{errors.phone}</p>
             )}
+            {form.firstName.trim() &&
+            form.lastName.trim() &&
+            form.phone.trim() ? (
+              <div className="mt-2">
+                <button
+                  type="button"
+                  onClick={saveContactForNextTime}
+                  className="text-[11px] font-semibold text-primary underline-offset-2 hover:underline"
+                >
+                  {contactSavedFlash
+                    ? t("checkout.contactSavedConfirm")
+                    : t("checkout.saveContactForNextTime")}
+                </button>
+              </div>
+            ) : null}
           </div>
 
           <div>
