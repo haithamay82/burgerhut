@@ -45,9 +45,23 @@ export default function MenuMealPreviewCard({
             </p>
           ) : null}
           <p className="line-clamp-3 text-xs text-gray-400">{description}</p>
-          <p className="mt-1 text-sm font-semibold text-primary">
-            {t("ui.fromPrice")} ₪{formatIls(item.basePrice)}
-          </p>
+          <div
+            dir="ltr"
+            className="mt-1 flex min-w-0 flex-row items-center justify-between gap-2"
+          >
+            <span
+              className="max-w-[58%] shrink truncate rounded border border-amber-600/45 bg-amber-950/75 px-1.5 py-0.5 text-[9px] font-bold leading-tight text-amber-100/95 sm:max-w-[55%] sm:text-[10px]"
+              title={t("ui.mealIncludesMixChips")}
+            >
+              {t("ui.mealIncludesMixChips")}
+            </span>
+            <p
+              dir="rtl"
+              className="shrink-0 text-sm font-semibold text-primary tabular-nums"
+            >
+              {t("ui.fromPrice")} ₪{formatIls(item.basePrice)}
+            </p>
+          </div>
         </div>
       </div>
       <div className="border-t border-slate-800 p-3">
