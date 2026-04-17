@@ -39,6 +39,7 @@ import {
 } from "@/utils/prepareSliderImageForUpload";
 import { sortSaladsForDisplay } from "@/utils/saladDisplayOrder";
 import { cartLineProductId } from "@/hooks/useCart";
+import { formatIls } from "@/utils/cartMoney";
 import { specialBurgerMenuDescription } from "@/utils/specialBurgerMealDescription";
 import {
   getAdminLocalPushSubscribed,
@@ -103,6 +104,26 @@ function vibrateAdminNewOrder() {
   } catch {
     /* ignore */
   }
+}
+
+/** התאמה לטקסט הזמנה בווטסאפ / Web Push — מס׳ #n ושורות קופון כשיש */
+function buildAdminDesktopNewOrderBody(t, order) {
+  const n = String(order?.orderNumber ?? "").trim();
+  let body = n
+    ? t("admin.newOrderNotifyBodyOne").replace("{n}", n)
+    : t("admin.newOrderNotifyBodyNoNum");
+  const disc = Number(order?.customer?.couponDiscountNis);
+  const code = String(order?.customer?.couponCode || "").trim().toUpperCase();
+  if (Number.isFinite(disc) && disc > 0) {
+    body += t("admin.newOrderNotifyCouponDiscount").replace(
+      "{amount}",
+      formatIls(disc)
+    );
+  }
+  if (code) {
+    body += t("admin.newOrderNotifyCouponCode").replace("{code}", code);
+  }
+  return body;
 }
 
 /** timeout ל-fetch של הגדרות סליידר */
@@ -1005,10 +1026,7 @@ export default function AdminOrdersPage() {
           const title = t("admin.newOrderNotifyTitle");
           const body =
             newRows.length === 1
-              ? t("admin.newOrderNotifyBodyOne").replace(
-                  "{n}",
-                  String(newRows[0].orderNumber ?? "")
-                )
+              ? buildAdminDesktopNewOrderBody(t, newRows[0])
               : t("admin.newOrderNotifyBodyMany").replace(
                   "{c}",
                   String(newRows.length)

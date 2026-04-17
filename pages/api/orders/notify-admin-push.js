@@ -1,6 +1,9 @@
 import { broadcastNewOrderToAdmins } from "@/lib/adminPushNotify";
 import { revealCouponForOrderRowAfterWaSent } from "@/lib/couponAdminVisibility";
-import { completeDeferredAdminPush } from "@/lib/ordersStore";
+import {
+  completeDeferredAdminPush,
+  findOrderById,
+} from "@/lib/ordersStore";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -30,8 +33,24 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, already: true });
   }
 
+  let couponCode;
+  let couponDiscountNis;
   try {
-    await broadcastNewOrderToAdmins({ orderNumber: result.orderNumber });
+    const order = await findOrderById(orderRowId);
+    if (order?.customer && typeof order.customer === "object") {
+      couponCode = order.customer.couponCode;
+      couponDiscountNis = order.customer.couponDiscountNis;
+    }
+  } catch {
+    /* ignore */
+  }
+
+  try {
+    await broadcastNewOrderToAdmins({
+      orderNumber: result.orderNumber,
+      couponCode,
+      couponDiscountNis,
+    });
   } catch (e) {
     console.warn("[adminPush] deferred broadcast failed", e?.message || e);
   }

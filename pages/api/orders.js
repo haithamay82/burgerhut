@@ -236,6 +236,8 @@ export default async function handler(req, res) {
       try {
         await broadcastNewOrderToAdmins({
           orderNumber: row.orderNumber,
+          couponCode: row.customer?.couponCode,
+          couponDiscountNis: row.customer?.couponDiscountNis,
         });
       } catch (e) {
         console.warn("[adminPush] broadcast failed", e?.message || e);

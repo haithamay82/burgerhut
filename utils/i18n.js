@@ -604,6 +604,9 @@ const HE = {
   "wa.foodSubtotal": "סה״כ מנות",
   "wa.discount": "הנחת מבצע",
   "wa.coupon": "קופון",
+  "wa.couponDiscountLabel": "הנחת קופון",
+  "wa.couponCodeLabel": "קוד קופון",
+  "wa.nisCurrencySuffix": "ש״ח",
   "wa.totalWithDelivery": "סה״כ כולל משלוח",
   "wa.deliveryArea": "אזור משלוח",
   "wa.zoneYarka": "ירכא",
@@ -634,7 +637,10 @@ const HE = {
   "admin.newOrderNotifyDeniedHelp":
     "Chrome / Edge (מחשב): סמל המנעול או «ⓘ» ליד הכתובת → «הגדרות לאתר הזה» / Site settings → התראות → «אפשר». לאחר מכן רעננו את הדף. אנדרואיד (כרום): ⋮ → הגדרות → הגדרות אתר → התראות; או הגדרות המכשיר → אפליקציות → כרום → התראות. אייפון (אתר או PWA מהמסך הראשי): הגדרות → התראות → בחרו את האפליקציה או את Safari/דפדפן הרלוונטי → אפשרו; ל־PWA מותקן לפעמים תחת שם האתר או «התראות אפליקציות» (נדרש iOS 16.4+ ל־Web Push).",
   "admin.newOrderNotifyTitle": "הזמנה חדשה — Burger Hut",
-  "admin.newOrderNotifyBodyOne": "התקבלה הזמנה מס׳ {n}.",
+  "admin.newOrderNotifyBodyOne": "התקבלה הזמנה מס׳ #{n}.",
+  "admin.newOrderNotifyBodyNoNum": "התקבלה הזמנה חדשה.",
+  "admin.newOrderNotifyCouponDiscount": " הנחת קופון: {amount} ש״ח.",
+  "admin.newOrderNotifyCouponCode": " קוד קופון: {code}.",
   "admin.newOrderNotifyBodyMany": "התקבלו {c} הזמנות חדשות.",
   "admin.pushSubscribeOk":
     "התראות Push הופעלו — תקבלו התראה גם כשהאפליקציה סגורה (אם המכשיר והדפדפן מאפשרים).",
@@ -1524,6 +1530,9 @@ const AR = {
   "wa.foodSubtotal": "مجموع الأصناف",
   "wa.discount": "خصم العرض",
   "wa.coupon": "كوبون",
+  "wa.couponDiscountLabel": "خصم الكوبون",
+  "wa.couponCodeLabel": "رمز الكوبون",
+  "wa.nisCurrencySuffix": "₪",
   "wa.totalWithDelivery": "المجموع مع التوصيل",
   "wa.deliveryArea": "منطقة التوصيل",
   "wa.zoneYarka": "يركا",
@@ -1554,7 +1563,10 @@ const AR = {
   "admin.newOrderNotifyDeniedHelp":
     "Chrome / Edge (كمبيوتر): أيقونة القفل أو «i» بجانب العنوان → «إعدادات الموقع» / Site settings → الإشعارات → «السماح». ثم حدّثوا الصفحة. أندرويد (Chrome): ⋮ → الإعدادات → إعدادات الموقع → الإشعارات؛ أو إعدادات الجهاز → التطبيقات → Chrome → الإشعارات. آيفون (موقع أو PWA من الشاشة الرئيسية): الإعدادات → الإشعارات → اختيار التطبيق أو Safari/المتصفح → السماح؛ قد يظهر اسم الموقع كتطبيق مثبّت (iOS 16.4+ لـ Web Push في PWA).",
   "admin.newOrderNotifyTitle": "طلب جديد — Burger Hut",
-  "admin.newOrderNotifyBodyOne": "وصل الطلب رقم {n}.",
+  "admin.newOrderNotifyBodyOne": "وصل الطلب رقم #{n}.",
+  "admin.newOrderNotifyBodyNoNum": "وصل طلب جديد.",
+  "admin.newOrderNotifyCouponDiscount": " خصم الكوبون: {amount} ₪.",
+  "admin.newOrderNotifyCouponCode": " رمز الكوبون: {code}.",
   "admin.newOrderNotifyBodyMany": "وصلت {c} طلبات جديدة.",
   "admin.pushSubscribeOk":
     "تم تفعيل إشعارات Push — ستصلكم إشعار حتى عند إغلاق التطبيق (إن سمح الجهاز والمتصفح).",

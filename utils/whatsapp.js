@@ -286,8 +286,13 @@ export function buildWhatsAppOrderText({
     }
     if (Number.isFinite(couponDiscount) && couponDiscount > 0) {
       lines.push(
-        `${waBoldLabel(`${tr("wa.coupon")}${couponCode ? ` (${couponCode})` : ""}`)}: -₪${formatIls(couponDiscount)}`
+        `${waBoldLabel(tr("wa.couponDiscountLabel"))}: ${formatIls(couponDiscount)} ${tr("wa.nisCurrencySuffix")}`
       );
+      if (couponCode) {
+        lines.push(
+          `${waBoldLabel(tr("wa.couponCodeLabel"))}: ${couponCode}`
+        );
+      }
     }
     lines.push(
       `${waBoldLabel(tr("wa.deliveryFee"))}: ₪${formatIls(Number(customer.deliveryFeeNis))}`
@@ -303,8 +308,13 @@ export function buildWhatsAppOrderText({
     }
     if (Number.isFinite(couponDiscount) && couponDiscount > 0) {
       lines.push(
-        `${waBoldLabel(`${tr("wa.coupon")}${couponCode ? ` (${couponCode})` : ""}`)}: -₪${formatIls(couponDiscount)}`
+        `${waBoldLabel(tr("wa.couponDiscountLabel"))}: ${formatIls(couponDiscount)} ${tr("wa.nisCurrencySuffix")}`
       );
+      if (couponCode) {
+        lines.push(
+          `${waBoldLabel(tr("wa.couponCodeLabel"))}: ${couponCode}`
+        );
+      }
     }
     lines.push(
       `${waBoldLabel(tr("wa.total"))}: *₪${formatIls(total)}*`
