@@ -165,6 +165,7 @@ export default function CheckoutPage() {
       const d = JSON.parse(raw);
       if (d.form && typeof d.form === "object") {
         const merged = { ...d.form };
+        if (merged.payment !== "card") merged.email = "";
         if (
           merged.name &&
           !merged.firstName &&
@@ -298,6 +299,7 @@ export default function CheckoutPage() {
     setForm((prev) => ({
       ...prev,
       payment: id,
+      ...(id !== "card" && prev.payment === "card" ? { email: "" } : {}),
       deliveryPayTo:
         id !== "cash" && prev.payment === "cash" ? "" : prev.deliveryPayTo,
     }));
@@ -493,7 +495,9 @@ export default function CheckoutPage() {
       lastName,
       name,
       phone: form.phone.trim(),
-      ...(emailTrim && emailTrim.includes("@")
+      ...(form.payment === "card" &&
+      emailTrim &&
+      emailTrim.includes("@")
         ? { email: emailTrim.slice(0, 120) }
         : {}),
       orderType: form.orderType,
@@ -1189,19 +1193,6 @@ export default function CheckoutPage() {
             {errors.phone && (
               <p className="mt-1 text-[11px] text-red-400">{errors.phone}</p>
             )}
-            <label className="mt-2 block text-[11px] font-semibold text-gray-400">
-              {t("checkout.emailOptional")}
-              <input
-                type="email"
-                name="email"
-                autoComplete="email"
-                inputMode="email"
-                value={form.email}
-                onChange={handleChange}
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs outline-none focus:border-primary"
-                placeholder={t("checkout.emailPlaceholder")}
-              />
-            </label>
           </div>
 
           <div>
@@ -1504,6 +1495,24 @@ export default function CheckoutPage() {
             {errors.submit}
           </p>
         )}
+
+        {form.payment === "card" ? (
+          <div>
+            <label className="mb-1 block text-[11px] font-semibold text-gray-400">
+              {t("checkout.emailOptional")}
+              <input
+                type="email"
+                name="email"
+                autoComplete="email"
+                inputMode="email"
+                value={form.email}
+                onChange={handleChange}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs outline-none focus:border-primary"
+                placeholder={t("checkout.emailPlaceholder")}
+              />
+            </label>
+          </div>
+        ) : null}
 
         <button
           type="submit"
