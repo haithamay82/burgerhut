@@ -9,10 +9,7 @@ import {
   BIT_PAY_WA_SENT_ORDER_KEY,
   PENDING_ORDER_KEY,
 } from "@/utils/checkoutSessionKeys";
-import {
-  fireCouponRevealAfterWhatsAppCompose,
-  fireDeferredAdminPushNotify,
-} from "@/utils/fireDeferredAdminPushNotify";
+import { fireCouponRevealAfterWhatsAppCompose } from "@/utils/fireDeferredAdminPushNotify";
 import { consumePendingOrderForCheckoutResume } from "@/utils/checkoutResumeFromPending";
 
 function normalizeIsraeliPhone(phone) {
@@ -46,18 +43,22 @@ export default function BitPayPage() {
   const [waPendingOk, setWaPendingOk] = useState(false);
   /** כבר נלחץ «שלח לווטסאפ» להזמנה הזו */
   const [waOrderComposeDone, setWaOrderComposeDone] = useState(false);
+  const [bitOrderNumber, setBitOrderNumber] = useState(null);
+  const [bitPaidConfirmed, setBitPaidConfirmed] = useState(false);
 
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
     const raw = window.sessionStorage.getItem(PENDING_ORDER_KEY);
     if (!raw) {
       setWaPendingOk(false);
+      setBitOrderNumber(null);
       return;
     }
     try {
       const p = JSON.parse(raw);
       if (!Array.isArray(p?.items) || !p.items.length) {
         setWaPendingOk(false);
+        setBitOrderNumber(null);
         return;
       }
       const on = p.orderNumber;
@@ -67,10 +68,18 @@ export default function BitPayPage() {
           : null;
       setWaPendingOk(true);
       setWaOrderComposeDone(sentFor === String(on));
+      setBitOrderNumber(
+        on != null && on !== "" ? String(on).trim() : null
+      );
     } catch {
       setWaPendingOk(false);
+      setBitOrderNumber(null);
     }
   }, [router.isReady]);
+
+  useEffect(() => {
+    setBitPaidConfirmed(false);
+  }, [bitOrderNumber]);
 
   const phone = useMemo(() => normalizeIsraeliPhone(to || "0504847599"), [to]);
   const total = useMemo(() => String(amount || ""), [amount]);
@@ -108,8 +117,8 @@ export default function BitPayPage() {
     router.push("/checkout");
   };
 
-  const sendOrderWhatsApp = () => {
-    if (typeof window === "undefined") return;
+  const sendOrderWhatsApp = async () => {
+    if (typeof window === "undefined" || !bitPaidConfirmed) return;
     setIsSendingWa(true);
     setStatus(t("bit.waOpening"));
 
@@ -156,17 +165,35 @@ export default function BitPayPage() {
       orderNumber,
       locale: waLocale,
     });
-    if (
+    const hasDeferredNotify =
       payload.orderRowId &&
       payload.orderNumber != null &&
       String(payload.orderNumber).trim() !== "" &&
-      payload.adminPushConfirmSecret
-    ) {
-      fireDeferredAdminPushNotify({
-        orderRowId: payload.orderRowId,
-        orderNumber: payload.orderNumber,
-        adminPushConfirmSecret: payload.adminPushConfirmSecret,
-      });
+      String(payload.adminPushConfirmSecret || "").trim() !== "";
+
+    if (hasDeferredNotify) {
+      try {
+        const r = await fetch("/api/orders/notify-admin-push", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId: String(payload.orderRowId).trim(),
+            orderNumber: String(payload.orderNumber).trim(),
+            adminPushConfirmSecret: String(
+              payload.adminPushConfirmSecret
+            ).trim(),
+          }),
+        });
+        if (!r.ok) {
+          setStatus(t("bit.errNotifyAdmin"));
+          setIsSendingWa(false);
+          return;
+        }
+      } catch {
+        setStatus(t("bit.errNotifyAdmin"));
+        setIsSendingWa(false);
+        return;
+      }
     } else if (payload.orderRowId) {
       fireCouponRevealAfterWhatsAppCompose({
         orderRowId: String(payload.orderRowId).trim(),
@@ -233,6 +260,14 @@ export default function BitPayPage() {
 
       <section className="card space-y-3 p-3">
         <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3">
+          {bitOrderNumber ? (
+            <p className="text-sm font-semibold text-primary">
+              {t("bit.payForOrderLine").replace(
+                "{orderNumber}",
+                bitOrderNumber
+              )}
+            </p>
+          ) : null}
           <p className="text-sm leading-relaxed text-gray-200">
             {t("bit.payIntro")
               .replace(/\{phone\}/g, phone || "0504847599")
@@ -261,15 +296,21 @@ export default function BitPayPage() {
         </button>
 
         {waPendingOk && !waOrderComposeDone ? (
-          <div className="border-t border-slate-800 pt-3">
-            <p className="mb-2 text-[11px] text-gray-400">{t("bit.waHint")}</p>
+          <div className="space-y-3 border-t border-slate-800 pt-3">
+            <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-200">
+              <input
+                type="checkbox"
+                checked={bitPaidConfirmed}
+                onChange={(e) => setBitPaidConfirmed(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-600 bg-slate-900 text-primary focus:ring-primary"
+              />
+              <span>{t("bit.paidCheckbox")}</span>
+            </label>
             <button
               type="button"
-              onClick={sendOrderWhatsApp}
-              disabled={isSendingWa}
-              className={`btn-primary inline-flex w-full items-center justify-center whitespace-pre-line px-4 py-3 text-center leading-snug disabled:opacity-60 ${
-                isSendingWa ? "" : "success-wa-btn-attention"
-              }`}
+              onClick={() => void sendOrderWhatsApp()}
+              disabled={!bitPaidConfirmed || isSendingWa}
+              className="btn-primary inline-flex w-full items-center justify-center whitespace-pre-line px-4 py-3 text-center leading-snug disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSendingWa ? t("bit.waOpening") : t("bit.waBtn")}
             </button>

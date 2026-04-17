@@ -635,8 +635,10 @@ export default function CheckoutPage() {
             couponCode: appliedCoupon?.code || undefined,
             deferCouponConsume:
               channel === "checkout_bit" || channel === "checkout_card",
-            /** אשראי: רק אחרי אישור Hyp — לא לשדר לניהול לפני תשלום מוצלח */
-            ...(channel === "checkout_card" ? { deferAdminPush: true } : {}),
+            /** אשראי: אחרי Hyp; ביט: אחרי אישור לקוח — לא לשדר לניהול לפני כן */
+            ...(channel === "checkout_card" || channel === "checkout_bit"
+              ? { deferAdminPush: true }
+              : {}),
           }),
         });
         const data = await response.json().catch(() => ({}));
@@ -737,6 +739,7 @@ export default function CheckoutPage() {
           error: poErr,
           pattyShortfalls: bitPattySf,
           pattyAffectedLines: bitPattyLines,
+          adminPushConfirmSecret: bitPushSecret,
         } = await persistOrder("checkout_bit");
         if (poErr === "item_unavailable" || poErr === "insufficient_patties") {
           await refreshInventory();
@@ -782,6 +785,7 @@ export default function CheckoutPage() {
                 payment: form.payment,
                 orderNumber: savedOrder?.orderNumber,
                 orderRowId: savedOrder?.id,
+                adminPushConfirmSecret: bitPushSecret || undefined,
                 locale,
                 waGrandTotal: persistTotal,
                 couponRewardBaseNis,

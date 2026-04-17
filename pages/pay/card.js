@@ -243,10 +243,6 @@ export default function CardPayPage() {
                 t("card.continueExternal")
               )}
             </button>
-
-            <p className="text-center text-[11px] text-gray-500">
-              {t("card.afterPayNote")}
-            </p>
           </>
         )}
 
