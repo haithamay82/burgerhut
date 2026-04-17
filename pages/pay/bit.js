@@ -268,10 +268,8 @@ export default function BitPayPage() {
               )}
             </p>
           ) : null}
-          <p className="text-sm leading-relaxed text-gray-200">
-            {t("bit.payIntro")
-              .replace(/\{phone\}/g, phone || "0504847599")
-              .replace(/\{amount\}/g, total || "—")}
+          <p className="whitespace-pre-line text-sm leading-relaxed text-gray-200">
+            {t("bit.payIntro").replace(/\{amount\}/g, total || "—")}
           </p>
           <div className="flex flex-wrap gap-2">
             <button
