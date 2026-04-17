@@ -84,6 +84,9 @@ export default function HomeMain({
 
   const showClosedTodayFloat = !orderingAllowed && !todayScheduledOpen;
 
+  const specialsNewStickerClassName =
+    "pointer-events-none absolute left-0 top-1/2 z-[2] -translate-x-[44%] -translate-y-1/2 -rotate-[13deg] whitespace-nowrap rounded-sm border border-emerald-100/95 bg-gradient-to-br from-lime-300 via-emerald-400 to-emerald-600 px-[5px] py-px text-[9px] font-black leading-none text-emerald-950 shadow-[0_0_14px_rgba(52,211,153,0.95),0_0_28px_rgba(16,185,129,0.5)] ring-1 ring-emerald-200/90 drop-shadow-[0_0_6px_rgba(110,231,183,0.9)] sm:px-1 sm:py-0.5 sm:text-[10px]";
+
   return (
     <>
       {showClosedTodayFloat ? (
@@ -164,16 +167,16 @@ export default function HomeMain({
       </section>
 
       <section
-        className="relative mb-4 overflow-hidden rounded-2xl border border-slate-800 shadow-xl"
+        className="relative mb-4 rounded-2xl border border-slate-800 shadow-xl"
         aria-label={t("home.categoryBannerAria")}
       >
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 overflow-hidden rounded-2xl bg-cover bg-center"
           style={{ backgroundImage: "url(/home-category-banner.png)" }}
           aria-hidden
         />
         <div
-          className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/45 to-black/30"
+          className="absolute inset-0 overflow-hidden rounded-2xl bg-gradient-to-t from-black/70 via-black/45 to-black/30"
           aria-hidden
         />
         <div className="relative z-10 flex min-h-[9.5rem] w-full min-w-0 items-center px-2 py-6 sm:min-h-[11rem] sm:px-3 md:min-h-[12.5rem]">
@@ -197,35 +200,70 @@ export default function HomeMain({
             </div>
             {SHOW_SPECIALS_IN_HOME_MENU ? (
               <div className="mt-1.5 grid w-full grid-cols-4 gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setActiveCategory("specials")}
-                  className={`flex min-h-[2.5rem] w-full items-center justify-center rounded-full border px-1 py-1.5 text-center text-[12px] font-semibold leading-tight shadow-md backdrop-blur-sm transition-colors ${
-                    activeCategory === "specials"
-                      ? "border-primary bg-primary text-black shadow-lg ring-2 ring-primary/40"
-                      : "border-white/25 bg-black/50 text-gray-100 hover:border-white/40 hover:bg-black/65"
-                  }`}
-                >
-                  {t("cat.specials")}
-                </button>
+                <div className="relative isolate min-w-0">
+                  <span
+                    className={specialsNewStickerClassName}
+                    aria-hidden
+                  >
+                    {t("home.specialsNewBadge")}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setActiveCategory("specials")}
+                    aria-label={`${t("cat.specials")}, ${t("home.specialsNewBadge")}`}
+                    className={`relative z-[1] flex min-h-[2.5rem] w-full items-center justify-center rounded-full border px-1 py-1.5 text-center text-[12px] font-semibold leading-tight shadow-md backdrop-blur-sm transition-colors ${
+                      activeCategory === "specials"
+                        ? "border-primary bg-primary text-black shadow-lg ring-2 ring-primary/40"
+                        : "border-white/25 bg-black/50 text-gray-100 hover:border-white/40 hover:bg-black/65"
+                    }`}
+                  >
+                    {t("cat.specials")}
+                  </button>
+                </div>
               </div>
             ) : null}
           </div>
           <div className="hidden w-full sm:flex sm:flex-nowrap sm:items-center sm:justify-center sm:gap-2">
-            {homeCategories.map((cat) => (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => setActiveCategory(cat.id)}
-                className={`flex min-h-[2.5rem] w-full min-w-0 max-w-[11rem] flex-1 items-center justify-center rounded-full border px-2 py-1.5 text-center text-[12px] font-semibold leading-tight shadow-md backdrop-blur-sm transition-colors sm:min-h-0 sm:w-auto sm:max-w-none sm:flex-none sm:whitespace-nowrap sm:px-4 sm:py-2 sm:text-[16.8px] sm:leading-normal ${
-                  activeCategory === cat.id
-                    ? "border-primary bg-primary text-black shadow-lg ring-2 ring-primary/40"
-                    : "border-white/25 bg-black/50 text-gray-100 hover:border-white/40 hover:bg-black/65"
-                }`}
-              >
-                {t(`cat.${cat.id}`)}
-              </button>
-            ))}
+            {homeCategories.map((cat) =>
+              cat.id === "specials" ? (
+                <div
+                  key={cat.id}
+                  className="relative isolate flex-none"
+                >
+                  <span
+                    className={specialsNewStickerClassName}
+                    aria-hidden
+                  >
+                    {t("home.specialsNewBadge")}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setActiveCategory(cat.id)}
+                    aria-label={`${t("cat.specials")}, ${t("home.specialsNewBadge")}`}
+                    className={`relative z-[1] flex min-h-[2.5rem] w-full min-w-0 max-w-[11rem] flex-1 items-center justify-center rounded-full border px-2 py-1.5 text-center text-[12px] font-semibold leading-tight shadow-md backdrop-blur-sm transition-colors sm:min-h-0 sm:w-auto sm:max-w-none sm:flex-none sm:whitespace-nowrap sm:px-4 sm:py-2 sm:text-[16.8px] sm:leading-normal ${
+                      activeCategory === cat.id
+                        ? "border-primary bg-primary text-black shadow-lg ring-2 ring-primary/40"
+                        : "border-white/25 bg-black/50 text-gray-100 hover:border-white/40 hover:bg-black/65"
+                    }`}
+                  >
+                    {t(`cat.${cat.id}`)}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={`flex min-h-[2.5rem] w-full min-w-0 max-w-[11rem] flex-1 items-center justify-center rounded-full border px-2 py-1.5 text-center text-[12px] font-semibold leading-tight shadow-md backdrop-blur-sm transition-colors sm:min-h-0 sm:w-auto sm:max-w-none sm:flex-none sm:whitespace-nowrap sm:px-4 sm:py-2 sm:text-[16.8px] sm:leading-normal ${
+                    activeCategory === cat.id
+                      ? "border-primary bg-primary text-black shadow-lg ring-2 ring-primary/40"
+                      : "border-white/25 bg-black/50 text-gray-100 hover:border-white/40 hover:bg-black/65"
+                  }`}
+                >
+                  {t(`cat.${cat.id}`)}
+                </button>
+              )
+            )}
           </div>
         </div>
       </section>

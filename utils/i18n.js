@@ -53,6 +53,7 @@ const HE = {
     "עקב {reason} מחכה לכם הנחה של {percent}% בקניה מעל {min}.",
   "home.discountAnnounceNoReason":
     "מחכה לכם הנחה של {percent}% בקניה מעל {min}.",
+  "home.specialsNewBadge": "חדש",
   "home.categoryBannerAria": "בחירת קטגוריית תפריט",
   "home.mealInfo":
     "מנת בורגר / קריספי צ׳יקן כוללת: מיקס צ׳יפס (צ׳יפס זיגזג, פוטטו, טבעות בצל, כדורי פירה). מיונז, קטשופ, ורוטב אחד כלול",
@@ -959,6 +960,7 @@ const AR = {
     "بسبب {reason} يمكنكم الحصول على خصم بنسبة {percent}% عند الشراء فوق {min}.",
   "home.discountAnnounceNoReason":
     "يمكنكم الحصول على خصم بنسبة {percent}% عند الشراء فوق {min}.",
+  "home.specialsNewBadge": "جديد",
   "home.categoryBannerAria": "اختيار فئة القائمة",
   "home.mealInfo":
     "وجبة برجر / تشيكن كرسبي تشمل: ميكس بطاطا (بطاطا متموجة، بطاطا، حلقات بصل، كرات بوريه). مايونيز، كاتشاب، وصلصة واحدة مشمولة.",
