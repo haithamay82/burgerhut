@@ -47,10 +47,10 @@ export default function MenuMealPreviewCard({
           <p className="line-clamp-3 text-xs text-gray-400">{description}</p>
           <div
             dir="ltr"
-            className="mt-1 flex min-w-0 flex-row items-center justify-between gap-2"
+            className="mt-1 flex min-w-0 flex-row items-center justify-between gap-2 overflow-visible pl-0.5"
           >
             <span
-              className="max-w-[58%] shrink truncate rounded border border-amber-600/45 bg-amber-950/75 px-1.5 py-0.5 text-[9px] font-bold leading-tight text-amber-100/95 sm:max-w-[55%] sm:text-[10px]"
+              className="inline-flex max-w-[58%] shrink origin-left -rotate-[12deg] truncate rounded-sm border border-amber-600/45 bg-gradient-to-br from-amber-900/90 via-amber-950/90 to-amber-950 px-1.5 py-0.5 text-[9px] font-black leading-tight text-amber-100/95 shadow-[0_0_10px_rgba(251,191,36,0.35)] ring-1 ring-amber-500/35 drop-shadow-[0_0_4px_rgba(251,191,36,0.4)] sm:max-w-[55%] sm:text-[10px]"
               title={t("ui.mealIncludesMixChips")}
             >
               {t("ui.mealIncludesMixChips")}
