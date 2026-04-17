@@ -190,7 +190,7 @@ export default function Layout({ children }) {
                   </span>
                 </span>
                 {!showAsOpen ? (
-                  <span className="block text-center text-[8px] font-semibold text-gray-200 sm:text-[9px]">
+                  <span className="block text-center text-[9px] font-medium leading-tight text-gray-300 sm:text-[10px]">
                     {t("home.restaurantOpensAt16")}
                   </span>
                 ) : null}
