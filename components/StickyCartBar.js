@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useCart, lineHasUnavailableInventory } from "@/hooks/useCart";
+import {
+  useCart,
+  cartLineProductId,
+  lineHasUnavailableInventory,
+} from "@/hooks/useCart";
+import {
+  formatPattyValidationFailure,
+  simulateCartAfterQuantityUpdate,
+  validatePattyStockForSimulatedCart,
+} from "@/utils/pattyStockClient";
 import { useMealWizard } from "@/contexts/MealWizardContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useInventory } from "@/contexts/InventoryContext";
@@ -19,10 +28,15 @@ export default function StickyCartBar() {
   const { openMealEditLine } = useMealWizard();
   const { isUnavailable } = useInventory();
   const [panelOpen, setPanelOpen] = useState(false);
+  const [pattyCartMessage, setPattyCartMessage] = useState("");
 
   useEffect(() => {
     if (!items.length) setPanelOpen(false);
   }, [items.length]);
+
+  useEffect(() => {
+    setPattyCartMessage("");
+  }, [items]);
 
   useEffect(() => {
     if (!panelOpen) return;
@@ -46,6 +60,27 @@ export default function StickyCartBar() {
     if (totalUnits === 1) return t("cart.unitsOne");
     return t("cart.unitsMany").replace("{count}", String(totalUnits));
   }, [totalUnits, t]);
+
+  const tryIncreaseQuantity = async (item) => {
+    const nextQty = item.quantity + 1;
+    setPattyCartMessage("");
+    const nextLines = simulateCartAfterQuantityUpdate(
+      items,
+      item.id,
+      nextQty
+    );
+    const hintPid = cartLineProductId(item);
+    const check = await validatePattyStockForSimulatedCart(
+      nextLines,
+      hintPid,
+      item.specialPattyGrams
+    );
+    if (!check.ok) {
+      setPattyCartMessage(formatPattyValidationFailure(t, check));
+      return;
+    }
+    updateQuantity(item.id, nextQty);
+  };
 
   if (!items.length) return null;
 
@@ -71,6 +106,11 @@ export default function StickyCartBar() {
             <p className="mb-2 text-[10px] leading-snug text-gray-500">
               {t("cart.menuStillVisibleHint")}
             </p>
+            {pattyCartMessage ? (
+              <p className="mb-2 whitespace-pre-line rounded-lg border border-red-500/40 bg-red-950/40 px-2 py-2 text-[11px] font-semibold leading-snug text-red-200">
+                {pattyCartMessage}
+              </p>
+            ) : null}
             <div className="space-y-2">
               {items.map((item, index) => {
                 const lineOos = lineHasUnavailableInventory(item, isUnavailable);
@@ -156,9 +196,10 @@ export default function StickyCartBar() {
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
-                        onClick={() =>
-                          updateQuantity(item.id, item.quantity - 1)
-                        }
+                        onClick={() => {
+                          setPattyCartMessage("");
+                          updateQuantity(item.id, item.quantity - 1);
+                        }}
                         className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 text-sm leading-none"
                       >
                         −
@@ -168,9 +209,7 @@ export default function StickyCartBar() {
                       </span>
                       <button
                         type="button"
-                        onClick={() =>
-                          updateQuantity(item.id, item.quantity + 1)
-                        }
+                        onClick={() => void tryIncreaseQuantity(item)}
                         disabled={lineOos}
                         className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 text-sm leading-none disabled:cursor-not-allowed disabled:opacity-40"
                       >

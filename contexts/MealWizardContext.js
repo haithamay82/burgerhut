@@ -10,7 +10,7 @@ import { useCart } from "@/hooks/useCart";
 import { useLocale } from "@/contexts/LocaleContext";
 import {
   simulateCartAfterAdd,
-  pattyInsufficientAddToCartMessage,
+  formatPattyValidationFailure,
   validatePattyStockForSimulatedCart,
 } from "@/utils/pattyStockClient";
 import {
@@ -66,7 +66,7 @@ export function MealWizardProvider({ children }) {
       );
       if (!pattyCheck.ok) {
         if (typeof window !== "undefined") {
-          window.alert(pattyInsufficientAddToCartMessage(t, pattyCheck));
+          window.alert(formatPattyValidationFailure(t, pattyCheck));
         }
         return;
       }

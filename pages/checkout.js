@@ -26,6 +26,11 @@ import {
   SUCCESS_WA_SNAPSHOT_KEY,
 } from "@/utils/checkoutSessionKeys";
 import { insufficientPattiesUiMessage } from "@/utils/pattyCheckoutErrorText";
+import {
+  formatPattyValidationFailure,
+  simulateCartAfterQuantityUpdate,
+  validatePattyStockForSimulatedCart,
+} from "@/utils/pattyStockClient";
 import { sortSaladsForDisplay } from "@/utils/saladDisplayOrder";
 
 const DeliveryMapPicker = dynamic(
@@ -100,6 +105,7 @@ export default function CheckoutPage() {
   const [mapApplyError, setMapApplyError] = useState("");
 
   const [errors, setErrors] = useState({});
+  const [cartPattyError, setCartPattyError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [discountCfg, setDiscountCfg] = useState({
     enabled: false,
@@ -595,11 +601,37 @@ export default function CheckoutPage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  useEffect(() => {
+    setCartPattyError("");
+  }, [items]);
+
+  const tryBumpCheckoutQuantity = async (item, nextQty) => {
+    if (nextQty < 1) return;
+    setCartPattyError("");
+    const nextLines = simulateCartAfterQuantityUpdate(
+      items,
+      item.id,
+      nextQty
+    );
+    const hintPid = cartLineProductId(item);
+    const check = await validatePattyStockForSimulatedCart(
+      nextLines,
+      hintPid,
+      item.specialPattyGrams
+    );
+    if (!check.ok) {
+      setCartPattyError(formatPattyValidationFailure(t, check));
+      return;
+    }
+    updateQuantity(item.id, nextQty);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
     setIsSubmitting(true);
+    setCartPattyError("");
     setErrors((prev) => {
       const next = { ...prev };
       delete next.submit;
@@ -918,6 +950,11 @@ export default function CheckoutPage() {
       ) : (
         <section className="mb-4 card p-3 text-xs">
           <h3 className="mb-2 text-sm font-semibold">{t("checkout.summary")}</h3>
+          {cartPattyError ? (
+            <p className="mb-2 whitespace-pre-line rounded-lg border border-red-500/40 bg-red-950/40 px-2 py-2 text-[11px] font-semibold leading-snug text-red-200">
+              {cartPattyError}
+            </p>
+          ) : null}
           <div className="space-y-2">
             {items.map((item, index) => {
               const lineOos = lineHasUnavailableInventory(item, isUnavailable);
@@ -1001,9 +1038,10 @@ export default function CheckoutPage() {
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
-                        onClick={() =>
-                          updateQuantity(item.id, item.quantity - 1)
-                        }
+                        onClick={() => {
+                          setCartPattyError("");
+                          updateQuantity(item.id, item.quantity - 1);
+                        }}
                         className="flex h-6 w-6 items-center justify-center rounded-full border border-slate-700 text-xs"
                       >
                         −
@@ -1014,7 +1052,10 @@ export default function CheckoutPage() {
                       <button
                         type="button"
                         onClick={() =>
-                          updateQuantity(item.id, item.quantity + 1)
+                          void tryBumpCheckoutQuantity(
+                            item,
+                            item.quantity + 1
+                          )
                         }
                         disabled={lineOos}
                         className="flex h-6 w-6 items-center justify-center rounded-full border border-slate-700 text-xs disabled:cursor-not-allowed disabled:opacity-40"

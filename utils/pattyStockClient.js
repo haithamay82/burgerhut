@@ -1,4 +1,5 @@
 import { cartLineProductId, customizationKey } from "@/hooks/useCart";
+import { insufficientPattiesUiMessage } from "@/utils/pattyCheckoutErrorText";
 
 /**
  * מדמה את העגלה אחרי הוספת שורה (כולל מיזוג לפי customizationKey).
@@ -23,6 +24,40 @@ export function simulateCartAfterAdd(cartItems, newLine) {
     return next;
   }
   return [...next, keyed];
+}
+
+/**
+ * עגלה אחרי שינוי כמות לשורה אחת (כמו updateQuantity בעגלה).
+ * @param {object[]} cartItems
+ * @param {string} lineId
+ * @param {number} newQty
+ */
+export function simulateCartAfterQuantityUpdate(cartItems, lineId, newQty) {
+  const q = Math.max(1, Math.floor(Number(newQty) || 1));
+  const lid = String(lineId || "").trim();
+  return cartItems.map((row) =>
+    row.id === lid ? { ...row, quantity: q } : row
+  );
+}
+
+/**
+ * הודעת מחסור קציצות — כמו בצ'קאאוט כשה-API מחזיר shortfalls, אחרת הודעת תקרה.
+ * @param {(k: string) => string} t
+ * @param {{ error?: string, pattyShortfalls?: unknown, pattyAffectedLines?: unknown, pattyCeiling?: number, pattyQtyAttempted?: number }} check
+ */
+export function formatPattyValidationFailure(t, check) {
+  if (
+    check &&
+    Array.isArray(check.pattyShortfalls) &&
+    check.pattyShortfalls.length > 0
+  ) {
+    return insufficientPattiesUiMessage(
+      t,
+      check.pattyShortfalls,
+      check.pattyAffectedLines
+    );
+  }
+  return pattyInsufficientAddToCartMessage(t, check);
 }
 
 /**
@@ -61,23 +96,6 @@ export async function validatePattyStockForSimulatedCart(
   hintProductId,
   hintSpecialPattyGrams
 ) {
-  const items = lines.map((it) => {
-    const pid = String(cartLineProductId(it) || "");
-    const base = {
-      productId: pid,
-      quantity: Math.max(1, Number(it.quantity) || 1),
-    };
-    if (pid.startsWith("special-")) {
-      if (pid === "special-cheese-bomb") {
-        return { ...base };
-      }
-      return {
-        ...base,
-        specialPattyGrams: Number(it.specialPattyGrams) === 220 ? 220 : 200,
-      };
-    }
-    return base;
-  });
   const hint =
     typeof hintProductId === "string" && hintProductId.trim()
       ? hintProductId.trim()
@@ -93,7 +111,7 @@ export async function validatePattyStockForSimulatedCart(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        items,
+        lines,
         ...(hint ? { hintProductId: hint } : {}),
         ...(hint && hint.startsWith("special-")
           ? { hintSpecialPattyGrams: hintSp }
@@ -109,6 +127,12 @@ export async function validatePattyStockForSimulatedCart(
     return {
       ok: false,
       error: "insufficient_patties",
+      ...(Array.isArray(d.pattyShortfalls) && d.pattyShortfalls.length
+        ? { pattyShortfalls: d.pattyShortfalls }
+        : {}),
+      ...(Array.isArray(d.pattyAffectedLines)
+        ? { pattyAffectedLines: d.pattyAffectedLines }
+        : {}),
       ...(Number.isFinite(pattyCeiling) ? { pattyCeiling } : {}),
       ...(Number.isFinite(pattyQtyAttempted)
         ? { pattyQtyAttempted }
