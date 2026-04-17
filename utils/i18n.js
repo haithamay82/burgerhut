@@ -286,6 +286,12 @@ const HE = {
     "מסוג זה אין כרגע מלאי לפי הקציצות (בהתחשב בשאר העגלה). בחרו מנה אחרת או הורידו כמות במנה אחרת בעגלה.",
   "ui.pattyStockCheckFailed":
     "לא ניתן לבדוק את מלאי הקציצות כרגע. נסו שוב בעוד רגע.",
+  "ui.pattyCartHavePattyZero": "אין במלאי קציצות {g} גר'",
+  "ui.pattyCartHavePattyOne": "קציצת {g} גר' אחת",
+  "ui.pattyCartHavePattyMany": "{have} קציצות {g} גר'",
+  "ui.pattyCartBumpShort":
+    "במלאי יש רק {stock}. ניסית להוסיף עוד מנה מסוג «{name}» — לא ניתן, בחר מנה אחרת.",
+  "ui.pattyCartUnknownItem": "המנה",
   "ui.added": "נוסף",
   "ui.mealValidateTitle": "חסרות בחירות",
   "ui.mealValidateSalads": "לא בחרת מסלטים.",
@@ -1194,6 +1200,12 @@ const AR = {
     "من هذا النوع لا يتوفر مخزون حسب الأقراص (مع باقي السلة). اختاروا طبقاً آخر أو خفّضوا كمية في سلة أخرى.",
   "ui.pattyStockCheckFailed":
     "تعذّر التحقق من مخزون الأقراص الآن. حاولوا مرة أخرى بعد لحظة.",
+  "ui.pattyCartHavePattyZero": "لا توجد أقراص {g} غرام في المخزون",
+  "ui.pattyCartHavePattyOne": "قرص واحد {g} غرام",
+  "ui.pattyCartHavePattyMany": "{have} أقراص {g} غرام",
+  "ui.pattyCartBumpShort":
+    "في المخزون فقط {stock}. تحاول إضافة المزيد من نوع «{name}» — غير ممكن، اختر مנה أخرى.",
+  "ui.pattyCartUnknownItem": "الطبق",
   "ui.added": "تمت الإضافة",
   "ui.mealValidateTitle": "خيارات ناقصة",
   "ui.mealValidateSalads": "لم تختَر السلطات.",

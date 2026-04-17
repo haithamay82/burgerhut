@@ -61,6 +61,39 @@ export function formatPattyValidationFailure(t, check) {
 }
 
 /**
+ * הודעה קצרה לעגלה / הוספה כשאין מספיק קציצות (לא כמו טקסט הארוך של שליחת הזמנה).
+ * @param {(k: string) => string} t
+ * @param {{ error?: string, pattyShortfalls?: unknown, pattyAffectedLines?: unknown, pattyCeiling?: number, pattyQtyAttempted?: number }} check
+ */
+export function pattyCartShortageMessage(t, check) {
+  const sf = check?.pattyShortfalls?.[0];
+  const affected = Array.isArray(check?.pattyAffectedLines)
+    ? check.pattyAffectedLines
+    : [];
+  if (sf && affected.length > 0) {
+    const g = Number(sf.g);
+    const have = Number(sf.have);
+    const name =
+      String(affected[0]?.name || "").trim() || t("ui.pattyCartUnknownItem");
+    const gStr = Number.isFinite(g) ? String(g) : "?";
+    let stockPhrase;
+    if (!Number.isFinite(have) || have < 1) {
+      stockPhrase = t("ui.pattyCartHavePattyZero").replace("{g}", gStr);
+    } else if (have === 1) {
+      stockPhrase = t("ui.pattyCartHavePattyOne").replace("{g}", gStr);
+    } else {
+      stockPhrase = t("ui.pattyCartHavePattyMany")
+        .replace("{g}", gStr)
+        .replace("{have}", String(Math.floor(have)));
+    }
+    return t("ui.pattyCartBumpShort")
+      .replace("{stock}", stockPhrase)
+      .replace("{name}", name);
+  }
+  return formatPattyValidationFailure(t, check);
+}
+
+/**
  * טקסט להתראה כשחסר מלאי קציצות להוספה לעגלה (לפי תקרה מול כמות שניסו).
  * @param {(k: string) => string} t
  * @param {{ error?: string, pattyCeiling?: number, pattyQtyAttempted?: number }} check

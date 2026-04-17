@@ -21,7 +21,7 @@ import { computeSaucesCharge, marginalSauceCharge } from "@/utils/saucePricing";
 import { useCart, customizationKey } from "@/hooks/useCart";
 import {
   simulateCartAfterAdd,
-  formatPattyValidationFailure,
+  pattyCartShortageMessage,
   validatePattyStockForSimulatedCart,
 } from "@/utils/pattyStockClient";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -539,7 +539,7 @@ export default function MealCustomizeWizard({
     );
     if (!pattyCheck.ok) {
       if (typeof window !== "undefined") {
-        window.alert(formatPattyValidationFailure(t, pattyCheck));
+        window.alert(pattyCartShortageMessage(t, pattyCheck));
       }
       return;
     }

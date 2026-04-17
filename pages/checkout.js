@@ -27,7 +27,7 @@ import {
 } from "@/utils/checkoutSessionKeys";
 import { insufficientPattiesUiMessage } from "@/utils/pattyCheckoutErrorText";
 import {
-  formatPattyValidationFailure,
+  pattyCartShortageMessage,
   simulateCartAfterQuantityUpdate,
   validatePattyStockForSimulatedCart,
 } from "@/utils/pattyStockClient";
@@ -620,7 +620,7 @@ export default function CheckoutPage() {
       item.specialPattyGrams
     );
     if (!check.ok) {
-      setCartPattyError(formatPattyValidationFailure(t, check));
+      setCartPattyError(pattyCartShortageMessage(t, check));
       return;
     }
     updateQuantity(item.id, nextQty);

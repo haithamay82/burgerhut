@@ -3,7 +3,7 @@ import { formatIls } from "@/utils/cartMoney";
 import { useCart } from "@/hooks/useCart";
 import {
   simulateCartAfterAdd,
-  formatPattyValidationFailure,
+  pattyCartShortageMessage,
   validatePattyStockForSimulatedCart,
 } from "@/utils/pattyStockClient";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -86,7 +86,7 @@ export default function SimpleMenuItemCard({ item }) {
     );
     if (!pattyCheck.ok) {
       if (typeof window !== "undefined") {
-        window.alert(formatPattyValidationFailure(t, pattyCheck));
+        window.alert(pattyCartShortageMessage(t, pattyCheck));
       }
       return;
     }

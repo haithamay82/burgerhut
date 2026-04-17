@@ -6,7 +6,7 @@ import {
   lineHasUnavailableInventory,
 } from "@/hooks/useCart";
 import {
-  formatPattyValidationFailure,
+  pattyCartShortageMessage,
   simulateCartAfterQuantityUpdate,
   validatePattyStockForSimulatedCart,
 } from "@/utils/pattyStockClient";
@@ -76,7 +76,7 @@ export default function StickyCartBar() {
       item.specialPattyGrams
     );
     if (!check.ok) {
-      setPattyCartMessage(formatPattyValidationFailure(t, check));
+      setPattyCartMessage(pattyCartShortageMessage(t, check));
       return;
     }
     updateQuantity(item.id, nextQty);
