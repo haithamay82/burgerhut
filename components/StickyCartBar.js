@@ -77,28 +77,14 @@ export default function StickyCartBar() {
                 return (
                 <div
                   key={`${item.id}-${index}`}
-                  className="flex items-start justify-between gap-2 rounded-lg bg-slate-900/80 p-2 text-xs"
+                  className="flex flex-col gap-2 rounded-lg bg-slate-900/80 p-2 text-xs"
                 >
+                  <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
                       <span className="text-sm font-semibold leading-snug">
                         {item.name}
                       </span>
-                      {isEditableMealCartLine(item, menuItems) ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const cat = mealCatalogItemForCartLine(
-                              item,
-                              menuItems
-                            );
-                            if (cat) openMealEditLine(cat, item);
-                          }}
-                          className="shrink-0 text-[11px] font-semibold leading-none text-sky-400 underline-offset-2 hover:text-sky-300 hover:underline"
-                        >
-                          {t("cart.editMeal")}
-                        </button>
-                      ) : null}
                     </div>
                     {item.sizeLabel ? (
                       <p className="mt-0.5 text-[11px] text-gray-400">
@@ -191,21 +177,37 @@ export default function StickyCartBar() {
                         +
                       </button>
                     </div>
-                    <div
-                      className="flex max-w-full items-center justify-end gap-2"
+                    <p
+                      className="text-sm font-semibold text-primary"
                       dir="ltr"
                     >
-                      <p className="text-sm font-semibold text-primary">
-                        ₪{formatIls(lineTotal(item))}
-                      </p>
+                      ₪{formatIls(lineTotal(item))}
+                    </p>
+                  </div>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-center gap-4 border-t border-slate-800/70 pt-2">
+                    {isEditableMealCartLine(item, menuItems) ? (
                       <button
                         type="button"
-                        onClick={() => removeItem(item.id)}
-                        className="shrink-0 text-[11px] leading-none text-red-400 hover:text-red-300"
+                        onClick={() => {
+                          const cat = mealCatalogItemForCartLine(
+                            item,
+                            menuItems
+                          );
+                          if (cat) openMealEditLine(cat, item);
+                        }}
+                        className="text-[11px] font-semibold text-sky-400 underline-offset-2 hover:text-sky-300 hover:underline"
                       >
-                        {t("checkout.remove")}
+                        {t("cart.editMeal")}
                       </button>
-                    </div>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => removeItem(item.id)}
+                      className="text-[11px] font-semibold leading-none text-red-400 hover:text-red-300"
+                    >
+                      {t("checkout.remove")}
+                    </button>
                   </div>
                 </div>
               );

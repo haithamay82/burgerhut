@@ -916,26 +916,12 @@ export default function CheckoutPage() {
               return (
                 <div
                   key={`${item.id}-${index}`}
-                  className="flex items-start justify-between gap-2 rounded-lg bg-slate-900/70 p-2"
+                  className="flex flex-col gap-2 rounded-lg bg-slate-900/70 p-2"
                 >
-                  <div className="flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
                     <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
                       <span className="text-sm font-semibold">{item.name}</span>
-                      {isEditableMealCartLine(item, menuItems) ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const cat = mealCatalogItemForCartLine(
-                              item,
-                              menuItems
-                            );
-                            if (cat) openMealEditLine(cat, item);
-                          }}
-                          className="shrink-0 text-[11px] font-semibold leading-none text-sky-400 underline-offset-2 hover:text-sky-300 hover:underline"
-                        >
-                          {t("cart.editMeal")}
-                        </button>
-                      ) : null}
                     </div>
                     {item.sizeLabel && (
                       <p className="text-[11px] text-gray-400">
@@ -1003,7 +989,7 @@ export default function CheckoutPage() {
                       </p>
                     ) : null}
                   </div>
-                  <div className="flex flex-col items-end gap-1">
+                  <div className="flex shrink-0 flex-col items-end gap-1">
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
@@ -1028,21 +1014,34 @@ export default function CheckoutPage() {
                         +
                       </button>
                     </div>
-                    <div
-                      className="flex max-w-full items-center justify-end gap-2"
-                      dir="ltr"
-                    >
-                      <p className="text-sm font-semibold">
-                        ₪{formatIls(lineTotal(item))}
-                      </p>
+                    <p className="text-sm font-semibold" dir="ltr">
+                      ₪{formatIls(lineTotal(item))}
+                    </p>
+                  </div>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-center gap-4 border-t border-slate-800/70 pt-2">
+                    {isEditableMealCartLine(item, menuItems) ? (
                       <button
                         type="button"
-                        onClick={() => removeItem(item.id)}
-                        className="shrink-0 text-[11px] leading-none text-red-400 hover:text-red-300"
+                        onClick={() => {
+                          const cat = mealCatalogItemForCartLine(
+                            item,
+                            menuItems
+                          );
+                          if (cat) openMealEditLine(cat, item);
+                        }}
+                        className="text-[11px] font-semibold text-sky-400 underline-offset-2 hover:text-sky-300 hover:underline"
                       >
-                        {t("checkout.remove")}
+                        {t("cart.editMeal")}
                       </button>
-                    </div>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => removeItem(item.id)}
+                      className="text-[11px] font-semibold leading-none text-red-400 hover:text-red-300"
+                    >
+                      {t("checkout.remove")}
+                    </button>
                   </div>
                 </div>
               );
