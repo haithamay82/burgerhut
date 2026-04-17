@@ -94,12 +94,17 @@ export default function HomeMain({
           className="pointer-events-none fixed inset-x-0 top-[max(6rem,32vh)] z-[28] flex justify-center px-4"
           aria-live="polite"
         >
-          <p
-            className="max-w-md rounded-2xl border-2 border-red-500 bg-red-950/95 px-4 py-3.5 text-center text-sm font-extrabold leading-snug text-red-50 shadow-[0_8px_40px_-8px_rgba(0,0,0,0.85)] ring-1 ring-red-400/30 backdrop-blur-md"
+          <div
+            className="max-w-md rounded-2xl border-2 border-red-500 bg-red-950/95 px-4 py-3.5 text-center shadow-[0_8px_40px_-8px_rgba(0,0,0,0.85)] ring-1 ring-red-400/30 backdrop-blur-md"
             role="status"
           >
-            {t("home.orderingClosedBannerDayOff")}
-          </p>
+            <p className="text-sm font-extrabold leading-snug text-red-50">
+              {t("home.orderingClosedBannerDayOff")}
+            </p>
+            <p className="mt-2 text-xs font-bold leading-snug text-red-100/95 sm:text-sm">
+              {t("home.restaurantOpensAt16")}
+            </p>
+          </div>
         </div>
       ) : null}
       {showPreOrderInfoBanner ? (

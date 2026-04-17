@@ -1524,6 +1524,9 @@ export default function CheckoutPage() {
             <p className="text-lg font-semibold leading-snug text-amber-50 sm:text-xl">
               {t("checkout.restaurantClosedNow")}
             </p>
+            <p className="text-base font-semibold leading-snug text-amber-100 sm:text-lg">
+              {t("home.restaurantOpensAt16")}
+            </p>
             <p className="text-sm font-medium leading-snug text-amber-200/90">
               {t("checkout.restaurantClosedHoursHint")}
             </p>

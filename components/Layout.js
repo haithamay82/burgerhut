@@ -171,22 +171,29 @@ export default function Layout({ children }) {
               dir="ltr"
             >
               <p
-                className="flex max-w-[min(42vw,11rem)] items-center gap-1.5 text-[9px] font-medium leading-tight text-gray-300 sm:max-w-none sm:text-[10px]"
+                className="flex max-w-[min(42vw,11rem)] flex-col items-center gap-0.5 text-[9px] font-medium leading-tight text-gray-300 sm:max-w-none sm:text-[10px]"
                 dir="rtl"
                 role="status"
                 aria-live="polite"
               >
-                <span
-                  className={`h-2 w-2 shrink-0 rounded-full ${
-                    showAsOpen ? "bg-emerald-500" : "bg-red-500"
-                  }`}
-                  aria-hidden
-                />
-                <span>
-                  {showAsOpen
-                    ? t("home.restaurantOpen")
-                    : t("home.restaurantClosed")}
+                <span className="inline-flex items-center gap-1.5">
+                  <span
+                    className={`h-2 w-2 shrink-0 rounded-full ${
+                      showAsOpen ? "bg-emerald-500" : "bg-red-500"
+                    }`}
+                    aria-hidden
+                  />
+                  <span>
+                    {showAsOpen
+                      ? t("home.restaurantOpen")
+                      : t("home.restaurantClosed")}
+                  </span>
                 </span>
+                {!showAsOpen ? (
+                  <span className="block text-center text-[8px] font-semibold text-gray-200 sm:text-[9px]">
+                    {t("home.restaurantOpensAt16")}
+                  </span>
+                ) : null}
               </p>
               <button
                 type="button"
