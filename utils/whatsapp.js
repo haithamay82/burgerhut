@@ -1,7 +1,7 @@
 import { getTranslator, t as tFn } from "@/utils/i18n";
 
 import { cartLineProductId } from "@/hooks/useCart";
-import { formatIls, lineTotal } from "@/utils/cartMoney";
+import { formatIls, lineTotal, safeQty } from "@/utils/cartMoney";
 import { MENU_ITEMS } from "@/utils/menuData";
 import { sortSaladsForDisplay } from "@/utils/saladDisplayOrder";
 import { specialBurgerMenuDescription } from "@/utils/specialBurgerMealDescription";
@@ -9,6 +9,34 @@ import { specialBurgerMenuDescription } from "@/utils/specialBurgerMealDescripti
 const MENU_CATEGORY_BY_PRODUCT_ID = new Map(
   MENU_ITEMS.map((row) => [row.id, row.category])
 );
+
+/** שם לתצוגה בווטסאפ — בלי סיומת כמות בשם (למשל "… x3") כשמפריסים לשורות נפרדות. */
+function waLineDisplayName(item) {
+  const raw = String(item?.name ?? "").trim();
+  const cleaned = raw.replace(/\s*[×x]\s*\d+$/iu, "").trim();
+  return cleaned || raw || "—";
+}
+
+/** כמה שורות תצוגה לפריט (במקום שורה אחת עם x3 — כל יחידה בשורה נפרדת). */
+function cartLineDisplayUnits(item) {
+  let n = Math.floor(Number(item?.quantity));
+  if (!Number.isFinite(n) || n < 1) {
+    n = Math.floor(Number(item?.qty));
+  }
+  if (!Number.isFinite(n) || n < 1) {
+    n = safeQty(item);
+  }
+  if (n <= 1) {
+    const m = String(item?.name ?? "").match(/[×x]\s*(\d+)\s*$/iu);
+    if (m) {
+      const fromName = Math.floor(Number(m[1]));
+      if (Number.isFinite(fromName) && fromName > 1) {
+        n = Math.min(99, fromName);
+      }
+    }
+  }
+  return Math.min(99, Math.max(1, n));
+}
 
 /**
  * קטגוריית מוצר לשורת עגלה — לפי מזהה מהתפריט הסטטי, ואז heuristics / menuCategory.
@@ -181,11 +209,8 @@ export function buildWhatsAppOrderText({
       .filter(Boolean)
       .join(" · ");
     const lineSuffix = lineExtras ? ` — ${lineExtras}` : "";
-    const qty = Number(item.quantity);
-    const quantitySuffix =
-      Number.isFinite(qty) && qty > 1 ? ` x${qty}` : "";
     lines.push(
-      `*${displayIndex}. ${item.name}${quantitySuffix}*${lineSuffix}`
+      `*${displayIndex}. ${waLineDisplayName(item)}*${lineSuffix}`
     );
     if (item.requestedDrinkLabel && String(item.requestedDrinkLabel).trim()) {
       const drinkPrice =
@@ -246,14 +271,19 @@ export function buildWhatsAppOrderText({
       );
     }
     lines.push(
-      `   ${waBoldLabel(tr("wa.linePrice"))}: ₪${formatIls(lineTotal(item))}`
+      `   ${waBoldLabel(tr("wa.linePrice"))}: ₪${formatIls(
+        lineTotal({ ...item, quantity: 1 })
+      )}`
     );
   };
 
   let n = 0;
   for (const item of mainsOrdered) {
-    n += 1;
-    pushWaCartLine(item, n);
+    const units = cartLineDisplayUnits(item);
+    for (let u = 0; u < units; u++) {
+      n += 1;
+      pushWaCartLine(item, n);
+    }
   }
   if (others.length > 0) {
     if (mainsOrdered.length > 0) {
@@ -261,8 +291,11 @@ export function buildWhatsAppOrderText({
       lines.push(waBoldLabel(tr("wa.nonMealItemsHeader")));
     }
     for (const item of others) {
-      n += 1;
-      pushWaCartLine(item, n);
+      const units = cartLineDisplayUnits(item);
+      for (let u = 0; u < units; u++) {
+        n += 1;
+        pushWaCartLine(item, n);
+      }
     }
   }
 
@@ -353,16 +386,16 @@ export function buildOrderItemsHeadlinesPlain(
       .filter(Boolean)
       .join(" · ");
     const lineSuffix = lineExtras ? ` — ${lineExtras}` : "";
-    const qty = Number(item.quantity);
-    const quantitySuffix =
-      Number.isFinite(qty) && qty > 1 ? ` x${qty}` : "";
-    const name = String(item.name || "").trim() || "—";
-    linesOut.push(`${displayIndex}. ${name}${quantitySuffix}${lineSuffix}`);
+    const name = waLineDisplayName(item);
+    linesOut.push(`${displayIndex}. ${name}${lineSuffix}`);
   };
   let n = 0;
   for (const item of mainsOrdered) {
-    n += 1;
-    pushHeadline(item, n);
+    const units = cartLineDisplayUnits(item);
+    for (let u = 0; u < units; u++) {
+      n += 1;
+      pushHeadline(item, n);
+    }
   }
   if (others.length > 0) {
     if (mainsOrdered.length > 0) {
@@ -372,8 +405,11 @@ export function buildOrderItemsHeadlinesPlain(
       if (hdr) linesOut.push(hdr);
     }
     for (const item of others) {
-      n += 1;
-      pushHeadline(item, n);
+      const units = cartLineDisplayUnits(item);
+      for (let u = 0; u < units; u++) {
+        n += 1;
+        pushHeadline(item, n);
+      }
     }
   }
   let text = linesOut.join("\n");
@@ -398,8 +434,15 @@ export function getCartItemsInWhatsAppOrder(items, locale = "he") {
   const out = [];
   let n = 0;
   for (const item of mainsOrdered) {
-    n += 1;
-    out.push({ type: "item", item, displayIndex: n });
+    const units = cartLineDisplayUnits(item);
+    for (let u = 0; u < units; u++) {
+      n += 1;
+      out.push({
+        type: "item",
+        item: { ...item, quantity: 1 },
+        displayIndex: n,
+      });
+    }
   }
   if (others.length > 0) {
     if (mainsOrdered.length > 0) {
@@ -409,8 +452,15 @@ export function getCartItemsInWhatsAppOrder(items, locale = "he") {
       out.push({ type: "header", label });
     }
     for (const item of others) {
-      n += 1;
-      out.push({ type: "item", item, displayIndex: n });
+      const units = cartLineDisplayUnits(item);
+      for (let u = 0; u < units; u++) {
+        n += 1;
+        out.push({
+          type: "item",
+          item: { ...item, quantity: 1 },
+          displayIndex: n,
+        });
+      }
     }
   }
   return out;

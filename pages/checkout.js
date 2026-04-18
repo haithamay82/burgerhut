@@ -1021,7 +1021,18 @@ export default function CheckoutPage() {
                   <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                      <span className="text-sm font-semibold">{item.name}</span>
+                      {item.quantity > 1 ? (
+                        <ol className="mb-0.5 list-inside list-decimal space-y-0.5 text-sm font-semibold text-gray-100">
+                          {Array.from(
+                            { length: item.quantity },
+                            (_, u) => (
+                              <li key={u}>{item.name}</li>
+                            )
+                          )}
+                        </ol>
+                      ) : (
+                        <span className="text-sm font-semibold">{item.name}</span>
+                      )}
                     </div>
                     {item.sizeLabel && (
                       <p className="text-[11px] text-gray-400">

@@ -3517,7 +3517,6 @@ export default function AdminOrdersPage() {
                                         {displayIndex}.
                                       </span>{" "}
                                       {it.name}
-                                      {qty > 1 ? ` ×${qty}` : ""}
                                       {" — "}₪{lineTotal}
                                     </p>
                                     {it.sizeLabel ? (
