@@ -687,6 +687,9 @@ const HE = {
   "admin.pattyPrepLine": "{n}× קציצת {g} גר׳",
   "admin.pattyPrep600Note":
     "למנה 600 גר׳ (×{n} במנה): הספירה לעיל מבוססת על 3×200 גר׳ למנה; ניתן גם להרכיב 2×220 + 160 גר׳.",
+  "admin.prepMealToppingsTitle": "סיכום תוספות למנות (בורגר / קריספי)",
+  "admin.prepSideExtrasTitle": "סיכום תוספות רטבים בצד",
+  "admin.prepAggLine": "{n}× {label}",
   "admin.orderId": "מזהה",
   "admin.daySalesTotal": "סה״כ מכירות מזון (ללא דמי משלוח)",
   "admin.monthSalesTotal": "סה״כ מכירות מזון בחודש (ללא דמי משלוח):",
@@ -1613,6 +1616,9 @@ const AR = {
   "admin.pattyPrepLine": "{n}× قطعة {g} غ",
   "admin.pattyPrep600Note":
     "وجبة 600غ (×{n} في الطلبية): العد أعلاه يفترض 3×200غ لكل وجبة؛ يمكن أيضاً 2×220 + 160غ.",
+  "admin.prepMealToppingsTitle": "ملخص الإضافات على الوجبات (برجر / كرسبي)",
+  "admin.prepSideExtrasTitle": "ملخص صلصات إضافية على الجانب",
+  "admin.prepAggLine": "{n}× {label}",
   "admin.orderId": "المعرّف",
   "admin.daySalesTotal": "إجمالي مبيعات الطعام (بدون أجور التوصيل)",
   "admin.monthSalesTotal": "إجمالي مبيعات الطعام في الشهر المعروض (بدون التوصيل):",

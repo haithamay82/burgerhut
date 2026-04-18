@@ -46,6 +46,10 @@ import {
   getCartItemsInWhatsAppOrder,
 } from "@/utils/whatsapp";
 import {
+  aggregatePrepRowsForAdmin,
+  buildAdminKitchenPrepPlainSuffix,
+} from "@/utils/adminKitchenPrepAppend";
+import {
   getAdminLocalPushSubscribed,
   subscribeAdminWebPush,
   unsubscribeAdminWebPush,
@@ -132,6 +136,11 @@ function buildAdminDesktopNewOrderBody(t, order, locale = "he") {
     const loc = locale === "ar" ? "ar" : "he";
     body += `\n\n${buildOrderItemsHeadlinesPlain(items, loc)}`;
   }
+  body += buildAdminKitchenPrepPlainSuffix(
+    t,
+    items,
+    locale === "ar" ? "ar" : "he"
+  );
   return body;
 }
 
@@ -3638,6 +3647,56 @@ export default function AdminOrdersPage() {
                                       )}
                                     </p>
                                   ) : null}
+                                </div>
+                              );
+                            })()}
+                            {(() => {
+                              const sortLoc = locale === "ar" ? "ar" : "he";
+                              const rows = aggregatePrepRowsForAdmin(
+                                o.items || [],
+                                "toppings",
+                                sortLoc
+                              );
+                              if (!rows.length) return null;
+                              return (
+                                <div className="mt-2 rounded-lg border border-amber-800/50 bg-amber-950/25 p-2 text-[11px] leading-relaxed text-amber-100/95">
+                                  <p className="mb-1 font-semibold text-amber-200">
+                                    {t("admin.prepMealToppingsTitle")}
+                                  </p>
+                                  <ul className="list-inside list-disc space-y-0.5 text-gray-200">
+                                    {rows.map((r, idx) => (
+                                      <li key={`prep-top-${idx}-${r.label}`}>
+                                        {t("admin.prepAggLine")
+                                          .replace("{n}", String(r.count))
+                                          .replace("{label}", r.label)}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              );
+                            })()}
+                            {(() => {
+                              const sortLoc = locale === "ar" ? "ar" : "he";
+                              const rows = aggregatePrepRowsForAdmin(
+                                o.items || [],
+                                "extras",
+                                sortLoc
+                              );
+                              if (!rows.length) return null;
+                              return (
+                                <div className="mt-2 rounded-lg border border-amber-800/50 bg-amber-950/25 p-2 text-[11px] leading-relaxed text-amber-100/95">
+                                  <p className="mb-1 font-semibold text-amber-200">
+                                    {t("admin.prepSideExtrasTitle")}
+                                  </p>
+                                  <ul className="list-inside list-disc space-y-0.5 text-gray-200">
+                                    {rows.map((r, idx) => (
+                                      <li key={`prep-ex-${idx}-${r.label}`}>
+                                        {t("admin.prepAggLine")
+                                          .replace("{n}", String(r.count))
+                                          .replace("{label}", r.label)}
+                                      </li>
+                                    ))}
+                                  </ul>
                                 </div>
                               );
                             })()}
