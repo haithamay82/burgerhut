@@ -41,7 +41,10 @@ import { sortSaladsForDisplay } from "@/utils/saladDisplayOrder";
 import { cartLineProductId } from "@/hooks/useCart";
 import { formatIls } from "@/utils/cartMoney";
 import { specialBurgerMenuDescription } from "@/utils/specialBurgerMealDescription";
-import { buildOrderItemsHeadlinesPlain } from "@/utils/whatsapp";
+import {
+  buildOrderItemsHeadlinesPlain,
+  getCartItemsInWhatsAppOrder,
+} from "@/utils/whatsapp";
 import {
   getAdminLocalPushSubscribed,
   subscribeAdminWebPush,
@@ -3479,7 +3482,24 @@ export default function AdminOrdersPage() {
                               </p>
                             ) : null}
                             <ul className="space-y-2 border-t border-slate-800 pt-2 text-xs text-gray-300">
-                              {(o.items || []).map((it, index) => {
+                              {getCartItemsInWhatsAppOrder(
+                                o.items,
+                                locale
+                              ).map((entry, waIdx) => {
+                                if (entry.type === "header") {
+                                  return (
+                                    <li
+                                      key={`${o.id}-wa-h-${waIdx}`}
+                                      className="list-none py-1"
+                                    >
+                                      <p className="text-[11px] font-bold text-primary/95">
+                                        {entry.label}
+                                      </p>
+                                    </li>
+                                  );
+                                }
+                                const it = entry.item;
+                                const displayIndex = entry.displayIndex;
                                 const qty = Number(it.quantity) || 1;
                                 const lineTotal = (
                                   Number(it.price) * qty
@@ -3488,11 +3508,14 @@ export default function AdminOrdersPage() {
                                   <li
                                     key={
                                       it.id ||
-                                      `${it.name}-${it.price}-${index}`
+                                      `${o.id}-wa-${displayIndex}-${it.name}-${it.price}`
                                     }
                                     className="rounded-lg border border-slate-800/70 bg-slate-950/40 p-2"
                                   >
                                     <p className="text-[13px] font-semibold text-gray-100">
+                                      <span className="text-primary">
+                                        {displayIndex}.
+                                      </span>{" "}
                                       {it.name}
                                       {qty > 1 ? ` ×${qty}` : ""}
                                       {" — "}₪{lineTotal}

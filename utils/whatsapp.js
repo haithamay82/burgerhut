@@ -383,6 +383,39 @@ export function buildOrderItemsHeadlinesPlain(
   return text;
 }
 
+/**
+ * פריטי עגלה בסדר ובחלוקה כמו בווטסאפ (מנות ראשיות → כותרת תוספות → שאר), עם מספר תצוגה לכל פריט.
+ * @param {unknown[]} items
+ * @param {'he'|'ar'} [locale]
+ * @returns {({ type: 'header'; label: string } | { type: 'item'; item: object; displayIndex: number })[]}
+ */
+export function getCartItemsInWhatsAppOrder(items, locale = "he") {
+  const tr = getTranslator(locale === "ar" ? "ar" : "he");
+  const list = Array.isArray(items) ? items : [];
+  const { mains, others } = partitionCartItemsForWa(list);
+  const mainsOrdered = sortMainMealsForWa(mains);
+  /** @type {({ type: 'header'; label: string } | { type: 'item'; item: object; displayIndex: number })[]} */
+  const out = [];
+  let n = 0;
+  for (const item of mainsOrdered) {
+    n += 1;
+    out.push({ type: "item", item, displayIndex: n });
+  }
+  if (others.length > 0) {
+    if (mainsOrdered.length > 0) {
+      const label = String(tr("wa.nonMealItemsHeader") || "")
+        .replace(/\*/g, "")
+        .trim();
+      out.push({ type: "header", label });
+    }
+    for (const item of others) {
+      n += 1;
+      out.push({ type: "item", item, displayIndex: n });
+    }
+  }
+  return out;
+}
+
 export function buildWhatsAppMessage(params) {
   return encodeURIComponent(buildWhatsAppOrderText(params));
 }
