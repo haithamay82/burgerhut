@@ -107,7 +107,8 @@ export default function CheckoutPage() {
 
   const [errors, setErrors] = useState({});
   const [cartPattyError, setCartPattyError] = useState("");
-  const [contactSavedFlash, setContactSavedFlash] = useState(false);
+  /** ברירת מחדל: כן — שמירת שם/טלפון ב־localStorage כשהשדות מלאים */
+  const [saveContactChoice, setSaveContactChoice] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [discountCfg, setDiscountCfg] = useState({
     enabled: false,
@@ -659,27 +660,42 @@ export default function CheckoutPage() {
     updateQuantity(item.id, nextQty);
   };
 
-  const saveContactForNextTime = () => {
+  useEffect(() => {
+    if (typeof window === "undefined") return;
     const fn = form.firstName.trim();
     const ln = form.lastName.trim();
     const ph = form.phone.trim();
-    if (!fn || !ln || !ph || typeof window === "undefined") return;
-    try {
-      window.localStorage.setItem(
-        CHECKOUT_SAVED_CONTACT_KEY,
-        JSON.stringify({
-          firstName: fn,
-          lastName: ln,
-          phone: ph,
-          savedAt: Date.now(),
-        })
-      );
-      setContactSavedFlash(true);
-      window.setTimeout(() => setContactSavedFlash(false), 2800);
-    } catch {
-      /* ignore */
+    if (!fn || !ln || !ph) return;
+    if (!saveContactChoice) {
+      try {
+        window.localStorage.removeItem(CHECKOUT_SAVED_CONTACT_KEY);
+      } catch {
+        /* ignore */
+      }
+      return;
     }
-  };
+    const id = window.setTimeout(() => {
+      try {
+        window.localStorage.setItem(
+          CHECKOUT_SAVED_CONTACT_KEY,
+          JSON.stringify({
+            firstName: fn,
+            lastName: ln,
+            phone: ph,
+            savedAt: Date.now(),
+          })
+        );
+      } catch {
+        /* ignore */
+      }
+    }, 450);
+    return () => window.clearTimeout(id);
+  }, [
+    form.firstName,
+    form.lastName,
+    form.phone,
+    saveContactChoice,
+  ]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1307,16 +1323,34 @@ export default function CheckoutPage() {
             {form.firstName.trim() &&
             form.lastName.trim() &&
             form.phone.trim() ? (
-              <div className="mt-2">
-                <button
-                  type="button"
-                  onClick={saveContactForNextTime}
-                  className="text-[11px] font-semibold text-primary underline-offset-2 hover:underline"
-                >
-                  {contactSavedFlash
-                    ? t("checkout.contactSavedConfirm")
-                    : t("checkout.saveContactForNextTime")}
-                </button>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span className="text-[11px] text-gray-400">
+                  {t("checkout.saveContactQuestion")}
+                </span>
+                <div className="flex gap-1" role="group" aria-label={t("checkout.saveContactQuestion")}>
+                  <button
+                    type="button"
+                    onClick={() => setSaveContactChoice(true)}
+                    className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold transition-colors ${
+                      saveContactChoice
+                        ? "border-primary bg-primary/15 text-primary"
+                        : "border-slate-600 text-gray-400 hover:border-slate-500"
+                    }`}
+                  >
+                    {t("checkout.saveContactYes")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSaveContactChoice(false)}
+                    className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold transition-colors ${
+                      !saveContactChoice
+                        ? "border-primary bg-primary/15 text-primary"
+                        : "border-slate-600 text-gray-400 hover:border-slate-500"
+                    }`}
+                  >
+                    {t("checkout.saveContactNo")}
+                  </button>
+                </div>
               </div>
             ) : null}
           </div>
