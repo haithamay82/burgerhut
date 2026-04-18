@@ -4,12 +4,7 @@ import {
   normalizePattyStock,
   setInventoryPayload,
 } from "@/lib/inventoryStore";
-import { getCatalogEditor } from "@/lib/catalogStore";
-import {
-  BURGER_TOPPING_IDS,
-  INVENTORY_MANAGED_SALAD_IDS,
-} from "@/utils/menuData";
-import { managedMenuProductIdsFromEditor } from "@/utils/mergeMenuCatalog";
+import { getManagedInventoryProductIds } from "@/lib/inventoryManagedIds";
 
 function authorize(req) {
   const secret = process.env.ADMIN_ORDERS_SECRET;
@@ -19,20 +14,8 @@ function authorize(req) {
   return { ok: true };
 }
 
-async function allowedInventoryIds() {
-  const editor = await getCatalogEditor();
-  const allowed = managedMenuProductIdsFromEditor(editor);
-  for (const tid of BURGER_TOPPING_IDS) {
-    allowed.add(tid);
-  }
-  for (const sid of INVENTORY_MANAGED_SALAD_IDS) {
-    allowed.add(sid);
-  }
-  return allowed;
-}
-
 async function filterManaged(ids) {
-  const allowed = await allowedInventoryIds();
+  const allowed = await getManagedInventoryProductIds();
   return [...new Set(ids)].filter((id) => allowed.has(id));
 }
 
