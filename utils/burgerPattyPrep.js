@@ -43,6 +43,7 @@ export const PATTIES_BY_PRODUCT_ID = {
   "kids-burger-120": [120],
   "burger-160": [160],
   "burger-200": [200],
+  /** לא בתפריט — רק הזמנות ישנות / מלאי 220 משמש 440 ומיוחדים */
   "burger-220": [220],
   "smash-burger-240": [120, 120],
   "burger-320": [160, 160],
