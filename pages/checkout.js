@@ -86,7 +86,7 @@ export default function CheckoutPage() {
     lastName: "",
     phone: "",
     email: "",
-    orderType: "delivery",
+    orderType: "pickup",
     payment: "cash",
     deliveryZone: "",
     addressDetail: "",
@@ -1363,19 +1363,6 @@ export default function CheckoutPage() {
               <button
                 type="button"
                 onClick={() =>
-                  setForm((prev) => ({ ...prev, orderType: "delivery" }))
-                }
-                className={`flex-1 rounded-full border px-3 py-1 text-[11px] ${
-                  form.orderType === "delivery"
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-slate-700 text-gray-300"
-                }`}
-              >
-                {t("checkout.delivery")}
-              </button>
-              <button
-                type="button"
-                onClick={() =>
                   setForm((prev) => ({ ...prev, orderType: "pickup" }))
                 }
                 className={`flex-1 rounded-full border px-3 py-1 text-[11px] ${
@@ -1385,6 +1372,19 @@ export default function CheckoutPage() {
                 }`}
               >
                 {t("checkout.pickup")}
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setForm((prev) => ({ ...prev, orderType: "delivery" }))
+                }
+                className={`flex-1 rounded-full border px-3 py-1 text-[11px] ${
+                  form.orderType === "delivery"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-slate-700 text-gray-300"
+                }`}
+              >
+                {t("checkout.delivery")}
               </button>
             </div>
           </div>
