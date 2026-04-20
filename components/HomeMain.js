@@ -2,6 +2,7 @@ import Link from "next/link";
 import PromoVideoOverlay from "@/components/PromoVideoOverlay";
 import StickyCartBar from "@/components/StickyCartBar";
 import { useOrderingHours } from "@/contexts/OrderingHoursContext";
+import { getJerusalemWeekday } from "@/utils/orderingHours";
 import MenuItemCard from "@/components/MenuItemCard";
 import { useMealWizard } from "@/contexts/MealWizardContext";
 import { CATEGORIES, SHOW_SPECIALS_IN_HOME_MENU } from "@/utils/menuData";
@@ -101,6 +102,11 @@ export default function HomeMain({
             <p className="text-sm font-extrabold leading-snug text-red-50">
               {t("home.orderingClosedBannerDayOff")}
             </p>
+            {getJerusalemWeekday(new Date()) !== 1 ? (
+              <p className="mt-2 text-sm font-extrabold leading-snug text-red-50">
+                {t("home.restaurantOpensAt16")}
+              </p>
+            ) : null}
           </div>
         </div>
       ) : null}

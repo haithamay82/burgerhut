@@ -6,6 +6,7 @@ import CurrentDateTime from "./CurrentDateTime";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useOrderingHours } from "@/contexts/OrderingHoursContext";
+import { getJerusalemWeekday } from "@/utils/orderingHours";
 
 const PWAInstallLauncher = dynamic(() => import("./PWAInstallLauncher"), {
   ssr: false,
@@ -189,7 +190,7 @@ export default function Layout({ children }) {
                       : t("home.restaurantClosed")}
                   </span>
                 </span>
-                {!showAsOpen ? (
+                {!showAsOpen && getJerusalemWeekday(new Date()) !== 1 ? (
                   <span className="block text-center text-[9px] font-medium leading-tight text-gray-300 sm:text-[10px]">
                     {t("home.restaurantOpensAt16")}
                   </span>
