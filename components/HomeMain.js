@@ -101,9 +101,6 @@ export default function HomeMain({
             <p className="text-sm font-extrabold leading-snug text-red-50">
               {t("home.orderingClosedBannerDayOff")}
             </p>
-            <p className="mt-2 text-sm font-extrabold leading-snug text-red-50">
-              {t("home.restaurantOpensAt16")}
-            </p>
           </div>
         </div>
       ) : null}
