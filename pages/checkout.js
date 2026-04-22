@@ -75,7 +75,7 @@ function buildCheckoutDraftSnapshot(form, geo, deliveryMapPoint) {
 export default function CheckoutPage() {
   const router = useRouter();
   const { locale, t } = useLocale();
-  const { orderingAllowed } = useOrderingHours();
+  const { orderingAllowed, todayScheduledOpen } = useOrderingHours();
   const { items, total, updateQuantity, removeItem, clearCart } = useCart();
   const { isUnavailable, refresh: refreshInventory } = useInventory();
   const { mainMealProductIds, menuItems } = useMenuCatalog();
@@ -1693,9 +1693,11 @@ export default function CheckoutPage() {
             <p className="text-lg font-semibold leading-snug text-amber-50 sm:text-xl">
               {t("checkout.restaurantClosedNow")}
             </p>
-            <p className="text-lg font-semibold leading-snug text-amber-50 sm:text-xl">
-              {t("home.restaurantOpensAt16")}
-            </p>
+            {todayScheduledOpen ? (
+              <p className="text-lg font-semibold leading-snug text-amber-50 sm:text-xl">
+                {t("home.restaurantOpensAt16")}
+              </p>
+            ) : null}
             <p className="text-sm font-medium leading-snug text-amber-200/90">
               {t("checkout.restaurantClosedHoursHint")}
             </p>

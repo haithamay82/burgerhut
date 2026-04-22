@@ -6,7 +6,6 @@ import CurrentDateTime from "./CurrentDateTime";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useOrderingHours } from "@/contexts/OrderingHoursContext";
-import { getJerusalemWeekday } from "@/utils/orderingHours";
 
 const PWAInstallLauncher = dynamic(() => import("./PWAInstallLauncher"), {
   ssr: false,
@@ -17,7 +16,7 @@ const PWAInstallLauncher = dynamic(() => import("./PWAInstallLauncher"), {
 
 export default function Layout({ children }) {
   const { t } = useLocale();
-  const { restaurantOpen } = useOrderingHours();
+  const { restaurantOpen, todayScheduledOpen } = useOrderingHours();
   /** Green dot = admin open–close only; pre-orders (10:00–close) use orderingAllowed elsewhere. */
   const showAsOpen = restaurantOpen;
   const [hoursOpen, setHoursOpen] = useState(false);
@@ -190,7 +189,7 @@ export default function Layout({ children }) {
                       : t("home.restaurantClosed")}
                   </span>
                 </span>
-                {!showAsOpen && getJerusalemWeekday(new Date()) !== 1 ? (
+                {!showAsOpen && todayScheduledOpen ? (
                   <span className="block text-center text-[9px] font-medium leading-tight text-gray-300 sm:text-[10px]">
                     {t("home.restaurantOpensAt16")}
                   </span>

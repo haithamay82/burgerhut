@@ -100,13 +100,11 @@ export default function HomeMain({
             role="status"
           >
             <p className="text-sm font-extrabold leading-snug text-red-50">
-              {t("home.orderingClosedBannerDayOff")}
+              {t("home.orderingClosedBannerDayOff").replace(
+                "{day}",
+                t(`weekday.${getJerusalemWeekday(new Date())}`)
+              )}
             </p>
-            {getJerusalemWeekday(new Date()) !== 1 ? (
-              <p className="mt-2 text-sm font-extrabold leading-snug text-red-50">
-                {t("home.restaurantOpensAt16")}
-              </p>
-            ) : null}
           </div>
         </div>
       ) : null}
