@@ -8,6 +8,7 @@ import {
 import { coerceDayEnabled } from "@/utils/coerceDayEnabled";
 import {
   getJerusalemWeekday,
+  getTodayClosedReason,
   getTodayOpenTimeDisplay,
   isOrderingAllowedAt,
   isRestaurantOpenAt,
@@ -31,6 +32,7 @@ export function OrderingHoursProvider({ children }) {
   const [todayScheduledOpen, setTodayScheduledOpen] = useState(true);
   const [todayOpenTimeDisplay, setTodayOpenTimeDisplay] =
     useState("16:00");
+  const [todayClosedReason, setTodayClosedReason] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -45,12 +47,14 @@ export function OrderingHoursProvider({ children }) {
           setOrderingAllowed(isOrderingAllowedAt(now, data.days));
           setRestaurantOpen(isRestaurantOpenAt(now, data.days));
           setTodayOpenTimeDisplay(getTodayOpenTimeDisplay(data.days, now));
+          setTodayClosedReason(getTodayClosedReason(data.days, now));
         } else {
           setTodayScheduledOpen(true);
           const now = new Date();
           setOrderingAllowed(isOrderingAllowedAt(now, null));
           setRestaurantOpen(isRestaurantOpenAt(now, null));
           setTodayOpenTimeDisplay(getTodayOpenTimeDisplay(null, now));
+          setTodayClosedReason("");
         }
       } catch {
         if (!cancelled) {
@@ -59,6 +63,7 @@ export function OrderingHoursProvider({ children }) {
           setOrderingAllowed(isOrderingAllowedAt(now, null));
           setRestaurantOpen(isRestaurantOpenAt(now, null));
           setTodayOpenTimeDisplay(getTodayOpenTimeDisplay(null, now));
+          setTodayClosedReason("");
         }
       }
     };
@@ -76,8 +81,15 @@ export function OrderingHoursProvider({ children }) {
       restaurantOpen,
       todayScheduledOpen,
       todayOpenTimeDisplay,
+      todayClosedReason,
     }),
-    [orderingAllowed, restaurantOpen, todayScheduledOpen, todayOpenTimeDisplay]
+    [
+      orderingAllowed,
+      restaurantOpen,
+      todayScheduledOpen,
+      todayOpenTimeDisplay,
+      todayClosedReason,
+    ]
   );
 
   return (

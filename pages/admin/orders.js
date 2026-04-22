@@ -2703,6 +2703,7 @@ export default function AdminOrdersPage() {
                         {hoursDraft.map((d) => (
                           <div
                             key={d.weekday}
+                            dir="rtl"
                             className="flex flex-wrap items-center gap-3 bg-slate-950/30 px-3 py-2.5"
                           >
                             <span className="min-w-[5.5rem] text-xs font-semibold text-primary">
@@ -2716,12 +2717,32 @@ export default function AdminOrdersPage() {
                                 onChange={(e) =>
                                   updateHoursDay(d.weekday, {
                                     enabled: e.target.checked,
+                                    ...(e.target.checked
+                                      ? { closedReason: "" }
+                                      : {}),
                                   })
                                 }
                                 className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-primary focus:ring-primary"
                               />
                               {t("admin.hoursOpen")}
                             </label>
+                            {!d.enabled ? (
+                              <input
+                                type="text"
+                                value={String(d.closedReason ?? "")}
+                                disabled={hoursSaving}
+                                maxLength={280}
+                                placeholder={t(
+                                  "admin.hoursClosedReasonPlaceholder"
+                                )}
+                                onChange={(e) =>
+                                  updateHoursDay(d.weekday, {
+                                    closedReason: e.target.value.slice(0, 280),
+                                  })
+                                }
+                                className="min-w-[10rem] max-w-full flex-1 rounded-md border border-slate-600 bg-slate-900 px-2 py-1.5 text-xs text-gray-100 placeholder:text-gray-600 focus:border-primary/60 focus:outline-none sm:max-w-md"
+                              />
+                            ) : null}
                             <div className="flex flex-wrap items-center gap-2 text-xs">
                               <label className="flex items-center gap-1.5 text-gray-400">
                                 <span>{t("admin.hoursOpening")}</span>

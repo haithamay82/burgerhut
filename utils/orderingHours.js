@@ -44,6 +44,20 @@ export function getTodayOpenTimeDisplay(days, date = new Date()) {
 }
 
 /**
+ * Optional message for customers when today's row is disabled in the admin schedule.
+ * @param {{ weekday: number, enabled: boolean, closedReason?: string }[] | null | undefined} days
+ * @param {Date} [date]
+ */
+export function getTodayClosedReason(days, date = new Date()) {
+  if (!days || !Array.isArray(days) || days.length !== 7) return "";
+  const row = rowByWeekday(days, getJerusalemWeekday(date));
+  if (!row || rowScheduleEnabled(row)) return "";
+  const raw = row.closedReason;
+  const s = typeof raw === "string" ? raw : String(raw ?? "");
+  return s.replace(/\r?\n/g, " ").replace(/\s+/g, " ").trim().slice(0, 280);
+}
+
+/**
  * @param {Date} [date]
  * @returns {number} 0=Sun … 6=Sat in Jerusalem
  */

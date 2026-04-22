@@ -277,6 +277,11 @@ export default function Layout({ children }) {
                           <span className="font-medium text-gray-400">
                             {t("home.restaurantClosed")}
                           </span>
+                          {String(d.closedReason ?? "").trim() ? (
+                            <span className="mt-0.5 block text-xs font-normal text-gray-500">
+                              {String(d.closedReason).trim()}
+                            </span>
+                          ) : null}
                         </>
                       )}
                     </li>

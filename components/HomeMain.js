@@ -25,6 +25,7 @@ export default function HomeMain({
     restaurantOpen,
     todayScheduledOpen,
     todayOpenTimeDisplay,
+    todayClosedReason,
   } = useOrderingHours();
   const showPreOrderInfoBanner =
     orderingAllowed &&
@@ -105,6 +106,11 @@ export default function HomeMain({
                 t(`weekday.${getJerusalemWeekday(new Date())}`)
               )}
             </p>
+            {todayClosedReason ? (
+              <p className="mt-2 text-sm font-semibold leading-snug text-red-100/90">
+                {todayClosedReason}
+              </p>
+            ) : null}
           </div>
         </div>
       ) : null}
