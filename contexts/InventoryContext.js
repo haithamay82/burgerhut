@@ -11,6 +11,7 @@ const InventoryContext = createContext(null);
 
 export function InventoryProvider({ children }) {
   const [unavailableIds, setUnavailableIds] = useState([]);
+  const [pattyStock, setPattyStock] = useState(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -19,6 +20,11 @@ export function InventoryProvider({ children }) {
       if (!r.ok) return;
       const ids = d.unavailableIds;
       setUnavailableIds(Array.isArray(ids) ? ids : []);
+      if (d.pattyStock != null && typeof d.pattyStock === "object") {
+        setPattyStock(d.pattyStock);
+      } else {
+        setPattyStock(null);
+      }
     } catch {
       /* keep previous */
     }
@@ -51,8 +57,14 @@ export function InventoryProvider({ children }) {
   );
 
   const value = useMemo(
-    () => ({ unavailableIds, unavailableSet, isUnavailable, refresh }),
-    [unavailableIds, unavailableSet, isUnavailable, refresh]
+    () => ({
+      unavailableIds,
+      unavailableSet,
+      isUnavailable,
+      pattyStock,
+      refresh,
+    }),
+    [unavailableIds, unavailableSet, isUnavailable, pattyStock, refresh]
   );
 
   return (

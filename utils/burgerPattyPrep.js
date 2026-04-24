@@ -193,6 +193,49 @@ export function maxPattyUnitsForProductWithOtherCartLines(
 }
 
 /**
+ * כמה מנות מאותו מזהה ניתן עוד להרכיב לפי מלאי קציצות (אחרי שורות אחרות בעגלה),
+ * בניכוי מה שכבר בעגלה מאותו productId.
+ * @param {unknown[]} items
+ * @param {string} productId
+ * @param {Record<number, number>} stock
+ * @returns {number | null} null אם אין מעקב קציצות או המנה לא דורשת קציצות
+ */
+export function remainingPattyServingsForMenuItem(items, productId, stock) {
+  const pid = String(productId || "");
+  if (!stock || typeof stock !== "object") return null;
+  if (!PATTIES_BY_PRODUCT_ID[pid]) return null;
+
+  let ceiling;
+  if (pid.startsWith("special-") && pid !== SPECIAL_CHEESE_BOMB_ID) {
+    const a = maxPattyUnitsForProductWithOtherCartLines(
+      items,
+      pid,
+      stock,
+      200
+    );
+    const b = maxPattyUnitsForProductWithOtherCartLines(
+      items,
+      pid,
+      stock,
+      220
+    );
+    if (a == null || b == null) return null;
+    ceiling = Math.min(a, b);
+  } else {
+    const c = maxPattyUnitsForProductWithOtherCartLines(
+      items,
+      pid,
+      stock,
+      undefined
+    );
+    if (c == null) return null;
+    ceiling = c;
+  }
+  const inCart = sumQuantityForProductInItems(items, pid);
+  return Math.max(0, ceiling - inCart);
+}
+
+/**
  * סכום כמויות בעגלה לשורות עם אותו productId (לפי אובייקטי { productId, quantity }).
  * @param {unknown[]} items
  * @param {string} productId

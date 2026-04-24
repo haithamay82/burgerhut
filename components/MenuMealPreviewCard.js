@@ -1,7 +1,10 @@
+import { useMemo } from "react";
 import { formatIls } from "@/utils/cartMoney";
 import { useLocale } from "@/contexts/LocaleContext";
 import { menuItemDesc, menuItemName } from "@/utils/menuItemLabels";
 import { useInventory } from "@/contexts/InventoryContext";
+import { useCart } from "@/hooks/useCart";
+import { remainingPattyServingsForMenuItem } from "@/utils/burgerPattyPrep";
 
 export default function MenuMealPreviewCard({
   item,
@@ -10,8 +13,29 @@ export default function MenuMealPreviewCard({
   onSpecialQuickAdd,
 }) {
   const { t, locale } = useLocale();
-  const { isUnavailable } = useInventory();
+  const { isUnavailable, pattyStock } = useInventory();
+  const { items: cartItems } = useCart();
   const isOutOfStock = isUnavailable(item.id);
+
+  const pattyRemainingFewLabel = useMemo(() => {
+    if (item.category !== "burgers" && item.category !== "specials")
+      return null;
+    if (isOutOfStock) return null;
+    const n = remainingPattyServingsForMenuItem(
+      cartItems,
+      item.id,
+      pattyStock
+    );
+    if (n == null || n > 5) return null;
+    return t("ui.menuPattyRemainingFew").replace("{n}", String(n));
+  }, [
+    item.category,
+    item.id,
+    cartItems,
+    pattyStock,
+    isOutOfStock,
+    t,
+  ]);
 
   const name = menuItemName(item, t, locale);
   const description = menuItemDesc(item, t, locale);
@@ -21,7 +45,15 @@ export default function MenuMealPreviewCard({
     item.id === "crispy-chicken-tortilla-large";
 
   return (
-    <div className="card min-w-0 max-w-full overflow-hidden">
+    <div className="card relative min-w-0 max-w-full overflow-hidden">
+      {pattyRemainingFewLabel ? (
+        <p
+          className="pointer-events-none absolute left-2 top-2 z-[2] max-w-[calc(100%-1rem)] rounded-md border border-amber-700/60 bg-slate-950/90 px-1.5 py-0.5 text-[9px] font-bold leading-tight text-amber-100/95 shadow-sm sm:text-[10px]"
+          dir="rtl"
+        >
+          {pattyRemainingFewLabel}
+        </p>
+      ) : null}
       <div className="flex gap-3 p-3">
         <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl border border-slate-800">
           <img

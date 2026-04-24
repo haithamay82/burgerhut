@@ -22,17 +22,17 @@ async function filterManaged(ids) {
 export default async function handler(req, res) {
   if (req.method === "GET") {
     const auth = authorize(req);
+    const payload = await getInventoryPayload();
     const effective = await getUnavailableIds();
+    const base = {
+      ok: true,
+      unavailableIds: effective,
+      pattyStock: payload.pattyStock,
+    };
     if (auth.ok) {
-      const payload = await getInventoryPayload();
-      return res.status(200).json({
-        ok: true,
-        unavailableIds: effective,
-        manualUnavailableIds: payload.unavailableIds,
-        pattyStock: payload.pattyStock,
-      });
+      base.manualUnavailableIds = payload.unavailableIds;
     }
-    return res.status(200).json({ ok: true, unavailableIds: effective });
+    return res.status(200).json(base);
   }
 
   if (req.method === "PUT") {
