@@ -724,24 +724,32 @@ export default function MealCustomizeWizard({
                 disabled={blocked || !specialCanPatty200}
                 onClick={() => setSpecialPattyGrams(200)}
                 className={`rounded-full border px-2.5 py-2 text-[11px] ${
-                  Number(specialPattyGrams) !== 220
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-slate-700 text-gray-300"
+                  !specialCanPatty200
+                    ? "cursor-not-allowed border-slate-700/80 bg-slate-900/40 text-gray-500"
+                    : Number(specialPattyGrams) !== 220
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-slate-700 text-gray-300"
                 }`}
               >
-                {t("ui.specialPatty200")}
+                {specialCanPatty200
+                  ? t("ui.specialPatty200")
+                  : t("ui.specialPatty200Depleted")}
               </button>
               <button
                 type="button"
                 disabled={blocked || !specialCanPatty220}
                 onClick={() => setSpecialPattyGrams(220)}
                 className={`rounded-full border px-2.5 py-2 text-[11px] ${
-                  Number(specialPattyGrams) === 220
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-slate-700 text-gray-300"
+                  !specialCanPatty220
+                    ? "cursor-not-allowed border-slate-700/80 bg-slate-900/40 text-gray-500"
+                    : Number(specialPattyGrams) === 220
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-slate-700 text-gray-300"
                 }`}
               >
-                {t("ui.specialPatty220")}
+                {specialCanPatty220
+                  ? t("ui.specialPatty220")
+                  : t("ui.specialPatty220Depleted")}
               </button>
             </div>
           </section>
