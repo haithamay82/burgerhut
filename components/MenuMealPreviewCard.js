@@ -3,8 +3,13 @@ import { formatIls } from "@/utils/cartMoney";
 import { useLocale } from "@/contexts/LocaleContext";
 import { menuItemDesc, menuItemName } from "@/utils/menuItemLabels";
 import { useInventory } from "@/contexts/InventoryContext";
+import { useOrderingHours } from "@/contexts/OrderingHoursContext";
 import { useCart } from "@/hooks/useCart";
 import { remainingPattyServingsForMenuItem } from "@/utils/burgerPattyPrep";
+import {
+  specialPattyGramsDefaultForStock,
+  SPECIAL_PATTY_220_EXTRA_NIS,
+} from "@/utils/specialBurgerDefaults";
 
 export default function MenuMealPreviewCard({
   item,
@@ -14,12 +19,14 @@ export default function MenuMealPreviewCard({
 }) {
   const { t, locale } = useLocale();
   const { isUnavailable, pattyStock } = useInventory();
+  const { restaurantOpen } = useOrderingHours();
   const { items: cartItems } = useCart();
   const isOutOfStock = isUnavailable(item.id);
 
   const pattyRemainingFewLabel = useMemo(() => {
     if (item.category !== "burgers" && item.category !== "specials")
       return null;
+    if (!restaurantOpen) return null;
     if (isOutOfStock) return null;
     const n = remainingPattyServingsForMenuItem(
       cartItems,
@@ -33,9 +40,22 @@ export default function MenuMealPreviewCard({
     item.id,
     cartItems,
     pattyStock,
+    restaurantOpen,
     isOutOfStock,
     t,
   ]);
+
+  const mealFromPriceIls = useMemo(() => {
+    const base = Number(item.basePrice) || 0;
+    if (
+      item.category !== "specials" ||
+      item.id === "special-cheese-bomb"
+    ) {
+      return base;
+    }
+    const g = specialPattyGramsDefaultForStock(item.id, pattyStock);
+    return base + (g === 220 ? SPECIAL_PATTY_220_EXTRA_NIS : 0);
+  }, [item.basePrice, item.category, item.id, pattyStock]);
 
   const name = menuItemName(item, t, locale);
   const description = menuItemDesc(item, t, locale);
@@ -91,7 +111,7 @@ export default function MenuMealPreviewCard({
               dir="rtl"
               className="shrink-0 text-sm font-semibold text-primary tabular-nums"
             >
-              {t("ui.fromPrice")} ₪{formatIls(item.basePrice)}
+              {t("ui.fromPrice")} ₪{formatIls(mealFromPriceIls)}
             </p>
           </div>
         </div>

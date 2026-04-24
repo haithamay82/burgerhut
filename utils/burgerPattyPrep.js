@@ -220,7 +220,8 @@ export function remainingPattyServingsForMenuItem(items, productId, stock) {
       220
     );
     if (a == null || b == null) return null;
-    ceiling = Math.min(a, b);
+    /** לקוח יכול לבחור 200 או 220 — התגית משקפת את המקסימום שניתן עדיין להזמין */
+    ceiling = Math.max(a, b);
   } else {
     const c = maxPattyUnitsForProductWithOtherCartLines(
       items,

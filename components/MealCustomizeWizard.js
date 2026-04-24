@@ -13,7 +13,12 @@ import {
   INVENTORY_MANAGED_SALAD_IDS,
 } from "@/utils/menuData";
 import { isBeefBurgerStyleCategory } from "@/utils/menuMealCategories";
-import { defaultSaladsForSpecialProductId } from "@/utils/specialBurgerDefaults";
+import {
+  defaultSaladsForSpecialProductId,
+  specialPattyGramsDefaultForStock,
+  SPECIAL_PATTY_220_EXTRA_NIS,
+} from "@/utils/specialBurgerDefaults";
+import { canBuildBurgerWithPattyStock } from "@/utils/burgerPattyPrep";
 import { useMenuCatalog } from "@/contexts/MenuCatalogContext";
 import { menuItemName } from "@/utils/menuItemLabels";
 import { formatIls } from "@/utils/cartMoney";
@@ -33,9 +38,6 @@ const MEAL_VALIDATE_I18N = {
   salads: "ui.mealValidateSalads",
   sauces: "ui.mealValidateSauces",
 };
-
-/** מנת מיוחדים — קציצה אחת: 200 או 220 גר׳; 220 בתוספת מחיר */
-const SPECIAL_PATTY_220_EXTRA_NIS = 5;
 
 /**
  * @param {string[]} selectedSalads
@@ -60,7 +62,7 @@ export default function MealCustomizeWizard({
   const { t, locale } = useLocale();
   const { menuItems } = useMenuCatalog();
   const { addItem, replaceCartLine, items: cartItems } = useCart();
-  const { isUnavailable, unavailableIds } = useInventory();
+  const { isUnavailable, unavailableIds, pattyStock } = useInventory();
 
   const [selectedSalads, setSelectedSalads] = useState([]);
   const [selectedToppings, setSelectedToppings] = useState([]);
@@ -98,6 +100,21 @@ export default function MealCustomizeWizard({
   const isBeefBurgerMeal = isBeefBurgerStyleCategory(item?.category);
   const isSpecialMealCat = item?.category === "specials";
   const isSpecialCheeseBomb = item?.id === "special-cheese-bomb";
+
+  const specialCanPatty200 = useMemo(() => {
+    if (!item?.id || item.category !== "specials" || isSpecialCheeseBomb)
+      return true;
+    if (!pattyStock || typeof pattyStock !== "object") return true;
+    return canBuildBurgerWithPattyStock(pattyStock, item.id, 1, 200);
+  }, [item?.id, item?.category, isSpecialCheeseBomb, pattyStock]);
+
+  const specialCanPatty220 = useMemo(() => {
+    if (!item?.id || item.category !== "specials" || isSpecialCheeseBomb)
+      return true;
+    if (!pattyStock || typeof pattyStock !== "object") return true;
+    return canBuildBurgerWithPattyStock(pattyStock, item.id, 1, 220);
+  }, [item?.id, item?.category, isSpecialCheeseBomb, pattyStock]);
+
   /** מנות מיוחדות: בלי תוספות מנה (גבינה/קציצה וכו׳); סלטים + עשייה + רטבים + שתייה */
   const isSpecialRestrictedWizard =
     isSpecialMealCat &&
@@ -257,7 +274,9 @@ export default function MealCustomizeWizard({
       specialWizardMode === "editSalads"
     ) {
       setQuantity(1);
-      setSpecialPattyGrams(200);
+      setSpecialPattyGrams(
+        specialPattyGramsDefaultForStock(item.id, pattyStock)
+      );
       setSelectedSalads(defaultSaladsForSpecialProductId(item.id));
       setSelectedToppings([]);
       setSelectedSauces([]);
@@ -287,10 +306,14 @@ export default function MealCustomizeWizard({
     setDonenessId(DEFAULT_BURGER_DONENESS_ID);
     setBunSauceOnBun(true);
     setCheeseMode({});
-    setSpecialPattyGrams(200);
+    setSpecialPattyGrams(
+      item.category === "specials"
+        ? specialPattyGramsDefaultForStock(item.id, pattyStock)
+        : 200
+    );
     setMealValidateOpen(false);
     setMealValidateMissing([]);
-  }, [open, item?.id, editHydrateKey, specialWizardMode, t]);
+  }, [open, item?.id, item?.category, editHydrateKey, specialWizardMode, pattyStock, t]);
 
   useEffect(() => {
     if (!open) return;
@@ -530,12 +553,16 @@ export default function MealCustomizeWizard({
       ? cartItems.filter((row) => row.id !== replaceLineId)
       : cartItems;
     const afterMerge = simulateCartAfterAdd(baseCart, linePayload);
+    const pattyHint =
+      item.category === "specials" && !isSpecialCheeseBomb
+        ? Number(specialPattyGrams) === 220
+          ? 220
+          : 200
+        : undefined;
     const pattyCheck = await validatePattyStockForSimulatedCart(
       afterMerge,
       item.id,
-      item.category === "specials" && !isSpecialCheeseBomb
-        ? specialPattyGrams
-        : undefined
+      pattyHint
     );
     if (!pattyCheck.ok) {
       if (typeof window !== "undefined") {
@@ -694,7 +721,7 @@ export default function MealCustomizeWizard({
             <div className="flex flex-wrap gap-1.5">
               <button
                 type="button"
-                disabled={blocked}
+                disabled={blocked || !specialCanPatty200}
                 onClick={() => setSpecialPattyGrams(200)}
                 className={`rounded-full border px-2.5 py-2 text-[11px] ${
                   Number(specialPattyGrams) !== 220
@@ -706,7 +733,7 @@ export default function MealCustomizeWizard({
               </button>
               <button
                 type="button"
-                disabled={blocked}
+                disabled={blocked || !specialCanPatty220}
                 onClick={() => setSpecialPattyGrams(220)}
                 className={`rounded-full border px-2.5 py-2 text-[11px] ${
                   Number(specialPattyGrams) === 220

@@ -8,6 +8,7 @@ import {
 import MealCustomizeWizard from "@/components/MealCustomizeWizard";
 import { useCart } from "@/hooks/useCart";
 import { useLocale } from "@/contexts/LocaleContext";
+import { useInventory } from "@/contexts/InventoryContext";
 import {
   simulateCartAfterAdd,
   pattyCartShortageMessage,
@@ -23,6 +24,7 @@ const MealWizardContext = createContext(null);
 export function MealWizardProvider({ children }) {
   const [wizard, setWizard] = useState(null);
   const { t, locale } = useLocale();
+  const { pattyStock } = useInventory();
   const { addItem, items: cartItems } = useCart();
 
   const closeMealWizard = useCallback(() => setWizard(null), []);
@@ -58,11 +60,13 @@ export function MealWizardProvider({ children }) {
         t,
         locale,
         burgerDoneness: null,
+        pattyStock,
       });
       const afterMerge = simulateCartAfterAdd(cartItems, linePayload);
       const pattyCheck = await validatePattyStockForSimulatedCart(
         afterMerge,
-        item.id
+        item.id,
+        linePayload.specialPattyGrams
       );
       if (!pattyCheck.ok) {
         if (typeof window !== "undefined") {
@@ -72,7 +76,7 @@ export function MealWizardProvider({ children }) {
       }
       addItem(linePayload);
     },
-    [addItem, cartItems, locale, t]
+    [addItem, cartItems, locale, pattyStock, t]
   );
 
   const value = useMemo(

@@ -1,5 +1,9 @@
 import { mealSaladChoicesForCategory, DEFAULT_BURGER_DONENESS_ID } from "@/utils/menuData";
 import { menuItemName } from "@/utils/menuItemLabels";
+import { canBuildBurgerWithPattyStock } from "@/utils/burgerPattyPrep";
+
+/** תוספת מחיר לקציצת 220 גר׳ במנות מיוחדות */
+export const SPECIAL_PATTY_220_EXTRA_NIS = 5;
 
 /** סלטים שמגיעים כברירת מחדל במנה (לפי תיאור המנה) — הלקוח יכול לשנות רק אותם */
 export const SPECIAL_PRODUCT_DEFAULT_SALADS = {
@@ -22,6 +26,22 @@ export function defaultSaladsForSpecialProductId(productId) {
   return Array.isArray(list) ? [...list] : [];
 }
 
+/**
+ * משקל קציצה ברירת מחדל למנה מיוחדת לפי מלאי (אם אין 200 — 220).
+ * @param {string} productId
+ * @param {Record<number, number> | null | undefined} pattyStock
+ */
+export function specialPattyGramsDefaultForStock(productId, pattyStock) {
+  const pid = String(productId || "");
+  if (pid === "special-cheese-bomb") return 200;
+  if (!pattyStock || typeof pattyStock !== "object") return 200;
+  const ok200 = canBuildBurgerWithPattyStock(pattyStock, pid, 1, 200);
+  const ok220 = canBuildBurgerWithPattyStock(pattyStock, pid, 1, 220);
+  if (ok200) return 200;
+  if (ok220) return 220;
+  return 200;
+}
+
 /** @param {string[]} selectedSaladIds */
 export function mapSaladIdsToCartSalads(selectedSaladIds, menuCategory, t) {
   const saladChoices = mealSaladChoicesForCategory(menuCategory);
@@ -34,7 +54,7 @@ export function mapSaladIdsToCartSalads(selectedSaladIds, menuCategory, t) {
 
 /**
  * שורת עגלה למנת מיוחדים — בלי תוספות מחויבות, בלי רטבים נוספים, רק סלטים + מחיר בסיס.
- * @param {{ item: object, selectedSaladIds: string[], quantity: number, t: Function, locale: string, burgerDoneness?: { id: string, label: string } | null }} p
+ * @param {{ item: object, selectedSaladIds: string[], quantity: number, t: Function, locale: string, burgerDoneness?: { id: string, label: string } | null, pattyStock?: Record<number, number> | null }} p
  */
 export function buildSpecialBurgerCartLine({
   item,
@@ -43,6 +63,7 @@ export function buildSpecialBurgerCartLine({
   t,
   locale,
   burgerDoneness = null,
+  pattyStock = null,
 }) {
   const salads = mapSaladIdsToCartSalads(
     selectedSaladIds,
@@ -54,7 +75,13 @@ export function buildSpecialBurgerCartLine({
     0
   );
   const base = Number(item.basePrice) || 0;
-  const unitPrice = base + saladsPrice;
+  const chosenGrams =
+    item.id === "special-cheese-bomb"
+      ? null
+      : specialPattyGramsDefaultForStock(item.id, pattyStock);
+  const pattyExtra =
+    chosenGrams === 220 ? SPECIAL_PATTY_220_EXTRA_NIS : 0;
+  const unitPrice = base + saladsPrice + pattyExtra;
   const q = Math.max(1, Number(quantity) || 1);
   const don =
     burgerDoneness && String(burgerDoneness.id || "").trim()
@@ -73,8 +100,6 @@ export function buildSpecialBurgerCartLine({
     quantity: q,
     price: unitPrice,
     burgerDoneness: don,
-    ...(item.id === "special-cheese-bomb"
-      ? {}
-      : { specialPattyGrams: 200 }),
+    ...(chosenGrams != null ? { specialPattyGrams: chosenGrams } : {}),
   };
 }
