@@ -58,7 +58,7 @@ export default function MenuMealPreviewCard({
   }, [item.basePrice, item.category, item.id, pattyStock]);
 
   const name = menuItemName(item, t, locale);
-  const description = menuItemDesc(item, t, locale);
+  const description = menuItemDesc(item, t, locale, pattyStock);
 
   const isShiftedCrispyImage =
     item.id === "crispy-chicken-burger-kids" ||
