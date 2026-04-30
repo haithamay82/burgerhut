@@ -1309,12 +1309,7 @@ export default function MealCustomizeWizard({
           <button
             type="button"
             onClick={handleAdd}
-            disabled={
-              isAdding ||
-              blocked ||
-              mealValidateOpen ||
-              !isValidMealFriesChoiceId(mealFriesChoiceId)
-            }
+            disabled={isAdding || blocked || mealValidateOpen}
             className="btn-primary flex-1 py-2.5 text-sm disabled:opacity-50"
           >
             {isAdding
@@ -1355,8 +1350,7 @@ export default function MealCustomizeWizard({
               <button
                 type="button"
                 onClick={handleMealValidateAddAnyway}
-                disabled={!isValidMealFriesChoiceId(mealFriesChoiceId)}
-                className="w-full rounded-xl bg-primary py-3 text-sm font-bold text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
+                className="w-full rounded-xl bg-primary py-3 text-sm font-bold text-black transition-opacity hover:opacity-90"
               >
                 {t("ui.mealValidateAddAnyway")}
               </button>

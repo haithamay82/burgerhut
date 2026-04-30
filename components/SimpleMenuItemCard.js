@@ -352,11 +352,7 @@ export default function SimpleMenuItemCard({ item }) {
         <button
           type="button"
           onClick={handleAdd}
-          disabled={
-            isAdding ||
-            isOutOfStock ||
-            (showSellerNotes && !isValidMealFriesChoiceId(mealFriesChoiceId))
-          }
+          disabled={isAdding || isOutOfStock}
           className="btn-primary flex-1 text-xs disabled:opacity-50"
         >
           {isAdding ? t("ui.added") : t("ui.addToCart")}

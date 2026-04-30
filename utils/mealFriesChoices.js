@@ -10,10 +10,10 @@ export const MEAL_FRIES_DEFAULT_ID = "meal-fries-regular";
 export const MEAL_FRIES_OPTIONS = [
   { id: "meal-fries-none", price: 0 },
   { id: "meal-fries-regular", price: 0 },
-  { id: "meal-fries-mix", price: 2 },
   { id: "meal-fries-onion-rings", price: 3 },
   { id: "meal-fries-potato-balls", price: 3 },
   { id: "meal-fries-potato", price: 3 },
+  { id: "meal-fries-mix", price: 2 },
 ];
 
 const IDS = new Set(MEAL_FRIES_OPTIONS.map((o) => o.id));
