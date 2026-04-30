@@ -45,17 +45,24 @@ const MEAL_WIZARD_HISTORY_KEY = "__burgerhutMealWizard";
 const MEAL_VALIDATE_I18N = {
   salads: "ui.mealValidateSalads",
   sauces: "ui.mealValidateSauces",
+  fries: "ui.mealValidateFries",
 };
 
 /**
  * @param {string[]} selectedSalads
  * @param {string[]} selectedSauces
- * @returns {("salads"|"sauces")[]}
+ * @param {string} mealFriesChoiceId
+ * @returns {("salads"|"sauces"|"fries")[]}
  */
-function computeMissingMealSelections(selectedSalads, selectedSauces) {
-  const missing = /** @type {("salads"|"sauces")[]} */ ([]);
+function computeMissingMealSelections(
+  selectedSalads,
+  selectedSauces,
+  mealFriesChoiceId
+) {
+  const missing = /** @type {("salads"|"sauces"|"fries")[]} */ ([]);
   if (!selectedSalads.length) missing.push("salads");
   if (!selectedSauces.length) missing.push("sauces");
+  if (!isValidMealFriesChoiceId(mealFriesChoiceId)) missing.push("fries");
   return missing;
 }
 
@@ -494,9 +501,8 @@ export default function MealCustomizeWizard({
   const performAddToCart = async () => {
     if (!item || blocked) return;
     if (!isValidMealFriesChoiceId(mealFriesChoiceId)) {
-      if (typeof window !== "undefined") {
-        window.alert(t("ui.mealFriesValidate"));
-      }
+      setMealValidateMissing(["fries"]);
+      setMealValidateOpen(true);
       return;
     }
     let name;
@@ -637,15 +643,10 @@ export default function MealCustomizeWizard({
 
   const handleAdd = () => {
     if (!item || blocked) return;
-    if (!isValidMealFriesChoiceId(mealFriesChoiceId)) {
-      if (typeof window !== "undefined") {
-        window.alert(t("ui.mealFriesValidate"));
-      }
-      return;
-    }
     const missing = computeMissingMealSelections(
       selectedSalads,
-      selectedSauces
+      selectedSauces,
+      mealFriesChoiceId
     );
     if (missing.length > 0) {
       setMealValidateMissing(missing);
