@@ -6,26 +6,11 @@ import {
   useState,
 } from "react";
 import MealCustomizeWizard from "@/components/MealCustomizeWizard";
-import { useCart } from "@/hooks/useCart";
-import { useLocale } from "@/contexts/LocaleContext";
-import { useInventory } from "@/contexts/InventoryContext";
-import {
-  simulateCartAfterAdd,
-  pattyCartShortageMessage,
-  validatePattyStockForSimulatedCart,
-} from "@/utils/pattyStockClient";
-import {
-  buildSpecialBurgerCartLine,
-  defaultSaladsForSpecialProductId,
-} from "@/utils/specialBurgerDefaults";
 
 const MealWizardContext = createContext(null);
 
 export function MealWizardProvider({ children }) {
   const [wizard, setWizard] = useState(null);
-  const { t, locale } = useLocale();
-  const { pattyStock } = useInventory();
-  const { addItem, items: cartItems } = useCart();
 
   const closeMealWizard = useCallback(() => setWizard(null), []);
 
@@ -49,34 +34,13 @@ export function MealWizardProvider({ children }) {
     });
   }, []);
 
+  /** כמו «בחירת מנה» — חובה לבחור צ'יפס וכו' בוויזארד */
   const addSpecialMealQuick = useCallback(
-    async (item) => {
+    (item) => {
       if (!item || item.category !== "specials") return;
-      const saladIds = defaultSaladsForSpecialProductId(item.id);
-      const linePayload = buildSpecialBurgerCartLine({
-        item,
-        selectedSaladIds: saladIds,
-        quantity: 1,
-        t,
-        locale,
-        burgerDoneness: null,
-        pattyStock,
-      });
-      const afterMerge = simulateCartAfterAdd(cartItems, linePayload);
-      const pattyCheck = await validatePattyStockForSimulatedCart(
-        afterMerge,
-        item.id,
-        linePayload.specialPattyGrams
-      );
-      if (!pattyCheck.ok) {
-        if (typeof window !== "undefined") {
-          window.alert(pattyCartShortageMessage(t, pattyCheck));
-        }
-        return;
-      }
-      addItem(linePayload);
+      openMealFromMenu(item);
     },
-    [addItem, cartItems, locale, pattyStock, t]
+    [openMealFromMenu]
   );
 
   const value = useMemo(

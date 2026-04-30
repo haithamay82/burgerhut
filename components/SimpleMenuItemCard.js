@@ -11,11 +11,11 @@ import { useInventory } from "@/contexts/InventoryContext";
 import { useMenuCatalog } from "@/contexts/MenuCatalogContext";
 import { menuItemDesc, menuItemName } from "@/utils/menuItemLabels";
 import {
-  MEAL_FRIES_DEFAULT_ID,
   MEAL_FRIES_OPTIONS,
+  MEAL_FRIES_UNSELECTED,
+  isValidMealFriesChoiceId,
   mealFriesExtraPrice,
   mealFriesI18nSuffix,
-  normalizeMealFriesChoiceId,
 } from "@/utils/mealFriesChoices";
 
 export default function SimpleMenuItemCard({ item }) {
@@ -29,7 +29,7 @@ export default function SimpleMenuItemCard({ item }) {
   const [requestedDrinkId, setRequestedDrinkId] = useState("");
   const [drinkMenuOpen, setDrinkMenuOpen] = useState(false);
   const [mealFriesChoiceId, setMealFriesChoiceId] = useState(
-    MEAL_FRIES_DEFAULT_ID
+    MEAL_FRIES_UNSELECTED
   );
   const [friesMenuOpen, setFriesMenuOpen] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
@@ -62,16 +62,17 @@ export default function SimpleMenuItemCard({ item }) {
     [t]
   );
   const mealFriesPrice = useMemo(
-    () => mealFriesExtraPrice(normalizeMealFriesChoiceId(mealFriesChoiceId)),
+    () =>
+      isValidMealFriesChoiceId(mealFriesChoiceId)
+        ? mealFriesExtraPrice(String(mealFriesChoiceId).trim())
+        : 0,
     [mealFriesChoiceId]
   );
-  const selectedMealFries = useMemo(
-    () =>
-      mealFriesRows.find(
-        (r) => r.id === normalizeMealFriesChoiceId(mealFriesChoiceId)
-      ) || mealFriesRows[1],
-    [mealFriesRows, mealFriesChoiceId]
-  );
+  const selectedMealFries = useMemo(() => {
+    if (!isValidMealFriesChoiceId(mealFriesChoiceId)) return null;
+    const id = String(mealFriesChoiceId).trim();
+    return mealFriesRows.find((r) => r.id === id) || null;
+  }, [mealFriesRows, mealFriesChoiceId]);
   const requestedDrinkPrice = useMemo(() => {
     if (!requestedDrinkId) return 0;
     return drinkOptions.find((d) => d.id === requestedDrinkId)?.price || 0;
@@ -85,6 +86,15 @@ export default function SimpleMenuItemCard({ item }) {
 
   const handleAdd = async () => {
     if (isOutOfStock) return;
+    if (
+      showSellerNotes &&
+      !isValidMealFriesChoiceId(mealFriesChoiceId)
+    ) {
+      if (typeof window !== "undefined") {
+        window.alert(t("ui.mealFriesValidate"));
+      }
+      return;
+    }
     const notesTrim = showSellerNotes ? sellerNotes.trim() : "";
     const requestedDrinkLabel =
       showSellerNotes && requestedDrinkId
@@ -96,7 +106,7 @@ export default function SimpleMenuItemCard({ item }) {
             locale
           )
         : "";
-    const mfId = normalizeMealFriesChoiceId(mealFriesChoiceId);
+    const mfId = String(mealFriesChoiceId).trim();
     const mfPrice = mealFriesExtraPrice(mfId);
     const mealFriesLabel = t(`ui.mealFries.${mealFriesI18nSuffix(mfId)}`);
     const linePayload = {
@@ -136,7 +146,7 @@ export default function SimpleMenuItemCard({ item }) {
     setQuantity(1);
     setSellerNotes("");
     setRequestedDrinkId("");
-    setMealFriesChoiceId(MEAL_FRIES_DEFAULT_ID);
+    setMealFriesChoiceId(MEAL_FRIES_UNSELECTED);
     setDrinkMenuOpen(false);
     setFriesMenuOpen(false);
     setTimeout(() => setIsAdding(false), 300);
@@ -197,7 +207,7 @@ export default function SimpleMenuItemCard({ item }) {
               <span className="truncate">
                 {selectedMealFries
                   ? `${selectedMealFries.label} (+₪${formatIls(selectedMealFries.price)})`
-                  : ""}
+                  : t("ui.mealFriesSelectPlaceholder")}
               </span>
               <span className="text-[10px] text-gray-400">
                 {friesMenuOpen ? "▲" : "▼"}
@@ -214,7 +224,8 @@ export default function SimpleMenuItemCard({ item }) {
                       setFriesMenuOpen(false);
                     }}
                     className={`flex w-full items-center justify-between px-2 py-1.5 text-[11px] hover:bg-slate-900 ${
-                      normalizeMealFriesChoiceId(mealFriesChoiceId) === opt.id
+                      isValidMealFriesChoiceId(mealFriesChoiceId) &&
+                      String(mealFriesChoiceId).trim() === opt.id
                         ? "bg-primary/10 text-primary"
                         : "text-gray-100"
                     }`}
@@ -341,7 +352,11 @@ export default function SimpleMenuItemCard({ item }) {
         <button
           type="button"
           onClick={handleAdd}
-          disabled={isAdding || isOutOfStock}
+          disabled={
+            isAdding ||
+            isOutOfStock ||
+            (showSellerNotes && !isValidMealFriesChoiceId(mealFriesChoiceId))
+          }
           className="btn-primary flex-1 text-xs disabled:opacity-50"
         >
           {isAdding ? t("ui.added") : t("ui.addToCart")}

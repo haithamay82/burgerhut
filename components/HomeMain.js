@@ -172,9 +172,6 @@ export default function HomeMain({
               />
             </span>
           </h2>
-          <p className="mt-2 rounded-xl border border-amber-900/40 bg-amber-950/30 p-3 text-[11px] leading-relaxed text-amber-100/90">
-            {t("home.mealInfo")}
-          </p>
         </div>
       </section>
 

@@ -1,5 +1,9 @@
-/** בחירת צ'יפס/תוספת למנה — בורגרים, קריספי, מיוחדים */
+/** בחירת מטוגנים/תוספת למנה — בורגרים, קריספי, מיוחדים */
 
+/** ערך מצב לפני בחירה — לא נשמר בעגלה */
+export const MEAL_FRIES_UNSELECTED = "";
+
+/** ברירת מחדל לשחזור שורות ישנות בלי שדה מטוגנים */
 export const MEAL_FRIES_DEFAULT_ID = "meal-fries-regular";
 
 /** @type {{ id: string, price: number }[]} */
@@ -32,8 +36,11 @@ export function mealFriesI18nSuffix(id) {
   return s.replace(/^meal-fries-/, "") || "regular";
 }
 
-/** @param {string} id */
-export function normalizeMealFriesChoiceId(id) {
-  const s = String(id || "").trim();
-  return IDS.has(s) ? s : MEAL_FRIES_DEFAULT_ID;
+/**
+ * שחזור בחירת מטוגנים משורת עגלה שמורה (שורות ישנות בלי שדה → צ'יפס רגיל).
+ * @param {unknown} raw
+ */
+export function coercePersistedMealFriesChoiceId(raw) {
+  const s = String(raw ?? "").trim();
+  return isValidMealFriesChoiceId(s) ? s : MEAL_FRIES_DEFAULT_ID;
 }

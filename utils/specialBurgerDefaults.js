@@ -1,11 +1,6 @@
 import { mealSaladChoicesForCategory, DEFAULT_BURGER_DONENESS_ID } from "@/utils/menuData";
 import { menuItemName } from "@/utils/menuItemLabels";
 import { canBuildBurgerWithPattyStock } from "@/utils/burgerPattyPrep";
-import {
-  MEAL_FRIES_DEFAULT_ID,
-  mealFriesExtraPrice,
-  mealFriesI18nSuffix,
-} from "@/utils/mealFriesChoices";
 
 /** תוספת מחיר לקציצת 220 גר׳ במנות מיוחדות */
 export const SPECIAL_PATTY_220_EXTRA_NIS = 5;
@@ -86,10 +81,7 @@ export function buildSpecialBurgerCartLine({
       : specialPattyGramsDefaultForStock(item.id, pattyStock);
   const pattyExtra =
     chosenGrams === 220 ? SPECIAL_PATTY_220_EXTRA_NIS : 0;
-  const mealFriesChoiceId = MEAL_FRIES_DEFAULT_ID;
-  const mealFriesPrice = mealFriesExtraPrice(mealFriesChoiceId);
-  const mealFriesLabel = t(`ui.mealFries.${mealFriesI18nSuffix(mealFriesChoiceId)}`);
-  const unitPrice = base + saladsPrice + pattyExtra + mealFriesPrice;
+  const unitPrice = base + saladsPrice + pattyExtra;
   const q = Math.max(1, Number(quantity) || 1);
   const don =
     burgerDoneness && String(burgerDoneness.id || "").trim()
@@ -108,9 +100,6 @@ export function buildSpecialBurgerCartLine({
     quantity: q,
     price: unitPrice,
     burgerDoneness: don,
-    mealFriesChoiceId,
-    mealFriesLabel,
-    mealFriesPrice,
     ...(chosenGrams != null ? { specialPattyGrams: chosenGrams } : {}),
   };
 }
