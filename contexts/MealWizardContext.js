@@ -34,23 +34,13 @@ export function MealWizardProvider({ children }) {
     });
   }, []);
 
-  /** כמו «בחירת מנה» — חובה לבחור צ'יפס וכו' בוויזארד */
-  const addSpecialMealQuick = useCallback(
-    (item) => {
-      if (!item || item.category !== "specials") return;
-      openMealFromMenu(item);
-    },
-    [openMealFromMenu]
-  );
-
   const value = useMemo(
     () => ({
       openMealFromMenu,
       openMealEditLine,
       closeMealWizard,
-      addSpecialMealQuick,
     }),
-    [openMealFromMenu, openMealEditLine, closeMealWizard, addSpecialMealQuick]
+    [openMealFromMenu, openMealEditLine, closeMealWizard]
   );
 
   return (

@@ -6,7 +6,6 @@ export default function MenuItemCard({
   item,
   onOpenMealWizard,
   onOpenSpecialSaladsEdit,
-  onSpecialQuickAdd,
 }) {
   const isMeal = isMealWizardCategory(item?.category);
   if (isMeal) {
@@ -15,7 +14,6 @@ export default function MenuItemCard({
         item={item}
         onOpenWizard={onOpenMealWizard}
         onOpenSpecialSaladsEdit={onOpenSpecialSaladsEdit}
-        onSpecialQuickAdd={onSpecialQuickAdd}
       />
     );
   }

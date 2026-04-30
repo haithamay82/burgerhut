@@ -32,7 +32,7 @@ export default function HomeMain({
     !restaurantOpen &&
     todayScheduledOpen;
   const [activeCategory, setActiveCategory] = useState("burgers");
-  const { openMealFromMenu, addSpecialMealQuick } = useMealWizard();
+  const { openMealFromMenu } = useMealWizard();
   const homeCategories = CATEGORIES.filter(
     (c) => SHOW_SPECIALS_IN_HOME_MENU || c.id !== "specials"
   );
@@ -287,7 +287,6 @@ export default function HomeMain({
                 onOpenSpecialSaladsEdit={(it) =>
                   openMealFromMenu(it, { mode: "editSalads" })
                 }
-                onSpecialQuickAdd={addSpecialMealQuick}
               />
             </div>
           );

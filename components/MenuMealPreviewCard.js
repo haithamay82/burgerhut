@@ -15,7 +15,6 @@ export default function MenuMealPreviewCard({
   item,
   onOpenWizard,
   onOpenSpecialSaladsEdit,
-  onSpecialQuickAdd,
 }) {
   const { t, locale } = useLocale();
   const { isUnavailable, pattyStock } = useInventory();
@@ -107,24 +106,14 @@ export default function MenuMealPreviewCard({
       </div>
       <div className="border-t border-slate-800 p-3">
         {item?.category === "specials" ? (
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => onOpenSpecialSaladsEdit?.(item)}
-              disabled={isOutOfStock}
-              className="btn-primary min-h-[2.75rem] w-full min-w-0 px-2 text-xs font-semibold leading-tight disabled:opacity-50 sm:text-sm"
-            >
-              {t("ui.editComponents")}
-            </button>
-            <button
-              type="button"
-              onClick={() => onSpecialQuickAdd?.(item)}
-              disabled={isOutOfStock}
-              className="min-h-[2.75rem] w-full min-w-0 rounded-xl border-2 border-primary/80 bg-slate-900/80 px-2 text-xs font-bold leading-tight text-primary transition-colors hover:bg-primary/10 disabled:opacity-50 sm:text-sm"
-            >
-              {t("ui.addSpecialToCart")}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => onOpenSpecialSaladsEdit?.(item)}
+            disabled={isOutOfStock}
+            className="btn-primary min-h-[2.75rem] w-full text-sm disabled:opacity-50"
+          >
+            {t("ui.editComponents")}
+          </button>
         ) : (
           <button
             type="button"
