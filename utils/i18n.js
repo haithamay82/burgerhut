@@ -296,7 +296,7 @@ const HE = {
   "ui.mealValidateSalads": "לא בחרת מסלטים.",
   "ui.mealValidateSauces":
     "לא בחרת מתוספות רטבים בצד מגיע לך רוטב אחד חינם.",
-  "ui.mealValidateFries": "לא בחרת מטוגנים למנה.",
+  "ui.mealValidateFries": "לא בחרת מטוגנים למנה. (חובה לבחור)",
   "ui.mealValidateAddAnyway": "אני יודע הוסף לסל",
   "ui.mealValidateGoBack": "חזור לבחירה",
   "ui.outOfStock": "היום אין יותר ממנה זאת",
@@ -1236,7 +1236,7 @@ const AR = {
   "ui.mealValidateSalads": "لم تختَر السلطات.",
   "ui.mealValidateSauces":
     "لم تختَر صلصات إضافية على الجانب، لك صلصة واحدة مجاناً.",
-  "ui.mealValidateFries": "لم تختر مقليات الوجبة.",
+  "ui.mealValidateFries": "لم تختر مقليات الوجبة. (إلزامي الاختيار)",
   "ui.mealValidateAddAnyway": "أنا أعرف — أضف للسلة",
   "ui.mealValidateGoBack": "العودة للاختيار",
   "ui.outOfStock": "لا يتوفر هذا الطبق اليوم",
