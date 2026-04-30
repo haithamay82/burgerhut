@@ -59,6 +59,7 @@ export function customizationKey(item) {
   const doneness = String(item.burgerDoneness?.id ?? "").trim();
   const notes = String(item.sellerNotes ?? "").trim();
   const requestedDrink = String(item.requestedDrinkId ?? "").trim();
+  const mealFries = String(item.mealFriesChoiceId ?? "").trim();
   const bun =
     item.bunSauceOnBun === false
       ? "0"
@@ -71,7 +72,7 @@ export function customizationKey(item) {
         ? "220"
         : "200"
       : "";
-  const base = `${pid}|${size}|${variant}|${kidsBread}|${doneness}|${salads}|${tops}|${extras}|${requestedDrink}|${bun}|${notes}`;
+  const base = `${pid}|${size}|${variant}|${kidsBread}|${doneness}|${salads}|${tops}|${extras}|${mealFries}|${requestedDrink}|${bun}|${notes}`;
   return specialPatty ? `${base}|${specialPatty}` : base;
 }
 

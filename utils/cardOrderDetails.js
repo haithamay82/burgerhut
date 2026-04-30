@@ -42,6 +42,12 @@ export function buildCardOrderDetailsFromItems(items) {
       requestedDrinkPrice: Number.isFinite(Number(item.requestedDrinkPrice))
         ? Number(item.requestedDrinkPrice)
         : undefined,
+      mealFriesLabel: item.mealFriesLabel
+        ? String(item.mealFriesLabel).trim() || undefined
+        : undefined,
+      mealFriesPrice: Number.isFinite(Number(item.mealFriesPrice))
+        ? Number(item.mealFriesPrice)
+        : undefined,
       sellerNotes: item.sellerNotes
         ? String(item.sellerNotes).trim() || undefined
         : undefined,

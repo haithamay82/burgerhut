@@ -3615,6 +3615,19 @@ export default function AdminOrdersPage() {
                                           .join(", ")}
                                       </p>
                                     ) : null}
+                                    {it.mealFriesLabel ? (
+                                      <p className="text-[11px] text-emerald-200/90">
+                                        {t("checkout.mealFriesPrefix")}:{" "}
+                                        {it.mealFriesLabel}
+                                        {Number.isFinite(
+                                          Number(it.mealFriesPrice)
+                                        )
+                                          ? ` (+₪${Number(
+                                              it.mealFriesPrice
+                                            ).toFixed(0)})`
+                                          : ""}
+                                      </p>
+                                    ) : null}
                                     {it.requestedDrinkLabel ? (
                                       <p className="text-[11px] text-sky-200/90">
                                         {t("wa.drink")}:{" "}

@@ -212,6 +212,15 @@ export function buildWhatsAppOrderText({
     lines.push(
       `*${displayIndex}. ${waLineDisplayName(item)}*${lineSuffix}`
     );
+    if (item.mealFriesLabel && String(item.mealFriesLabel).trim()) {
+      const friesPrice =
+        Number.isFinite(Number(item.mealFriesPrice))
+          ? ` (+₪${formatIls(Number(item.mealFriesPrice))})`
+          : "";
+      lines.push(
+        `   ${waBoldLabel(tr("wa.mealFries"))}: ${String(item.mealFriesLabel).trim()}${friesPrice}`
+      );
+    }
     if (item.requestedDrinkLabel && String(item.requestedDrinkLabel).trim()) {
       const drinkPrice =
         Number.isFinite(Number(item.requestedDrinkPrice))

@@ -31,6 +31,13 @@ import {
 } from "@/utils/pattyStockClient";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useInventory } from "@/contexts/InventoryContext";
+import {
+  MEAL_FRIES_DEFAULT_ID,
+  MEAL_FRIES_OPTIONS,
+  mealFriesExtraPrice,
+  mealFriesI18nSuffix,
+  normalizeMealFriesChoiceId,
+} from "@/utils/mealFriesChoices";
 /** סימון ב-history.state כדי שכפתור «חזור» במכשיר יסגור את הוויזארד */
 const MEAL_WIZARD_HISTORY_KEY = "__burgerhutMealWizard";
 
@@ -78,6 +85,10 @@ export default function MealCustomizeWizard({
   const [sellerNotes, setSellerNotes] = useState("");
   const [requestedDrinkId, setRequestedDrinkId] = useState("");
   const [drinkMenuOpen, setDrinkMenuOpen] = useState(false);
+  const [mealFriesChoiceId, setMealFriesChoiceId] = useState(
+    MEAL_FRIES_DEFAULT_ID
+  );
+  const [friesMenuOpen, setFriesMenuOpen] = useState(false);
   const [donenessId, setDonenessId] = useState(DEFAULT_BURGER_DONENESS_ID);
   /** רוטב על הלחמניה — ברירת מחדל כן */
   const [bunSauceOnBun, setBunSauceOnBun] = useState(true);
@@ -185,6 +196,25 @@ export default function MealCustomizeWizard({
       })),
     [menuItems, t, locale]
   );
+  const mealFriesRows = useMemo(
+    () =>
+      MEAL_FRIES_OPTIONS.map((o) => ({
+        ...o,
+        label: t(`ui.mealFries.${o.id.replace(/^meal-fries-/, "")}`),
+      })),
+    [t]
+  );
+  const mealFriesPrice = useMemo(
+    () => mealFriesExtraPrice(normalizeMealFriesChoiceId(mealFriesChoiceId)),
+    [mealFriesChoiceId]
+  );
+  const selectedMealFries = useMemo(
+    () =>
+      mealFriesRows.find(
+        (r) => r.id === normalizeMealFriesChoiceId(mealFriesChoiceId)
+      ) || mealFriesRows[1],
+    [mealFriesRows, mealFriesChoiceId]
+  );
   const requestedDrinkPrice = useMemo(() => {
     if (!requestedDrinkId) return 0;
     return drinkOptions.find((d) => d.id === requestedDrinkId)?.price || 0;
@@ -193,7 +223,7 @@ export default function MealCustomizeWizard({
     () => drinkOptions.find((d) => d.id === requestedDrinkId) || null,
     [drinkOptions, requestedDrinkId]
   );
-  const finalUnitPrice = unitPrice + requestedDrinkPrice;
+  const finalUnitPrice = unitPrice + mealFriesPrice + requestedDrinkPrice;
 
   const editHydrateKey = useMemo(() => {
     if (!replaceLineId || !initialCartLine) return "";
@@ -253,6 +283,9 @@ export default function MealCustomizeWizard({
         setBunSauceOnBun(true);
       }
       setRequestedDrinkId(String(line.requestedDrinkId || "").trim());
+      setMealFriesChoiceId(
+        normalizeMealFriesChoiceId(line.mealFriesChoiceId)
+      );
       setSellerNotes(String(line.sellerNotes || ""));
       if (item.category === "specials") {
         setSpecialPattyGrams(
@@ -264,6 +297,7 @@ export default function MealCustomizeWizard({
         setSpecialPattyGrams(200);
       }
       setDrinkMenuOpen(false);
+      setFriesMenuOpen(false);
       setIsAdding(false);
       setMealValidateOpen(false);
       setMealValidateMissing([]);
@@ -284,7 +318,9 @@ export default function MealCustomizeWizard({
       setAdultCrispyBli(false);
       setSellerNotes("");
       setRequestedDrinkId("");
+      setMealFriesChoiceId(MEAL_FRIES_DEFAULT_ID);
       setDrinkMenuOpen(false);
+      setFriesMenuOpen(false);
       setIsAdding(false);
       setDonenessId(DEFAULT_BURGER_DONENESS_ID);
       setBunSauceOnBun(true);
@@ -301,7 +337,9 @@ export default function MealCustomizeWizard({
     setAdultCrispyBli(false);
     setSellerNotes("");
     setRequestedDrinkId("");
+    setMealFriesChoiceId(MEAL_FRIES_DEFAULT_ID);
     setDrinkMenuOpen(false);
+    setFriesMenuOpen(false);
     setIsAdding(false);
     setDonenessId(DEFAULT_BURGER_DONENESS_ID);
     setBunSauceOnBun(true);
@@ -517,6 +555,9 @@ export default function MealCustomizeWizard({
           locale
         )
       : "";
+    const mfId = normalizeMealFriesChoiceId(mealFriesChoiceId);
+    const mfPrice = mealFriesExtraPrice(mfId);
+    const mealFriesLabel = t(`ui.mealFries.${mealFriesI18nSuffix(mfId)}`);
     const linePayload = {
       productId: item.id,
       name,
@@ -526,6 +567,9 @@ export default function MealCustomizeWizard({
       extras,
       quantity,
       price: finalUnitPrice,
+      mealFriesChoiceId: mfId,
+      mealFriesLabel,
+      mealFriesPrice: mfPrice,
       ...(showBunSauceOnMeal ? { bunSauceOnBun } : {}),
       ...(isBeefBurgerMeal
         ? {
@@ -1065,6 +1109,56 @@ export default function MealCustomizeWizard({
 
         <div className="mb-4 space-y-1.5">
           <label
+            htmlFor="meal-fries-choice"
+            className="block text-[11px] font-semibold text-gray-300"
+          >
+            {t("ui.mealFriesForMealLabel")}
+          </label>
+          <div id="meal-fries-choice" className="relative mb-4">
+            <button
+              type="button"
+              disabled={blocked}
+              onClick={() => {
+                setFriesMenuOpen((v) => !v);
+                setDrinkMenuOpen(false);
+              }}
+              className="flex w-full items-center justify-between rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 text-xs text-gray-100 outline-none transition-colors hover:border-primary disabled:opacity-50"
+            >
+              <span className="truncate">
+                {selectedMealFries
+                  ? `${selectedMealFries.label} (+₪${formatIls(selectedMealFries.price)})`
+                  : ""}
+              </span>
+              <span className="text-[10px] text-gray-400">
+                {friesMenuOpen ? "▲" : "▼"}
+              </span>
+            </button>
+            {friesMenuOpen ? (
+              <div className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-slate-700 bg-slate-950/95 shadow-xl">
+                {mealFriesRows.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => {
+                      setMealFriesChoiceId(opt.id);
+                      setFriesMenuOpen(false);
+                    }}
+                    className={`flex w-full items-center justify-between px-3 py-2 text-xs hover:bg-slate-900 ${
+                      normalizeMealFriesChoiceId(mealFriesChoiceId) === opt.id
+                        ? "bg-primary/10 text-primary"
+                        : "text-gray-100"
+                    }`}
+                  >
+                    <span className="text-[11px] text-gray-300">
+                      +₪{formatIls(opt.price)}
+                    </span>
+                    <span className="truncate">{opt.label}</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+          <label
             htmlFor="meal-requested-drink"
             className="block text-[11px] font-semibold text-gray-300"
           >
@@ -1074,7 +1168,10 @@ export default function MealCustomizeWizard({
             <button
               type="button"
               disabled={blocked}
-              onClick={() => setDrinkMenuOpen((v) => !v)}
+              onClick={() => {
+                setDrinkMenuOpen((v) => !v);
+                setFriesMenuOpen(false);
+              }}
               className="flex w-full items-center justify-between rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 text-xs text-gray-100 outline-none transition-colors hover:border-primary disabled:opacity-50"
             >
               <span className="truncate">
