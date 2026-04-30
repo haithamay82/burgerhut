@@ -49,6 +49,7 @@ import {
   aggregatePrepRowsForAdmin,
   buildAdminKitchenPrepPlainSuffix,
 } from "@/utils/adminKitchenPrepAppend";
+import { aggregateMealFriesCartSummary } from "@/utils/mealFriesCartSummary";
 import {
   getAdminLocalPushSubscribed,
   subscribeAdminWebPush,
@@ -3682,6 +3683,30 @@ export default function AdminOrdersPage() {
                                       )}
                                     </p>
                                   ) : null}
+                                </div>
+                              );
+                            })()}
+                            {(() => {
+                              const sortLoc = locale === "ar" ? "ar" : "he";
+                              const rows = aggregateMealFriesCartSummary(
+                                o.items || [],
+                                sortLoc
+                              );
+                              if (!rows.length) return null;
+                              return (
+                                <div className="mt-2 rounded-lg border border-emerald-900/50 bg-emerald-950/25 p-2 text-[11px] leading-relaxed text-emerald-100/95">
+                                  <p className="mb-1 font-semibold text-emerald-200">
+                                    {t("checkout.mealFriesCartSummaryTitle")}
+                                  </p>
+                                  <ul className="list-inside list-disc space-y-0.5 text-gray-200">
+                                    {rows.map((r) => (
+                                      <li key={`prep-fries-${r.key}`}>
+                                        {t("admin.prepAggLine")
+                                          .replace("{n}", String(r.qty))
+                                          .replace("{label}", r.label)}
+                                      </li>
+                                    ))}
+                                  </ul>
                                 </div>
                               );
                             })()}

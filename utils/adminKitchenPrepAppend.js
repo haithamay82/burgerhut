@@ -3,6 +3,7 @@ import {
   hasAnyPattyPrep,
   PATTY_GRAMS_ORDER,
 } from "@/utils/burgerPattyPrep";
+import { aggregateMealFriesCartSummary } from "@/utils/mealFriesCartSummary";
 
 /**
  * @param {unknown} row
@@ -83,6 +84,18 @@ export function buildAdminKitchenPrepPlainSuffix(tr, items, sortLocale = "he") {
         tr("admin.pattyPrep600Note").replace("{n}", String(prep.qty600));
     }
     chunks.push(block);
+  }
+
+  const friesRows = aggregateMealFriesCartSummary(list, sortLocale);
+  if (friesRows.length) {
+    const lines = friesRows.map((r) =>
+      tr("admin.prepAggLine")
+        .replace("{n}", String(r.qty))
+        .replace("{label}", r.label)
+    );
+    chunks.push(
+      `${tr("checkout.mealFriesCartSummaryTitle")}\n${lines.join("\n")}`
+    );
   }
 
   const topRows = aggregatePrepRowsForAdmin(list, "toppings", sortLocale);
