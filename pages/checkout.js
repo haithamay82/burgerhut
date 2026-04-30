@@ -34,6 +34,7 @@ import {
 } from "@/utils/pattyStockClient";
 import { sortSaladsForDisplay } from "@/utils/saladDisplayOrder";
 import { specialBurgerMenuDescription } from "@/utils/specialBurgerMealDescription";
+import { aggregateMealFriesCartSummary } from "@/utils/mealFriesCartSummary";
 
 const DeliveryMapPicker = dynamic(
   () => import("@/components/DeliveryMapPicker"),
@@ -165,6 +166,11 @@ export default function CheckoutPage() {
   const foodTotal = useMemo(
     () => Math.max(0, rawFoodTotal - saucePolicyCreditNis),
     [rawFoodTotal, saucePolicyCreditNis]
+  );
+
+  const mealFriesCartSummary = useMemo(
+    () => aggregateMealFriesCartSummary(items, locale),
+    [items, locale]
   );
 
   useEffect(() => {
@@ -1202,6 +1208,23 @@ export default function CheckoutPage() {
               );
             })}
           </div>
+          {mealFriesCartSummary.length > 0 ? (
+            <div className="mt-3 rounded-lg border border-emerald-900/45 bg-emerald-950/25 px-3 py-2">
+              <p className="mb-1.5 text-[11px] font-semibold text-emerald-100/95">
+                {t("checkout.mealFriesCartSummaryTitle")}
+              </p>
+              <ul className="space-y-0.5 text-[11px] leading-snug text-gray-300">
+                {mealFriesCartSummary.map((row) => (
+                  <li key={row.key} className="flex items-baseline justify-between gap-2">
+                    <span className="min-w-0 flex-1">{row.label}</span>
+                    <span className="shrink-0 tabular-nums text-emerald-200/90">
+                      ×{row.qty}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           <div className="mt-3 space-y-1 border-t border-slate-800 pt-3">
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-400">

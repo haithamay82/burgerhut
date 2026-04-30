@@ -21,6 +21,7 @@ import {
 import { formatIls, lineTotal, safePrice } from "@/utils/cartMoney";
 import { sortSaladsForDisplay } from "@/utils/saladDisplayOrder";
 import { specialBurgerMenuDescription } from "@/utils/specialBurgerMealDescription";
+import { aggregateMealFriesCartSummary } from "@/utils/mealFriesCartSummary";
 
 export default function StickyCartBar() {
   const { t, locale } = useLocale();
@@ -61,6 +62,11 @@ export default function StickyCartBar() {
     if (totalUnits === 1) return t("cart.unitsOne");
     return t("cart.unitsMany").replace("{count}", String(totalUnits));
   }, [totalUnits, t]);
+
+  const mealFriesCartSummary = useMemo(
+    () => aggregateMealFriesCartSummary(items, locale),
+    [items, locale]
+  );
 
   const tryIncreaseQuantity = async (item) => {
     const nextQty = item.quantity + 1;
@@ -287,6 +293,26 @@ export default function StickyCartBar() {
               );
               })}
             </div>
+            {mealFriesCartSummary.length > 0 ? (
+              <div className="mt-3 rounded-lg border border-emerald-900/45 bg-emerald-950/25 px-2 py-2">
+                <p className="mb-1 text-[10px] font-semibold text-emerald-100/95">
+                  {t("checkout.mealFriesCartSummaryTitle")}
+                </p>
+                <ul className="space-y-0.5 text-[10px] leading-snug text-gray-300">
+                  {mealFriesCartSummary.map((row) => (
+                    <li
+                      key={row.key}
+                      className="flex items-baseline justify-between gap-2"
+                    >
+                      <span className="min-w-0 flex-1">{row.label}</span>
+                      <span className="shrink-0 tabular-nums text-emerald-200/90">
+                        ×{row.qty}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
             <div className="mt-3 flex items-center justify-between border-t border-slate-800 pt-3">
               <span className="text-xs text-gray-400">
                 {t("checkout.grandTotal")}
