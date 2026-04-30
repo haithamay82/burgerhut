@@ -3573,7 +3573,8 @@ export default function AdminOrdersPage() {
                                       const mealDesc =
                                         specialBurgerMenuDescription(
                                           locale,
-                                          pid
+                                          pid,
+                                          it.specialPattyGrams
                                         );
                                       if (!mealDesc) return null;
                                       return (

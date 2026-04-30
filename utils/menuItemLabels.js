@@ -14,22 +14,7 @@ export function menuItemName(item, t, locale) {
 }
 
 import { specialPattyGramsDefaultForStock } from "@/utils/specialBurgerDefaults";
-
-/**
- * @param {string} text
- * @param {'he'|'ar'} locale
- */
-function specialPattyOpeningPhraseWhen220Only(text, locale) {
-  if (!text) return text;
-  if (locale === "ar") {
-    return text.includes("قرص 200غ،")
-      ? text.replace("قرص 200غ،", "قرص 220غ،")
-      : text;
-  }
-  return text.includes("קציצה 200 גרם,")
-    ? text.replace("קציצה 200 גרם,", "קציצה 220 גרם,")
-    : text;
-}
+import { applySpecialPattyGramsToMealDescription } from "@/utils/specialBurgerMealDescription";
 
 /**
  * @param {{ id: string, category?: string, descHe?: string, descAr?: string }} item
@@ -53,7 +38,7 @@ export function menuItemDesc(item, t, locale, pattyStock) {
     item.id !== "special-cheese-bomb" &&
     specialPattyGramsDefaultForStock(item.id, pattyStock) === 220
   ) {
-    return specialPattyOpeningPhraseWhen220Only(v, locale);
+    return applySpecialPattyGramsToMealDescription(v, locale, 220);
   }
   return v;
 }

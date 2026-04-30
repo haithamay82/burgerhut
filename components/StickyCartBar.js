@@ -20,9 +20,10 @@ import {
 } from "@/utils/mealCartLineEdit";
 import { formatIls, lineTotal, safePrice } from "@/utils/cartMoney";
 import { sortSaladsForDisplay } from "@/utils/saladDisplayOrder";
+import { specialBurgerMenuDescription } from "@/utils/specialBurgerMealDescription";
 
 export default function StickyCartBar() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { items, total, updateQuantity, removeItem } = useCart();
   const { menuItems } = useMenuCatalog();
   const { openMealEditLine } = useMealWizard();
@@ -155,6 +156,21 @@ export default function StickyCartBar() {
                           .join(", ")}
                       </p>
                     ) : null}
+                    {(() => {
+                      const pid = cartLineProductId(item);
+                      if (!String(pid).startsWith("special-")) return null;
+                      const mealDesc = specialBurgerMenuDescription(
+                        locale,
+                        pid,
+                        item.specialPattyGrams
+                      );
+                      if (!mealDesc) return null;
+                      return (
+                        <p className="text-[11px] text-gray-400">
+                          {t("checkout.specialMealComponentsPrefix")}: {mealDesc}
+                        </p>
+                      );
+                    })()}
                     {typeof item.bunSauceOnBun === "boolean" ? (
                       <p className="text-[11px] text-gray-400">
                         {t("checkout.bunSauceOnBunPrefix")}:{" "}

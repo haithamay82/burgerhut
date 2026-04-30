@@ -212,73 +212,121 @@ export function buildWhatsAppOrderText({
     lines.push(
       `*${displayIndex}. ${waLineDisplayName(item)}*${lineSuffix}`
     );
-    if (item.mealFriesLabel && String(item.mealFriesLabel).trim()) {
-      const friesPrice =
-        Number.isFinite(Number(item.mealFriesPrice))
-          ? ` (+₪${formatIls(Number(item.mealFriesPrice))})`
-          : "";
-      lines.push(
-        `   ${waBoldLabel(tr("wa.mealFries"))}: ${String(item.mealFriesLabel).trim()}${friesPrice}`
-      );
-    }
-    if (item.requestedDrinkLabel && String(item.requestedDrinkLabel).trim()) {
-      const drinkPrice =
-        Number.isFinite(Number(item.requestedDrinkPrice))
-          ? ` (+₪${formatIls(Number(item.requestedDrinkPrice))})`
-          : "";
-      lines.push(
-        `   ${waBoldLabel(tr("wa.drink"))}: ${String(item.requestedDrinkLabel).trim()}${drinkPrice}`
-      );
-    }
-    if (item.salads?.length) {
-      lines.push(
-        `   ${waBoldLabel(tr("wa.salads"))}: ${sortSaladsForDisplay(item.salads)
-          .map((x) => x.label)
-          .join(", ")}`
-      );
-    }
+
     const waPid = String(cartLineProductId(item) || "").trim();
-    const specialMealDesc = specialBurgerMenuDescription(locale, waPid);
-    if (specialMealDesc) {
-      lines.push(
-        `   ${waBoldLabel(tr("checkout.specialMealComponentsPrefix"))}: ${specialMealDesc}`
+    const cat = catalogCategoryForCartLine(item);
+
+    const pushSalads = () => {
+      if (item.salads?.length) {
+        lines.push(
+          `   ${waBoldLabel(tr("wa.salads"))}: ${sortSaladsForDisplay(item.salads)
+            .map((x) => x.label)
+            .join(", ")}`
+        );
+      }
+    };
+    const pushSpecialMealBlocks = () => {
+      const specialMealDesc = specialBurgerMenuDescription(
+        locale,
+        waPid,
+        item.specialPattyGrams
       );
+      if (specialMealDesc) {
+        lines.push(
+          `   ${waBoldLabel(tr("checkout.specialMealComponentsPrefix"))}: ${specialMealDesc}`
+        );
+      }
+      if (waPid === "special-cheese-bomb") {
+        lines.push(
+          `   ${waBoldLabel(tr("wa.specialPatty"))}: ${tr("wa.cheeseBombPattyLine")}`
+        );
+      } else if (waPid.startsWith("special-")) {
+        const g = Number(item.specialPattyGrams) === 220 ? 220 : 200;
+        lines.push(
+          `   ${waBoldLabel(tr("wa.specialPatty"))}: ${g}${tr("wa.gramsUnit")}`
+        );
+      }
+    };
+    const pushBunSauceOnBun = () => {
+      if (typeof item.bunSauceOnBun === "boolean") {
+        lines.push(
+          `   ${waBoldLabel(tr("wa.bunSauceOnBun"))}: ${item.bunSauceOnBun ? tr("ui.bunSauceYes") : tr("ui.bunSauceNo")}`
+        );
+      }
+    };
+    const pushDoneness = () => {
+      if (item.burgerDoneness?.label) {
+        lines.push(
+          `   ${waBoldLabel(tr("wa.doneness"))}: ${String(item.burgerDoneness.label).trim()}`
+        );
+      }
+    };
+    const pushToppings = () => {
+      if (item.toppings?.length) {
+        lines.push(
+          `   ${waBoldLabel(tr(toppingsWaLabelKey(item)))}: ${item.toppings.map((x) => x.label).join(", ")}`
+        );
+      }
+    };
+    const pushExtras = () => {
+      if (item.extras?.length) {
+        lines.push(
+          `   ${waBoldLabel(tr("wa.sauces"))}: ${item.extras.map((x) => x.label).join(", ")}`
+        );
+      }
+    };
+    const pushMealFries = () => {
+      if (item.mealFriesLabel && String(item.mealFriesLabel).trim()) {
+        const friesPrice =
+          Number.isFinite(Number(item.mealFriesPrice))
+            ? ` (+₪${formatIls(Number(item.mealFriesPrice))})`
+            : "";
+        lines.push(
+          `   ${waBoldLabel(tr("wa.mealFries"))}: ${String(item.mealFriesLabel).trim()}${friesPrice}`
+        );
+      }
+    };
+    const pushDrink = () => {
+      if (item.requestedDrinkLabel && String(item.requestedDrinkLabel).trim()) {
+        const drinkPrice =
+          Number.isFinite(Number(item.requestedDrinkPrice))
+            ? ` (+₪${formatIls(Number(item.requestedDrinkPrice))})`
+            : "";
+        lines.push(
+          `   ${waBoldLabel(tr("wa.drink"))}: ${String(item.requestedDrinkLabel).trim()}${drinkPrice}`
+        );
+      }
+    };
+    const pushSellerNotes = () => {
+      if (item.sellerNotes && String(item.sellerNotes).trim()) {
+        lines.push(
+          `   ${waBoldLabel(tr("wa.sellerNotes"))}: ${String(item.sellerNotes).trim()}`
+        );
+      }
+    };
+
+    /** בורגר / קריספי — כמו סדר תצוגת האתר: סלטים → עשייה → תוספות → רטבים בצד → מטוגנים → שתייה → הערות (רוטב על לחמניה לפני עשייה כמו ב-checkout) */
+    if (cat === "burgers" || cat === "crispy") {
+      pushSalads();
+      pushBunSauceOnBun();
+      pushDoneness();
+      pushToppings();
+      pushExtras();
+      pushMealFries();
+      pushDrink();
+      pushSellerNotes();
+    } else {
+      pushSalads();
+      pushSpecialMealBlocks();
+      pushBunSauceOnBun();
+      pushDoneness();
+      pushToppings();
+      pushExtras();
+      pushMealFries();
+      pushDrink();
+      pushSellerNotes();
     }
-    if (waPid === "special-cheese-bomb") {
-      lines.push(
-        `   ${waBoldLabel(tr("wa.specialPatty"))}: ${tr("wa.cheeseBombPattyLine")}`
-      );
-    } else if (waPid.startsWith("special-")) {
-      const g = Number(item.specialPattyGrams) === 220 ? 220 : 200;
-      lines.push(
-        `   ${waBoldLabel(tr("wa.specialPatty"))}: ${g}${tr("wa.gramsUnit")}`
-      );
-    }
-    if (typeof item.bunSauceOnBun === "boolean") {
-      lines.push(
-        `   ${waBoldLabel(tr("wa.bunSauceOnBun"))}: ${item.bunSauceOnBun ? tr("ui.bunSauceYes") : tr("ui.bunSauceNo")}`
-      );
-    }
-    if (item.burgerDoneness?.label) {
-      lines.push(
-        `   ${waBoldLabel(tr("wa.doneness"))}: ${String(item.burgerDoneness.label).trim()}`
-      );
-    }
-    if (item.toppings?.length) {
-      lines.push(
-        `   ${waBoldLabel(tr(toppingsWaLabelKey(item)))}: ${item.toppings.map((x) => x.label).join(", ")}`
-      );
-    }
-    if (item.extras?.length) {
-      lines.push(
-        `   ${waBoldLabel(tr("wa.sauces"))}: ${item.extras.map((x) => x.label).join(", ")}`
-      );
-    }
-    if (item.sellerNotes && String(item.sellerNotes).trim()) {
-      lines.push(
-        `   ${waBoldLabel(tr("wa.sellerNotes"))}: ${String(item.sellerNotes).trim()}`
-      );
-    }
+
     lines.push(
       `   ${waBoldLabel(tr("wa.linePrice"))}: ₪${formatIls(
         lineTotal({ ...item, quantity: 1 })
