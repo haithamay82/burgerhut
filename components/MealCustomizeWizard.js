@@ -670,6 +670,9 @@ export default function MealCustomizeWizard({
   if (!open || !item) return null;
 
   const name = menuItemName(item, t, locale);
+  const mealValidateFriesOnlyMissing =
+    mealValidateMissing.length === 1 &&
+    mealValidateMissing[0] === "fries";
 
   return (
     <div
@@ -1348,13 +1351,15 @@ export default function MealCustomizeWizard({
               ))}
             </ul>
             <div className="flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={handleMealValidateAddAnyway}
-                className="w-full rounded-xl bg-primary py-3 text-sm font-bold text-black transition-opacity hover:opacity-90"
-              >
-                {t("ui.mealValidateAddAnyway")}
-              </button>
+              {!mealValidateFriesOnlyMissing ? (
+                <button
+                  type="button"
+                  onClick={handleMealValidateAddAnyway}
+                  className="w-full rounded-xl bg-primary py-3 text-sm font-bold text-black transition-opacity hover:opacity-90"
+                >
+                  {t("ui.mealValidateAddAnyway")}
+                </button>
+              ) : null}
               <button
                 type="button"
                 onClick={handleMealValidateGoBack}
