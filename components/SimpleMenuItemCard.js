@@ -13,9 +13,11 @@ import { menuItemDesc, menuItemName } from "@/utils/menuItemLabels";
 import {
   MEAL_FRIES_OPTIONS,
   hasMealFriesSelection,
-  mealFriesExtraPrice,
+  mealFriesEffectiveExtraPrice,
   mealFriesI18nSuffix,
+  mealFriesSelectionTotalExtra,
   sortMealFriesIds,
+  sortMealFriesIdsByMenuOrder,
   toggleMealFriesIdInSelection,
 } from "@/utils/mealFriesChoices";
 
@@ -62,11 +64,7 @@ export default function SimpleMenuItemCard({ item }) {
     [t]
   );
   const mealFriesPrice = useMemo(
-    () =>
-      sortMealFriesIds(mealFriesSelectedIds).reduce(
-        (s, id) => s + mealFriesExtraPrice(id),
-        0
-      ),
+    () => mealFriesSelectionTotalExtra(mealFriesSelectedIds),
     [mealFriesSelectedIds]
   );
   const requestedDrinkPrice = useMemo(() => {
@@ -99,13 +97,14 @@ export default function SimpleMenuItemCard({ item }) {
             locale
           )
         : "";
-    const mfIds = sortMealFriesIds(mealFriesSelectedIds);
+    const mfIds = sortMealFriesIdsByMenuOrder(mealFriesSelectedIds);
+    const mfIdsForPrice = sortMealFriesIds(mealFriesSelectedIds);
     const mealFriesChoices = mfIds.map((id) => ({
       id,
       label: t(`ui.mealFries.${mealFriesI18nSuffix(id)}`),
-      price: mealFriesExtraPrice(id),
+      price: mealFriesEffectiveExtraPrice(id, mfIdsForPrice),
     }));
-    const mfPriceSum = mfIds.reduce((s, id) => s + mealFriesExtraPrice(id), 0);
+    const mfPriceSum = mealFriesSelectionTotalExtra(mealFriesSelectedIds);
     const mealFriesLabel = mfIds
       .map((id) => t(`ui.mealFries.${mealFriesI18nSuffix(id)}`))
       .join(", ");
@@ -238,7 +237,10 @@ export default function SimpleMenuItemCard({ item }) {
                       {opt.label}
                     </span>
                     <span className="shrink-0 text-[9px] text-gray-400 tabular-nums">
-                      +₪{formatIls(opt.price)}
+                      +₪
+                      {formatIls(
+                        mealFriesEffectiveExtraPrice(opt.id, mealFriesSelectedIds)
+                      )}
                     </span>
                   </button>
                 );

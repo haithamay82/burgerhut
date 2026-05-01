@@ -8,15 +8,25 @@ export const MEAL_FRIES_DEFAULT_ID = "meal-fries-regular";
 
 export const MEAL_FRIES_NONE_ID = "meal-fries-none";
 
-/** תמונות כמו פריטי sides בתפריט */
+export const MEAL_FRIES_REGULAR_ID = "meal-fries-regular";
+
+export const MEAL_FRIES_MIX_ID = "meal-fries-mix";
+
+/** מחיר צ'יפס כשמיקס הבית גם מסומן */
+export const MEAL_FRIES_REGULAR_WITH_MIX_PRICE = 15;
+
+/** מחיר מיקס הבית כשצ'יפס גם מסומן */
+export const MEAL_FRIES_MIX_WITH_REGULAR_PRICE = 18;
+
+/** תמונות כמו פריטי sides בתפריט — מיקס הבית מיד אחרי צ'יפס */
 /** @type {{ id: string, price: number, image: string | null }[]} */
 export const MEAL_FRIES_OPTIONS = [
   { id: "meal-fries-none", price: 0, image: null },
   { id: "meal-fries-regular", price: 0, image: "/menu/side-fries.png" },
+  { id: "meal-fries-mix", price: 2, image: "/menu/side-mix.png" },
   { id: "meal-fries-onion-rings", price: 18, image: "/menu/side-onion-rings.png" },
   { id: "meal-fries-potato-balls", price: 18, image: "/menu/side-mashed-balls.png" },
   { id: "meal-fries-potato", price: 18, image: "/menu/side-sweet-potato.png" },
-  { id: "meal-fries-mix", price: 15, image: "/menu/side-mix.png" },
   {
     id: "meal-fries-chips-cheddar-symphony",
     price: 25,
@@ -41,6 +51,52 @@ const IDS = new Set(MEAL_FRIES_OPTIONS.map((o) => o.id));
 export function mealFriesExtraPrice(id) {
   const row = MEAL_FRIES_OPTIONS.find((o) => o.id === id);
   return row ? row.price : 0;
+}
+
+const MENU_ORDER_IDS = MEAL_FRIES_OPTIONS.map((o) => o.id);
+
+/**
+ * מחיר תוספת לפי בחירה — צ'יפס + מיקס משנים זה את זה.
+ * @param {string} id
+ * @param {string[]} selectedIds
+ */
+export function mealFriesEffectiveExtraPrice(id, selectedIds) {
+  const ids = sortMealFriesIds(selectedIds);
+  const hasRegular = ids.includes(MEAL_FRIES_REGULAR_ID);
+  const hasMix = ids.includes(MEAL_FRIES_MIX_ID);
+  const sid = String(id || "").trim();
+  if (sid === MEAL_FRIES_REGULAR_ID) {
+    return hasMix ? MEAL_FRIES_REGULAR_WITH_MIX_PRICE : 0;
+  }
+  if (sid === MEAL_FRIES_MIX_ID) {
+    return hasRegular ? MEAL_FRIES_MIX_WITH_REGULAR_PRICE : mealFriesExtraPrice(sid);
+  }
+  return mealFriesExtraPrice(sid);
+}
+
+/**
+ * סכום תוספת מטוגנים לפי כל הבחירה הנוכחית.
+ * @param {string[]} selectedIds
+ */
+export function mealFriesSelectionTotalExtra(selectedIds) {
+  return sortMealFriesIds(selectedIds).reduce(
+    (s, id) => s + mealFriesEffectiveExtraPrice(id, selectedIds),
+    0
+  );
+}
+
+/**
+ * מיון id לפי סדר התפריט (לתצוגה / מפתח עגלה עקבי).
+ * @param {string[]} ids
+ * @returns {string[]}
+ */
+export function sortMealFriesIdsByMenuOrder(ids) {
+  const uniq = sortMealFriesIds(ids);
+  const idx = (id) => {
+    const i = MENU_ORDER_IDS.indexOf(id);
+    return i === -1 ? 999 : i;
+  };
+  return [...uniq].sort((a, b) => idx(a) - idx(b) || a.localeCompare(b));
 }
 
 /** @param {string} id */
