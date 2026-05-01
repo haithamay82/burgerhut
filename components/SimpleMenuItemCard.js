@@ -12,10 +12,11 @@ import { useMenuCatalog } from "@/contexts/MenuCatalogContext";
 import { menuItemDesc, menuItemName } from "@/utils/menuItemLabels";
 import {
   MEAL_FRIES_OPTIONS,
-  MEAL_FRIES_UNSELECTED,
-  isValidMealFriesChoiceId,
+  hasMealFriesSelection,
   mealFriesExtraPrice,
   mealFriesI18nSuffix,
+  sortMealFriesIds,
+  toggleMealFriesIdInSelection,
 } from "@/utils/mealFriesChoices";
 
 export default function SimpleMenuItemCard({ item }) {
@@ -28,10 +29,9 @@ export default function SimpleMenuItemCard({ item }) {
   const [sellerNotes, setSellerNotes] = useState("");
   const [requestedDrinkId, setRequestedDrinkId] = useState("");
   const [drinkMenuOpen, setDrinkMenuOpen] = useState(false);
-  const [mealFriesChoiceId, setMealFriesChoiceId] = useState(
-    MEAL_FRIES_UNSELECTED
+  const [mealFriesSelectedIds, setMealFriesSelectedIds] = useState(
+    /** @type {string[]} */ ([])
   );
-  const [friesMenuOpen, setFriesMenuOpen] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
 
   const name = menuItemName(item, t, locale);
@@ -63,16 +63,12 @@ export default function SimpleMenuItemCard({ item }) {
   );
   const mealFriesPrice = useMemo(
     () =>
-      isValidMealFriesChoiceId(mealFriesChoiceId)
-        ? mealFriesExtraPrice(String(mealFriesChoiceId).trim())
-        : 0,
-    [mealFriesChoiceId]
+      sortMealFriesIds(mealFriesSelectedIds).reduce(
+        (s, id) => s + mealFriesExtraPrice(id),
+        0
+      ),
+    [mealFriesSelectedIds]
   );
-  const selectedMealFries = useMemo(() => {
-    if (!isValidMealFriesChoiceId(mealFriesChoiceId)) return null;
-    const id = String(mealFriesChoiceId).trim();
-    return mealFriesRows.find((r) => r.id === id) || null;
-  }, [mealFriesRows, mealFriesChoiceId]);
   const requestedDrinkPrice = useMemo(() => {
     if (!requestedDrinkId) return 0;
     return drinkOptions.find((d) => d.id === requestedDrinkId)?.price || 0;
@@ -86,10 +82,7 @@ export default function SimpleMenuItemCard({ item }) {
 
   const handleAdd = async () => {
     if (isOutOfStock) return;
-    if (
-      showSellerNotes &&
-      !isValidMealFriesChoiceId(mealFriesChoiceId)
-    ) {
+    if (showSellerNotes && !hasMealFriesSelection(mealFriesSelectedIds)) {
       if (typeof window !== "undefined") {
         window.alert(t("ui.mealFriesValidate"));
       }
@@ -106,9 +99,16 @@ export default function SimpleMenuItemCard({ item }) {
             locale
           )
         : "";
-    const mfId = String(mealFriesChoiceId).trim();
-    const mfPrice = mealFriesExtraPrice(mfId);
-    const mealFriesLabel = t(`ui.mealFries.${mealFriesI18nSuffix(mfId)}`);
+    const mfIds = sortMealFriesIds(mealFriesSelectedIds);
+    const mealFriesChoices = mfIds.map((id) => ({
+      id,
+      label: t(`ui.mealFries.${mealFriesI18nSuffix(id)}`),
+      price: mealFriesExtraPrice(id),
+    }));
+    const mfPriceSum = mfIds.reduce((s, id) => s + mealFriesExtraPrice(id), 0);
+    const mealFriesLabel = mfIds
+      .map((id) => t(`ui.mealFries.${mealFriesI18nSuffix(id)}`))
+      .join(", ");
     const linePayload = {
       productId: item.id,
       name,
@@ -120,9 +120,10 @@ export default function SimpleMenuItemCard({ item }) {
       price: finalUnitPrice,
       ...(showSellerNotes
         ? {
-            mealFriesChoiceId: mfId,
+            mealFriesChoices,
+            mealFriesChoiceId: mfIds[0] || "",
             mealFriesLabel,
-            mealFriesPrice: mfPrice,
+            mealFriesPrice: mfPriceSum,
           }
         : {}),
       ...(showSellerNotes && requestedDrinkId
@@ -146,9 +147,8 @@ export default function SimpleMenuItemCard({ item }) {
     setQuantity(1);
     setSellerNotes("");
     setRequestedDrinkId("");
-    setMealFriesChoiceId(MEAL_FRIES_UNSELECTED);
+    setMealFriesSelectedIds([]);
     setDrinkMenuOpen(false);
-    setFriesMenuOpen(false);
     setTimeout(() => setIsAdding(false), 300);
   };
 
@@ -188,56 +188,62 @@ export default function SimpleMenuItemCard({ item }) {
             isOutOfStock ? "pointer-events-none opacity-45" : ""
           }`}
         >
-          <label
-            htmlFor={`meal-fries-${item.id}`}
-            className="block text-[11px] font-semibold text-gray-300"
-          >
-            {t("ui.mealFriesForMealLabel")}
-          </label>
-          <div id={`meal-fries-${item.id}`} className="relative mb-2">
-            <button
-              type="button"
-              disabled={isOutOfStock}
-              onClick={() => {
-                setFriesMenuOpen((v) => !v);
-                setDrinkMenuOpen(false);
-              }}
-              className="flex w-full items-center justify-between rounded-lg border border-slate-700 bg-slate-900/80 px-2 py-1.5 text-[11px] text-gray-100 outline-none transition-colors hover:border-primary disabled:opacity-50"
+          <div className="mb-2 space-y-1.5">
+            <div>
+              <p className="text-[11px] font-semibold text-gray-300">
+                {t("ui.mealFriesForMealLabel")}
+              </p>
+              <p className="mt-0.5 text-[10px] text-gray-500">
+                {t("ui.mealFriesMultiHint")}
+              </p>
+            </div>
+            <div
+              id={`meal-fries-${item.id}`}
+              className="grid grid-cols-1 gap-1.5 sm:grid-cols-2"
             >
-              <span className="truncate">
-                {selectedMealFries
-                  ? `${selectedMealFries.label} (+₪${formatIls(selectedMealFries.price)})`
-                  : t("ui.mealFriesSelectPlaceholder")}
-              </span>
-              <span className="text-[10px] text-gray-400">
-                {friesMenuOpen ? "▲" : "▼"}
-              </span>
-            </button>
-            {friesMenuOpen ? (
-              <div className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-slate-700 bg-slate-950/95 shadow-xl">
-                {mealFriesRows.map((opt) => (
+              {mealFriesRows.map((opt) => {
+                const selected = sortMealFriesIds(mealFriesSelectedIds).includes(
+                  opt.id
+                );
+                return (
                   <button
                     key={opt.id}
                     type="button"
-                    onClick={() => {
-                      setMealFriesChoiceId(opt.id);
-                      setFriesMenuOpen(false);
-                    }}
-                    className={`flex w-full items-center justify-between px-2 py-1.5 text-[11px] hover:bg-slate-900 ${
-                      isValidMealFriesChoiceId(mealFriesChoiceId) &&
-                      String(mealFriesChoiceId).trim() === opt.id
-                        ? "bg-primary/10 text-primary"
-                        : "text-gray-100"
-                    }`}
+                    disabled={isOutOfStock}
+                    onClick={() =>
+                      setMealFriesSelectedIds((prev) =>
+                        toggleMealFriesIdInSelection(prev, opt.id)
+                      )
+                    }
+                    className={`flex w-full items-center gap-1.5 rounded-lg border px-1.5 py-1.5 text-start text-[10px] ${
+                      selected
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-slate-700 text-gray-300"
+                    } ${isOutOfStock ? "cursor-not-allowed opacity-50" : ""}`}
                   >
-                    <span className="text-[10px] text-gray-300">
+                    {opt.image ? (
+                      <img
+                        src={opt.image}
+                        alt=""
+                        className="h-7 w-7 shrink-0 rounded-md border border-slate-700 object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span
+                        className="h-7 w-7 shrink-0 rounded-md border border-slate-700 bg-slate-800/80"
+                        aria-hidden
+                      />
+                    )}
+                    <span className="min-w-0 flex-1 leading-snug">
+                      {opt.label}
+                    </span>
+                    <span className="shrink-0 text-[9px] text-gray-400 tabular-nums">
                       +₪{formatIls(opt.price)}
                     </span>
-                    <span className="truncate">{opt.label}</span>
                   </button>
-                ))}
-              </div>
-            ) : null}
+                );
+              })}
+            </div>
           </div>
           <label
             htmlFor={`requested-drink-${item.id}`}
@@ -251,7 +257,6 @@ export default function SimpleMenuItemCard({ item }) {
               disabled={isOutOfStock}
               onClick={() => {
                 setDrinkMenuOpen((v) => !v);
-                setFriesMenuOpen(false);
               }}
               className="flex w-full items-center justify-between rounded-lg border border-slate-700 bg-slate-900/80 px-2 py-1.5 text-[11px] text-gray-100 outline-none transition-colors hover:border-primary disabled:opacity-50"
             >

@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo, useState } from "react";
 import { sumCartLines } from "@/utils/cartMoney";
 import { INVENTORY_MANAGED_SALAD_IDS } from "@/utils/menuData";
+import { mealFriesCustomizationKeyFromLine } from "@/utils/mealFriesChoices";
 
 const CartContext = createContext(null);
 
@@ -59,7 +60,7 @@ export function customizationKey(item) {
   const doneness = String(item.burgerDoneness?.id ?? "").trim();
   const notes = String(item.sellerNotes ?? "").trim();
   const requestedDrink = String(item.requestedDrinkId ?? "").trim();
-  const mealFries = String(item.mealFriesChoiceId ?? "").trim();
+  const mealFries = mealFriesCustomizationKeyFromLine(item);
   const bun =
     item.bunSauceOnBun === false
       ? "0"

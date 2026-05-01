@@ -1,5 +1,6 @@
 import { safeQty } from "@/utils/cartMoney";
 import { isMealWizardCategory } from "@/utils/menuMealCategories";
+import { normalizeMealFriesChoicesFromLine } from "@/utils/mealFriesChoices";
 
 /**
  * סיכום בחירות «מטוגנים למנה» בעגלה (לפי תווית כפי שנשמרה בשורה).
@@ -13,17 +14,18 @@ export function aggregateMealFriesCartSummary(items, sortLocale = "he") {
   for (const line of items) {
     const cat = String(line?.menuCategory || "").trim();
     if (!isMealWizardCategory(cat)) continue;
-    const choiceId = String(line?.mealFriesChoiceId || "").trim();
-    const label = String(line?.mealFriesLabel || "").trim();
-    if (!choiceId && !label) continue;
-    const key = choiceId || label;
+    const choices = normalizeMealFriesChoicesFromLine(line);
+    if (!choices.length) continue;
     const qty = safeQty(line);
-    const displayLabel = label || choiceId;
-    const cur = acc.get(key);
-    if (cur) {
-      cur.qty += qty;
-    } else {
-      acc.set(key, { key, label: displayLabel, qty });
+    for (const c of choices) {
+      const key = c.id;
+      const label = String(c.label || "").trim() || key;
+      const cur = acc.get(key);
+      if (cur) {
+        cur.qty += qty;
+      } else {
+        acc.set(key, { key, label, qty });
+      }
     }
   }
   const loc = sortLocale === "ar" ? "ar" : "he";
