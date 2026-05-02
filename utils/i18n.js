@@ -159,6 +159,11 @@ const HE = {
     "קציצה 200 גרם, קורנדביף עגל, גבינת גאודה, חמוצים, בצל סגול, חסה ורוטב חרדל דבש ומיונז עדין. בסגנון דלי.",
   "menu.special-corned-beef-stack.fixedMealToppings":
     "קורנדביף עגל, גבינת גאודה, מיונז עדין.",
+  "menu.special-lettuce-burger.name": "בורגר חסה",
+  "menu.special-lettuce-burger.desc":
+    "בורגר 160 גר׳ בהתאמה אישית — חסה במקום לחמניה, רטבים, תוספות וסלטים לבחירה. מחיר התחלה 55 ₪.",
+  "menu.special-lettuce-burger.fixedMealToppings":
+    "קציצת בשר 160 גר׳, עלי חסה במקום לחמניה; רטבים, תוספות וסלטים לבחירה.",
   "menu.crispy-chicken-burger.name": "קריספי צ׳יקן (עגולה/בלי עגולה)",
   "menu.crispy-chicken-burger.desc": "קריספי בעגולה או בלי עגולה.",
   "menu.crispy-chicken-burger.lineNameRound": "קריספי צ׳יקן עגולה",
@@ -1121,6 +1126,11 @@ const AR = {
     "قرص 200غ، كورند بيف عجل، جودا، مخلل، بصل أحمر، خس وصلصة خردل بالعسل ومايونيز خفيف. أسلوب ديلي.",
   "menu.special-corned-beef-stack.fixedMealToppings":
     "كورند بيف عجل، جودا، مايونيز خفيف.",
+  "menu.special-lettuce-burger.name": "برجر بالخس",
+  "menu.special-lettuce-burger.desc":
+    "برجر 160غ حسب الطلب — خس بدل الخبز، صلصات وإضافات وسلطات حسب الاختيار. يبدأ من 55 ₪.",
+  "menu.special-lettuce-burger.fixedMealToppings":
+    "قرص لحم 160غ، أوراق خس بدل الخبز؛ صلصات وإضافات وسلطات حسب الاختيار.",
   "menu.crispy-chicken-burger.name": "كريسبي تشيكن (مدورة/بدون مدورة)",
   "menu.crispy-chicken-burger.desc": "كريسبي — بخبز مدور أو بدون.",
   "menu.crispy-chicken-burger.lineNameRound": "كريسبي تشيكن مدورة",

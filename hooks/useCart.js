@@ -68,11 +68,13 @@ export function customizationKey(item) {
         ? "1"
         : "";
   const specialPatty =
-    String(pid).startsWith("special-") && pid !== "special-cheese-bomb"
-      ? Number(item.specialPattyGrams) === 220
-        ? "220"
-        : "200"
-      : "";
+    pid === "special-lettuce-burger"
+      ? "160"
+      : String(pid).startsWith("special-") && pid !== "special-cheese-bomb"
+        ? Number(item.specialPattyGrams) === 220
+          ? "220"
+          : "200"
+        : "";
   const base = `${pid}|${size}|${variant}|${kidsBread}|${doneness}|${salads}|${tops}|${extras}|${mealFries}|${requestedDrink}|${bun}|${notes}`;
   return specialPatty ? `${base}|${specialPatty}` : base;
 }

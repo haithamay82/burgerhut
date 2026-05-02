@@ -3,11 +3,15 @@ import { cartLineProductId } from "@/hooks/useCart";
 /** מנה מיוחדת Cheese Bomb — קציצה 240 גר׳; מלאי כ־2×120 גר׳ */
 export const SPECIAL_CHEESE_BOMB_ID = "special-cheese-bomb";
 
+/** מנה מיוחדת בורגר חסה — קציצה 160 גר׳ בלבד */
+export const SPECIAL_LETTUCE_BURGER_ID = "special-lettuce-burger";
+
 /** @param {unknown} it — שורת עגלה או { productId, specialPattyGrams } */
 export function specialPattyGramsFromLine(it) {
   const pid = String(cartLineProductId(it) || "");
   if (!pid.startsWith("special-")) return null;
   if (pid === SPECIAL_CHEESE_BOMB_ID) return null;
+  if (pid === SPECIAL_LETTUCE_BURGER_ID) return 160;
   return Number(it?.specialPattyGrams) === 220 ? 220 : 200;
 }
 
@@ -22,6 +26,9 @@ export function pattyGramsArrayForOrderItem(it) {
   if (!base) return null;
   if (pid === SPECIAL_CHEESE_BOMB_ID) {
     return [120, 120];
+  }
+  if (pid === SPECIAL_LETTUCE_BURGER_ID) {
+    return [160];
   }
   if (pid.startsWith("special-")) {
     return [specialPattyGramsFromLine(it)];
@@ -40,6 +47,7 @@ export const PATTIES_BY_PRODUCT_ID = {
   "special-cheese-bomb": [120, 120],
   "special-lamb-bacon-deluxe": [200],
   "special-corned-beef-stack": [200],
+  "special-lettuce-burger": [160],
   "kids-burger-120": [120],
   "burger-160": [160],
   "burger-200": [200],
@@ -99,7 +107,9 @@ export function canBuildBurgerWithPattyStock(stock, pid, qty, specialPattyGrams)
     patties =
       pidStr === SPECIAL_CHEESE_BOMB_ID
         ? [120, 120]
-        : [Number(specialPattyGrams) === 220 ? 220 : 200];
+        : pidStr === SPECIAL_LETTUCE_BURGER_ID
+          ? [160]
+          : [Number(specialPattyGrams) === 220 ? 220 : 200];
   }
   const q = Math.max(1, Math.floor(Number(qty) || 1));
   /** @type {Record<number, number>} */
@@ -121,6 +131,9 @@ export function computeAutoUnavailableBurgerIds(stock) {
   return Object.keys(PATTIES_BY_PRODUCT_ID).filter((pid) => {
     if (String(pid).startsWith("special-")) {
       if (pid === SPECIAL_CHEESE_BOMB_ID) {
+        return !canBuildBurgerWithPattyStock(stock, pid, 1, undefined);
+      }
+      if (pid === SPECIAL_LETTUCE_BURGER_ID) {
         return !canBuildBurgerWithPattyStock(stock, pid, 1, undefined);
       }
       return (
@@ -162,9 +175,11 @@ export function maxPattyUnitsForProductWithOtherCartLines(
   const patties =
     pid === SPECIAL_CHEESE_BOMB_ID
       ? [120, 120]
-      : pid.startsWith("special-") && PATTIES_BY_PRODUCT_ID[pid]
-        ? [Number(hintSpecialPattyGrams) === 220 ? 220 : 200]
-        : PATTIES_BY_PRODUCT_ID[pid];
+      : pid === SPECIAL_LETTUCE_BURGER_ID
+        ? [160]
+        : pid.startsWith("special-") && PATTIES_BY_PRODUCT_ID[pid]
+          ? [Number(hintSpecialPattyGrams) === 220 ? 220 : 200]
+          : PATTIES_BY_PRODUCT_ID[pid];
   if (!patties || !stock || typeof stock !== "object") return null;
 
   const others = (Array.isArray(items) ? items : []).filter(
@@ -207,21 +222,32 @@ export function remainingPattyServingsForMenuItem(items, productId, stock) {
 
   let ceiling;
   if (pid.startsWith("special-") && pid !== SPECIAL_CHEESE_BOMB_ID) {
-    const a = maxPattyUnitsForProductWithOtherCartLines(
-      items,
-      pid,
-      stock,
-      200
-    );
-    const b = maxPattyUnitsForProductWithOtherCartLines(
-      items,
-      pid,
-      stock,
-      220
-    );
-    if (a == null || b == null) return null;
-    /** לקוח יכול לבחור 200 או 220 — התגית משקפת את המקסימום שניתן עדיין להזמין */
-    ceiling = Math.max(a, b);
+    if (pid === SPECIAL_LETTUCE_BURGER_ID) {
+      const c = maxPattyUnitsForProductWithOtherCartLines(
+        items,
+        pid,
+        stock,
+        160
+      );
+      if (c == null) return null;
+      ceiling = c;
+    } else {
+      const a = maxPattyUnitsForProductWithOtherCartLines(
+        items,
+        pid,
+        stock,
+        200
+      );
+      const b = maxPattyUnitsForProductWithOtherCartLines(
+        items,
+        pid,
+        stock,
+        220
+      );
+      if (a == null || b == null) return null;
+      /** לקוח יכול לבחור 200 או 220 — התגית משקפת את המקסימום שניתן עדיין להזמין */
+      ceiling = Math.max(a, b);
+    }
   } else {
     const c = maxPattyUnitsForProductWithOtherCartLines(
       items,

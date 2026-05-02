@@ -1,6 +1,9 @@
 import { mealSaladChoicesForCategory, DEFAULT_BURGER_DONENESS_ID } from "@/utils/menuData";
 import { menuItemName } from "@/utils/menuItemLabels";
-import { canBuildBurgerWithPattyStock } from "@/utils/burgerPattyPrep";
+import {
+  canBuildBurgerWithPattyStock,
+  SPECIAL_LETTUCE_BURGER_ID,
+} from "@/utils/burgerPattyPrep";
 
 /** תוספת מחיר לקציצת 220 גר׳ במנות מיוחדות */
 export const SPECIAL_PATTY_220_EXTRA_NIS = 5;
@@ -18,6 +21,12 @@ export const SPECIAL_PRODUCT_DEFAULT_SALADS = {
   ],
   "special-lamb-bacon-deluxe": ["salad_lettuce", "salad_tomato"],
   "special-corned-beef-stack": ["salad_pickles", "salad_onion", "salad_lettuce"],
+  "special-lettuce-burger": [
+    "salad_lettuce",
+    "salad_tomato",
+    "salad_onion",
+    "salad_pickles",
+  ],
 };
 
 /** @param {string} productId */
@@ -34,6 +43,7 @@ export function defaultSaladsForSpecialProductId(productId) {
 export function specialPattyGramsDefaultForStock(productId, pattyStock) {
   const pid = String(productId || "");
   if (pid === "special-cheese-bomb") return 200;
+  if (pid === SPECIAL_LETTUCE_BURGER_ID) return 160;
   if (!pattyStock || typeof pattyStock !== "object") return 200;
   const ok200 = canBuildBurgerWithPattyStock(pattyStock, pid, 1, 200);
   const ok220 = canBuildBurgerWithPattyStock(pattyStock, pid, 1, 220);
@@ -78,7 +88,9 @@ export function buildSpecialBurgerCartLine({
   const chosenGrams =
     item.id === "special-cheese-bomb"
       ? null
-      : specialPattyGramsDefaultForStock(item.id, pattyStock);
+      : item.id === SPECIAL_LETTUCE_BURGER_ID
+        ? 160
+        : specialPattyGramsDefaultForStock(item.id, pattyStock);
   const pattyExtra =
     chosenGrams === 220 ? SPECIAL_PATTY_220_EXTRA_NIS : 0;
   const unitPrice = base + saladsPrice + pattyExtra;

@@ -15,11 +15,13 @@ export function buildCardOrderDetailsFromItems(items) {
     const specialPattyGramsValue =
       pid === "special-cheese-bomb"
         ? undefined
-        : pid.startsWith("special-")
-          ? Number(item.specialPattyGrams) === 220
-            ? 220
-            : 200
-          : undefined;
+        : pid === "special-lettuce-burger"
+          ? 160
+          : pid.startsWith("special-")
+            ? Number(item.specialPattyGrams) === 220
+              ? 220
+              : 200
+            : undefined;
     return {
       name: item.name,
       quantity: item.quantity,

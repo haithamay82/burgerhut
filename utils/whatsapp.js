@@ -241,7 +241,12 @@ export function buildWhatsAppOrderText({
           `   ${waBoldLabel(tr("wa.specialPatty"))}: ${tr("wa.cheeseBombPattyLine")}`
         );
       } else if (waPid.startsWith("special-")) {
-        const g = Number(item.specialPattyGrams) === 220 ? 220 : 200;
+        const g =
+          waPid === "special-lettuce-burger"
+            ? 160
+            : Number(item.specialPattyGrams) === 220
+              ? 220
+              : 200;
         lines.push(
           `   ${waBoldLabel(tr("wa.specialPatty"))}: ${g}${tr("wa.gramsUnit")}`
         );

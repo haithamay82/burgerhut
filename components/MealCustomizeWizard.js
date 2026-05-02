@@ -16,7 +16,10 @@ import {
   specialPattyGramsDefaultForStock,
   SPECIAL_PATTY_220_EXTRA_NIS,
 } from "@/utils/specialBurgerDefaults";
-import { canBuildBurgerWithPattyStock } from "@/utils/burgerPattyPrep";
+import {
+  canBuildBurgerWithPattyStock,
+  SPECIAL_LETTUCE_BURGER_ID,
+} from "@/utils/burgerPattyPrep";
 import { useMenuCatalog } from "@/contexts/MenuCatalogContext";
 import { menuItemName, toppingDisplayName } from "@/utils/menuItemLabels";
 import { formatIls } from "@/utils/cartMoney";
@@ -125,20 +128,43 @@ export default function MealCustomizeWizard({
   const isBeefBurgerMeal = isBeefBurgerStyleCategory(item?.category);
   const isSpecialMealCat = item?.category === "specials";
   const isSpecialCheeseBomb = item?.id === "special-cheese-bomb";
+  const isSpecialLettuceBurger = item?.id === SPECIAL_LETTUCE_BURGER_ID;
 
   const specialCanPatty200 = useMemo(() => {
-    if (!item?.id || item.category !== "specials" || isSpecialCheeseBomb)
+    if (
+      !item?.id ||
+      item.category !== "specials" ||
+      isSpecialCheeseBomb ||
+      isSpecialLettuceBurger
+    )
       return true;
     if (!pattyStock || typeof pattyStock !== "object") return true;
     return canBuildBurgerWithPattyStock(pattyStock, item.id, 1, 200);
-  }, [item?.id, item?.category, isSpecialCheeseBomb, pattyStock]);
+  }, [
+    item?.id,
+    item?.category,
+    isSpecialCheeseBomb,
+    isSpecialLettuceBurger,
+    pattyStock,
+  ]);
 
   const specialCanPatty220 = useMemo(() => {
-    if (!item?.id || item.category !== "specials" || isSpecialCheeseBomb)
+    if (
+      !item?.id ||
+      item.category !== "specials" ||
+      isSpecialCheeseBomb ||
+      isSpecialLettuceBurger
+    )
       return true;
     if (!pattyStock || typeof pattyStock !== "object") return true;
     return canBuildBurgerWithPattyStock(pattyStock, item.id, 1, 220);
-  }, [item?.id, item?.category, isSpecialCheeseBomb, pattyStock]);
+  }, [
+    item?.id,
+    item?.category,
+    isSpecialCheeseBomb,
+    isSpecialLettuceBurger,
+    pattyStock,
+  ]);
 
   /** מנות מיוחדות — מצב ישן «רק סלטים» (כיום לא בשימוש אחרי פתיחת וויזארד מלא) */
   const isSpecialRestrictedWizard =
@@ -189,6 +215,7 @@ export default function MealCustomizeWizard({
   const specialPattyUpcharge =
     item?.category === "specials" &&
     !isSpecialCheeseBomb &&
+    !isSpecialLettuceBurger &&
     Number(specialPattyGrams) === 220
       ? SPECIAL_PATTY_220_EXTRA_NIS
       : 0;
@@ -302,9 +329,13 @@ export default function MealCustomizeWizard({
       );
       setSellerNotes(String(line.sellerNotes || ""));
       if (item.category === "specials") {
-        setSpecialPattyGrams(
-          Number(line.specialPattyGrams) === 220 ? 220 : 200
-        );
+        if (item.id === SPECIAL_LETTUCE_BURGER_ID) {
+          setSpecialPattyGrams(160);
+        } else {
+          setSpecialPattyGrams(
+            Number(line.specialPattyGrams) === 220 ? 220 : 200
+          );
+        }
       } else {
         setSpecialPattyGrams(200);
       }
@@ -604,8 +635,11 @@ export default function MealCustomizeWizard({
       ...(notesTrim ? { sellerNotes: notesTrim } : {}),
       ...(item.category === "specials" && !isSpecialCheeseBomb
         ? {
-            specialPattyGrams:
-              Number(specialPattyGrams) === 220 ? 220 : 200,
+            specialPattyGrams: isSpecialLettuceBurger
+              ? 160
+              : Number(specialPattyGrams) === 220
+                ? 220
+                : 200,
           }
         : {}),
     };
@@ -616,9 +650,11 @@ export default function MealCustomizeWizard({
     const afterMerge = simulateCartAfterAdd(baseCart, linePayload);
     const pattyHint =
       item.category === "specials" && !isSpecialCheeseBomb
-        ? Number(specialPattyGrams) === 220
-          ? 220
-          : 200
+        ? isSpecialLettuceBurger
+          ? 160
+          : Number(specialPattyGrams) === 220
+            ? 220
+            : 200
         : undefined;
     const pattyCheck = await validatePattyStockForSimulatedCart(
       afterMerge,
@@ -780,7 +816,7 @@ export default function MealCustomizeWizard({
           </section>
         ) : null}
 
-        {isSpecialMealCat && !isSpecialCheeseBomb ? (
+        {isSpecialMealCat && !isSpecialCheeseBomb && !isSpecialLettuceBurger ? (
           <section className="mb-6 space-y-2 text-xs">
             <h3 className="text-[11px] font-semibold text-gray-300">
               {t("ui.specialPattyTitle")}

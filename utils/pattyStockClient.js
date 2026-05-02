@@ -134,11 +134,13 @@ export async function validatePattyStockForSimulatedCart(
       ? hintProductId.trim()
       : undefined;
   const hintSp =
-    hint && hint.startsWith("special-") && hint !== "special-cheese-bomb"
-      ? Number(hintSpecialPattyGrams) === 220
-        ? 220
-        : 200
-      : undefined;
+    hint === "special-lettuce-burger"
+      ? 160
+      : hint && hint.startsWith("special-") && hint !== "special-cheese-bomb"
+        ? Number(hintSpecialPattyGrams) === 220
+          ? 220
+          : 200
+        : undefined;
   try {
     const r = await fetch("/api/inventory/validate-patties", {
       method: "POST",

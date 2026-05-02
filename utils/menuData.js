@@ -154,6 +154,7 @@ const IMG_SPECIAL_FIRE_BURGER = "/menu/special-fire-burger.png";
 const IMG_SPECIAL_CHEESE_BOMB = "/menu/special-cheese-bomb.png";
 const IMG_SPECIAL_LAMB_BACON_DELUXE = "/menu/special-lamb-bacon-deluxe.png";
 const IMG_SPECIAL_CORNED_BEEF_STACK = "/menu/special-corned-beef-stack.png";
+const IMG_SPECIAL_LETTUCE_BURGER = "/menu/special-lettuce-burger.png";
 
 export const MENU_ITEMS = [
   {
@@ -275,6 +276,12 @@ export const MENU_ITEMS = [
     basePrice: 80,
     category: "specials",
     image: IMG_SPECIAL_CORNED_BEEF_STACK,
+  },
+  {
+    id: "special-lettuce-burger",
+    basePrice: 55,
+    category: "specials",
+    image: IMG_SPECIAL_LETTUCE_BURGER,
   },
   {
     id: "crispy-chicken-burger",
