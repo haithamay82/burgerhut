@@ -42,6 +42,7 @@ export const BURGER_TOPPINGS = [
   { id: "jalapeno", price: 5, image: "/menu/topping-jalapeno.png" },
   { id: "caramel_mushrooms", price: 5, image: "/menu/topping-caramel-mushrooms.png" },
   { id: "caramel_onion", price: 5, image: "/menu/topping-caramel-onion.png" },
+  { id: "avocado", price: 7, image: "/menu/topping-avocado.png" },
   { id: "lamb_bacon", price: 10, image: "/menu/topping-lamb-bacon.png" },
   { id: "veal_corned", price: 10, image: "/menu/topping-veal-corned.png" },
   { id: "pulled_asado", price: 15, image: "/menu/topping-pulled-asado.png" },

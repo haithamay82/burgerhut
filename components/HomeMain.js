@@ -281,13 +281,7 @@ export default function HomeMain({
         {filteredItems.flatMap((item) => {
           const row = (
             <div key={item.id} className="contents">
-              <MenuItemCard
-                item={item}
-                onOpenMealWizard={openMealFromMenu}
-                onOpenSpecialSaladsEdit={(it) =>
-                  openMealFromMenu(it, { mode: "editSalads" })
-                }
-              />
+              <MenuItemCard item={item} onOpenMealWizard={openMealFromMenu} />
             </div>
           );
           if (activeCategory === "burgers" && item.id === "burger-160") {

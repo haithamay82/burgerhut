@@ -11,11 +11,7 @@ import {
   SPECIAL_PATTY_220_EXTRA_NIS,
 } from "@/utils/specialBurgerDefaults";
 
-export default function MenuMealPreviewCard({
-  item,
-  onOpenWizard,
-  onOpenSpecialSaladsEdit,
-}) {
+export default function MenuMealPreviewCard({ item, onOpenWizard }) {
   const { t, locale } = useLocale();
   const { isUnavailable, pattyStock } = useInventory();
   const { restaurantOpen } = useOrderingHours();
@@ -105,25 +101,14 @@ export default function MenuMealPreviewCard({
         </div>
       </div>
       <div className="border-t border-slate-800 p-3">
-        {item?.category === "specials" ? (
-          <button
-            type="button"
-            onClick={() => onOpenSpecialSaladsEdit?.(item)}
-            disabled={isOutOfStock}
-            className="btn-primary min-h-[2.75rem] w-full text-sm disabled:opacity-50"
-          >
-            {t("ui.editComponents")}
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={() => onOpenWizard(item)}
-            disabled={isOutOfStock}
-            className="btn-primary w-full text-sm disabled:opacity-50"
-          >
-            {t("ui.openCustomize")}
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => onOpenWizard(item)}
+          disabled={isOutOfStock}
+          className="btn-primary min-h-[2.75rem] w-full text-sm disabled:opacity-50"
+        >
+          {t("ui.openCustomize")}
+        </button>
       </div>
     </div>
   );

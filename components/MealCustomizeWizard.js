@@ -117,7 +117,11 @@ export default function MealCustomizeWizard({
   const isKidsCrispyBurger = item?.id === CRISPY_CHICKEN_KIDS_PRODUCT_ID;
   const isAdultCrispyBurger = item?.id === CRISPY_CHICKEN_BURGER_PRODUCT_ID;
   const toppingChoices =
-    item?.category === "crispy" ? CRISPY_MEAL_TOPPINGS : BURGER_TOPPINGS;
+    item?.category === "crispy"
+      ? CRISPY_MEAL_TOPPINGS
+      : item?.category === "specials"
+        ? BURGER_TOPPINGS.filter((row) => !DOUBLE_CHEESE_TOPPING_IDS.has(row.id))
+        : BURGER_TOPPINGS;
   const isBeefBurgerMeal = isBeefBurgerStyleCategory(item?.category);
   const isSpecialMealCat = item?.category === "specials";
   const isSpecialCheeseBomb = item?.id === "special-cheese-bomb";
@@ -136,11 +140,9 @@ export default function MealCustomizeWizard({
     return canBuildBurgerWithPattyStock(pattyStock, item.id, 1, 220);
   }, [item?.id, item?.category, isSpecialCheeseBomb, pattyStock]);
 
-  /** מנות מיוחדות: בלי תוספות מנה (גבינה/קציצה וכו׳); סלטים + עשייה + רטבים + שתייה */
+  /** מנות מיוחדות — מצב ישן «רק סלטים» (כיום לא בשימוש אחרי פתיחת וויזארד מלא) */
   const isSpecialRestrictedWizard =
-    isSpecialMealCat &&
-    (specialWizardMode === "editSalads" ||
-      Boolean(replaceLineId && initialCartLine));
+    isSpecialMealCat && specialWizardMode === "editSalads";
   /** רוטב על לחמניה: מוסתר בקריספי מבוגרים עם «בלי עגולה», ובקריספי ילדים עם «בלי לחם»; במנות מיוחדים — לא מוצג */
   const showBunSauceOnMeal =
     !isSpecialRestrictedWizard &&
@@ -154,12 +156,14 @@ export default function MealCustomizeWizard({
           sum + (toppingChoices.find((x) => x.id === id)?.price || 0),
         0
       ) +
-      [...DOUBLE_CHEESE_TOPPING_IDS].reduce((sum, cheeseId) => {
-        const layers = cheeseMode[cheeseId];
-        if (!layers) return sum;
-        const p = toppingChoices.find((x) => x.id === cheeseId)?.price || 0;
-        return sum + p * layers;
-      }, 0);
+      (item?.category === "specials"
+        ? 0
+        : [...DOUBLE_CHEESE_TOPPING_IDS].reduce((sum, cheeseId) => {
+            const layers = cheeseMode[cheeseId];
+            if (!layers) return sum;
+            const p = toppingChoices.find((x) => x.id === cheeseId)?.price || 0;
+            return sum + p * layers;
+          }, 0));
 
   const { total: saucesPrice, details: sauceChargeDetails } = useMemo(
     () => computeSaucesCharge(selectedSauces),
@@ -264,8 +268,15 @@ export default function MealCustomizeWizard({
           nextPlain.push(id);
         }
       }
-      setCheeseMode(nextCheese);
-      setSelectedToppings(nextPlain);
+      if (item.category === "specials") {
+        setCheeseMode({});
+        setSelectedToppings(
+          nextPlain.filter((id) => !DOUBLE_CHEESE_TOPPING_IDS.has(id))
+        );
+      } else {
+        setCheeseMode(nextCheese);
+        setSelectedToppings(nextPlain);
+      }
       setKidsBreadChoice(
         line.kidsBreadChoice && typeof line.kidsBreadChoice === "string"
           ? line.kidsBreadChoice
@@ -294,8 +305,6 @@ export default function MealCustomizeWizard({
         setSpecialPattyGrams(
           Number(line.specialPattyGrams) === 220 ? 220 : 200
         );
-        setSelectedToppings([]);
-        setCheeseMode({});
       } else {
         setSpecialPattyGrams(200);
       }
@@ -305,32 +314,11 @@ export default function MealCustomizeWizard({
       setMealValidateMissing([]);
       return;
     }
-    if (
-      item.category === "specials" &&
-      specialWizardMode === "editSalads"
-    ) {
-      setQuantity(1);
-      setSpecialPattyGrams(
-        specialPattyGramsDefaultForStock(item.id, pattyStock)
-      );
-      setSelectedSalads(defaultSaladsForSpecialProductId(item.id));
-      setSelectedToppings([]);
-      setSelectedSauces([]);
-      setKidsBreadChoice("round");
-      setAdultCrispyBli(false);
-      setSellerNotes("");
-      setRequestedDrinkId("");
-      setMealFriesSelectedIds([]);
-      setDrinkMenuOpen(false);
-      setIsAdding(false);
-      setDonenessId(DEFAULT_BURGER_DONENESS_ID);
-      setBunSauceOnBun(true);
-      setCheeseMode({});
-      setMealValidateOpen(false);
-      setMealValidateMissing([]);
-      return;
-    }
-    setSelectedSalads([]);
+    setSelectedSalads(
+      item.category === "specials"
+        ? defaultSaladsForSpecialProductId(item.id)
+        : []
+    );
     setSelectedToppings([]);
     setSelectedSauces([]);
     setQuantity(1);
@@ -523,7 +511,17 @@ export default function MealCustomizeWizard({
     });
     const doubleWord = t("ui.doubleWord");
     const toppings = [];
-    if (item.category !== "specials") {
+    if (item.category === "specials") {
+      if (!isSpecialCheeseBomb) {
+        for (const id of selectedToppings) {
+          toppings.push({
+            id,
+            label: t(`topping.${id}`),
+            price: toppingChoices.find((x) => x.id === id)?.price,
+          });
+        }
+      }
+    } else {
       for (const cheeseId of DOUBLE_CHEESE_TOPPING_IDS) {
         const layers = cheeseMode[cheeseId];
         if (!layers) continue;
@@ -694,7 +692,9 @@ export default function MealCustomizeWizard({
               ? isSpecialCheeseBomb
                 ? t("ui.wizardSpecialSaladsOnlyCheeseBomb")
                 : t("ui.wizardSpecialSaladsOnly")
-              : t("ui.wizardAllOnOneScreen")}
+              : isSpecialMealCat
+                ? t("ui.wizardSpecialFullCustomizeHint")
+                : t("ui.wizardAllOnOneScreen")}
           </p>
         </div>
         <button
@@ -759,7 +759,7 @@ export default function MealCustomizeWizard({
           </section>
         ) : null}
 
-        {isSpecialRestrictedWizard && specialFixedMealToppingsText ? (
+        {isSpecialMealCat && specialFixedMealToppingsText ? (
           <section className="mb-6 space-y-1.5 text-xs" aria-live="polite">
             <div className="flex flex-wrap items-baseline justify-between gap-2 gap-y-1">
               <h3 className="text-[11px] font-semibold text-gray-300">
@@ -775,7 +775,7 @@ export default function MealCustomizeWizard({
           </section>
         ) : null}
 
-        {isSpecialRestrictedWizard && !isSpecialCheeseBomb ? (
+        {isSpecialMealCat && !isSpecialCheeseBomb ? (
           <section className="mb-6 space-y-2 text-xs">
             <h3 className="text-[11px] font-semibold text-gray-300">
               {t("ui.specialPattyTitle")}

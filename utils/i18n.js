@@ -228,6 +228,7 @@ const HE = {
   "topping.jalapeno": "חלפיניו",
   "topping.caramel_mushrooms": "פטריות מקורמל",
   "topping.caramel_onion": "בצל מקורמל",
+  "topping.avocado": "אבוקדו",
   "topping.lamb_bacon": "בייקון טלה",
   "topping.veal_corned": "קורנדביף עגל",
   "topping.pulled_asado": "אסאדו מפורק",
@@ -314,6 +315,8 @@ const HE = {
   "ui.wizardPriceLine": "מחיר ליחידה (לפי הבחירה):",
   "ui.wizardAllOnOneScreen":
     "כל האפשרויות למטה — גללו, בחרו והוסיפו לעגלה בתחתית המסך.",
+  "ui.wizardSpecialFullCustomizeHint":
+    "מרכיבי המנה לפי המתכון מוצגים למטה. אפשר גם להוסיף תוספות לבורגר, לערוך סלטים, עשייה, רטבים, מטוגנים ושתייה — גללו והוסיפו לעגלה בתחתית.",
   "ui.wizardSpecialSaladsOnly":
     "תוספות המנה (גבינה, מה שמגיע על המנה וכו׳) קבועות לפי המתכון. במנה קציצה אחת — בוחרים משקל 200 או 220 גר׳ למטה. ניתן לערוך גם סלטים, מידת עשייה, רטבים בצד ושתייה — גללו והוסיפו לעגלה למטה.",
   "ui.wizardSpecialSaladsOnlyCheeseBomb":
@@ -1173,6 +1176,7 @@ const AR = {
   "topping.jalapeno": "هالابينيو",
   "topping.caramel_mushrooms": "فطر مكرمل",
   "topping.caramel_onion": "بصل مكرمل",
+  "topping.avocado": "أفوكادو",
   "topping.lamb_bacon": "بيكون عبور",
   "topping.veal_corned": "كورندبيف عجل",
   "topping.pulled_asado": "أسادو مفكك",
@@ -1259,6 +1263,8 @@ const AR = {
   "ui.wizardPriceLine": "سعر الوحدة (حسب اختيارك):",
   "ui.wizardAllOnOneScreen":
     "كل الخيارات أدناه — مرّروا واختاروا، ثم أضيفوا للسلة في الأسفل.",
+  "ui.wizardSpecialFullCustomizeHint":
+    "مكوّنات الوجبة حسب الوصفة معروضة أدناه. يمكن أيضاً إضافة إضافات للبرجر وتعديل السلطات ودرجة النضج والصلصات الجانبية والمقليات والمشروب — مرّروا وأضيفوا للسلة في الأسفل.",
   "ui.wizardSpecialSaladsOnly":
     "إضافات الوجبة (جبن، ما يأتي مع الوجبة…) ثابتة حسب الوصفة. في الوجبة قرص واحد — تختارون وزناً 200 أو 220غ أدناه. يمكن أيضاً تعديل السلطات، درجة النضج، الصلصات الجانبية والمشروب — مرّروا وأضيفوا للسلة في الأسفل.",
   "ui.wizardSpecialSaladsOnlyCheeseBomb":
