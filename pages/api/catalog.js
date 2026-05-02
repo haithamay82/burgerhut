@@ -1,8 +1,11 @@
 import { getCatalogEditor, setCatalogEditor } from "@/lib/catalogStore";
-import { MENU_ITEMS } from "@/utils/menuData";
+import { MENU_ITEMS, BURGER_TOPPINGS } from "@/utils/menuData";
 import {
+  emptyBurgerToppingsEditor,
   emptyCatalogEditor,
   mergeMenuItemsFromEditor,
+  mergeBurgerToppingsFromEditor,
+  mergeCrispyMealToppingsFromEditor,
 } from "@/utils/mergeMenuCatalog";
 
 const ALLOWED_CATEGORIES = new Set([
@@ -14,6 +17,9 @@ const ALLOWED_CATEGORIES = new Set([
 ]);
 const ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+const BASE_MENU_IDS = new Set(MENU_ITEMS.map((r) => r.id));
+const BASE_TOPPING_IDS = new Set(BURGER_TOPPINGS.map((r) => r.id));
+
 function authorize(req) {
   const secret = process.env.ADMIN_ORDERS_SECRET;
   if (!secret) return { ok: false, reason: "not_configured" };
@@ -22,7 +28,68 @@ function authorize(req) {
   return { ok: true };
 }
 
-const BASE_IDS = new Set(MENU_ITEMS.map((r) => r.id));
+/**
+ * @param {unknown} raw
+ * @param {string[]} menuCustomIds
+ */
+function normalizeBurgerToppingsEditor(raw, menuCustomIds) {
+  const out = emptyBurgerToppingsEditor();
+  const menuIdSet = new Set(menuCustomIds);
+  if (!raw || typeof raw !== "object") return out;
+
+  const hid = Array.isArray(raw.hiddenIds) ? raw.hiddenIds : [];
+  out.hiddenIds = [
+    ...new Set(
+      hid
+        .map((x) => String(x || "").trim())
+        .filter((id) => BASE_TOPPING_IDS.has(id))
+    ),
+  ];
+
+  const ovr = raw.overrides && typeof raw.overrides === "object" ? raw.overrides : {};
+  for (const id of Object.keys(ovr)) {
+    if (!BASE_TOPPING_IDS.has(id)) continue;
+    const p = ovr[id];
+    if (!p || typeof p !== "object") continue;
+    const patch = {};
+    if (p.price !== undefined) {
+      const n = Number(p.price);
+      if (Number.isFinite(n) && n >= 0) patch.price = n;
+    }
+    if (typeof p.image === "string" && p.image.trim()) patch.image = p.image.trim();
+    if (typeof p.nameHe === "string") patch.nameHe = p.nameHe.trim();
+    if (typeof p.nameAr === "string") patch.nameAr = p.nameAr.trim();
+    if (Object.keys(patch).length) out.overrides[id] = patch;
+  }
+
+  const custom = Array.isArray(raw.customToppings) ? raw.customToppings : [];
+  const seen = new Set();
+  for (const c of custom) {
+    if (!c || typeof c !== "object") continue;
+    const id = String(c.id || "").trim();
+    if (
+      !ID_RE.test(id) ||
+      BASE_TOPPING_IDS.has(id) ||
+      BASE_MENU_IDS.has(id) ||
+      menuIdSet.has(id) ||
+      seen.has(id)
+    ) {
+      continue;
+    }
+    seen.add(id);
+    const nameHe = String(c.nameHe || "").trim();
+    const nameAr = String(c.nameAr || "").trim();
+    if (!nameHe || !nameAr) continue;
+    const image = String(c.image || "").trim();
+    if (!image) continue;
+    const price = Number(c.price);
+    if (!Number.isFinite(price) || price < 0) continue;
+    const row = { id, price, image, nameHe, nameAr };
+    if (Boolean(c.excludeFromCrispy)) row.excludeFromCrispy = true;
+    out.customToppings.push(row);
+  }
+  return out;
+}
 
 function normalizeCatalogEditor(body) {
   const out = emptyCatalogEditor();
@@ -30,14 +97,14 @@ function normalizeCatalogEditor(body) {
 
   const hid = Array.isArray(body.hiddenIds) ? body.hiddenIds : [];
   out.hiddenIds = [...new Set(hid.map((x) => String(x || "").trim()).filter(Boolean))].filter(
-    (id) => BASE_IDS.has(id)
+    (id) => BASE_MENU_IDS.has(id)
   );
 
   const ov = body.overrides && typeof body.overrides === "object" ? body.overrides : {};
   /** @type {Record<string, object>} */
   const overrides = {};
   for (const id of Object.keys(ov)) {
-    if (!BASE_IDS.has(id)) continue;
+    if (!BASE_MENU_IDS.has(id)) continue;
     const p = ov[id];
     if (!p || typeof p !== "object") continue;
     const patch = {};
@@ -63,7 +130,7 @@ function normalizeCatalogEditor(body) {
   for (const c of custom) {
     if (!c || typeof c !== "object") continue;
     const id = String(c.id || "").trim();
-    if (!ID_RE.test(id) || BASE_IDS.has(id) || seen.has(id)) continue;
+    if (!ID_RE.test(id) || BASE_MENU_IDS.has(id) || seen.has(id)) continue;
     seen.add(id);
     const cat = String(c.category || "");
     if (!ALLOWED_CATEGORIES.has(cat)) continue;
@@ -82,12 +149,19 @@ function normalizeCatalogEditor(body) {
     customItems.push(row);
   }
   out.customItems = customItems;
+
+  out.burgerToppings = normalizeBurgerToppingsEditor(
+    body.burgerToppings,
+    customItems.map((c) => c.id)
+  );
   return out;
 }
 
 export default async function handler(req, res) {
   const editor = await getCatalogEditor();
   const items = mergeMenuItemsFromEditor(editor);
+  const burgerToppings = mergeBurgerToppingsFromEditor(editor);
+  const crispyMealToppings = mergeCrispyMealToppingsFromEditor(editor);
 
   if (req.method === "GET") {
     const header = req.headers["x-admin-secret"];
@@ -103,9 +177,16 @@ export default async function handler(req, res) {
         ok: true,
         items,
         editor,
+        burgerToppings,
+        crispyMealToppings,
       });
     }
-    return res.status(200).json({ ok: true, items });
+    return res.status(200).json({
+      ok: true,
+      items,
+      burgerToppings,
+      crispyMealToppings,
+    });
   }
 
   if (req.method === "PUT") {
@@ -119,7 +200,15 @@ export default async function handler(req, res) {
     const next = normalizeCatalogEditor(req.body || {});
     await setCatalogEditor(next);
     const merged = mergeMenuItemsFromEditor(next);
-    return res.status(200).json({ ok: true, items: merged, editor: next });
+    const bt = mergeBurgerToppingsFromEditor(next);
+    const ct = mergeCrispyMealToppingsFromEditor(next);
+    return res.status(200).json({
+      ok: true,
+      items: merged,
+      editor: next,
+      burgerToppings: bt,
+      crispyMealToppings: ct,
+    });
   }
 
   res.setHeader("Allow", "GET, PUT");

@@ -7,12 +7,25 @@ import {
   useState,
 } from "react";
 import { MENU_ITEMS as STATIC_MENU_ITEMS } from "@/utils/menuData";
+import {
+  emptyCatalogEditor,
+  mergeBurgerToppingsFromEditor,
+  mergeCrispyMealToppingsFromEditor,
+} from "@/utils/mergeMenuCatalog";
 import { isMealWizardCategory } from "@/utils/menuMealCategories";
 
 const MenuCatalogContext = createContext(null);
 
+const initialEditor = emptyCatalogEditor();
+
 export function MenuCatalogProvider({ children }) {
   const [menuItems, setMenuItems] = useState(() => STATIC_MENU_ITEMS.slice());
+  const [burgerToppings, setBurgerToppings] = useState(() =>
+    mergeBurgerToppingsFromEditor(initialEditor)
+  );
+  const [crispyMealToppings, setCrispyMealToppings] = useState(() =>
+    mergeCrispyMealToppingsFromEditor(initialEditor)
+  );
 
   const refresh = useCallback(async () => {
     try {
@@ -20,6 +33,12 @@ export function MenuCatalogProvider({ children }) {
       const d = await r.json().catch(() => ({}));
       if (!r.ok || !Array.isArray(d.items)) return;
       setMenuItems(d.items);
+      if (Array.isArray(d.burgerToppings)) {
+        setBurgerToppings(d.burgerToppings);
+      }
+      if (Array.isArray(d.crispyMealToppings)) {
+        setCrispyMealToppings(d.crispyMealToppings);
+      }
     } catch {
       /* keep previous */
     }
@@ -48,8 +67,14 @@ export function MenuCatalogProvider({ children }) {
   }, [menuItems]);
 
   const value = useMemo(
-    () => ({ menuItems, mainMealProductIds, refresh }),
-    [menuItems, mainMealProductIds, refresh]
+    () => ({
+      menuItems,
+      burgerToppings,
+      crispyMealToppings,
+      mainMealProductIds,
+      refresh,
+    }),
+    [menuItems, burgerToppings, crispyMealToppings, mainMealProductIds, refresh]
   );
 
   return (

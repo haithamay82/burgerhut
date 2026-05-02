@@ -1,4 +1,8 @@
-import { MENU_ITEMS } from "@/utils/menuData";
+import {
+  MENU_ITEMS,
+  BURGER_TOPPINGS,
+  CRISPY_EXCLUDED_TOPPING_IDS,
+} from "@/utils/menuData";
 
 const ALLOWED_CATEGORIES = new Set([
   "burgers",
@@ -8,10 +12,21 @@ const ALLOWED_CATEGORIES = new Set([
   "drinks",
 ]);
 
-/** @typedef {{ hiddenIds?: string[], customItems?: object[], overrides?: Record<string, object> }} CatalogEditor */
+const BASE_TOPPING_IDS = new Set(BURGER_TOPPINGS.map((r) => r.id));
+
+/** @typedef {{ hiddenIds?: string[], customItems?: object[], overrides?: Record<string, object>, burgerToppings?: object }} CatalogEditor */
+
+export function emptyBurgerToppingsEditor() {
+  return { hiddenIds: [], customToppings: [], overrides: {} };
+}
 
 export function emptyCatalogEditor() {
-  return { hiddenIds: [], customItems: [], overrides: {} };
+  return {
+    hiddenIds: [],
+    customItems: [],
+    overrides: {},
+    burgerToppings: emptyBurgerToppingsEditor(),
+  };
 }
 
 function pickDefined(patch) {
@@ -29,6 +44,114 @@ function pickDefined(patch) {
     if (patch[k] !== undefined && patch[k] !== null) out[k] = patch[k];
   }
   return out;
+}
+
+function pickToppingOverride(patch) {
+  if (!patch || typeof patch !== "object") return {};
+  const out = {};
+  for (const k of ["price", "image", "nameHe", "nameAr"]) {
+    if (patch[k] !== undefined && patch[k] !== null) out[k] = patch[k];
+  }
+  return out;
+}
+
+/**
+ * @param {unknown} editor
+ */
+function getBurgerToppingsEditor(editor) {
+  const e = editor && typeof editor === "object" ? editor : emptyCatalogEditor();
+  const bt =
+    e.burgerToppings && typeof e.burgerToppings === "object"
+      ? e.burgerToppings
+      : {};
+  return {
+    hiddenIds: Array.isArray(bt.hiddenIds) ? bt.hiddenIds : [],
+    customToppings: Array.isArray(bt.customToppings) ? bt.customToppings : [],
+    overrides:
+      bt.overrides && typeof bt.overrides === "object" ? bt.overrides : {},
+  };
+}
+
+/**
+ * תוספות לבורגר/מיוחדים — מיזוג קטלוג (מוסתרים, עריכות, תוספות מותאמות).
+ * @param {CatalogEditor | null | undefined} editor
+ * @returns {{ id: string, price: number, image: string, nameHe?: string, nameAr?: string, excludeFromCrispy: boolean }[]}
+ */
+export function mergeBurgerToppingsFromEditor(editor) {
+  const bt = getBurgerToppingsEditor(editor);
+  const hidden = new Set(
+    bt.hiddenIds.map((x) => String(x || "").trim()).filter(Boolean)
+  );
+  const overrides = bt.overrides;
+  /** @type {{ id: string, price: number, image: string, nameHe?: string, nameAr?: string, excludeFromCrispy: boolean }[]} */
+  const out = [];
+  const seen = new Set();
+  for (const row of BURGER_TOPPINGS) {
+    if (hidden.has(row.id)) continue;
+    const o = pickToppingOverride(overrides[row.id]);
+    const price = Number.isFinite(Number(o.price)) ? Number(o.price) : row.price;
+    const image =
+      typeof o.image === "string" && o.image.trim() ? o.image.trim() : row.image;
+    const nameHe =
+      typeof o.nameHe === "string" && o.nameHe.trim()
+        ? o.nameHe.trim()
+        : undefined;
+    const nameAr =
+      typeof o.nameAr === "string" && o.nameAr.trim()
+        ? o.nameAr.trim()
+        : undefined;
+    out.push({
+      id: row.id,
+      price,
+      image,
+      ...(nameHe ? { nameHe } : {}),
+      ...(nameAr ? { nameAr } : {}),
+      excludeFromCrispy: false,
+    });
+    seen.add(row.id);
+  }
+  for (const c of bt.customToppings) {
+    if (!c || typeof c !== "object") continue;
+    const id = String(c.id || "").trim();
+    if (!id || seen.has(id)) continue;
+    const nameHe = String(c.nameHe || "").trim();
+    const nameAr = String(c.nameAr || "").trim();
+    const image = String(c.image || "").trim();
+    const price = Number(c.price);
+    if (!nameHe || !nameAr || !image || !Number.isFinite(price) || price < 0) {
+      continue;
+    }
+    out.push({
+      id,
+      price,
+      image,
+      nameHe,
+      nameAr,
+      excludeFromCrispy: Boolean(c.excludeFromCrispy),
+    });
+    seen.add(id);
+  }
+  return out;
+}
+
+/**
+ * תוספות המוצגות במנות קריספי.
+ * @param {CatalogEditor | null | undefined} editor
+ */
+export function mergeCrispyMealToppingsFromEditor(editor) {
+  return mergeBurgerToppingsFromEditor(editor).filter(
+    (row) =>
+      !CRISPY_EXCLUDED_TOPPING_IDS.has(row.id) && !row.excludeFromCrispy
+  );
+}
+
+/**
+ * כל מזהי תוספות הבורגר לאחר מיזוג (מלאי / אימות הזמנה).
+ * @param {CatalogEditor | null | undefined} editor
+ * @returns {Set<string>}
+ */
+export function allBurgerToppingIdsFromEditor(editor) {
+  return new Set(mergeBurgerToppingsFromEditor(editor).map((r) => r.id));
 }
 
 /**

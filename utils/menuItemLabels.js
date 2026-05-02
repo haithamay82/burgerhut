@@ -13,6 +13,21 @@ export function menuItemName(item, t, locale) {
   return v === key ? item.id : v;
 }
 
+/**
+ * @param {{ id: string, nameHe?: string, nameAr?: string }} row
+ * @param {(k: string) => string} t
+ * @param {'he'|'ar'} locale
+ */
+export function toppingDisplayName(row, t, locale) {
+  if (locale === "ar" && row.nameAr) return row.nameAr;
+  if (locale === "he" && row.nameHe) return row.nameHe;
+  if (row.nameHe) return row.nameHe;
+  if (row.nameAr) return row.nameAr;
+  const key = `topping.${row.id}`;
+  const v = t(key);
+  return v === key ? row.id : v;
+}
+
 import { specialPattyGramsDefaultForStock } from "@/utils/specialBurgerDefaults";
 import { applySpecialPattyGramsToMealDescription } from "@/utils/specialBurgerMealDescription";
 

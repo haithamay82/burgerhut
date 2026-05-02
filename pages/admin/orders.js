@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { upload as uploadToBlob } from "@vercel/blob/client";
@@ -15,10 +22,13 @@ const INVENTORY_MANAGED_SALADS = CRISPY_MEAL_SALADS.filter((r) =>
   INVENTORY_MANAGED_SALAD_IDS.has(r.id)
 );
 import {
+  emptyBurgerToppingsEditor,
   emptyCatalogEditor,
+  mergeBurgerToppingsFromEditor,
+  mergeCrispyMealToppingsFromEditor,
   mergeMenuItemsFromEditor,
 } from "@/utils/mergeMenuCatalog";
-import { menuItemName } from "@/utils/menuItemLabels";
+import { menuItemName, toppingDisplayName } from "@/utils/menuItemLabels";
 import { getDefaultBusinessSchedule } from "@/utils/businessHoursDefaults";
 import {
   aggregatePattyCountsFromOrderItems,
@@ -61,6 +71,20 @@ import AdminMenuExportSheet from "@/components/AdminMenuExportSheet";
 const INVENTORY_CATEGORIES = ["burgers", "specials", "crispy"];
 const CATALOG_CATEGORIES = ["burgers", "specials", "crispy", "sides", "drinks"];
 const CATALOG_ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+function burgerToppingsSliceFromEditor(editor) {
+  const em = emptyBurgerToppingsEditor();
+  const bt = editor?.burgerToppings;
+  if (!bt || typeof bt !== "object") return em;
+  return {
+    hiddenIds: Array.isArray(bt.hiddenIds) ? [...bt.hiddenIds] : [],
+    customToppings: Array.isArray(bt.customToppings)
+      ? bt.customToppings.map((c) => ({ ...c }))
+      : [],
+    overrides:
+      bt.overrides && typeof bt.overrides === "object" ? { ...bt.overrides } : {},
+  };
+}
 
 /** ריענון הזמנות בדף ניהול — לזיהוי הזמנות חדשות */
 const ADMIN_ORDERS_POLL_MS = 15000;
@@ -346,6 +370,8 @@ export default function AdminOrdersPage() {
   const [menuExportErr, setMenuExportErr] = useState("");
   const [catalogModal, setCatalogModal] = useState(null);
   const [catalogImageUploading, setCatalogImageUploading] = useState(false);
+  const [toppingModal, setToppingModal] = useState(null);
+  const [toppingImageUploading, setToppingImageUploading] = useState(false);
   const [promoOpen, setPromoOpen] = useState(false);
   /** סליידר מחוץ לפאנל הפרסום — מונע סגירה/באגים בנייד אחרי בורר קבצים */
   const [sliderPanelOpen, setSliderPanelOpen] = useState(false);
@@ -387,6 +413,7 @@ export default function AdminOrdersPage() {
   const promoFileRef = useRef(null);
   const sliderFileRef = useRef(null);
   const catalogImageFileRef = useRef(null);
+  const toppingImageFileRef = useRef(null);
   const menuExportRef = useRef(null);
   const adminSessionHydratedRef = useRef(false);
   /** מזהי הזמנות אחרי טעינה/פולינג — לזיהוי שורות חדשות */
@@ -461,6 +488,26 @@ export default function AdminOrdersPage() {
       ),
     [mergedCatalogItems]
   );
+
+  const baseBurgerToppingIdSet = useMemo(
+    () => new Set(BURGER_TOPPINGS.map((r) => r.id)),
+    []
+  );
+
+  const mergedBurgerToppingsAdmin = useMemo(
+    () => mergeBurgerToppingsFromEditor(catalogEditor),
+    [catalogEditor]
+  );
+
+  const crispyToppingIdSetAdmin = useMemo(
+    () => new Set(mergeCrispyMealToppingsFromEditor(catalogEditor).map((r) => r.id)),
+    [catalogEditor]
+  );
+
+  const hiddenBuiltinToppingIds = useMemo(() => {
+    const hid = burgerToppingsSliceFromEditor(catalogEditor).hiddenIds;
+    return hid.filter((id) => baseBurgerToppingIdSet.has(id));
+  }, [catalogEditor, baseBurgerToppingIdSet]);
 
   const persistCatalog = async (nextEditor) => {
     if (!secret.trim()) return;
@@ -676,6 +723,275 @@ export default function AdminOrdersPage() {
     setCatalogModal(null);
   };
 
+  const uploadToppingMenuImage = async () => {
+    if (!secret.trim() || !toppingModal) return;
+    const file = toppingImageFileRef.current?.files?.[0];
+    if (!file) {
+      setCatalogMsg("");
+      setError(t("admin.sliderErrMissing"));
+      return;
+    }
+    setError("");
+    setCatalogMsg("");
+    setToppingImageUploading(true);
+    try {
+      const result = await uploadToBlob(
+        `catalog-topping-${Date.now()}-${file.name}`,
+        file,
+        {
+          access: "public",
+          handleUploadUrl: "/api/catalog/blob",
+          clientPayload: JSON.stringify({ adminSecret: secret.trim() }),
+          multipart: true,
+        }
+      );
+      const url = String(result?.url || "");
+      if (!url) {
+        setCatalogMsg(t("admin.catalogErr"));
+        return;
+      }
+      setToppingModal((prev) =>
+        prev ? { ...prev, draft: { ...prev.draft, image: url } } : null
+      );
+      setCatalogMsg(t("admin.catalogImageUploaded"));
+      if (toppingImageFileRef.current) toppingImageFileRef.current.value = "";
+    } catch (blobErr) {
+      const msg = String(blobErr?.message || "");
+      const isBlobDisabled =
+        msg.includes("blob_not_configured") ||
+        msg.includes("BLOB_READ_WRITE_TOKEN");
+      if (isBlobDisabled) {
+        setError(t("admin.promoErrBlobConfig"));
+      } else if (msg) {
+        setError(`${t("admin.promoErrBlobUpload")} (${msg})`);
+      } else {
+        setError(t("admin.errNet"));
+      }
+    } finally {
+      setToppingImageUploading(false);
+    }
+  };
+
+  const openToppingAdd = () => {
+    setToppingModal({
+      kind: "add",
+      draft: {
+        id: "",
+        price: "0",
+        image: "",
+        nameHe: "",
+        nameAr: "",
+        excludeFromCrispy: false,
+      },
+    });
+  };
+
+  const openToppingEdit = (row) => {
+    const bt = burgerToppingsSliceFromEditor(catalogEditor);
+    const custom = bt.customToppings.find((c) => c.id === row.id);
+    if (custom) {
+      setToppingModal({
+        kind: "edit",
+        toppingKind: "custom",
+        draft: {
+          id: row.id,
+          price: String(custom.price ?? row.price ?? ""),
+          image: String(custom.image || row.image || ""),
+          nameHe: String(custom.nameHe || ""),
+          nameAr: String(custom.nameAr || ""),
+          excludeFromCrispy: Boolean(custom.excludeFromCrispy),
+        },
+      });
+      return;
+    }
+    if (baseBurgerToppingIdSet.has(row.id)) {
+      const o = bt.overrides[row.id] || {};
+      const base = BURGER_TOPPINGS.find((r) => r.id === row.id);
+      setToppingModal({
+        kind: "edit",
+        toppingKind: "builtin",
+        draft: {
+          id: row.id,
+          price: String(
+            o.price !== undefined && o.price !== null
+              ? o.price
+              : base?.price ?? row.price ?? ""
+          ),
+          image: String(
+            (typeof o.image === "string" && o.image.trim()
+              ? o.image
+              : base?.image) || row.image || ""
+          ),
+          nameHe: typeof o.nameHe === "string" ? o.nameHe : "",
+          nameAr: typeof o.nameAr === "string" ? o.nameAr : "",
+        },
+      });
+    }
+  };
+
+  const submitToppingModal = () => {
+    if (!toppingModal || !secret.trim() || toppingImageUploading) return;
+    const d = toppingModal.draft;
+    const bt = burgerToppingsSliceFromEditor(catalogEditor);
+
+    if (toppingModal.kind === "add") {
+      const id = String(d.id || "")
+        .trim()
+        .toLowerCase();
+      if (!CATALOG_ID_RE.test(id)) {
+        setCatalogMsg(t("admin.catalogErrId"));
+        return;
+      }
+      if (
+        MENU_ITEMS.some((m) => m.id === id) ||
+        catalogEditor.customItems.some((c) => c.id === id) ||
+        baseBurgerToppingIdSet.has(id) ||
+        bt.customToppings.some((c) => c.id === id)
+      ) {
+        setCatalogMsg(t("admin.catalogErrId"));
+        return;
+      }
+      if (!String(d.nameHe || "").trim() || !String(d.nameAr || "").trim()) {
+        setCatalogMsg(t("admin.catalogErrNames"));
+        return;
+      }
+      if (!String(d.image || "").trim()) {
+        setCatalogMsg(t("admin.catalogImageRequired"));
+        return;
+      }
+      const price = Number(d.price);
+      if (!Number.isFinite(price) || price < 0) {
+        setCatalogMsg(t("admin.catalogErr"));
+        return;
+      }
+      const row = {
+        id,
+        price,
+        image: String(d.image).trim(),
+        nameHe: String(d.nameHe).trim(),
+        nameAr: String(d.nameAr).trim(),
+      };
+      if (Boolean(d.excludeFromCrispy)) row.excludeFromCrispy = true;
+      persistCatalog({
+        ...catalogEditor,
+        burgerToppings: {
+          ...bt,
+          customToppings: [...bt.customToppings, row],
+        },
+      });
+      setToppingModal(null);
+      return;
+    }
+
+    if (toppingModal.toppingKind === "custom") {
+      if (!String(d.nameHe || "").trim() || !String(d.nameAr || "").trim()) {
+        setCatalogMsg(t("admin.catalogErrNames"));
+        return;
+      }
+      if (!String(d.image || "").trim()) {
+        setCatalogMsg(t("admin.catalogImageRequired"));
+        return;
+      }
+      const price = Number(d.price);
+      if (!Number.isFinite(price) || price < 0) {
+        setCatalogMsg(t("admin.catalogErr"));
+        return;
+      }
+      const row = {
+        id: d.id,
+        price,
+        image: String(d.image).trim(),
+        nameHe: String(d.nameHe).trim(),
+        nameAr: String(d.nameAr).trim(),
+      };
+      if (Boolean(d.excludeFromCrispy)) row.excludeFromCrispy = true;
+      persistCatalog({
+        ...catalogEditor,
+        burgerToppings: {
+          ...bt,
+          customToppings: bt.customToppings.map((c) => (c.id === d.id ? row : c)),
+        },
+      });
+      setToppingModal(null);
+      return;
+    }
+
+    const price = Number(d.price);
+    if (!Number.isFinite(price) || price < 0) {
+      setCatalogMsg(t("admin.catalogErr"));
+      return;
+    }
+    const base = BURGER_TOPPINGS.find((r) => r.id === d.id);
+    const patch = {};
+    if (Number.isFinite(price) && price >= 0) patch.price = price;
+    const img = String(d.image || "").trim();
+    if (img) patch.image = img;
+    else if (base?.image) patch.image = base.image;
+    const nh = String(d.nameHe || "").trim();
+    const na = String(d.nameAr || "").trim();
+    if (nh) patch.nameHe = nh;
+    if (na) patch.nameAr = na;
+    const nextOv = { ...bt.overrides };
+    const merged = { ...(nextOv[d.id] || {}), ...patch };
+    if (!nh) delete merged.nameHe;
+    if (!na) delete merged.nameAr;
+    if (Object.keys(merged).length) nextOv[d.id] = merged;
+    else delete nextOv[d.id];
+    persistCatalog({
+      ...catalogEditor,
+      burgerToppings: {
+        ...bt,
+        overrides: nextOv,
+      },
+    });
+    setToppingModal(null);
+  };
+
+  const removeCatalogToppingRow = (row) => {
+    if (!secret.trim()) return;
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(t("admin.catalogToppingRemoveConfirm"))
+    ) {
+      return;
+    }
+    const bt = burgerToppingsSliceFromEditor(catalogEditor);
+    if (bt.customToppings.some((c) => c.id === row.id)) {
+      persistCatalog({
+        ...catalogEditor,
+        burgerToppings: {
+          ...bt,
+          customToppings: bt.customToppings.filter((c) => c.id !== row.id),
+        },
+      });
+      return;
+    }
+    if (baseBurgerToppingIdSet.has(row.id)) {
+      const nextOv = { ...bt.overrides };
+      delete nextOv[row.id];
+      persistCatalog({
+        ...catalogEditor,
+        burgerToppings: {
+          ...bt,
+          hiddenIds: [...new Set([...bt.hiddenIds, row.id])],
+          overrides: nextOv,
+        },
+      });
+    }
+  };
+
+  const restoreHiddenCatalogTopping = (id) => {
+    if (!secret.trim()) return;
+    const bt = burgerToppingsSliceFromEditor(catalogEditor);
+    persistCatalog({
+      ...catalogEditor,
+      burgerToppings: {
+        ...bt,
+        hiddenIds: bt.hiddenIds.filter((x) => x !== id),
+      },
+    });
+  };
+
   const load = async (e, secretOverride) => {
     e?.preventDefault();
     const effectiveSecret = String(secretOverride ?? secret).trim();
@@ -750,6 +1066,17 @@ export default function AdminOrdersPage() {
         });
         const catD = await catR.json().catch(() => ({}));
         if (catR.ok && catD.editor && typeof catD.editor === "object") {
+          const ebt = catD.editor.burgerToppings;
+          const burgerToppings = {
+            hiddenIds: Array.isArray(ebt?.hiddenIds) ? [...ebt.hiddenIds] : [],
+            customToppings: Array.isArray(ebt?.customToppings)
+              ? ebt.customToppings.map((x) => ({ ...x }))
+              : [],
+            overrides:
+              ebt?.overrides && typeof ebt.overrides === "object"
+                ? { ...ebt.overrides }
+                : {},
+          };
           setCatalogEditor({
             hiddenIds: Array.isArray(catD.editor.hiddenIds)
               ? [...catD.editor.hiddenIds]
@@ -761,6 +1088,7 @@ export default function AdminOrdersPage() {
               catD.editor.overrides && typeof catD.editor.overrides === "object"
                 ? { ...catD.editor.overrides }
                 : {},
+            burgerToppings,
           });
         } else if (catR.status === 401) {
           setCatalogMsg(t("admin.errAuth"));
@@ -2137,60 +2465,134 @@ export default function AdminOrdersPage() {
                         .filter((row) => row.category === catId)
                         .sort((a, b) => a.basePrice - b.basePrice);
                       return (
-                        <div key={catId}>
-                          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                            <h3 className="text-xs font-semibold text-primary">
-                              {t(`cat.${catId}`)}
-                            </h3>
-                            <button
-                              type="button"
-                              disabled={catalogSaving || !secret.trim()}
-                              onClick={() => openCatalogAdd(catId)}
-                              className="rounded-lg border border-primary/40 bg-slate-950 px-2 py-1 text-[11px] font-semibold text-primary hover:bg-slate-900 disabled:opacity-50"
-                            >
-                              {t("admin.catalogAdd")}
-                            </button>
-                          </div>
-                          {catItems.length ? (
-                            <ul className="space-y-2">
-                              {catItems.map((row) => (
-                                <li
-                                  key={row.id}
-                                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800/80 bg-slate-950/40 px-2 py-2"
+                        <Fragment key={catId}>
+                          {catId === "sides" ? (
+                            <div className="rounded-xl border border-violet-900/40 bg-violet-950/20 p-3">
+                              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                                <h3 className="text-xs font-semibold text-violet-200">
+                                  {t("admin.catalogToppingsSectionTitle")}
+                                </h3>
+                                <button
+                                  type="button"
+                                  disabled={catalogSaving || !secret.trim()}
+                                  onClick={() => openToppingAdd()}
+                                  className="rounded-lg border border-violet-500/40 bg-slate-950 px-2 py-1 text-[11px] font-semibold text-violet-200 hover:bg-slate-900 disabled:opacity-50"
                                 >
-                                  <span className="min-w-0 flex-1 text-xs text-gray-300">
-                                    {menuItemName(row, t, locale)}
-                                    <span className="mr-2 text-[10px] text-gray-500">
-                                      ({row.id}) · ₪{row.basePrice}
+                                  {t("admin.catalogToppingAdd")}
+                                </button>
+                              </div>
+                              <p className="mb-3 text-[10px] leading-relaxed text-gray-500">
+                                {t("admin.catalogToppingsHint")}
+                              </p>
+                              {mergedBurgerToppingsAdmin.length ? (
+                                <ul className="space-y-2">
+                                  {[...mergedBurgerToppingsAdmin]
+                                    .sort(
+                                      (a, b) =>
+                                        a.price - b.price ||
+                                        a.id.localeCompare(b.id)
+                                    )
+                                    .map((row) => (
+                                      <li
+                                        key={row.id}
+                                        className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800/80 bg-slate-950/40 px-2 py-2"
+                                      >
+                                        <span className="min-w-0 flex-1 text-xs text-gray-300">
+                                          {toppingDisplayName(row, t, locale)}
+                                          <span className="mr-2 text-[10px] text-gray-500">
+                                            ({row.id}) · ₪{row.price}
+                                          </span>
+                                          <span
+                                            className={`mr-1 inline-block rounded px-1 py-0.5 text-[9px] font-semibold ${
+                                              crispyToppingIdSetAdmin.has(row.id)
+                                                ? "bg-sky-950/60 text-sky-200"
+                                                : "bg-slate-800 text-gray-400"
+                                            }`}
+                                          >
+                                            {crispyToppingIdSetAdmin.has(row.id)
+                                              ? t("admin.catalogToppingCrispyYes")
+                                              : t("admin.catalogToppingCrispyNo")}
+                                          </span>
+                                        </span>
+                                        <div className="flex shrink-0 flex-wrap gap-1">
+                                          <button
+                                            type="button"
+                                            disabled={catalogSaving || !secret.trim()}
+                                            onClick={() => openToppingEdit(row)}
+                                            className="rounded border border-slate-600 px-2 py-0.5 text-[11px] text-gray-200 hover:border-primary disabled:opacity-50"
+                                          >
+                                            {t("admin.catalogEdit")}
+                                          </button>
+                                          <button
+                                            type="button"
+                                            disabled={catalogSaving || !secret.trim()}
+                                            onClick={() => removeCatalogToppingRow(row)}
+                                            className="rounded border border-red-900/60 px-2 py-0.5 text-[11px] text-red-300 hover:bg-red-950/30 disabled:opacity-50"
+                                          >
+                                            {t("admin.catalogRemove")}
+                                          </button>
+                                        </div>
+                                      </li>
+                                    ))}
+                                </ul>
+                              ) : (
+                                <p className="text-[11px] text-gray-600">—</p>
+                              )}
+                            </div>
+                          ) : null}
+                          <div>
+                            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                              <h3 className="text-xs font-semibold text-primary">
+                                {t(`cat.${catId}`)}
+                              </h3>
+                              <button
+                                type="button"
+                                disabled={catalogSaving || !secret.trim()}
+                                onClick={() => openCatalogAdd(catId)}
+                                className="rounded-lg border border-primary/40 bg-slate-950 px-2 py-1 text-[11px] font-semibold text-primary hover:bg-slate-900 disabled:opacity-50"
+                              >
+                                {t("admin.catalogAdd")}
+                              </button>
+                            </div>
+                            {catItems.length ? (
+                              <ul className="space-y-2">
+                                {catItems.map((row) => (
+                                  <li
+                                    key={row.id}
+                                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800/80 bg-slate-950/40 px-2 py-2"
+                                  >
+                                    <span className="min-w-0 flex-1 text-xs text-gray-300">
+                                      {menuItemName(row, t, locale)}
+                                      <span className="mr-2 text-[10px] text-gray-500">
+                                        ({row.id}) · ₪{row.basePrice}
+                                      </span>
                                     </span>
-                                  </span>
-                                  <div className="flex shrink-0 flex-wrap gap-1">
-                                    <button
-                                      type="button"
-                                      disabled={catalogSaving || !secret.trim()}
-                                      onClick={() => openCatalogEdit(row)}
-                                      className="rounded border border-slate-600 px-2 py-0.5 text-[11px] text-gray-200 hover:border-primary disabled:opacity-50"
-                                    >
-                                      {t("admin.catalogEdit")}
-                                    </button>
-                                    <button
-                                      type="button"
-                                      disabled={catalogSaving || !secret.trim()}
-                                      onClick={() => removeCatalogItem(row)}
-                                      className="rounded border border-red-900/60 px-2 py-0.5 text-[11px] text-red-300 hover:bg-red-950/30 disabled:opacity-50"
-                                    >
-                                      {t("admin.catalogRemove")}
-                                    </button>
-                                  </div>
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <p className="text-[11px] text-gray-600">
-                              —
-                            </p>
-                          )}
-                        </div>
+                                    <div className="flex shrink-0 flex-wrap gap-1">
+                                      <button
+                                        type="button"
+                                        disabled={catalogSaving || !secret.trim()}
+                                        onClick={() => openCatalogEdit(row)}
+                                        className="rounded border border-slate-600 px-2 py-0.5 text-[11px] text-gray-200 hover:border-primary disabled:opacity-50"
+                                      >
+                                        {t("admin.catalogEdit")}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        disabled={catalogSaving || !secret.trim()}
+                                        onClick={() => removeCatalogItem(row)}
+                                        className="rounded border border-red-900/60 px-2 py-0.5 text-[11px] text-red-300 hover:bg-red-950/30 disabled:opacity-50"
+                                      >
+                                        {t("admin.catalogRemove")}
+                                      </button>
+                                    </div>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="text-[11px] text-gray-600">—</p>
+                            )}
+                          </div>
+                        </Fragment>
                       );
                     })}
                     {catalogEditor.hiddenIds.length ? (
@@ -2224,6 +2626,36 @@ export default function AdminOrdersPage() {
                               </li>
                             );
                           })}
+                        </ul>
+                      </div>
+                    ) : null}
+                    {hiddenBuiltinToppingIds.length ? (
+                      <div>
+                        <h3 className="mb-2 text-xs font-semibold text-amber-500/90">
+                          {t("admin.catalogToppingHiddenTitle")}
+                        </h3>
+                        <ul className="space-y-2">
+                          {hiddenBuiltinToppingIds.map((hid) => (
+                            <li
+                              key={`hid-top-${hid}`}
+                              className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800/80 bg-slate-950/40 px-2 py-2"
+                            >
+                              <span className="text-xs text-gray-400">
+                                {t(`topping.${hid}`)}{" "}
+                                <span className="text-[10px] text-gray-600">
+                                  ({hid})
+                                </span>
+                              </span>
+                              <button
+                                type="button"
+                                disabled={catalogSaving || !secret.trim()}
+                                onClick={() => restoreHiddenCatalogTopping(hid)}
+                                className="shrink-0 rounded border border-emerald-800/60 px-2 py-0.5 text-[11px] text-emerald-300 hover:bg-emerald-950/20 disabled:opacity-50"
+                              >
+                                {t("admin.catalogRestore")}
+                              </button>
+                            </li>
+                          ))}
                         </ul>
                       </div>
                     ) : null}
@@ -2372,7 +2804,7 @@ export default function AdminOrdersPage() {
                         {t("admin.inventoryBurgerToppings")}
                       </h3>
                       <ul className="space-y-2">
-                        {BURGER_TOPPINGS.map((row) => {
+                        {mergedBurgerToppingsAdmin.map((row) => {
                           const available =
                             !inventoryEffectiveUnavailableSet.has(row.id);
                           return (
@@ -2390,7 +2822,7 @@ export default function AdminOrdersPage() {
                                   }
                                   className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-600 bg-slate-900 text-primary focus:ring-primary"
                                 />
-                                <span>{t(`topping.${row.id}`)}</span>
+                                <span>{toppingDisplayName(row, t, locale)}</span>
                               </label>
                             </li>
                           );
@@ -4007,6 +4439,206 @@ export default function AdminOrdersPage() {
                     !secret.trim()
                   }
                   onClick={submitCatalogModal}
+                  className="btn-primary px-4 py-1.5 text-xs disabled:opacity-50"
+                >
+                  {t("admin.catalogSaveRow")}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+        {toppingModal ? (
+          <div
+            className="fixed inset-0 z-[300] flex items-end justify-center bg-black/80 p-4 sm:items-center"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="topping-modal-title"
+          >
+            <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-700 bg-slate-950 p-4 shadow-xl">
+              <h3
+                id="topping-modal-title"
+                className="mb-3 text-sm font-bold text-violet-200"
+              >
+                {toppingModal.kind === "add"
+                  ? t("admin.catalogToppingModalAdd")
+                  : t("admin.catalogToppingModalEdit")}
+              </h3>
+              <p className="mb-3 text-[10px] text-gray-500">
+                {toppingModal.kind === "add"
+                  ? t("admin.catalogSlugHint")
+                  : null}
+              </p>
+              <div className="flex flex-col gap-2 text-xs">
+                <label className="flex flex-col gap-1 text-gray-400">
+                  <span>{t("admin.catalogId")}</span>
+                  <input
+                    value={toppingModal.draft.id}
+                    disabled={
+                      toppingModal.kind === "edit" || catalogSaving
+                    }
+                    onChange={(e) =>
+                      setToppingModal((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              draft: { ...prev.draft, id: e.target.value },
+                            }
+                          : null
+                      )
+                    }
+                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100 disabled:opacity-60"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-gray-400">
+                  <span>{t("admin.catalogToppingPrice")}</span>
+                  <input
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={toppingModal.draft.price}
+                    disabled={catalogSaving}
+                    onChange={(e) =>
+                      setToppingModal((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              draft: {
+                                ...prev.draft,
+                                price: e.target.value,
+                              },
+                            }
+                          : null
+                      )
+                    }
+                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100"
+                  />
+                </label>
+                <div className="flex flex-col gap-2 text-gray-400">
+                  <span className="text-xs">{t("admin.catalogImage")}</span>
+                  <p className="text-[10px] leading-snug text-gray-500">
+                    {t("admin.catalogImageUrlHint")}
+                  </p>
+                  <input
+                    ref={toppingImageFileRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    disabled={catalogSaving || toppingImageUploading}
+                    className="max-w-full text-[11px] text-gray-400 file:mr-2 file:rounded-lg file:border-0 file:bg-slate-800 file:px-2 file:py-1.5 file:text-gray-200 disabled:opacity-50"
+                  />
+                  <button
+                    type="button"
+                    disabled={
+                      catalogSaving || toppingImageUploading || !secret.trim()
+                    }
+                    onClick={() => void uploadToppingMenuImage()}
+                    className="rounded-lg border border-slate-600 px-3 py-1.5 text-[11px] text-gray-200 hover:border-primary disabled:opacity-50"
+                  >
+                    {toppingImageUploading
+                      ? t("admin.catalogImageUploading")
+                      : t("admin.catalogUploadBtn")}
+                  </button>
+                  {toppingModal.draft.image ? (
+                    <img
+                      src={toppingModal.draft.image}
+                      alt=""
+                      className="mt-1 h-24 w-24 rounded-lg border border-slate-700 object-cover"
+                    />
+                  ) : null}
+                </div>
+                <label className="flex flex-col gap-1 text-gray-400">
+                  <span>{t("admin.catalogNameHe")}</span>
+                  <input
+                    value={toppingModal.draft.nameHe}
+                    disabled={catalogSaving}
+                    onChange={(e) =>
+                      setToppingModal((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              draft: {
+                                ...prev.draft,
+                                nameHe: e.target.value,
+                              },
+                            }
+                          : null
+                      )
+                    }
+                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-gray-400">
+                  <span>{t("admin.catalogNameAr")}</span>
+                  <input
+                    value={toppingModal.draft.nameAr}
+                    disabled={catalogSaving}
+                    onChange={(e) =>
+                      setToppingModal((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              draft: {
+                                ...prev.draft,
+                                nameAr: e.target.value,
+                              },
+                            }
+                          : null
+                      )
+                    }
+                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100"
+                  />
+                </label>
+                {toppingModal.kind === "add" ||
+                toppingModal.toppingKind === "custom" ? (
+                  <label className="flex cursor-pointer items-center gap-2 text-gray-400">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(toppingModal.draft.excludeFromCrispy)}
+                      disabled={catalogSaving}
+                      onChange={(e) =>
+                        setToppingModal((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                draft: {
+                                  ...prev.draft,
+                                  excludeFromCrispy: e.target.checked,
+                                },
+                              }
+                            : null
+                        )
+                      }
+                      className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-primary"
+                    />
+                    <span>{t("admin.catalogToppingExcludeCrispy")}</span>
+                  </label>
+                ) : (
+                  <p className="text-[10px] leading-relaxed text-gray-500">
+                    {t("admin.catalogToppingBuiltinHint")}
+                  </p>
+                )}
+              </div>
+              <div className="mt-4 flex flex-wrap justify-end gap-2">
+                <button
+                  type="button"
+                  disabled={catalogSaving || toppingImageUploading}
+                  onClick={() => {
+                    if (toppingImageFileRef.current) {
+                      toppingImageFileRef.current.value = "";
+                    }
+                    setToppingModal(null);
+                  }}
+                  className="rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-gray-300 hover:bg-slate-900 disabled:opacity-50"
+                >
+                  {t("admin.catalogCancel")}
+                </button>
+                <button
+                  type="button"
+                  disabled={
+                    catalogSaving ||
+                    toppingImageUploading ||
+                    !secret.trim()
+                  }
+                  onClick={submitToppingModal}
                   className="btn-primary px-4 py-1.5 text-xs disabled:opacity-50"
                 >
                   {t("admin.catalogSaveRow")}

@@ -17,11 +17,11 @@ import {
   computePattyShortfalls,
 } from "@/utils/burgerPattyPrep";
 import { getCatalogEditor } from "@/lib/catalogStore";
+import { INVENTORY_MANAGED_SALAD_IDS } from "@/utils/menuData";
 import {
-  BURGER_TOPPING_IDS,
-  INVENTORY_MANAGED_SALAD_IDS,
-} from "@/utils/menuData";
-import { mainMealProductIdsFromEditor } from "@/utils/mergeMenuCatalog";
+  allBurgerToppingIdsFromEditor,
+  mainMealProductIdsFromEditor,
+} from "@/utils/mergeMenuCatalog";
 import { isOrderingAllowedAt } from "@/utils/orderingHours";
 import { getBusinessHours } from "@/lib/businessHoursStore";
 import { redis, isRedisConfigured } from "@/lib/redis";
@@ -98,6 +98,7 @@ export default async function handler(req, res) {
     const unavailable = new Set(await getUnavailableIds());
     const editor = await getCatalogEditor();
     const mainMealIds = mainMealProductIdsFromEditor(editor);
+    const burgerToppingIds = allBurgerToppingIdsFromEditor(editor);
     for (const line of items) {
       const pid = lineProductId(line);
       if (mainMealIds.has(pid) && unavailable.has(pid)) {
@@ -109,7 +110,7 @@ export default async function handler(req, res) {
           const tid = top?.id;
           if (
             typeof tid === "string" &&
-            BURGER_TOPPING_IDS.has(tid) &&
+            burgerToppingIds.has(tid) &&
             unavailable.has(tid)
           ) {
             return res.status(400).json({ ok: false, error: "item_unavailable" });

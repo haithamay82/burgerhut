@@ -1,10 +1,8 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import {
   BURGER_DONENESS_OPTIONS,
-  BURGER_TOPPINGS,
   CRISPY_CHICKEN_BURGER_PRODUCT_ID,
   CRISPY_CHICKEN_KIDS_PRODUCT_ID,
-  CRISPY_MEAL_TOPPINGS,
   DEFAULT_BURGER_DONENESS_ID,
   DOUBLE_CHEESE_TOPPING_IDS,
   EXTRA_SAUCES,
@@ -20,7 +18,7 @@ import {
 } from "@/utils/specialBurgerDefaults";
 import { canBuildBurgerWithPattyStock } from "@/utils/burgerPattyPrep";
 import { useMenuCatalog } from "@/contexts/MenuCatalogContext";
-import { menuItemName } from "@/utils/menuItemLabels";
+import { menuItemName, toppingDisplayName } from "@/utils/menuItemLabels";
 import { formatIls } from "@/utils/cartMoney";
 import { computeSaucesCharge, marginalSauceCharge } from "@/utils/saucePricing";
 import { useCart, customizationKey } from "@/hooks/useCart";
@@ -78,7 +76,7 @@ export default function MealCustomizeWizard({
   specialWizardMode = null,
 }) {
   const { t, locale } = useLocale();
-  const { menuItems } = useMenuCatalog();
+  const { menuItems, burgerToppings, crispyMealToppings } = useMenuCatalog();
   const { addItem, replaceCartLine, items: cartItems } = useCart();
   const { isUnavailable, unavailableIds, pattyStock } = useInventory();
 
@@ -116,12 +114,14 @@ export default function MealCustomizeWizard({
   const blocked = isOutOfStock;
   const isKidsCrispyBurger = item?.id === CRISPY_CHICKEN_KIDS_PRODUCT_ID;
   const isAdultCrispyBurger = item?.id === CRISPY_CHICKEN_BURGER_PRODUCT_ID;
-  const toppingChoices =
-    item?.category === "crispy"
-      ? CRISPY_MEAL_TOPPINGS
-      : item?.category === "specials"
-        ? BURGER_TOPPINGS.filter((row) => !DOUBLE_CHEESE_TOPPING_IDS.has(row.id))
-        : BURGER_TOPPINGS;
+  const toppingChoices = useMemo(() => {
+    if (!item) return [];
+    if (item.category === "crispy") return crispyMealToppings;
+    if (item.category === "specials") {
+      return burgerToppings.filter((row) => !DOUBLE_CHEESE_TOPPING_IDS.has(row.id));
+    }
+    return burgerToppings;
+  }, [item, burgerToppings, crispyMealToppings]);
   const isBeefBurgerMeal = isBeefBurgerStyleCategory(item?.category);
   const isSpecialMealCat = item?.category === "specials";
   const isSpecialCheeseBomb = item?.id === "special-cheese-bomb";
@@ -514,10 +514,11 @@ export default function MealCustomizeWizard({
     if (item.category === "specials") {
       if (!isSpecialCheeseBomb) {
         for (const id of selectedToppings) {
+          const row = toppingChoices.find((x) => x.id === id);
           toppings.push({
             id,
-            label: t(`topping.${id}`),
-            price: toppingChoices.find((x) => x.id === id)?.price,
+            label: row ? toppingDisplayName(row, t, locale) : t(`topping.${id}`),
+            price: row?.price,
           });
         }
       }
@@ -525,8 +526,11 @@ export default function MealCustomizeWizard({
       for (const cheeseId of DOUBLE_CHEESE_TOPPING_IDS) {
         const layers = cheeseMode[cheeseId];
         if (!layers) continue;
-        const p = toppingChoices.find((x) => x.id === cheeseId)?.price || 0;
-        const baseLabel = t(`topping.${cheeseId}`);
+        const cheeseRow = toppingChoices.find((x) => x.id === cheeseId);
+        const p = cheeseRow?.price || 0;
+        const baseLabel = cheeseRow
+          ? toppingDisplayName(cheeseRow, t, locale)
+          : t(`topping.${cheeseId}`);
         toppings.push({
           id: cheeseId,
           label:
@@ -536,10 +540,11 @@ export default function MealCustomizeWizard({
         });
       }
       for (const id of selectedToppings) {
+        const row = toppingChoices.find((x) => x.id === id);
         toppings.push({
           id,
-          label: t(`topping.${id}`),
-          price: toppingChoices.find((x) => x.id === id)?.price,
+          label: row ? toppingDisplayName(row, t, locale) : t(`topping.${id}`),
+          price: row?.price,
         });
       }
     }
@@ -980,7 +985,7 @@ export default function MealCustomizeWizard({
                         />
                       ) : null}
                       <span className="min-w-0 truncate leading-snug">
-                        {t(`topping.${x.id}`)}
+                        {toppingDisplayName(x, t, locale)}
                         {topUnavail ? (
                           <span className="mr-1 text-[10px] text-amber-600/90">
                             ({t("ui.soldOutShort")})
@@ -1029,12 +1034,12 @@ export default function MealCustomizeWizard({
                   {x.image ? (
                     <img
                       src={x.image}
-                      alt={t(`topping.${x.id}`)}
+                      alt={toppingDisplayName(x, t, locale)}
                       className="h-8 w-8 shrink-0 rounded-md border border-slate-700 object-cover"
                     />
                   ) : null}
                   <span className="min-w-0 flex-1 pr-1 leading-snug">
-                    {t(`topping.${x.id}`)}
+                    {toppingDisplayName(x, t, locale)}
                     {topUnavail ? (
                       <span className="mr-1 text-[10px] text-amber-600/90">
                         ({t("ui.soldOutShort")})

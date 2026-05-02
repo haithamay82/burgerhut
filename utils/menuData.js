@@ -52,7 +52,7 @@ export const BURGER_TOPPINGS = [
 export const DOUBLE_CHEESE_TOPPING_IDS = new Set(["cheddar", "gouda"]);
 
 /** תוספות שלא מוצעות במנות קריספי (ביצת עין, בייקון טלה, קורנדביף עגל, אסאדו מפורק) */
-const CRISPY_EXCLUDED_TOPPING_IDS = new Set([
+export const CRISPY_EXCLUDED_TOPPING_IDS = new Set([
   "fried_egg",
   "lamb_bacon",
   "veal_corned",
