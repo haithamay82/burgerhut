@@ -72,6 +72,17 @@ const INVENTORY_CATEGORIES = ["burgers", "specials", "crispy"];
 const CATALOG_CATEGORIES = ["burgers", "specials", "crispy", "sides", "drinks"];
 const CATALOG_ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+/** מזהה מותאם אישית: רווחים/תווים לא חוקיים → מקפים (למשל «loaded burger bowl» → loaded-burger-bowl). */
+function normalizeCatalogCustomId(raw) {
+  return String(raw || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 function burgerToppingsSliceFromEditor(editor) {
   const em = emptyBurgerToppingsEditor();
   const bt = editor?.burgerToppings;
@@ -369,8 +380,10 @@ export default function AdminOrdersPage() {
   const [menuExportBusy, setMenuExportBusy] = useState(false);
   const [menuExportErr, setMenuExportErr] = useState("");
   const [catalogModal, setCatalogModal] = useState(null);
+  const [catalogModalError, setCatalogModalError] = useState("");
   const [catalogImageUploading, setCatalogImageUploading] = useState(false);
   const [toppingModal, setToppingModal] = useState(null);
+  const [toppingModalError, setToppingModalError] = useState("");
   const [toppingImageUploading, setToppingImageUploading] = useState(false);
   const [promoOpen, setPromoOpen] = useState(false);
   /** סליידר מחוץ לפאנל הפרסום — מונע סגירה/באגים בנייד אחרי בורר קבצים */
@@ -510,7 +523,7 @@ export default function AdminOrdersPage() {
   }, [catalogEditor, baseBurgerToppingIdSet]);
 
   const persistCatalog = async (nextEditor) => {
-    if (!secret.trim()) return;
+    if (!secret.trim()) return false;
     setCatalogMsg("");
     setError("");
     setCatalogSaving(true);
@@ -526,12 +539,14 @@ export default function AdminOrdersPage() {
       const d = await r.json().catch(() => ({}));
       if (!r.ok) {
         setCatalogMsg(t("admin.catalogErr"));
-        return;
+        return false;
       }
       if (d.editor) setCatalogEditor(d.editor);
       setCatalogMsg(t("admin.catalogSaved"));
+      return true;
     } catch {
       setCatalogMsg(t("admin.catalogErr"));
+      return false;
     } finally {
       setCatalogSaving(false);
     }
@@ -575,6 +590,7 @@ export default function AdminOrdersPage() {
   };
 
   const openCatalogAdd = (category) => {
+    setCatalogModalError("");
     setCatalogModal({
       kind: "add",
       draft: {
@@ -591,6 +607,7 @@ export default function AdminOrdersPage() {
   };
 
   const openCatalogEdit = (row) => {
+    setCatalogModalError("");
     const isCustom = catalogEditor.customItems.some((c) => c.id === row.id);
     setCatalogModal({
       kind: "edit",
@@ -608,35 +625,45 @@ export default function AdminOrdersPage() {
     });
   };
 
-  const submitCatalogModal = () => {
+  const submitCatalogModal = async () => {
     if (!catalogModal || !secret.trim() || catalogImageUploading) return;
+    setCatalogModalError("");
     const d = catalogModal.draft;
     if (catalogModal.kind === "add") {
-      const id = String(d.id || "")
-        .trim()
-        .toLowerCase();
+      const rawTrim = String(d.id || "").trim().toLowerCase();
+      let id = rawTrim;
       if (!CATALOG_ID_RE.test(id)) {
-        setCatalogMsg(t("admin.catalogErrId"));
-        return;
+        const norm = normalizeCatalogCustomId(d.id);
+        if (CATALOG_ID_RE.test(norm) && norm.length >= 1) {
+          id = norm;
+          setCatalogModal((prev) =>
+            prev && prev.kind === "add"
+              ? { ...prev, draft: { ...prev.draft, id: norm } }
+              : prev
+          );
+        } else {
+          setCatalogModalError(t("admin.catalogErrIdDetail"));
+          return;
+        }
       }
       if (
         MENU_ITEMS.some((m) => m.id === id) ||
         catalogEditor.customItems.some((c) => c.id === id)
       ) {
-        setCatalogMsg(t("admin.catalogErrId"));
+        setCatalogModalError(t("admin.catalogErrId"));
         return;
       }
       if (!String(d.nameHe || "").trim() || !String(d.nameAr || "").trim()) {
-        setCatalogMsg(t("admin.catalogErrNames"));
+        setCatalogModalError(t("admin.catalogErrNames"));
         return;
       }
       if (!String(d.image || "").trim()) {
-        setCatalogMsg(t("admin.catalogImageRequired"));
+        setCatalogModalError(t("admin.catalogImageRequired"));
         return;
       }
       const bp = Number(d.basePrice);
       if (!Number.isFinite(bp) || bp < 0) {
-        setCatalogMsg(t("admin.catalogErr"));
+        setCatalogModalError(t("admin.catalogErr"));
         return;
       }
       const row = {
@@ -651,26 +678,30 @@ export default function AdminOrdersPage() {
       const da = String(d.descAr || "").trim();
       if (dh) row.descHe = dh;
       if (da) row.descAr = da;
-      persistCatalog({
+      const ok = await persistCatalog({
         ...catalogEditor,
         customItems: [...catalogEditor.customItems, row],
       });
+      if (!ok) {
+        setCatalogModalError(t("admin.catalogErr"));
+        return;
+      }
       setCatalogModal(null);
       return;
     }
     const baseRow = MENU_ITEMS.find((m) => m.id === d.id);
     if (catalogModal.isCustom) {
       if (!String(d.nameHe || "").trim() || !String(d.nameAr || "").trim()) {
-        setCatalogMsg(t("admin.catalogErrNames"));
+        setCatalogModalError(t("admin.catalogErrNames"));
         return;
       }
       if (!String(d.image || "").trim()) {
-        setCatalogMsg(t("admin.catalogImageRequired"));
+        setCatalogModalError(t("admin.catalogImageRequired"));
         return;
       }
       const bp = Number(d.basePrice);
       if (!Number.isFinite(bp) || bp < 0) {
-        setCatalogMsg(t("admin.catalogErr"));
+        setCatalogModalError(t("admin.catalogErr"));
         return;
       }
       const row = {
@@ -685,12 +716,16 @@ export default function AdminOrdersPage() {
       const da = String(d.descAr || "").trim();
       if (dh) row.descHe = dh;
       if (da) row.descAr = da;
-      persistCatalog({
+      const ok = await persistCatalog({
         ...catalogEditor,
         customItems: catalogEditor.customItems.map((c) =>
           c.id === d.id ? row : c
         ),
       });
+      if (!ok) {
+        setCatalogModalError(t("admin.catalogErr"));
+        return;
+      }
       setCatalogModal(null);
       return;
     }
@@ -700,7 +735,7 @@ export default function AdminOrdersPage() {
     }
     const bp = Number(d.basePrice);
     if (!Number.isFinite(bp) || bp < 0) {
-      setCatalogMsg(t("admin.catalogErr"));
+      setCatalogModalError(t("admin.catalogErr"));
       return;
     }
     const patch = {
@@ -716,10 +751,14 @@ export default function AdminOrdersPage() {
     if (na) patch.nameAr = na;
     if (dh) patch.descHe = dh;
     if (da) patch.descAr = da;
-    persistCatalog({
+    const ok = await persistCatalog({
       ...catalogEditor,
       overrides: { ...catalogEditor.overrides, [d.id]: patch },
     });
+    if (!ok) {
+      setCatalogModalError(t("admin.catalogErr"));
+      return;
+    }
     setCatalogModal(null);
   };
 
@@ -750,6 +789,7 @@ export default function AdminOrdersPage() {
         setCatalogMsg(t("admin.catalogErr"));
         return;
       }
+      setToppingModalError("");
       setToppingModal((prev) =>
         prev ? { ...prev, draft: { ...prev.draft, image: url } } : null
       );
@@ -773,6 +813,7 @@ export default function AdminOrdersPage() {
   };
 
   const openToppingAdd = () => {
+    setToppingModalError("");
     setToppingModal({
       kind: "add",
       draft: {
@@ -787,6 +828,7 @@ export default function AdminOrdersPage() {
   };
 
   const openToppingEdit = (row) => {
+    setToppingModalError("");
     const bt = burgerToppingsSliceFromEditor(catalogEditor);
     const custom = bt.customToppings.find((c) => c.id === row.id);
     if (custom) {
@@ -829,18 +871,28 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const submitToppingModal = () => {
+  const submitToppingModal = async () => {
     if (!toppingModal || !secret.trim() || toppingImageUploading) return;
+    setToppingModalError("");
     const d = toppingModal.draft;
     const bt = burgerToppingsSliceFromEditor(catalogEditor);
 
     if (toppingModal.kind === "add") {
-      const id = String(d.id || "")
-        .trim()
-        .toLowerCase();
+      const rawTrim = String(d.id || "").trim().toLowerCase();
+      let id = rawTrim;
       if (!CATALOG_ID_RE.test(id)) {
-        setCatalogMsg(t("admin.catalogErrId"));
-        return;
+        const norm = normalizeCatalogCustomId(d.id);
+        if (CATALOG_ID_RE.test(norm) && norm.length >= 1) {
+          id = norm;
+          setToppingModal((prev) =>
+            prev && prev.kind === "add"
+              ? { ...prev, draft: { ...prev.draft, id: norm } }
+              : prev
+          );
+        } else {
+          setToppingModalError(t("admin.catalogErrIdDetail"));
+          return;
+        }
       }
       if (
         MENU_ITEMS.some((m) => m.id === id) ||
@@ -848,20 +900,20 @@ export default function AdminOrdersPage() {
         baseBurgerToppingIdSet.has(id) ||
         bt.customToppings.some((c) => c.id === id)
       ) {
-        setCatalogMsg(t("admin.catalogErrId"));
+        setToppingModalError(t("admin.catalogErrId"));
         return;
       }
       if (!String(d.nameHe || "").trim() || !String(d.nameAr || "").trim()) {
-        setCatalogMsg(t("admin.catalogErrNames"));
+        setToppingModalError(t("admin.catalogErrNames"));
         return;
       }
       if (!String(d.image || "").trim()) {
-        setCatalogMsg(t("admin.catalogImageRequired"));
+        setToppingModalError(t("admin.catalogImageRequired"));
         return;
       }
       const price = Number(d.price);
       if (!Number.isFinite(price) || price < 0) {
-        setCatalogMsg(t("admin.catalogErr"));
+        setToppingModalError(t("admin.catalogErr"));
         return;
       }
       const row = {
@@ -872,29 +924,33 @@ export default function AdminOrdersPage() {
         nameAr: String(d.nameAr).trim(),
       };
       if (Boolean(d.excludeFromCrispy)) row.excludeFromCrispy = true;
-      persistCatalog({
+      const ok = await persistCatalog({
         ...catalogEditor,
         burgerToppings: {
           ...bt,
           customToppings: [...bt.customToppings, row],
         },
       });
+      if (!ok) {
+        setToppingModalError(t("admin.catalogErr"));
+        return;
+      }
       setToppingModal(null);
       return;
     }
 
     if (toppingModal.toppingKind === "custom") {
       if (!String(d.nameHe || "").trim() || !String(d.nameAr || "").trim()) {
-        setCatalogMsg(t("admin.catalogErrNames"));
+        setToppingModalError(t("admin.catalogErrNames"));
         return;
       }
       if (!String(d.image || "").trim()) {
-        setCatalogMsg(t("admin.catalogImageRequired"));
+        setToppingModalError(t("admin.catalogImageRequired"));
         return;
       }
       const price = Number(d.price);
       if (!Number.isFinite(price) || price < 0) {
-        setCatalogMsg(t("admin.catalogErr"));
+        setToppingModalError(t("admin.catalogErr"));
         return;
       }
       const row = {
@@ -905,20 +961,24 @@ export default function AdminOrdersPage() {
         nameAr: String(d.nameAr).trim(),
       };
       if (Boolean(d.excludeFromCrispy)) row.excludeFromCrispy = true;
-      persistCatalog({
+      const ok = await persistCatalog({
         ...catalogEditor,
         burgerToppings: {
           ...bt,
           customToppings: bt.customToppings.map((c) => (c.id === d.id ? row : c)),
         },
       });
+      if (!ok) {
+        setToppingModalError(t("admin.catalogErr"));
+        return;
+      }
       setToppingModal(null);
       return;
     }
 
     const price = Number(d.price);
     if (!Number.isFinite(price) || price < 0) {
-      setCatalogMsg(t("admin.catalogErr"));
+      setToppingModalError(t("admin.catalogErr"));
       return;
     }
     const base = BURGER_TOPPINGS.find((r) => r.id === d.id);
@@ -937,13 +997,17 @@ export default function AdminOrdersPage() {
     if (!na) delete merged.nameAr;
     if (Object.keys(merged).length) nextOv[d.id] = merged;
     else delete nextOv[d.id];
-    persistCatalog({
+    const ok = await persistCatalog({
       ...catalogEditor,
       burgerToppings: {
         ...bt,
         overrides: nextOv,
       },
     });
+    if (!ok) {
+      setToppingModalError(t("admin.catalogErr"));
+      return;
+    }
     setToppingModal(null);
   };
 
@@ -1881,6 +1945,7 @@ export default function AdminOrdersPage() {
         setCatalogMsg(t("admin.catalogErr"));
         return;
       }
+      setCatalogModalError("");
       setCatalogModal((prev) =>
         prev ? { ...prev, draft: { ...prev.draft, image: url } } : null
       );
@@ -2457,7 +2522,15 @@ export default function AdminOrdersPage() {
                     </p>
                   ) : null}
                   {catalogMsg ? (
-                    <p className="mb-3 text-xs text-emerald-400/95">{catalogMsg}</p>
+                    <p
+                      className={`mb-3 text-xs ${
+                        catalogMsg === t("admin.catalogSaved")
+                          ? "text-emerald-400/95"
+                          : "text-red-400/95"
+                      }`}
+                    >
+                      {catalogMsg}
+                    </p>
                   ) : null}
                   <div className="space-y-5">
                     {CATALOG_CATEGORIES.map((catId) => {
@@ -4417,6 +4490,14 @@ export default function AdminOrdersPage() {
                   />
                 </label>
               </div>
+              {catalogModalError ? (
+                <p
+                  className="mb-3 mt-2 text-xs font-medium leading-snug text-red-400/95"
+                  role="alert"
+                >
+                  {catalogModalError}
+                </p>
+              ) : null}
               <div className="mt-4 flex flex-wrap justify-end gap-2">
                 <button
                   type="button"
@@ -4425,6 +4506,7 @@ export default function AdminOrdersPage() {
                     if (catalogImageFileRef.current) {
                       catalogImageFileRef.current.value = "";
                     }
+                    setCatalogModalError("");
                     setCatalogModal(null);
                   }}
                   className="rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-gray-300 hover:bg-slate-900 disabled:opacity-50"
@@ -4438,7 +4520,7 @@ export default function AdminOrdersPage() {
                     catalogImageUploading ||
                     !secret.trim()
                   }
-                  onClick={submitCatalogModal}
+                  onClick={() => void submitCatalogModal()}
                   className="btn-primary px-4 py-1.5 text-xs disabled:opacity-50"
                 >
                   {t("admin.catalogSaveRow")}
@@ -4617,6 +4699,14 @@ export default function AdminOrdersPage() {
                   </p>
                 )}
               </div>
+              {toppingModalError ? (
+                <p
+                  className="mb-3 mt-2 text-xs font-medium leading-snug text-red-400/95"
+                  role="alert"
+                >
+                  {toppingModalError}
+                </p>
+              ) : null}
               <div className="mt-4 flex flex-wrap justify-end gap-2">
                 <button
                   type="button"
@@ -4625,6 +4715,7 @@ export default function AdminOrdersPage() {
                     if (toppingImageFileRef.current) {
                       toppingImageFileRef.current.value = "";
                     }
+                    setToppingModalError("");
                     setToppingModal(null);
                   }}
                   className="rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-gray-300 hover:bg-slate-900 disabled:opacity-50"
@@ -4638,7 +4729,7 @@ export default function AdminOrdersPage() {
                     toppingImageUploading ||
                     !secret.trim()
                   }
-                  onClick={submitToppingModal}
+                  onClick={() => void submitToppingModal()}
                   className="btn-primary px-4 py-1.5 text-xs disabled:opacity-50"
                 >
                   {t("admin.catalogSaveRow")}

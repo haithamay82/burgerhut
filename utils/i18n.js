@@ -781,6 +781,8 @@ const HE = {
   "admin.catalogSlugHint":
     "רק אותיות קטנות, מספרים ומקף. לא לשכפל מזהה של מנה קיימת.",
   "admin.catalogErrId": "מזהה לא תקין או כבר קיים.",
+  "admin.catalogErrIdDetail":
+    "מזהה לא תקין: השתמשו רק באותיות קטנות באנגלית, מספרים ומקף (ללא רווחים). לדוגמה: loaded-burger-bowl. אחרי בחירת תמונה יש ללחוץ «העלה» כדי לקבל קישור לפני השמירה.",
   "admin.catalogErrNames": "נדרשים שם בעברית ובערבית למנה חדשה.",
   "admin.catalogToppingsSectionTitle": "תוספות לבורגר ולקריספי",
   "admin.catalogToppingsHint":
@@ -1751,6 +1753,8 @@ const AR = {
   "admin.catalogSlugHint":
     "أحرف صغيرة وأرقام وشرطة فقط. لا تكرّر معرّف طبق موجود.",
   "admin.catalogErrId": "معرّف غير صالح أو موجود مسبقاً.",
+  "admin.catalogErrIdDetail":
+    "معرّف غير صالح: استخدموا أحرفاً إنجليزية صغيرة وأرقاماً وشرطة فقط (بلا مسافات). مثال: loaded-burger-bowl. بعد اختيار صورة اضغطوا «رفع» للحصول على رابط قبل الحفظ.",
   "admin.catalogErrNames": "يلزم اسم بالعبرية واسم بالعربية للطبق الجديد.",
   "admin.catalogToppingsSectionTitle": "إضافات البرغر والكرسبي",
   "admin.catalogToppingsHint":
