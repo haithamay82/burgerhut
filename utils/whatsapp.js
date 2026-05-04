@@ -122,23 +122,19 @@ export function formatPaymentLabelArabic(payment) {
 }
 
 /**
- * @param {{ customer: object, cart: object, total: number, payment: string, orderNumber?: number|string, locale?: 'he'|'ar' }} p
+ * @param {{ customer: object, cart: object, total: number, payment: string, locale?: 'he'|'ar' }} p
  */
 export function buildWhatsAppOrderText({
   customer,
   cart,
   total,
   payment,
-  orderNumber,
   locale = "he",
 }) {
   const tr = getTranslator(locale);
   const lines = [];
   lines.push(tr("wa.brand"));
   lines.push(waBoldLabel(tr("wa.newOrder")));
-  if (orderNumber !== undefined && orderNumber !== null && `${orderNumber}`.trim()) {
-    lines.push(`${waBoldLabel(tr("wa.orderNumber"))}: #${orderNumber}`);
-  }
   lines.push("");
   lines.push(`${waBoldLabel(tr("wa.name"))}: ${customer.name}`);
   lines.push(`${waBoldLabel(tr("wa.phone"))}: ${customer.phone}`);

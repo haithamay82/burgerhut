@@ -23,7 +23,7 @@ import {
 } from "@/lib/hypPayProtocol";
 import { formatFetchErrorDetail } from "@/lib/fetchErrorDetail";
 
-const ORDER_DESCRIPTION = "Burger Hut order";
+const ORDER_DESCRIPTION = "burger hut order";
 
 /** הסרת ערך signature מהלוג — לא לחשוף טוקן חתימה */
 function redactHypResponseForLog(text) {
@@ -90,19 +90,12 @@ export default async function handler(req, res) {
       ? body.uniqueId.trim().slice(0, 64)
       : crypto.randomUUID();
 
-  const orderNum =
-    body.orderNumber !== undefined && body.orderNumber !== null
-      ? String(body.orderNumber).trim()
-      : "";
-
   const lang =
     body.language === "ENG" || body.language === "HEB"
       ? body.language
       : "HEB";
 
-  const infoBits = [ORDER_DESCRIPTION, orderNum ? `#${orderNum}` : ""]
-    .filter(Boolean)
-    .join(" ");
+  const infoBits = ORDER_DESCRIPTION;
 
   const displayName =
     firstName || lastName
@@ -125,7 +118,6 @@ export default async function handler(req, res) {
     pritim = true;
   } else {
     heshDesc = buildInvoiceHeshDesc({
-      orderNumber: orderNum,
       amountNis: totalAmount,
     });
     pritim = false;

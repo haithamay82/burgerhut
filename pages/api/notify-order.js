@@ -30,7 +30,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ ok: false, error: "method_not_allowed" });
   }
 
-  const { customer, items, payment, orderNumber, locale } = req.body || {};
+  const { customer, items, payment, locale } = req.body || {};
 
   if (!customer || typeof customer !== "object") {
     return res.status(400).json({ ok: false, error: "invalid_customer" });
@@ -48,7 +48,6 @@ export default async function handler(req, res) {
     cart: { items },
     total,
     payment: payment || "cash",
-    orderNumber,
     locale: locale === "he" ? "he" : "ar",
   });
 
