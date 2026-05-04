@@ -765,8 +765,13 @@ const HE = {
   "admin.catalogPrice": "מחיר (₪)",
   "admin.catalogImage": "תמונה",
   "admin.catalogImageUrlHint":
-    "בחרו קובץ והעלו — התמונה תאוחסן אוטומטית (נדרש לפני שמירת מנה חדשה).",
-  "admin.catalogImageRequired": "יש להעלות תמונה לפני השמירה.",
+    "אפשר להדביק קישור לתמונה למטה, או לבחור קובץ וללחוץ «העלה». ההעלאה לענן עלולה לקחת כ־10–60 שניות ברשת נייד.",
+  "admin.catalogImageUrlPaste": "קישור ישיר לתמונה (אופציונלי)",
+  "admin.catalogImageUrlPasteHint":
+    "אם יש לכם כתובת https של תמונה — אין חובה להעלות קובץ. אם אין Blob ב־Vercel, זו הדרך המומלצת.",
+  "admin.catalogImageUploadWait":
+    "מעלה לשרת… אל תסגרו את החלון. ברשת איטית זה עלול לקחת עד דקה. אם נכשל — בדקו ש־BLOB_READ_WRITE_TOKEN מוגדר ב־Vercel או הדביקו קישור לתמונה.",
+  "admin.catalogImageRequired": "נדרש קישור לתמונה או תמונה שהועלתה בהצלחה לפני השמירה.",
   "admin.catalogUploadBtn": "העלה מהטלפון / מהמחשב",
   "admin.catalogImageUploading": "מעלה תמונה…",
   "admin.catalogImageUploaded": "התמונה הועלתה. שמרו את המנה כדי לשמור בקטלוג.",
@@ -782,7 +787,7 @@ const HE = {
     "רק אותיות קטנות, מספרים ומקף. לא לשכפל מזהה של מנה קיימת.",
   "admin.catalogErrId": "מזהה לא תקין או כבר קיים.",
   "admin.catalogErrIdDetail":
-    "מזהה לא תקין: השתמשו רק באותיות קטנות באנגלית, מספרים ומקף (ללא רווחים). לדוגמה: loaded-burger-bowl. אחרי בחירת תמונה יש ללחוץ «העלה» כדי לקבל קישור לפני השמירה.",
+    "מזהה לא תקין: השתמשו רק באותיות קטנות באנגלית, מספרים ומקף (ללא רווחים). לדוגמה: loaded-burger-bowl. לתמונה: הדביקו קישור https או לחצו «העלה» אחרי בחירת קובץ.",
   "admin.catalogErrNames": "נדרשים שם בעברית ובערבית למנה חדשה.",
   "admin.catalogToppingsSectionTitle": "תוספות לבורגר ולקריספי",
   "admin.catalogToppingsHint":
@@ -1737,8 +1742,13 @@ const AR = {
   "admin.catalogPrice": "السعر (₪)",
   "admin.catalogImage": "صورة",
   "admin.catalogImageUrlHint":
-    "اختروا ملفاً وارفعوه — تُخزَّن الصورة تلقائياً (مطلوب قبل حفظ طبق جديد).",
-  "admin.catalogImageRequired": "يرجى رفع صورة قبل الحفظ.",
+    "يمكن لصق رابط الصورة أدناه، أو اختيار ملف ثم «رفع». الرفع للسحابة قد يستغرق نحو 10–60 ثانية على شبكة الجوال.",
+  "admin.catalogImageUrlPaste": "رابط مباشر للصورة (اختياري)",
+  "admin.catalogImageUrlPasteHint":
+    "إذا لديكم عنوان https لصورة — لا يلزم رفع ملف. إذا لم يُضبط Blob في Vercel، هذا الخيار الأنسب.",
+  "admin.catalogImageUploadWait":
+    "جارٍ الرفع للخادم… لا تغلقوا النافذة. على شبكة بطيئة قد يستغرق ذلك حتى دقيقة. إذا فشل — تحققوا من BLOB_READ_WRITE_TOKEN في Vercel أو الصقوا رابط صورة.",
+  "admin.catalogImageRequired": "يلزم رابط صورة أو صورة رُفعت بنجاح قبل الحفظ.",
   "admin.catalogUploadBtn": "رفع من الهاتف / الجهاز",
   "admin.catalogImageUploading": "جارٍ رفع الصورة…",
   "admin.catalogImageUploaded": "تم رفع الصورة. احفظوا الطبق لحفظه في الكتالوج.",
@@ -1754,7 +1764,7 @@ const AR = {
     "أحرف صغيرة وأرقام وشرطة فقط. لا تكرّر معرّف طبق موجود.",
   "admin.catalogErrId": "معرّف غير صالح أو موجود مسبقاً.",
   "admin.catalogErrIdDetail":
-    "معرّف غير صالح: استخدموا أحرفاً إنجليزية صغيرة وأرقاماً وشرطة فقط (بلا مسافات). مثال: loaded-burger-bowl. بعد اختيار صورة اضغطوا «رفع» للحصول على رابط قبل الحفظ.",
+    "معرّف غير صالح: استخدموا أحرفاً إنجليزية صغيرة وأرقاماً وشرطة فقط (بلا مسافات). مثال: loaded-burger-bowl. للصورة: الصقوا رابط https أو اضغطوا «رفع» بعد اختيار ملف.",
   "admin.catalogErrNames": "يلزم اسم بالعبرية واسم بالعربية للطبق الجديد.",
   "admin.catalogToppingsSectionTitle": "إضافات البرغر والكرسبي",
   "admin.catalogToppingsHint":

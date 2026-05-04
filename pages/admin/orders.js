@@ -766,10 +766,10 @@ export default function AdminOrdersPage() {
     if (!secret.trim() || !toppingModal) return;
     const file = toppingImageFileRef.current?.files?.[0];
     if (!file) {
-      setCatalogMsg("");
-      setError(t("admin.sliderErrMissing"));
+      setToppingModalError(t("admin.sliderErrMissing"));
       return;
     }
+    setToppingModalError("");
     setError("");
     setCatalogMsg("");
     setToppingImageUploading(true);
@@ -786,10 +786,9 @@ export default function AdminOrdersPage() {
       );
       const url = String(result?.url || "");
       if (!url) {
-        setCatalogMsg(t("admin.catalogErr"));
+        setToppingModalError(t("admin.catalogErr"));
         return;
       }
-      setToppingModalError("");
       setToppingModal((prev) =>
         prev ? { ...prev, draft: { ...prev.draft, image: url } } : null
       );
@@ -801,11 +800,13 @@ export default function AdminOrdersPage() {
         msg.includes("blob_not_configured") ||
         msg.includes("BLOB_READ_WRITE_TOKEN");
       if (isBlobDisabled) {
-        setError(t("admin.promoErrBlobConfig"));
+        setToppingModalError(t("admin.promoErrBlobConfig"));
       } else if (msg) {
-        setError(`${t("admin.promoErrBlobUpload")} (${msg})`);
+        setToppingModalError(
+          `${t("admin.promoErrBlobUpload")} (${msg.slice(0, 160)})`
+        );
       } else {
-        setError(t("admin.errNet"));
+        setToppingModalError(t("admin.errNet"));
       }
     } finally {
       setToppingImageUploading(false);
@@ -1922,10 +1923,10 @@ export default function AdminOrdersPage() {
     if (!secret.trim() || !catalogModal) return;
     const file = catalogImageFileRef.current?.files?.[0];
     if (!file) {
-      setCatalogMsg("");
-      setError(t("admin.sliderErrMissing"));
+      setCatalogModalError(t("admin.sliderErrMissing"));
       return;
     }
+    setCatalogModalError("");
     setError("");
     setCatalogMsg("");
     setCatalogImageUploading(true);
@@ -1942,10 +1943,9 @@ export default function AdminOrdersPage() {
       );
       const url = String(result?.url || "");
       if (!url) {
-        setCatalogMsg(t("admin.catalogErr"));
+        setCatalogModalError(t("admin.catalogErr"));
         return;
       }
-      setCatalogModalError("");
       setCatalogModal((prev) =>
         prev ? { ...prev, draft: { ...prev.draft, image: url } } : null
       );
@@ -1957,11 +1957,13 @@ export default function AdminOrdersPage() {
         msg.includes("blob_not_configured") ||
         msg.includes("BLOB_READ_WRITE_TOKEN");
       if (isBlobDisabled) {
-        setError(t("admin.promoErrBlobConfig"));
+        setCatalogModalError(t("admin.promoErrBlobConfig"));
       } else if (msg) {
-        setError(`${t("admin.promoErrBlobUpload")} (${msg})`);
+        setCatalogModalError(
+          `${t("admin.promoErrBlobUpload")} (${msg.slice(0, 160)})`
+        );
       } else {
-        setError(t("admin.errNet"));
+        setCatalogModalError(t("admin.errNet"));
       }
     } finally {
       setCatalogImageUploading(false);
@@ -4374,6 +4376,36 @@ export default function AdminOrdersPage() {
                   <p className="text-[10px] leading-snug text-gray-500">
                     {t("admin.catalogImageUrlHint")}
                   </p>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-[10px] text-gray-500">
+                      {t("admin.catalogImageUrlPaste")}
+                    </span>
+                    <input
+                      type="text"
+                      inputMode="url"
+                      autoComplete="off"
+                      value={catalogModal.draft.image}
+                      disabled={catalogSaving || catalogImageUploading}
+                      onChange={(e) =>
+                        setCatalogModal((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                draft: {
+                                  ...prev.draft,
+                                  image: e.target.value,
+                                },
+                              }
+                            : null
+                        )
+                      }
+                      placeholder="https://…"
+                      className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-[11px] text-gray-100 placeholder:text-gray-600 disabled:opacity-50"
+                    />
+                  </label>
+                  <p className="text-[10px] leading-snug text-gray-500">
+                    {t("admin.catalogImageUrlPasteHint")}
+                  </p>
                   <input
                     ref={catalogImageFileRef}
                     type="file"
@@ -4383,7 +4415,7 @@ export default function AdminOrdersPage() {
                   />
                   <button
                     type="button"
-                    onClick={uploadCatalogMenuImage}
+                    onClick={() => void uploadCatalogMenuImage()}
                     disabled={
                       catalogSaving ||
                       catalogImageUploading ||
@@ -4395,6 +4427,11 @@ export default function AdminOrdersPage() {
                       ? t("admin.catalogImageUploading")
                       : t("admin.catalogUploadBtn")}
                   </button>
+                  {catalogImageUploading ? (
+                    <p className="rounded-lg border border-amber-700/40 bg-amber-950/35 px-2 py-2 text-[11px] leading-snug text-amber-100/95">
+                      {t("admin.catalogImageUploadWait")}
+                    </p>
+                  ) : null}
                   {catalogModal.draft.image ? (
                     <div className="mt-1">
                       <img
@@ -4600,6 +4637,36 @@ export default function AdminOrdersPage() {
                   <p className="text-[10px] leading-snug text-gray-500">
                     {t("admin.catalogImageUrlHint")}
                   </p>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-[10px] text-gray-500">
+                      {t("admin.catalogImageUrlPaste")}
+                    </span>
+                    <input
+                      type="text"
+                      inputMode="url"
+                      autoComplete="off"
+                      value={toppingModal.draft.image}
+                      disabled={catalogSaving || toppingImageUploading}
+                      onChange={(e) =>
+                        setToppingModal((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                draft: {
+                                  ...prev.draft,
+                                  image: e.target.value,
+                                },
+                              }
+                            : null
+                        )
+                      }
+                      placeholder="https://…"
+                      className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-[11px] text-gray-100 placeholder:text-gray-600 disabled:opacity-50"
+                    />
+                  </label>
+                  <p className="text-[10px] leading-snug text-gray-500">
+                    {t("admin.catalogImageUrlPasteHint")}
+                  </p>
                   <input
                     ref={toppingImageFileRef}
                     type="file"
@@ -4619,6 +4686,11 @@ export default function AdminOrdersPage() {
                       ? t("admin.catalogImageUploading")
                       : t("admin.catalogUploadBtn")}
                   </button>
+                  {toppingImageUploading ? (
+                    <p className="rounded-lg border border-amber-700/40 bg-amber-950/35 px-2 py-2 text-[11px] leading-snug text-amber-100/95">
+                      {t("admin.catalogImageUploadWait")}
+                    </p>
+                  ) : null}
                   {toppingModal.draft.image ? (
                     <img
                       src={toppingModal.draft.image}
