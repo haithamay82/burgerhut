@@ -18,7 +18,9 @@
     "vercel:prod": "npx --yes vercel deploy --prod",
     "icons:pwa": "node scripts/generate-pwa-icons.js",
     "og:share": "node scripts/generate-og-share.js",
-    "vapid:keys": "node scripts/gen-vapid-keys.js"
+    "vapid:keys": "node scripts/gen-vapid-keys.js",
+    "kv:prune-april-2026": "node scripts/kv-prune-orders.js --april-2026",
+    "kv:prune-april-2026:dry": "node scripts/kv-prune-orders.js --dry-run --april-2026"
   },
   "dependencies": {
     "@upstash/redis": "^1.37.0",
