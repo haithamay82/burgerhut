@@ -404,6 +404,12 @@ export const MENU_ITEMS = [
     image: IMG_DRINK_XL_TEN,
   },
   {
+    id: "drink-blue-mojito",
+    basePrice: 6,
+    category: "drinks",
+    image: IMG_DRINK_XL_TEN,
+  },
+  {
     id: "drink-soda",
     basePrice: 6,
     category: "drinks",

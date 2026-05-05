@@ -215,6 +215,8 @@ const HE = {
   "menu.drink-xl-ten.name": "XL TEN",
   "menu.drink-xl-ten.desc":
     "משקה אנרגיה מוגז ללא סוכר — פחית 250 מ״ל (10 קלוריות).",
+  "menu.drink-blue-mojito.name": "BLUE מוחיטו",
+  "menu.drink-blue-mojito.desc": "משקה אנרגיה BLUE בטעם מוחיטו.",
   "menu.drink-soda.name": "סודה",
   "menu.drink-soda.desc": "Schweppes — מי סודה מוגז.",
   "menu.drink-water-small.name": "מיי עדן",
@@ -1189,6 +1191,8 @@ const AR = {
   "menu.drink-xl-ten.name": "XL TEN",
   "menu.drink-xl-ten.desc":
     "مشروب طاقة فوّار بدون سكر، علبة 250 مل (10 سعرات).",
+  "menu.drink-blue-mojito.name": "BLUE موهيتو",
+  "menu.drink-blue-mojito.desc": "مشروب طاقة BLUE بنكهة موهيتو.",
   "menu.drink-soda.name": "صودا",
   "menu.drink-soda.desc": "Schweppes — مياه صودا فوّارة.",
   "menu.drink-water-small.name": "ماي عدن",
