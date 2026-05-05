@@ -135,6 +135,7 @@ const IMG_DRINK_COLA_15L = "/menu/drink-cola-15l.png";
 const IMG_DRINK_ZERO_15L = "/menu/drink-zero-15l.png";
 const IMG_DRINK_XL = "/menu/drink-xl.png";
 const IMG_DRINK_XL_TEN = "/menu/drink-xl-ten.png";
+const IMG_DRINK_BLUE_MOJITO = "/menu/drink-blue-mojito.png";
 const IMG_DRINK_FRESH_STRAWBERRY = "/menu/drink-fresh-strawberry.png";
 const IMG_SIDE_MIX = "/menu/side-mix.png";
 const IMG_SIDE_FRIES = "/menu/side-fries.png";
@@ -407,7 +408,7 @@ export const MENU_ITEMS = [
     id: "drink-blue-mojito",
     basePrice: 6,
     category: "drinks",
-    image: IMG_DRINK_XL_TEN,
+    image: IMG_DRINK_BLUE_MOJITO,
   },
   {
     id: "drink-soda",
