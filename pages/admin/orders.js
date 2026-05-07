@@ -3973,6 +3973,18 @@ export default function AdminOrdersPage() {
                                 <p className="text-xs text-gray-400">
                                   {o.customer?.phone}
                                 </p>
+                                <button
+                                  type="button"
+                                  onClick={() => markOrderDone(o.id)}
+                                  disabled={Boolean(isDoneOrder) || completingId !== null}
+                                  className="mt-2 rounded-lg border border-emerald-700/60 bg-emerald-900/20 px-2 py-1 text-[11px] text-emerald-300 hover:bg-emerald-900/35 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                  {completingId === o.id
+                                    ? t("admin.markingDone")
+                                    : isDoneOrder
+                                      ? t("admin.doneStatus")
+                                      : t("admin.markDone")}
+                                </button>
                               </div>
                               <div className="text-right">
                                 <p className="text-xs font-semibold text-primary">
@@ -4011,18 +4023,6 @@ export default function AdminOrdersPage() {
                                   className="mt-2 flex w-full items-center justify-between gap-2"
                                   style={{ direction: "ltr" }}
                                 >
-                                  <button
-                                    type="button"
-                                    onClick={() => markOrderDone(o.id)}
-                                    disabled={Boolean(isDoneOrder) || completingId !== null}
-                                    className="rounded-lg border border-emerald-700/60 bg-emerald-900/20 px-2 py-1 text-[11px] text-emerald-300 hover:bg-emerald-900/35 disabled:cursor-not-allowed disabled:opacity-50"
-                                  >
-                                    {completingId === o.id
-                                      ? t("admin.markingDone")
-                                      : isDoneOrder
-                                        ? t("admin.doneStatus")
-                                        : t("admin.markDone")}
-                                  </button>
                                   <button
                                     type="button"
                                     onClick={() => deleteOrder(o.id)}
