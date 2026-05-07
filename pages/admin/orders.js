@@ -4007,17 +4007,10 @@ export default function AdminOrdersPage() {
                                     </p>
                                   ) : null}
                                 </div>
-                                <div className="mt-2 flex flex-wrap justify-end gap-2">
-                                  <button
-                                    type="button"
-                                    onClick={() => deleteOrder(o.id)}
-                                    disabled={deletingId !== null}
-                                    className="rounded-lg border border-red-900/50 bg-red-950/20 px-2 py-1 text-[11px] text-red-300 hover:bg-red-950/40 disabled:cursor-not-allowed disabled:opacity-50"
-                                  >
-                                    {deletingId === o.id
-                                      ? t("admin.deleting")
-                                      : t("admin.delete")}
-                                  </button>
+                                <div
+                                  className="mt-2 flex w-full items-center justify-between gap-2"
+                                  style={{ direction: "ltr" }}
+                                >
                                   <button
                                     type="button"
                                     onClick={() => markOrderDone(o.id)}
@@ -4029,6 +4022,16 @@ export default function AdminOrdersPage() {
                                       : isDoneOrder
                                         ? t("admin.doneStatus")
                                         : t("admin.markDone")}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => deleteOrder(o.id)}
+                                    disabled={deletingId !== null}
+                                    className="rounded-lg border border-red-900/50 bg-red-950/20 px-2 py-1 text-[11px] text-red-300 hover:bg-red-950/40 disabled:cursor-not-allowed disabled:opacity-50"
+                                  >
+                                    {deletingId === o.id
+                                      ? t("admin.deleting")
+                                      : t("admin.delete")}
                                   </button>
                                 </div>
                               </div>
