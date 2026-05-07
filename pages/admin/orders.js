@@ -333,6 +333,7 @@ export default function AdminOrdersPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [completingId, setCompletingId] = useState(null);
   const [manualUnavailableIds, setManualUnavailableIds] = useState([]);
   /** מלאי קציצות לפי גרם — null = מעקב כבוי */
   const [pattyStock, setPattyStock] = useState(null);
@@ -1531,6 +1532,43 @@ export default function AdminOrdersPage() {
       setError(t("admin.errNet"));
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const markOrderDone = async (orderId) => {
+    if (!secret.trim()) return;
+    setError("");
+    setCompletingId(orderId);
+    try {
+      const r = await fetch(`/api/orders?id=${encodeURIComponent(orderId)}`, {
+        method: "PATCH",
+        headers: { "x-admin-secret": secret.trim() },
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setError(t("admin.doneErr"));
+        return;
+      }
+      setOrders((prev) =>
+        prev.map((o) => {
+          if (o.id !== orderId) return o;
+          if (d?.order && typeof d.order === "object") {
+            return { ...o, ...d.order, meta: d.order.meta || o.meta || {} };
+          }
+          return {
+            ...o,
+            meta: {
+              ...(o.meta || {}),
+              adminDone: true,
+              adminDoneAt: new Date().toISOString(),
+            },
+          };
+        })
+      );
+    } catch {
+      setError(t("admin.errNet"));
+    } finally {
+      setCompletingId(null);
     }
   };
 
@@ -3916,10 +3954,16 @@ export default function AdminOrdersPage() {
                       </p>
                     ) : (
                       <div className="space-y-3">
-                        {selectedDayOrders.map((o) => (
+                        {selectedDayOrders.map((o) => {
+                          const isDoneOrder = Boolean(o?.meta?.adminDone || o?.meta?.adminDoneAt);
+                          return (
                           <article
                             key={o.id}
-                            className="rounded-2xl border border-slate-800 bg-slate-900/70 p-3 text-sm"
+                            className={`rounded-2xl border p-3 text-sm ${
+                              isDoneOrder
+                                ? "border-emerald-700/60 bg-emerald-950/25"
+                                : "border-slate-800 bg-slate-900/70"
+                            }`}
                           >
                             <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
                               <div>
@@ -3937,6 +3981,11 @@ export default function AdminOrdersPage() {
                                 <p className="text-xs text-gray-500">
                                   {formatTime(o.createdAt, locale)}
                                 </p>
+                                {isDoneOrder ? (
+                                  <p className="text-[11px] font-semibold text-emerald-300">
+                                    {t("admin.doneStatus")}
+                                  </p>
+                                ) : null}
                                 <p className="text-xs text-gray-400">
                                   {t("admin.payment")}:{" "}
                                   {t(`payment.${o.payment}`) || o.payment}
@@ -3958,16 +4007,30 @@ export default function AdminOrdersPage() {
                                     </p>
                                   ) : null}
                                 </div>
-                                <button
-                                  type="button"
-                                  onClick={() => deleteOrder(o.id)}
-                                  disabled={deletingId !== null}
-                                  className="mt-2 rounded-lg border border-red-900/50 bg-red-950/20 px-2 py-1 text-[11px] text-red-300 hover:bg-red-950/40 disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                  {deletingId === o.id
-                                    ? t("admin.deleting")
-                                    : t("admin.delete")}
-                                </button>
+                                <div className="mt-2 flex flex-wrap justify-end gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => markOrderDone(o.id)}
+                                    disabled={Boolean(isDoneOrder) || completingId !== null}
+                                    className="rounded-lg border border-emerald-700/60 bg-emerald-900/20 px-2 py-1 text-[11px] text-emerald-300 hover:bg-emerald-900/35 disabled:cursor-not-allowed disabled:opacity-50"
+                                  >
+                                    {completingId === o.id
+                                      ? t("admin.markingDone")
+                                      : isDoneOrder
+                                        ? t("admin.doneStatus")
+                                        : t("admin.markDone")}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => deleteOrder(o.id)}
+                                    disabled={deletingId !== null}
+                                    className="rounded-lg border border-red-900/50 bg-red-950/20 px-2 py-1 text-[11px] text-red-300 hover:bg-red-950/40 disabled:cursor-not-allowed disabled:opacity-50"
+                                  >
+                                    {deletingId === o.id
+                                      ? t("admin.deleting")
+                                      : t("admin.delete")}
+                                  </button>
+                                </div>
                               </div>
                             </div>
                             {o.customer?.address ? (
@@ -4271,7 +4334,8 @@ export default function AdminOrdersPage() {
                               {t("admin.orderId")}: {o.id}
                             </p>
                           </article>
-                        ))}
+                        );
+                        })}
                       </div>
                     )}
                   </>

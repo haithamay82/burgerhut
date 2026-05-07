@@ -3,6 +3,7 @@ import {
   appendOrder,
   deleteOrderById,
   listOrdersForAdmin,
+  markOrderDoneById,
 } from "@/lib/ordersStore";
 import { broadcastNewOrderToAdmins } from "@/lib/adminPushNotify";
 import {
@@ -280,6 +281,37 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true });
   }
 
-  res.setHeader("Allow", "GET, POST, DELETE");
+  if (req.method === "PATCH") {
+    const auth = authorize(req);
+    if (!auth.ok) {
+      if (auth.reason === "not_configured") {
+        return res.status(503).json({
+          ok: false,
+          error: "admin_not_configured",
+          hint: "Set ADMIN_ORDERS_SECRET in .env.local or Vercel env.",
+        });
+      }
+      return res.status(401).json({ ok: false, error: "unauthorized" });
+    }
+    const rawId = req.query.id;
+    const id = typeof rawId === "string" ? rawId.trim() : "";
+    if (!id) {
+      return res.status(400).json({ ok: false, error: "missing_id" });
+    }
+    const result = await markOrderDoneById(id);
+    if (!result.ok) {
+      if (result.error === "not_found") {
+        return res.status(404).json({ ok: false, error: "not_found" });
+      }
+      return res.status(400).json({ ok: false, error: result.error });
+    }
+    return res.status(200).json({
+      ok: true,
+      already: Boolean(result.already),
+      order: result.order || null,
+    });
+  }
+
+  res.setHeader("Allow", "GET, POST, DELETE, PATCH");
   return res.status(405).json({ ok: false, error: "method_not_allowed" });
 }
