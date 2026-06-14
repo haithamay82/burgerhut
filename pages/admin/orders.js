@@ -63,6 +63,7 @@ import { aggregateMealFriesCartSummary } from "@/utils/mealFriesCartSummary";
 import {
   getAdminLocalPushSubscribed,
   subscribeAdminWebPush,
+  syncAdminWebPushToServer,
   unsubscribeAdminWebPush,
 } from "@/utils/adminPushClient";
 import html2canvas from "html2canvas";
@@ -441,6 +442,7 @@ export default function AdminOrdersPage() {
   const [adminPushServerStatus, setAdminPushServerStatus] = useState(null);
   const [adminPushClearBusy, setAdminPushClearBusy] = useState(false);
   const [adminPushClearMsg, setAdminPushClearMsg] = useState("");
+  const [adminPushTestBusy, setAdminPushTestBusy] = useState(false);
   const [adminClientReady, setAdminClientReady] = useState(false);
   const [sliderImages, setSliderImages] = useState([]);
   const [sliderDisplayEnabled, setSliderDisplayEnabled] = useState(true);
@@ -1393,6 +1395,75 @@ export default function AdminOrdersPage() {
       document.removeEventListener("visibilitychange", onVis);
     };
   }, [loaded, adminClientReady, notifyPermissionNonce]);
+
+  /** סנכרון מנוי Push מקומי לשרת בכל טעינת ניהול — מונע «ירוק» מקומי בלי מנוי בשרת */
+  useEffect(() => {
+    if (!loaded || !adminClientReady || typeof window === "undefined") return;
+    if (Notification.permission !== "granted") return;
+    const s = secret.trim();
+    if (!s) return;
+    let cancelled = false;
+    void (async () => {
+      const local = await getAdminLocalPushSubscribed();
+      if (!local || cancelled) return;
+      const r = await syncAdminWebPushToServer(s);
+      if (!cancelled && r.ok) void refreshAdminPushServerStatus();
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [loaded, adminClientReady, secret, notifyPermissionNonce, refreshAdminPushServerStatus]);
+
+  const runAdminPushTest = async () => {
+    const s = secret.trim();
+    if (!s || adminPushTestBusy) return;
+    setAdminPushTestBusy(true);
+    setAdminPushMsg("");
+    try {
+      if (
+        typeof Notification !== "undefined" &&
+        Notification.permission === "granted"
+      ) {
+        const local = await getAdminLocalPushSubscribed();
+        if (local) {
+          await syncAdminWebPushToServer(s);
+        } else {
+          const sub = await subscribeAdminWebPush(s);
+          if (sub.ok) setAdminLocalPushSubscribed(true);
+        }
+      }
+      const r = await fetch("/api/admin/push/test", {
+        method: "POST",
+        headers: { "x-admin-secret": s },
+      });
+      const d = await r.json().catch(() => ({}));
+      void refreshAdminPushServerStatus();
+      if (!r.ok || !d.ok) {
+        if (d.error === "no_subscriptions") {
+          setAdminPushMsg(t("admin.pushTestNoSubs"));
+        } else if (d.error === "vapid_not_configured") {
+          setAdminPushMsg(t("admin.pushSubscribeSkip"));
+        } else {
+          setAdminPushMsg(t("admin.pushTestErr"));
+        }
+        return;
+      }
+      if (Number(d.sent) > 0) {
+        setAdminPushMsg(
+          t("admin.pushTestOk").replace("{n}", String(d.sent))
+        );
+      } else if (Number(d.removed) > 0) {
+        setAdminPushMsg(t("admin.pushTestStale"));
+        setAdminLocalPushSubscribed(false);
+      } else {
+        setAdminPushMsg(t("admin.pushTestFail"));
+      }
+    } catch {
+      setAdminPushMsg(t("admin.pushTestErr"));
+    } finally {
+      setAdminPushTestBusy(false);
+    }
+  };
 
   useEffect(() => {
     if (!loaded) {
@@ -2406,6 +2477,23 @@ export default function AdminOrdersPage() {
                       <p className="mt-2 leading-snug text-emerald-100/75">
                         {t("admin.pushPerDeviceHint")}
                       </p>
+                      {adminLocalPushSubscribed === true &&
+                      adminPushServerStatus &&
+                      adminPushServerStatus.subscriptionCount === 0 ? (
+                        <p className="mt-2 rounded-lg border border-amber-600/50 bg-amber-950/40 px-2 py-1.5 leading-snug text-amber-100">
+                          {t("admin.pushServerMissingHint")}
+                        </p>
+                      ) : null}
+                      <button
+                        type="button"
+                        disabled={adminPushTestBusy || !secret.trim()}
+                        onClick={() => void runAdminPushTest()}
+                        className="mt-2 rounded-lg border border-slate-600/70 bg-slate-900/50 px-3 py-1.5 text-[11px] font-semibold text-gray-100 hover:bg-slate-800/60 disabled:opacity-50"
+                      >
+                        {adminPushTestBusy
+                          ? t("admin.pushTestWorking")
+                          : t("admin.pushTestBtn")}
+                      </button>
                     </div>
                   ) : Notification.permission === "denied" ? (
                     <div className="mb-4 space-y-2 text-[11px] leading-snug text-gray-500">

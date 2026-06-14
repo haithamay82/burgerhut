@@ -34,6 +34,52 @@ export async function getAdminLocalPushSubscribed() {
 }
 
 /**
+ * שמירת מנוי Push קיים בשרת (בלי unsubscribe/resubscribe).
+ * @param {string} adminSecret
+ * @returns {Promise<{ ok: true } | { ok: false, error: string }>}
+ */
+export async function syncAdminWebPushToServer(adminSecret) {
+  if (typeof window === "undefined") {
+    return { ok: false, error: "no_window" };
+  }
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+    return { ok: false, error: "push_unavailable" };
+  }
+  const secret = String(adminSecret || "").trim();
+  if (!secret) return { ok: false, error: "no_secret" };
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (!sub) return { ok: false, error: "no_local_subscription" };
+    const pushClientId = getOrCreateAdminPushDeviceId();
+    if (!isValidPushClientId(pushClientId)) {
+      return { ok: false, error: "no_push_client_id" };
+    }
+    const r = await fetch("/api/admin/push/subscribe", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-admin-secret": secret,
+      },
+      body: JSON.stringify({
+        subscription: sub.toJSON(),
+        pushClientId,
+      }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.ok) {
+      if (d.error === "redis_not_configured") {
+        return { ok: false, error: "redis_not_configured" };
+      }
+      return { ok: false, error: d.error || "subscribe_failed" };
+    }
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "subscribe_failed" };
+  }
+}
+
+/**
  * רישום Web Push למכשיר הנוכחי (אחרי הרשאת התראות).
  * @param {string} adminSecret
  * @returns {Promise<{ ok: true } | { ok: false, error: string }>}

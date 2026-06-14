@@ -708,6 +708,19 @@ const HE = {
   "admin.pushClearAllVerifyErr":
     "המחיקה לא אומתה (נשארו שדות ב־Redis). נסו שוב או בדקו במסוף Upstash/Vercel KV.",
   "admin.pushClearAllWorking": "מוחק…",
+  "admin.pushServerMissingHint":
+    "במכשיר הזה יש מנוי Push מקומי, אבל בשרת אין מנוי שמור — לחצו «עדכן רישום Push» או «שלח בדיקת Push».",
+  "admin.pushTestBtn": "שלח בדיקת Push",
+  "admin.pushTestWorking": "שולח בדיקה…",
+  "admin.pushTestOk":
+    "נשלחה הודעת בדיקה ל-{n} מכשיר/ים. אם לא קיבלתם — לחצו «עדכן רישום Push» ונסו שוב.",
+  "admin.pushTestNoSubs":
+    "אין מנוי Push בשרת. לחצו «עדכן רישום Push (מחדש)» במכשיר הזה.",
+  "admin.pushTestStale":
+    "המנוי בשרת היה לא תקף (למשל אחרי שינוי מפתחות VAPID) ונמחק. לחצו «עדכן רישום Push (מחדש)».",
+  "admin.pushTestFail":
+    "הבדיקה נכשלה לכל המנויים. לחצו «עדכן רישום Push (מחדש)».",
+  "admin.pushTestErr": "שליחת בדיקת Push נכשלה. נסו שוב.",
   "admin.secretLabel": "קוד מנהל",
   "admin.secretPh": "סיסמה",
   "admin.load": "כניסה",
@@ -1698,6 +1711,19 @@ const AR = {
   "admin.pushClearAllVerifyErr":
     "لم يُؤكَّد الحذف (بقيت حقول في Redis). حاولوا مرة أخرى أو راجعوا Upstash/Vercel KV.",
   "admin.pushClearAllWorking": "جارٍ الحذف…",
+  "admin.pushServerMissingHint":
+    "يوجد اشتراك Push محلي على هذا الجهاز، لكن لا يوجد اشتراك محفوظ على الخادم — اضغطوا «تحديث تسجيل Push» أو «إرسال اختبار Push».",
+  "admin.pushTestBtn": "إرسال اختبار Push",
+  "admin.pushTestWorking": "جارٍ إرسال الاختبار…",
+  "admin.pushTestOk":
+    "أُرسلت رسالة اختبار إلى {n} جهاز/أجهزة. إن لم تصل — حدّثوا التسجيل وحاولوا مجدداً.",
+  "admin.pushTestNoSubs":
+    "لا يوجد اشتراك Push على الخادم. اضغطوا «تحديث تسجيل Push (من جديد)» على هذا الجهاز.",
+  "admin.pushTestStale":
+    "كان الاشتراك على الخادم غير صالح (مثلاً بعد تغيير مفاتيح VAPID) وحُذف. حدّثوا التسجيل.",
+  "admin.pushTestFail":
+    "فشل الاختبار لجميع الاشتراكات. اضغطوا «تحديث تسجيل Push (من جديد)».",
+  "admin.pushTestErr": "فشل إرسال اختبار Push. حاولوا مرة أخرى.",
   "admin.secretLabel": "رمز المشرف",
   "admin.secretPh": "كلمة المرور",
   "admin.load": "دخول",
