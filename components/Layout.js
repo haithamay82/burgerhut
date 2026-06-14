@@ -2,6 +2,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import FloatingWhatsAppButton from "./FloatingWhatsAppButton";
+import PreOpeningDialog from "./PreOpeningDialog";
 import CurrentDateTime from "./CurrentDateTime";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -225,6 +226,7 @@ export default function Layout({ children }) {
         {children}
       </main>
       <FloatingWhatsAppButton />
+      <PreOpeningDialog />
 
       {hoursOpen ? (
         <div

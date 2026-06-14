@@ -202,6 +202,40 @@ export function isOrderingAllowedAt(date = new Date(), days) {
 }
 
 /**
+ * 10:00–שעת פתיחת המטבח (לפני תחילת עבודה) — להצגת דיאלוג «המסעדה סגורה כעת».
+ * @param {Date} [date]
+ * @param {{ weekday: number, enabled: boolean, open: string, close: string }[] | null | undefined} days
+ * @returns {boolean}
+ */
+export function isInPreOpeningDialogWindow(date = new Date(), days) {
+  const { h, m } = getJerusalemHourMinute(date);
+  const curMin = h * 60 + m;
+  if (curMin < ORDER_WINDOW_EARLIEST_MIN) return false;
+
+  if (days && Array.isArray(days) && days.length === 7) {
+    const wd = getJerusalemWeekday(date);
+    const prevWd = (wd - 1 + 7) % 7;
+    const prevRow = rowByWeekday(days, prevWd);
+    if (isInOvernightMorningTail(prevRow, curMin)) return false;
+    const todayRow = rowByWeekday(days, wd);
+    if (!rowScheduleEnabled(todayRow)) return false;
+    if (isInTodayBusinessWindow(todayRow, curMin)) return false;
+    const openM = parseHHmmToMinutes(todayRow.open);
+    if (openM === null || openM <= ORDER_WINDOW_EARLIEST_MIN) return false;
+    return curMin >= ORDER_WINDOW_EARLIEST_MIN && curMin < openM;
+  }
+
+  const fallbackOpenM = parseHHmmToMinutes(DEFAULT_OPEN_DISPLAY);
+  if (fallbackOpenM === null || curMin >= fallbackOpenM) return false;
+  return curMin >= ORDER_WINDOW_EARLIEST_MIN && curMin < fallbackOpenM;
+}
+
+/** מפתח יום בלוח ירושלים — לשמירת «הבנתי» בדיאלוג טרום-פתיחה */
+export function jerusalemDayKey(date = new Date()) {
+  return date.toLocaleDateString("en-CA", { timeZone: TZ });
+}
+
+/**
  * @deprecated Use isOrderingAllowedAt(date, days) with schedule; fallback 10:00–22:00 when no schedule.
  * @param {Date} [date]
  */

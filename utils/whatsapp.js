@@ -3,7 +3,7 @@ import { getTranslator, t as tFn } from "@/utils/i18n";
 import { cartLineProductId } from "@/hooks/useCart";
 import { formatIls, lineTotal, safeQty } from "@/utils/cartMoney";
 import { MENU_ITEMS } from "@/utils/menuData";
-import { sortSaladsForDisplay } from "@/utils/saladDisplayOrder";
+import { formatCartLineSaladsForOrder } from "@/utils/saladDisplayOrder";
 import { specialBurgerMenuDescription } from "@/utils/specialBurgerMealDescription";
 
 const MENU_CATEGORY_BY_PRODUCT_ID = new Map(
@@ -213,13 +213,9 @@ export function buildWhatsAppOrderText({
     const cat = catalogCategoryForCartLine(item);
 
     const pushSalads = () => {
-      if (item.salads?.length) {
-        lines.push(
-          `   ${waBoldLabel(tr("wa.salads"))}: ${sortSaladsForDisplay(item.salads)
-            .map((x) => x.label)
-            .join(", ")}`
-        );
-      }
+      const saladsText = formatCartLineSaladsForOrder(item, tr);
+      if (saladsText == null) return;
+      lines.push(`   ${waBoldLabel(tr("wa.salads"))}: ${saladsText}`);
     };
     const pushSpecialMealBlocks = () => {
       const specialMealDesc = specialBurgerMenuDescription(

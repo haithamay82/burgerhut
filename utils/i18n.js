@@ -49,6 +49,12 @@ const HE = {
     "המסעדה תיפתח בשעה 16:00 — ניתן לעשות הזמנה משעה 10:00 עד שעת הסגירה באותו יום.",
   "home.preOrderBanner":
     "אפשר לשלוח הזמנות עכשיו. תחילת עבודה שעה {openTime}",
+  "home.preOpenDialogTitle": "שימו לב",
+  "home.preOpenDialogLine1":
+    "המסעדה סגורה כעת, תיפתח בשעה {openTime}.",
+  "home.preOpenDialogLine2":
+    "ניתן לבצע הזמנה. תחילת העבודה שעה {openTime}.",
+  "home.preOpenDialogAck": "הבנתי",
   "home.orderingClosedBannerDayOff": "המסעדה סגורה ב{day}",
   "home.discountAnnounceWithReason":
     "עקב {reason} מחכה לכם הנחה של {percent}% בקניה מעל {min}.",
@@ -375,6 +381,7 @@ const HE = {
   "checkout.size": "גודל",
   "checkout.variant": "הגשה",
   "checkout.saladsPrefix": "סלטים",
+  "checkout.noSalads": "ללא סלטים",
   "checkout.specialMealComponentsPrefix": "מרכיבים",
   "checkout.bunSauceOnBunPrefix": "רוטב על הלחמניה",
   "checkout.donenessPrefix": "מידת העשייה",
@@ -1029,6 +1036,12 @@ const AR = {
     "يفتح المطعم الساعة 16:00 — يمكن تقديم الطلب من الساعة 10:00 حتى وقت الإغلاق في ذلك اليوم.",
   "home.preOrderBanner":
     "يمكن إرسال الطلبات الآن. بداية العمل الساعة {openTime}",
+  "home.preOpenDialogTitle": "تنبيه",
+  "home.preOpenDialogLine1":
+    "المطعم مغلق حالياً، يفتح الساعة {openTime}.",
+  "home.preOpenDialogLine2":
+    "يمكن تقديم الطلب. بداية العمل الساعة {openTime}.",
+  "home.preOpenDialogAck": "فهمت",
   "home.orderingClosedBannerDayOff": "المطعم مغلق يوم {day}",
   "home.discountAnnounceWithReason":
     "بسبب {reason} يمكنكم الحصول على خصم بنسبة {percent}% عند الشراء فوق {min}.",
@@ -1355,6 +1368,7 @@ const AR = {
   "checkout.size": "الحجم",
   "checkout.variant": "التقديم",
   "checkout.saladsPrefix": "سلطة",
+  "checkout.noSalads": "بدون سلطة",
   "checkout.specialMealComponentsPrefix": "المكوّنات",
   "checkout.bunSauceOnBunPrefix": "صلصة على الخبز",
   "checkout.donenessPrefix": "درجة التسوية",

@@ -47,7 +47,7 @@ import {
   prepareSliderImageForUpload,
   blobToBase64PngOrJpeg,
 } from "@/utils/prepareSliderImageForUpload";
-import { sortSaladsForDisplay } from "@/utils/saladDisplayOrder";
+import { formatCartLineSaladsForOrder } from "@/utils/saladDisplayOrder";
 import { cartLineProductId } from "@/hooks/useCart";
 import { formatIls } from "@/utils/cartMoney";
 import { specialBurgerMenuDescription } from "@/utils/specialBurgerMealDescription";
@@ -4134,14 +4134,17 @@ export default function AdminOrdersPage() {
                                         {it.variantLabel}
                                       </p>
                                     ) : null}
-                                    {it.salads?.length ? (
-                                      <p className="text-[11px] text-gray-400">
-                                        {t("checkout.saladsPrefix")}:{" "}
-                                        {sortSaladsForDisplay(it.salads)
-                                          .map((x) => x.label)
-                                          .join(", ")}
-                                      </p>
-                                    ) : null}
+                                    {(() => {
+                                      const saladsText =
+                                        formatCartLineSaladsForOrder(it, t);
+                                      if (saladsText == null) return null;
+                                      return (
+                                        <p className="text-[11px] text-gray-400">
+                                          {t("checkout.saladsPrefix")}:{" "}
+                                          {saladsText}
+                                        </p>
+                                      );
+                                    })()}
                                     {(() => {
                                       const pid = cartLineProductId(it);
                                       const mealDesc =

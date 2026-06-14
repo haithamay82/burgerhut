@@ -10,6 +10,7 @@ import {
   getJerusalemWeekday,
   getTodayClosedReason,
   getTodayOpenTimeDisplay,
+  isInPreOpeningDialogWindow,
   isOrderingAllowedAt,
   isRestaurantOpenAt,
 } from "@/utils/orderingHours";
@@ -27,12 +28,14 @@ function isTodayEnabledInSchedule(days) {
 }
 
 export function OrderingHoursProvider({ children }) {
+  const [hoursLoaded, setHoursLoaded] = useState(false);
   const [orderingAllowed, setOrderingAllowed] = useState(true);
   const [restaurantOpen, setRestaurantOpen] = useState(false);
   const [todayScheduledOpen, setTodayScheduledOpen] = useState(true);
   const [todayOpenTimeDisplay, setTodayOpenTimeDisplay] =
     useState("16:00");
   const [todayClosedReason, setTodayClosedReason] = useState("");
+  const [preOpeningWindow, setPreOpeningWindow] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -41,30 +44,34 @@ export function OrderingHoursProvider({ children }) {
         const r = await fetch("/api/business-hours");
         const data = await r.json().catch(() => ({}));
         if (cancelled) return;
+        const now = new Date();
         if (data?.ok && Array.isArray(data.days)) {
           setTodayScheduledOpen(isTodayEnabledInSchedule(data.days));
-          const now = new Date();
           setOrderingAllowed(isOrderingAllowedAt(now, data.days));
           setRestaurantOpen(isRestaurantOpenAt(now, data.days));
           setTodayOpenTimeDisplay(getTodayOpenTimeDisplay(data.days, now));
           setTodayClosedReason(getTodayClosedReason(data.days, now));
+          setPreOpeningWindow(isInPreOpeningDialogWindow(now, data.days));
         } else {
           setTodayScheduledOpen(true);
-          const now = new Date();
           setOrderingAllowed(isOrderingAllowedAt(now, null));
           setRestaurantOpen(isRestaurantOpenAt(now, null));
           setTodayOpenTimeDisplay(getTodayOpenTimeDisplay(null, now));
           setTodayClosedReason("");
+          setPreOpeningWindow(isInPreOpeningDialogWindow(now, null));
         }
       } catch {
         if (!cancelled) {
-          setTodayScheduledOpen(true);
           const now = new Date();
+          setTodayScheduledOpen(true);
           setOrderingAllowed(isOrderingAllowedAt(now, null));
           setRestaurantOpen(isRestaurantOpenAt(now, null));
           setTodayOpenTimeDisplay(getTodayOpenTimeDisplay(null, now));
           setTodayClosedReason("");
+          setPreOpeningWindow(isInPreOpeningDialogWindow(now, null));
         }
+      } finally {
+        if (!cancelled) setHoursLoaded(true);
       }
     };
     tick();
@@ -77,18 +84,22 @@ export function OrderingHoursProvider({ children }) {
 
   const value = useMemo(
     () => ({
+      hoursLoaded,
       orderingAllowed,
       restaurantOpen,
       todayScheduledOpen,
       todayOpenTimeDisplay,
       todayClosedReason,
+      preOpeningWindow,
     }),
     [
+      hoursLoaded,
       orderingAllowed,
       restaurantOpen,
       todayScheduledOpen,
       todayOpenTimeDisplay,
       todayClosedReason,
+      preOpeningWindow,
     ]
   );
 
