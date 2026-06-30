@@ -1137,6 +1137,17 @@ export default function AdminOrdersPage() {
         setManualUnavailableIds([]);
         setPattyStock(null);
       }
+      try {
+        const bhR = await fetch("/api/business-hours");
+        const bhData = await bhR.json().catch(() => ({}));
+        if (bhR.ok && Array.isArray(bhData.days)) {
+          setHoursDraft(bhData.days.map((d) => ({ ...d })));
+        } else {
+          setHoursDraft(getDefaultBusinessSchedule());
+        }
+      } catch {
+        setHoursDraft(getDefaultBusinessSchedule());
+      }
       if (role !== "employee") {
       try {
         const catR = await fetch("/api/catalog", {
@@ -1175,17 +1186,6 @@ export default function AdminOrdersPage() {
         }
       } catch {
         setCatalogEditor(emptyCatalogEditor());
-      }
-      try {
-        const bhR = await fetch("/api/business-hours");
-        const bhData = await bhR.json().catch(() => ({}));
-        if (bhR.ok && Array.isArray(bhData.days)) {
-          setHoursDraft(bhData.days.map((d) => ({ ...d })));
-        } else {
-          setHoursDraft(getDefaultBusinessSchedule());
-        }
-      } catch {
-        setHoursDraft(getDefaultBusinessSchedule());
       }
       try {
         const dr = await fetch("/api/discount");
