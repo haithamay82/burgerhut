@@ -81,6 +81,39 @@ export default function App({ Component, pageProps }) {
     return () => window.removeEventListener("appinstalled", onInstalled);
   }, []);
 
+  /** PWA: רישום Push אוטומטי ללקוחות (ללא באנר) — כדי שמנהל יוכל לשלוח התראות */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!isStandalonePwaDisplay()) return;
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+
+    let cancelled = false;
+    const register = () => {
+      if (cancelled) return;
+      import("@/utils/customerPushClient")
+        .then(({ ensurePwaCustomerPushRegistered }) => {
+          if (!cancelled) void ensurePwaCustomerPushRegistered();
+        })
+        .catch(() => {});
+    };
+
+    const onInstalled = () => register();
+    window.addEventListener("appinstalled", onInstalled);
+    const swReady = navigator.serviceWorker.ready
+      .then(() => {
+        if (!cancelled) register();
+      })
+      .catch(() => {});
+    const fallback = window.setTimeout(register, 2000);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("appinstalled", onInstalled);
+      window.clearTimeout(fallback);
+      void swReady;
+    };
+  }, []);
+
   /** PWA מהמסך הבית: רענון כשחוזרים לחזית כדי לטעון גרסה/נתונים עדכניים */
   useEffect(() => {
     if (typeof document === "undefined") return;

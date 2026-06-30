@@ -455,6 +455,13 @@ export default function AdminOrdersPage() {
   const [adminPushClearBusy, setAdminPushClearBusy] = useState(false);
   const [adminPushClearMsg, setAdminPushClearMsg] = useState("");
   const [adminPushTestBusy, setAdminPushTestBusy] = useState(false);
+  const [customerPushPanelOpen, setCustomerPushPanelOpen] = useState(false);
+  const [customerPushStatus, setCustomerPushStatus] = useState(null);
+  const [customerBroadcastTitle, setCustomerBroadcastTitle] = useState("");
+  const [customerBroadcastBody, setCustomerBroadcastBody] = useState("");
+  const [customerBroadcastUrl, setCustomerBroadcastUrl] = useState("/");
+  const [customerBroadcastBusy, setCustomerBroadcastBusy] = useState(false);
+  const [customerBroadcastMsg, setCustomerBroadcastMsg] = useState("");
   const [adminClientReady, setAdminClientReady] = useState(false);
   const [sliderImages, setSliderImages] = useState([]);
   const [sliderDisplayEnabled, setSliderDisplayEnabled] = useState(true);
@@ -1349,6 +1356,100 @@ export default function AdminOrdersPage() {
     setAdminPushServerStatus(null);
     setAdminPushClearMsg("");
     setAdminLocalPushSubscribed(null);
+    setCustomerPushPanelOpen(false);
+    setCustomerPushStatus(null);
+    setCustomerBroadcastTitle("");
+    setCustomerBroadcastBody("");
+    setCustomerBroadcastUrl("/");
+    setCustomerBroadcastBusy(false);
+    setCustomerBroadcastMsg("");
+  };
+
+  const refreshCustomerPushStatus = useCallback(async () => {
+    const s = secret.trim();
+    if (!s) {
+      setCustomerPushStatus(null);
+      return;
+    }
+    try {
+      const r = await fetch(`/api/admin/push/customer-status?_=${Date.now()}`, {
+        headers: { "x-admin-secret": s },
+        cache: "no-store",
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) {
+        setCustomerPushStatus({
+          vapidConfigured: Boolean(d.vapidConfigured),
+          redisConfigured: Boolean(d.redisConfigured),
+          subscriptionCount: Number(d.subscriptionCount) || 0,
+        });
+      } else {
+        setCustomerPushStatus(null);
+      }
+    } catch {
+      setCustomerPushStatus(null);
+    }
+  }, [secret]);
+
+  const sendCustomerBroadcast = async () => {
+    const s = secret.trim();
+    const title = customerBroadcastTitle.trim();
+    const body = customerBroadcastBody.trim();
+    const url = customerBroadcastUrl.trim() || "/";
+    if (!s || customerBroadcastBusy) return;
+    if (!title || !body) {
+      setCustomerBroadcastMsg(t("admin.customerPushInvalid"));
+      return;
+    }
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(t("admin.customerPushConfirm"))
+    ) {
+      return;
+    }
+    setCustomerBroadcastBusy(true);
+    setCustomerBroadcastMsg("");
+    try {
+      const r = await fetch("/api/admin/push/broadcast-customers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-secret": s,
+        },
+        body: JSON.stringify({ title, body, url }),
+      });
+      const d = await r.json().catch(() => ({}));
+      void refreshCustomerPushStatus();
+      if (!r.ok || !d.ok) {
+        if (d.error === "no_subscriptions") {
+          setCustomerBroadcastMsg(t("admin.customerPushNoSubs"));
+        } else if (d.error === "invalid_content" || d.error === "invalid_url") {
+          setCustomerBroadcastMsg(t("admin.customerPushInvalid"));
+        } else {
+          setCustomerBroadcastMsg(t("admin.customerPushErr"));
+        }
+        return;
+      }
+      const sent = Number(d.sent) || 0;
+      const failed = Number(d.failed) || 0;
+      const removed = Number(d.removed) || 0;
+      if (failed > 0 || removed > 0) {
+        setCustomerBroadcastMsg(
+          t("admin.customerPushPartial")
+            .replace("{sent}", String(sent))
+            .replace("{failed}", String(failed))
+            .replace("{removed}", String(removed))
+        );
+      } else {
+        setCustomerBroadcastMsg(
+          t("admin.customerPushOk").replace("{n}", String(sent))
+        );
+      }
+    } catch {
+      setCustomerBroadcastMsg(t("admin.customerPushErr"));
+    } finally {
+      setCustomerBroadcastBusy(false);
+    }
   };
 
   const refreshAdminPushServerStatus = useCallback(async () => {
@@ -1489,6 +1590,14 @@ export default function AdminOrdersPage() {
       setAdminPushTestBusy(false);
     }
   };
+
+  useEffect(() => {
+    if (!loaded || adminRole === "employee") {
+      setCustomerPushStatus(null);
+      return;
+    }
+    void refreshCustomerPushStatus();
+  }, [loaded, adminRole, refreshCustomerPushStatus]);
 
   useEffect(() => {
     if (!loaded) {
@@ -3943,6 +4052,116 @@ export default function AdminOrdersPage() {
                       </table>
                     </div>
                   )}
+                </section>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={() => setCustomerPushPanelOpen((v) => !v)}
+                aria-expanded={customerPushPanelOpen}
+                className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-right text-sm font-bold text-gray-100 transition-colors hover:border-primary/50 hover:bg-slate-800/60"
+              >
+                <span className="min-w-0 flex-1 leading-snug">
+                  {t("admin.customerPushTitle")}
+                </span>
+                <span
+                  className="shrink-0 text-lg leading-none text-primary"
+                  aria-hidden
+                >
+                  {customerPushPanelOpen ? "▾" : "▶"}
+                </span>
+              </button>
+              {customerPushPanelOpen ? (
+                <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
+                  <p className="mb-4 text-[11px] leading-relaxed text-gray-500">
+                    {t("admin.customerPushHint")}
+                  </p>
+                  {customerPushStatus ? (
+                    <p className="mb-4 text-[11px] leading-snug text-gray-500">
+                      {t("admin.customerPushStatusLine")
+                        .replace(
+                          "{count}",
+                          String(customerPushStatus.subscriptionCount)
+                        )
+                        .replace(
+                          "{vapid}",
+                          customerPushStatus.vapidConfigured
+                            ? t("admin.pushStatusOn")
+                            : t("admin.pushStatusOff")
+                        )
+                        .replace(
+                          "{redis}",
+                          customerPushStatus.redisConfigured
+                            ? t("admin.pushStatusOn")
+                            : t("admin.pushStatusOff")
+                        )}
+                    </p>
+                  ) : null}
+                  <div className="space-y-3">
+                    <label className="flex flex-col gap-1 text-xs text-gray-400">
+                      <span>{t("admin.customerPushTitleLabel")}</span>
+                      <input
+                        type="text"
+                        maxLength={80}
+                        value={customerBroadcastTitle}
+                        disabled={customerBroadcastBusy}
+                        onChange={(e) =>
+                          setCustomerBroadcastTitle(e.target.value)
+                        }
+                        placeholder={t("admin.customerPushTitlePh")}
+                        className="rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-gray-100"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1 text-xs text-gray-400">
+                      <span>{t("admin.customerPushBodyLabel")}</span>
+                      <textarea
+                        rows={4}
+                        maxLength={500}
+                        value={customerBroadcastBody}
+                        disabled={customerBroadcastBusy}
+                        onChange={(e) =>
+                          setCustomerBroadcastBody(e.target.value)
+                        }
+                        placeholder={t("admin.customerPushBodyPh")}
+                        className="rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-gray-100"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1 text-xs text-gray-400">
+                      <span>{t("admin.customerPushUrlLabel")}</span>
+                      <input
+                        type="text"
+                        maxLength={200}
+                        dir="ltr"
+                        value={customerBroadcastUrl}
+                        disabled={customerBroadcastBusy}
+                        onChange={(e) =>
+                          setCustomerBroadcastUrl(e.target.value)
+                        }
+                        placeholder={t("admin.customerPushUrlPh")}
+                        className="rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-gray-100"
+                      />
+                    </label>
+                  </div>
+                  {customerBroadcastMsg ? (
+                    <p className="mt-3 text-xs font-medium text-emerald-400/95">
+                      {customerBroadcastMsg}
+                    </p>
+                  ) : null}
+                  <button
+                    type="button"
+                    disabled={
+                      customerBroadcastBusy ||
+                      !secret.trim() ||
+                      !customerBroadcastTitle.trim() ||
+                      !customerBroadcastBody.trim()
+                    }
+                    onClick={() => void sendCustomerBroadcast()}
+                    className="btn-primary mt-4 text-sm disabled:opacity-50"
+                  >
+                    {customerBroadcastBusy
+                      ? t("admin.customerPushSending")
+                      : t("admin.customerPushSendBtn")}
+                  </button>
                 </section>
               ) : null}
               </>

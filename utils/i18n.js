@@ -86,6 +86,16 @@ const HE = {
     "אם לא נפתח חלון התקנה: לחץ על ⋮ בתפריט Chrome ובחר «התקן אפליקציה» או «הוסף למסך הבית».",
   "pwa.launcherAria": "הוספה למסך הבית — פתיחה מהירה",
   "pwa.launcherCaption": "הורד אפליקציה",
+
+  "customerPush.bannerTitle": "עדכונים, מבצעים והנחות",
+  "customerPush.bannerBody":
+    "קבלו התראות על מבצעים, הנחות ומוצרים חדשים — רק אם התקנתם את Burger Hut במסך הבית.",
+  "customerPush.enableBtn": "כן, שלחו לי עדכונים",
+  "customerPush.dismissBtn": "לא עכשיו",
+  "customerPush.enabling": "מפעיל…",
+  "customerPush.permissionDenied": "התראות חסומות. אפשרו בהגדרות הדפדפן/האפליקציה.",
+  "customerPush.unavailable": "התראות עדיין לא זמינות בשרת.",
+  "customerPush.subscribeErr": "לא ניתן להירשם כרגע. נסו שוב מאוחר יותר.",
   "pwa.confirmTitle": "להוסיף את Burger Hut למסך הבית?",
   "pwa.confirmBody":
     "בלחיצה אחת תקבלו אייקון בטלפון — הזמנה מהירה יותר בלי לחפש שוב את האתר.",
@@ -727,6 +737,28 @@ const HE = {
   "admin.pushTestFail":
     "הבדיקה נכשלה לכל המנויים. לחצו «עדכן רישום Push (מחדש)».",
   "admin.pushTestErr": "שליחת בדיקת Push נכשלה. נסו שוב.",
+  "admin.customerPushTitle": "הודעות ללקוחות (אפליקציה PWA)",
+  "admin.customerPushHint":
+    "שליחת Push לכל מי שהתקין את האתר כ-PWA. המערכת נרשמת אוטומטית בפתיחת האפליקציה (ללא באנר). אם אין מנויים — לקוחות צריכים לפתוח את האפליקציה מהמסך הבית פעם אחת.",
+  "admin.customerPushStatusLine":
+    "מנויי לקוחות PWA: ‏{count} · VAPID ‏{vapid} · Redis ‏{redis}",
+  "admin.customerPushTitleLabel": "כותרת ההודעה",
+  "admin.customerPushTitlePh": "למשל: מבצע סוף שבוע",
+  "admin.customerPushBodyLabel": "תוכן ההודעה",
+  "admin.customerPushBodyPh": "למשל: 10% הנחה על כל ההזמנה עד יום ראשון",
+  "admin.customerPushUrlLabel": "קישור בלחיצה (אופציונלי)",
+  "admin.customerPushUrlPh": "/",
+  "admin.customerPushSendBtn": "שלח התראה לכל המנויים",
+  "admin.customerPushSending": "שולח…",
+  "admin.customerPushConfirm":
+    "לשלוח התראה Push לכל הלקוחות שאישרו עדכונים באפליקציה?",
+  "admin.customerPushOk": "נשלחה התראה ל-{n} מכשיר/ים.",
+  "admin.customerPushPartial":
+    "נשלח ל-{sent}, נכשל {failed}. הוסרו {removed} מנויים לא תקפים.",
+  "admin.customerPushNoSubs":
+    "אין עדיין מנויי Push. לקוחות עם PWA צריכים לפתוח את האפליקציה מהמסך הבית — הרישום מתבצע אוטומטית.",
+  "admin.customerPushErr": "שליחת ההודעה נכשלה. נסו שוב.",
+  "admin.customerPushInvalid": "יש למלא כותרת ותוכן.",
   "admin.secretLabel": "קוד מנהל",
   "admin.secretPh": "סיסמה",
   "admin.load": "כניסה",
@@ -1092,6 +1124,16 @@ const AR = {
     "إذا لم يظهر مربع التثبيت: اضغط ⋮ في قائمة Chrome واختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».",
   "pwa.launcherAria": "إضافة إلى الشاشة الرئيسية — وصول أسرع",
   "pwa.launcherCaption": "حمّل التطبيق",
+
+  "customerPush.bannerTitle": "عروض وتحديثات",
+  "customerPush.bannerBody":
+    "استلموا إشعارات عن العروض والخصومات والمنتجات الجديدة — إذا ثبّتم Burger Hut على الشاشة الرئيسية.",
+  "customerPush.enableBtn": "نعم، أرسلوا لي التحديثات",
+  "customerPush.dismissBtn": "ليس الآن",
+  "customerPush.enabling": "جارٍ التفعيل…",
+  "customerPush.permissionDenied": "الإشعارات محظورة. اسمحوا بها من إعدادات التطبيق/المتصفح.",
+  "customerPush.unavailable": "الإشعارات غير متاحة على الخادم بعد.",
+  "customerPush.subscribeErr": "تعذّر التسجيل الآن. حاولوا لاحقاً.",
   "pwa.confirmTitle": "إضافة Burger Hut إلى الشاشة الرئيسية؟",
   "pwa.confirmBody":
     "بضغطة واحدة يظهر أيقونة على هاتفك — طلب أسرع دون البحث عن الموقع من جديد.",
@@ -1736,6 +1778,28 @@ const AR = {
   "admin.pushTestFail":
     "فشل الاختبار لجميع الاشتراكات. اضغطوا «تحديث تسجيل Push (من جديد)».",
   "admin.pushTestErr": "فشل إرسال اختبار Push. حاولوا مرة أخرى.",
+  "admin.customerPushTitle": "إشعارات للعملاء (تطبيق PWA)",
+  "admin.customerPushHint":
+    "إرسال Push لمن ثبّت الموقع كـ PWA. التسجيل تلقائي عند فتح التطبيق (بدون بانر). إن لم يوجد مشتركون — يفتح العملاء التطبيق من الشاشة الرئيسية مرة واحدة.",
+  "admin.customerPushStatusLine":
+    "مشتركو PWA: ‏{count} · VAPID ‏{vapid} · Redis ‏{redis}",
+  "admin.customerPushTitleLabel": "عنوان الرسالة",
+  "admin.customerPushTitlePh": "مثال: عرض نهاية الأسبوع",
+  "admin.customerPushBodyLabel": "نص الرسالة",
+  "admin.customerPushBodyPh": "مثال: 10% خصم على الطلب حتى الأحد",
+  "admin.customerPushUrlLabel": "رابط عند الضغط (اختياري)",
+  "admin.customerPushUrlPh": "/",
+  "admin.customerPushSendBtn": "إرسال إشعار لكل المشتركين",
+  "admin.customerPushSending": "جارٍ الإرسال…",
+  "admin.customerPushConfirm":
+    "إرسال Push لكل العملاء الذين وافقوا على التحديثات في التطبيق؟",
+  "admin.customerPushOk": "تم الإرسال إلى {n} جهاز/أجهزة.",
+  "admin.customerPushPartial":
+    "أُرسل إلى {sent}، فشل {failed}. أُزيل {removed} اشتراك غير صالح.",
+  "admin.customerPushNoSubs":
+    "لا يوجد مشتركون Push بعد. عملاء PWA يفتحون التطبيق من الشاشة الرئيسية — التسجيل تلقائي.",
+  "admin.customerPushErr": "فشل إرسال الرسالة. حاولوا مرة أخرى.",
+  "admin.customerPushInvalid": "يجب تعبئة العنوان والنص.",
   "admin.secretLabel": "رمز المشرف",
   "admin.secretPh": "كلمة المرور",
   "admin.load": "دخول",
