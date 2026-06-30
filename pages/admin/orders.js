@@ -109,6 +109,14 @@ function syncAdminOrdersKnownIdsRef(idsRef, ordersList) {
   );
 }
 
+/** הזמנה שנוצרה לפני פתיחת הסשן — לא מציגים עליה התראה «חדשה» (רק polling). */
+function isOrderCreatedAfterAdminSession(order, sessionStartedMs, graceMs = 5000) {
+  if (!order || sessionStartedMs <= 0) return false;
+  const createdMs = new Date(String(order.createdAt || "")).getTime();
+  if (!Number.isFinite(createdMs)) return false;
+  return createdMs >= sessionStartedMs - graceMs;
+}
+
 function playAdminNewOrderBeep() {
   if (typeof window === "undefined") return;
   try {
@@ -435,6 +443,8 @@ export default function AdminOrdersPage() {
   const adminSessionHydratedRef = useRef(false);
   /** מזהי הזמנות אחרי טעינה/פולינג — לזיהוי שורות חדשות */
   const ordersKnownIdsRef = useRef(new Set());
+  /** זמן כניסה לניהול — התראות polling רק להזמנות שנוצרו אחריו */
+  const adminOrdersNotifySinceRef = useRef(0);
   const [notifyPermissionNonce, setNotifyPermissionNonce] = useState(0);
   /** null = לא רלוונטי או בודקים, true/false = יש מנוי מקומי ב-SW */
   const [adminLocalPushSubscribed, setAdminLocalPushSubscribed] =
@@ -1101,6 +1111,7 @@ export default function AdminOrdersPage() {
       const nextOrders = data.orders || [];
       setOrders(nextOrders);
       syncAdminOrdersKnownIdsRef(ordersKnownIdsRef, nextOrders);
+      adminOrdersNotifySinceRef.current = Date.now();
       setLoaded(true);
       if (role === "employee") {
         setInventoryOpen(true);
@@ -1308,6 +1319,7 @@ export default function AdminOrdersPage() {
     writePersistedAdminSecret("");
     adminSessionHydratedRef.current = false;
     ordersKnownIdsRef.current = new Set();
+    adminOrdersNotifySinceRef.current = 0;
     setAdminRole("admin");
     setSecret("");
     setError("");
@@ -1516,7 +1528,13 @@ export default function AdminOrdersPage() {
         if (!r.ok || !data.ok) return;
         const list = Array.isArray(data.orders) ? data.orders : [];
         const known = ordersKnownIdsRef.current;
-        const newRows = list.filter((o) => o?.id && !known.has(String(o.id)));
+        const notifySince = adminOrdersNotifySinceRef.current;
+        const newRows = list.filter(
+          (o) =>
+            o?.id &&
+            !known.has(String(o.id)) &&
+            isOrderCreatedAfterAdminSession(o, notifySince)
+        );
         if (newRows.length > 0) {
           playAdminNewOrderBeep();
           vibrateAdminNewOrder();

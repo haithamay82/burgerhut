@@ -22,12 +22,15 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+const ADMIN_PUSH_MAX_AGE_MS = 15 * 60 * 1000;
+
 self.addEventListener("push", (event) => {
   let data = {
     title: "הזמנה חדשה — Burger Hut",
     body: "התקבלה הזמנה חדשה.",
     url: "/admin/orders",
     tag: "bh-order",
+    sentAt: 0,
   };
   try {
     if (event.data) {
@@ -39,6 +42,14 @@ self.addEventListener("push", (event) => {
   } catch {
     /* keep defaults */
   }
+  const sentAt = Number(data.sentAt);
+  if (
+    Number.isFinite(sentAt) &&
+    sentAt > 0 &&
+    Date.now() - sentAt > ADMIN_PUSH_MAX_AGE_MS
+  ) {
+    return;
+  }
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
@@ -46,7 +57,7 @@ self.addEventListener("push", (event) => {
       badge: "/logo-burger-hut.png",
       tag: String(data.tag || "bh-order"),
       data: { url: data.url || "/admin/orders" },
-      renotify: true,
+      renotify: false,
     })
   );
 });
