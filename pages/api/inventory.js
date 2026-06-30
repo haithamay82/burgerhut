@@ -5,14 +5,7 @@ import {
   setInventoryPayload,
 } from "@/lib/inventoryStore";
 import { getManagedInventoryProductIds } from "@/lib/inventoryManagedIds";
-
-function authorize(req) {
-  const secret = process.env.ADMIN_ORDERS_SECRET;
-  if (!secret) return { ok: false, reason: "not_configured" };
-  const header = req.headers["x-admin-secret"];
-  if (!header || header !== secret) return { ok: false, reason: "unauthorized" };
-  return { ok: true };
-}
+import { authorizeAdminOrEmployee } from "@/lib/adminAuth";
 
 async function filterManaged(ids) {
   const allowed = await getManagedInventoryProductIds();
@@ -21,7 +14,7 @@ async function filterManaged(ids) {
 
 export default async function handler(req, res) {
   if (req.method === "GET") {
-    const auth = authorize(req);
+    const auth = authorizeAdminOrEmployee(req);
     const payload = await getInventoryPayload();
     const effective = await getUnavailableIds();
     const base = {
@@ -36,13 +29,16 @@ export default async function handler(req, res) {
   }
 
   if (req.method === "PUT") {
-    const auth = authorize(req);
+    const auth = authorizeAdminOrEmployee(req);
     if (!auth.ok) {
       if (auth.reason === "not_configured") {
         return res.status(503).json({
           ok: false,
           error: "admin_not_configured",
         });
+      }
+      if (auth.reason === "forbidden") {
+        return res.status(403).json({ ok: false, error: "forbidden" });
       }
       return res.status(401).json({ ok: false, error: "unauthorized" });
     }

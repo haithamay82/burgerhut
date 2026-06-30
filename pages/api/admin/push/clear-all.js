@@ -1,11 +1,8 @@
 import { clearAllAdminPushSubscriptions } from "@/lib/adminPushSubscriptions";
+import { authorizeAdminOnly } from "@/lib/adminAuth";
 
 function authorize(req) {
-  const secret = process.env.ADMIN_ORDERS_SECRET;
-  if (!secret) return { ok: false, reason: "not_configured" };
-  const header = req.headers["x-admin-secret"];
-  if (!header || header !== secret) return { ok: false, reason: "unauthorized" };
-  return { ok: true };
+  return authorizeAdminOnly(req);
 }
 
 export default async function handler(req, res) {
@@ -17,6 +14,9 @@ export default async function handler(req, res) {
   if (!auth.ok) {
     if (auth.reason === "not_configured") {
       return res.status(503).json({ ok: false, error: "admin_not_configured" });
+    }
+    if (auth.reason === "forbidden") {
+      return res.status(403).json({ ok: false, error: "forbidden" });
     }
     return res.status(401).json({ ok: false, error: "unauthorized" });
   }

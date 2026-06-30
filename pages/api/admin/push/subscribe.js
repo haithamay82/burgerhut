@@ -1,12 +1,9 @@
 import { saveAdminPushSubscription } from "@/lib/adminPushSubscriptions";
 import { isValidPushClientId } from "@/utils/adminPushClientId";
+import { authorizeAdminOrEmployee } from "@/lib/adminAuth";
 
 function authorize(req) {
-  const secret = process.env.ADMIN_ORDERS_SECRET;
-  if (!secret) return { ok: false, reason: "not_configured" };
-  const header = req.headers["x-admin-secret"];
-  if (!header || header !== secret) return { ok: false, reason: "unauthorized" };
-  return { ok: true };
+  return authorizeAdminOrEmployee(req);
 }
 
 export default async function handler(req, res) {

@@ -329,6 +329,8 @@ function formatMonthYearTitle(y, m, locale) {
 export default function AdminOrdersPage() {
   const { locale, t } = useLocale();
   const [secret, setSecret] = useState("");
+  /** @type {["admin" | "employee", import("react").Dispatch<import("react").SetStateAction<"admin" | "employee">>] */
+  const [adminRole, setAdminRole] = useState("admin");
   const [orders, setOrders] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState("");
@@ -1074,6 +1076,7 @@ export default function AdminOrdersPage() {
       const data = await r.json().catch(() => ({}));
       if (!r.ok) {
         writePersistedAdminSecret("");
+        setAdminRole("admin");
         setOrders([]);
         setLoaded(false);
         setHoursDraft(null);
@@ -1091,12 +1094,18 @@ export default function AdminOrdersPage() {
         );
         return;
       }
+      const role = data.role === "employee" ? "employee" : "admin";
+      setAdminRole(role);
       setSecret(effectiveSecret);
       writePersistedAdminSecret(effectiveSecret);
       const nextOrders = data.orders || [];
       setOrders(nextOrders);
       syncAdminOrdersKnownIdsRef(ordersKnownIdsRef, nextOrders);
       setLoaded(true);
+      if (role === "employee") {
+        setInventoryOpen(true);
+        setHoursPanelOpen(true);
+      }
       setHoursMsg("");
       setDiscountMsg("");
       setCouponMsg("");
@@ -1128,6 +1137,7 @@ export default function AdminOrdersPage() {
         setManualUnavailableIds([]);
         setPattyStock(null);
       }
+      if (role !== "employee") {
       try {
         const catR = await fetch("/api/catalog", {
           headers: { "x-admin-secret": effectiveSecret },
@@ -1266,9 +1276,11 @@ export default function AdminOrdersPage() {
       } catch {
         setPwaInstallTotal(null);
       }
+      }
     } catch {
       setError(t("admin.errNet"));
       setLoaded(false);
+      setAdminRole("admin");
       setHoursDraft(null);
       setDiscountDraft(null);
       setPromo(null);
@@ -1296,6 +1308,7 @@ export default function AdminOrdersPage() {
     writePersistedAdminSecret("");
     adminSessionHydratedRef.current = false;
     ordersKnownIdsRef.current = new Set();
+    setAdminRole("admin");
     setSecret("");
     setError("");
     setOrders([]);
@@ -2226,6 +2239,7 @@ export default function AdminOrdersPage() {
     setCalView({ y, m });
   };
 
+  const isEmployee = adminRole === "employee";
   const todayKey = jerusalemDayKey();
   const { y: vy, m: vm } = calView;
   const dim = daysInMonth(vy, vm);
@@ -2235,8 +2249,9 @@ export default function AdminOrdersPage() {
   for (let d = 1; d <= dim; d += 1) {
     calendarCells.push(dayKeyFromParts(vy, vm, d));
   }
+  const displayDayKey = isEmployee ? todayKey : selectedDayKey;
   const selectedDayOrders =
-    selectedDayKey != null ? ordersByDay.get(selectedDayKey) ?? [] : [];
+    displayDayKey != null ? ordersByDay.get(displayDayKey) ?? [] : [];
   const nowTs = Date.now();
 
   const exportMenuSheetPng = async () => {
@@ -2315,7 +2330,14 @@ export default function AdminOrdersPage() {
           <div className="mx-auto flex max-w-3xl flex-wrap items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <h1 className="text-lg font-bold text-primary">{t("admin.title")}</h1>
-              <p className="text-xs text-gray-500">{t("admin.hint")}</p>
+              {isEmployee ? (
+                <p className="mt-1 inline-block rounded-md border border-sky-700/50 bg-sky-950/40 px-2 py-0.5 text-[11px] font-semibold text-sky-200">
+                  {t("admin.employeeBadge")}
+                </p>
+              ) : null}
+              <p className="text-xs text-gray-500">
+                {isEmployee ? t("admin.employeeHint") : t("admin.hint")}
+              </p>
               <p className="mt-2 max-w-xl text-[11px] leading-relaxed text-gray-500">
                 {t("admin.secretStorageHint")}
               </p>
@@ -2385,7 +2407,9 @@ export default function AdminOrdersPage() {
           {loaded ? (
             <>
               <p className="mb-3 text-[11px] leading-snug text-gray-500">
-                {t("admin.newOrderAutoRefreshHint")}
+                {isEmployee
+                  ? t("admin.employeeAutoRefreshHint")
+                  : t("admin.newOrderAutoRefreshHint")}
               </p>
               {adminClientReady && typeof Notification !== "undefined" ? (
                 <>
@@ -2529,7 +2553,7 @@ export default function AdminOrdersPage() {
                         String(adminPushServerStatus.subscriptionCount)
                       )}
                   </p>
-                  {adminPushServerStatus.redisConfigured ? (
+                  {adminPushServerStatus.redisConfigured && !isEmployee ? (
                     <button
                       type="button"
                       disabled={adminPushClearBusy || !secret.trim()}
@@ -2593,6 +2617,8 @@ export default function AdminOrdersPage() {
                 </div>
               ) : null}
               <div className="mb-8 space-y-3">
+              {!isEmployee ? (
+              <>
               <button
                 type="button"
                 onClick={() => setCatalogOpen((v) => !v)}
@@ -2863,6 +2889,8 @@ export default function AdminOrdersPage() {
                   </div>
                 </section>
               ) : null}
+              </>
+              ) : null}
 
               <button
                 type="button"
@@ -3066,6 +3094,8 @@ export default function AdminOrdersPage() {
                 </section>
               ) : null}
 
+              {!isEmployee ? (
+              <>
               <button
                 type="button"
                 onClick={togglePromoPanel}
@@ -3304,6 +3334,8 @@ export default function AdminOrdersPage() {
                   )}
                 </section>
               ) : null}
+              </>
+              ) : null}
 
               {hoursDraft ? (
                 <>
@@ -3425,7 +3457,7 @@ export default function AdminOrdersPage() {
                 </>
               ) : null}
 
-              {discountDraft ? (
+              {!isEmployee && discountDraft ? (
                 <>
                   <button
                     type="button"
@@ -3555,6 +3587,7 @@ export default function AdminOrdersPage() {
                 </>
               ) : null}
 
+              {!isEmployee ? (
               <>
                 <button
                   type="button"
@@ -3796,8 +3829,11 @@ export default function AdminOrdersPage() {
                   </section>
                 ) : null}
               </>
+              ) : null}
             </div>
 
+              {!isEmployee ? (
+              <>
               <button
                 type="button"
                 onClick={() => setSiteVisitsPanelOpen((v) => !v)}
@@ -3891,15 +3927,24 @@ export default function AdminOrdersPage() {
                   )}
                 </section>
               ) : null}
+              </>
+              ) : null}
 
               <section
                 className="mb-10 rounded-2xl border border-slate-800 bg-slate-900/40 p-4"
-                aria-label={t("admin.salesCalendarTitle")}
+                aria-label={
+                  isEmployee
+                    ? t("admin.employeeOrdersTitle")
+                    : t("admin.salesCalendarTitle")
+                }
               >
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                   <h2 className="text-base font-bold text-primary">
-                    {t("admin.salesCalendarTitle")}
+                    {isEmployee
+                      ? t("admin.employeeOrdersTitle")
+                      : t("admin.salesCalendarTitle")}
                   </h2>
+                  {!isEmployee ? (
                   <button
                     type="button"
                     onClick={goToToday}
@@ -3907,14 +3952,19 @@ export default function AdminOrdersPage() {
                   >
                     {t("admin.calendarTodayBtn")}
                   </button>
+                  ) : null}
                 </div>
+                {!isEmployee ? (
                 <p className="mb-4 text-[11px] leading-relaxed text-gray-500">
                   {t("admin.salesCalendarHint")}
                 </p>
+                ) : null}
                 {orders.length === 0 ? (
                   <p className="mb-4 text-sm text-gray-500">{t("admin.empty")}</p>
                 ) : null}
 
+                {!isEmployee ? (
+                <>
                 <div
                   className="mb-6 flex items-center justify-between gap-2"
                   dir="ltr"
@@ -4006,13 +4056,15 @@ export default function AdminOrdersPage() {
                     )}
                   </div>
                 </div>
+                </>
+                ) : null}
 
-                {selectedDayKey ? (
+                {displayDayKey ? (
                   <>
                     <h3 className="mb-2 border-b border-slate-800 pb-2 text-sm font-bold text-gray-300">
-                      {formatDayHeading(selectedDayKey, locale)}
+                      {formatDayHeading(displayDayKey, locale)}
                       <span className="mr-2 text-xs font-normal text-gray-500">
-                        ({selectedDayKey})
+                        ({displayDayKey})
                       </span>
                     </h3>
                     <p className="mb-3 space-y-1 text-sm text-gray-400">
@@ -4111,6 +4163,7 @@ export default function AdminOrdersPage() {
                                   className="mt-2 flex w-full items-center justify-between gap-2"
                                   style={{ direction: "ltr" }}
                                 >
+                                  {!isEmployee ? (
                                   <button
                                     type="button"
                                     onClick={() => deleteOrder(o.id)}
@@ -4121,6 +4174,7 @@ export default function AdminOrdersPage() {
                                       ? t("admin.deleting")
                                       : t("admin.delete")}
                                   </button>
+                                  ) : null}
                                 </div>
                               </div>
                             </div>

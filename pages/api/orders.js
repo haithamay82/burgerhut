@@ -26,6 +26,12 @@ import {
 import { isOrderingAllowedAt } from "@/utils/orderingHours";
 import { getBusinessHours } from "@/lib/businessHoursStore";
 import { redis, isRedisConfigured } from "@/lib/redis";
+import {
+  authorizeAdminOnly,
+  authorizeAdminOrEmployee,
+  filterOrdersToTodayJerusalem,
+  isOrderTodayJerusalem,
+} from "@/lib/adminAuth";
 
 function lineProductId(line) {
   return (
@@ -46,29 +52,32 @@ function sumTotal(items) {
   }, 0);
 }
 
-function authorize(req) {
-  const secret = process.env.ADMIN_ORDERS_SECRET;
-  if (!secret) return { ok: false, reason: "not_configured" };
-  const header = req.headers["x-admin-secret"];
-  if (!header || header !== secret) return { ok: false, reason: "unauthorized" };
-  return { ok: true };
+function authErrorResponse(res, auth) {
+  if (auth.reason === "not_configured") {
+    return res.status(503).json({
+      ok: false,
+      error: "admin_not_configured",
+      hint: "Set ADMIN_ORDERS_SECRET in .env.local or Vercel env.",
+    });
+  }
+  if (auth.reason === "forbidden") {
+    return res.status(403).json({ ok: false, error: "forbidden" });
+  }
+  return res.status(401).json({ ok: false, error: "unauthorized" });
 }
 
 export default async function handler(req, res) {
   if (req.method === "GET") {
-    const auth = authorize(req);
+    const auth = authorizeAdminOrEmployee(req);
     if (!auth.ok) {
-      if (auth.reason === "not_configured") {
-        return res.status(503).json({
-          ok: false,
-          error: "admin_not_configured",
-          hint: "Set ADMIN_ORDERS_SECRET in .env.local or Vercel env.",
-        });
-      }
-      return res.status(401).json({ ok: false, error: "unauthorized" });
+      return authErrorResponse(res, auth);
     }
-    const orders = await listOrdersForAdmin();
-    return res.status(200).json({ ok: true, orders });
+    const allOrders = await listOrdersForAdmin();
+    const orders =
+      auth.role === "employee"
+        ? filterOrdersToTodayJerusalem(allOrders)
+        : allOrders;
+    return res.status(200).json({ ok: true, orders, role: auth.role });
   }
 
   if (req.method === "POST") {
@@ -255,16 +264,9 @@ export default async function handler(req, res) {
   }
 
   if (req.method === "DELETE") {
-    const auth = authorize(req);
+    const auth = authorizeAdminOnly(req);
     if (!auth.ok) {
-      if (auth.reason === "not_configured") {
-        return res.status(503).json({
-          ok: false,
-          error: "admin_not_configured",
-          hint: "Set ADMIN_ORDERS_SECRET in .env.local or Vercel env.",
-        });
-      }
-      return res.status(401).json({ ok: false, error: "unauthorized" });
+      return authErrorResponse(res, auth);
     }
     const rawId = req.query.id;
     const id = typeof rawId === "string" ? rawId.trim() : "";
@@ -282,21 +284,21 @@ export default async function handler(req, res) {
   }
 
   if (req.method === "PATCH") {
-    const auth = authorize(req);
+    const auth = authorizeAdminOrEmployee(req);
     if (!auth.ok) {
-      if (auth.reason === "not_configured") {
-        return res.status(503).json({
-          ok: false,
-          error: "admin_not_configured",
-          hint: "Set ADMIN_ORDERS_SECRET in .env.local or Vercel env.",
-        });
-      }
-      return res.status(401).json({ ok: false, error: "unauthorized" });
+      return authErrorResponse(res, auth);
     }
     const rawId = req.query.id;
     const id = typeof rawId === "string" ? rawId.trim() : "";
     if (!id) {
       return res.status(400).json({ ok: false, error: "missing_id" });
+    }
+    if (auth.role === "employee") {
+      const allOrders = await listOrdersForAdmin();
+      const target = allOrders.find((o) => o && o.id === id);
+      if (!target || !isOrderTodayJerusalem(target)) {
+        return res.status(403).json({ ok: false, error: "forbidden" });
+      }
     }
     const result = await markOrderDoneById(id);
     if (!result.ok) {
