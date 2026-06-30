@@ -543,8 +543,25 @@ export default function CheckoutPage() {
         : {}),
       orderType: form.orderType,
     };
+    const pricingFields = {
+      foodTotalBeforeDiscountNis: foodTotal,
+      discountAmountNis: discountAmountNis || undefined,
+      discountPercent:
+        discountAmountNis > 0 ? Number(discountCfg.percent) || undefined : undefined,
+      discountMinOrderTotal:
+        discountAmountNis > 0
+          ? Number(discountCfg.minOrderTotal) || undefined
+          : undefined,
+      foodTotalNis: discountedFoodTotal,
+      couponCode: appliedCoupon?.code || undefined,
+      couponDiscountNis: couponDiscountNis || undefined,
+    };
     if (form.orderType === "pickup") {
-      return { ...base, address: t("checkout.pickupBranch") };
+      return {
+        ...base,
+        address: t("checkout.pickupBranch"),
+        ...pricingFields,
+      };
     }
     let addressLine = "";
     const main =
@@ -581,17 +598,7 @@ export default function CheckoutPage() {
             ? "courier_all_cash"
             : form.deliveryPayTo || undefined
           : undefined,
-      foodTotalBeforeDiscountNis: foodTotal,
-      discountAmountNis: discountAmountNis || undefined,
-      discountPercent:
-        discountAmountNis > 0 ? Number(discountCfg.percent) || undefined : undefined,
-      discountMinOrderTotal:
-        discountAmountNis > 0
-          ? Number(discountCfg.minOrderTotal) || undefined
-          : undefined,
-      foodTotalNis: discountedFoodTotal,
-      couponCode: appliedCoupon?.code || undefined,
-      couponDiscountNis: couponDiscountNis || undefined,
+      ...pricingFields,
     };
   };
 
