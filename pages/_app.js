@@ -7,6 +7,8 @@ import { MenuCatalogProvider } from "@/contexts/MenuCatalogContext";
 import { InventoryProvider } from "@/contexts/InventoryContext";
 import { OrderingHoursProvider } from "@/contexts/OrderingHoursContext";
 import { isStandalonePwaDisplay } from "@/utils/pwaDisplay";
+import { markPwaJustInstalled } from "@/utils/pwaNotificationPrompt";
+import PwaNotificationPrompt from "@/components/PwaNotificationPrompt";
 
 const SITE_VISIT_STORAGE_KEY = "bh_site_visit_v1";
 const PWA_INSTALL_REPORTED_KEY = "bh_pwa_install_reported_v1";
@@ -66,6 +68,14 @@ export default function App({ Component, pageProps }) {
           .then((d) => {
             if (d?.ok && d?.recorded === true) {
               window.localStorage.setItem(PWA_INSTALL_REPORTED_KEY, "1");
+              if (isStandalonePwaDisplay()) {
+                markPwaJustInstalled();
+                try {
+                  window.dispatchEvent(new CustomEvent("bh-pwa-installed"));
+                } catch {
+                  /* ignore */
+                }
+              }
             }
           })
           .catch(() => {});
@@ -73,7 +83,15 @@ export default function App({ Component, pageProps }) {
         /* ignore */
       }
     };
-    const onInstalled = () => reportOnce();
+    const onInstalled = () => {
+      reportOnce();
+      markPwaJustInstalled();
+      try {
+        window.dispatchEvent(new CustomEvent("bh-pwa-installed"));
+      } catch {
+        /* ignore */
+      }
+    };
     window.addEventListener("appinstalled", onInstalled);
     if (isStandalonePwaDisplay()) {
       reportOnce();
@@ -81,36 +99,28 @@ export default function App({ Component, pageProps }) {
     return () => window.removeEventListener("appinstalled", onInstalled);
   }, []);
 
-  /** PWA: רישום Push אוטומטי ללקוחות (ללא באנר) — כדי שמנהל יוכל לשלוח התראות */
+  /** PWA: סנכרון Push שקט אם כבר יש הרשאה (בקשת הרשאה — דרך PwaNotificationPrompt) */
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!isStandalonePwaDisplay()) return;
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    if (typeof Notification === "undefined" || Notification.permission !== "granted") {
+      return;
+    }
 
     let cancelled = false;
-    const register = () => {
-      if (cancelled) return;
-      import("@/utils/customerPushClient")
-        .then(({ ensurePwaCustomerPushRegistered }) => {
-          if (!cancelled) void ensurePwaCustomerPushRegistered();
-        })
-        .catch(() => {});
-    };
-
-    const onInstalled = () => register();
-    window.addEventListener("appinstalled", onInstalled);
-    const swReady = navigator.serviceWorker.ready
+    navigator.serviceWorker.ready
       .then(() => {
-        if (!cancelled) register();
+        if (cancelled) return;
+        return import("@/utils/customerPushClient");
+      })
+      .then((mod) => {
+        if (!cancelled && mod) void mod.syncPwaCustomerPushIfGranted();
       })
       .catch(() => {});
-    const fallback = window.setTimeout(register, 2000);
 
     return () => {
       cancelled = true;
-      window.removeEventListener("appinstalled", onInstalled);
-      window.clearTimeout(fallback);
-      void swReady;
     };
   }, []);
 
@@ -149,6 +159,7 @@ export default function App({ Component, pageProps }) {
           <MenuCatalogProvider>
             <InventoryProvider>
               <MealWizardProvider>
+                <PwaNotificationPrompt />
                 <Component {...pageProps} />
               </MealWizardProvider>
             </InventoryProvider>

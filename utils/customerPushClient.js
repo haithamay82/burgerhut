@@ -3,6 +3,7 @@ import {
   getOrCreateCustomerPushDeviceId,
   isValidPushClientId,
 } from "@/utils/customerPushClientId";
+import { clearPwaJustInstalledFlag } from "@/utils/pwaNotificationPrompt";
 
 /** @param {string} base64String */
 function urlBase64ToUint8Array(base64String) {
@@ -56,11 +57,27 @@ async function saveSubscriptionToServer(sub) {
   return { ok: true };
 }
 
+async function subscribeAfterPermissionGranted() {
+  const reg = await navigator.serviceWorker.ready;
+  let sub = await reg.pushManager.getSubscription();
+  if (!sub) {
+    const rk = await fetch("/api/push/vapid-public");
+    const rj = await rk.json().catch(() => ({}));
+    if (!rj.ok || !rj.publicKey) {
+      return { ok: false, error: "no_vapid" };
+    }
+    sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(String(rj.publicKey)),
+    });
+  }
+  return saveSubscriptionToServer(sub);
+}
+
 /**
- * רישום/סנכron אוטומטי של Push ללקוחות PWA — ללא באנר או אישור נפרד באתר.
- * @returns {Promise<{ ok: true } | { ok: false, error: string }>}
+ * סנכרון שקט — רק אם כבר יש הרשאת התראות (ללא חלון מערכת).
  */
-export async function ensurePwaCustomerPushRegistered() {
+export async function syncPwaCustomerPushIfGranted() {
   if (typeof window === "undefined") {
     return { ok: false, error: "no_window" };
   }
@@ -73,43 +90,54 @@ export async function ensurePwaCustomerPushRegistered() {
   if (typeof Notification === "undefined") {
     return { ok: false, error: "notifications_unavailable" };
   }
+  if (Notification.permission !== "granted") {
+    return { ok: false, error: "permission_not_granted" };
+  }
+  try {
+    return subscribeAfterPermissionGranted();
+  } catch {
+    return { ok: false, error: "subscribe_failed" };
+  }
+}
+
+/**
+ * אחרי לחיצת המשתמש — מבקש הרשאת התראות (חלון מערכת) ורושם Push.
+ */
+export async function registerPwaCustomerPushOnUserAction() {
+  if (typeof window === "undefined") {
+    return { ok: false, error: "no_window" };
+  }
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+    return { ok: false, error: "push_unavailable" };
+  }
+  if (typeof Notification === "undefined") {
+    return { ok: false, error: "notifications_unavailable" };
+  }
   if (Notification.permission === "denied") {
     return { ok: false, error: "permission_denied" };
   }
 
   try {
-    const reg = await navigator.serviceWorker.ready;
-    let sub = await reg.pushManager.getSubscription();
-
-    if (Notification.permission === "granted" && sub) {
-      return saveSubscriptionToServer(sub);
-    }
-
     if (Notification.permission === "default") {
-      try {
-        const perm = await Notification.requestPermission();
-        if (perm !== "granted") {
-          return { ok: false, error: "permission_denied" };
-        }
-      } catch {
+      const perm = await Notification.requestPermission();
+      if (perm !== "granted") {
         return { ok: false, error: "permission_denied" };
       }
     }
-
-    if (!sub) {
-      const rk = await fetch("/api/push/vapid-public");
-      const rj = await rk.json().catch(() => ({}));
-      if (!rj.ok || !rj.publicKey) {
-        return { ok: false, error: "no_vapid" };
-      }
-      sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(String(rj.publicKey)),
-      });
+    const result = await subscribeAfterPermissionGranted();
+    if (result.ok) {
+      clearPwaJustInstalledFlag();
     }
-
-    return saveSubscriptionToServer(sub);
+    return result;
   } catch {
     return { ok: false, error: "subscribe_failed" };
   }
+}
+
+/** @deprecated use syncPwaCustomerPushIfGranted or registerPwaCustomerPushOnUserAction */
+export async function ensurePwaCustomerPushRegistered() {
+  if (Notification.permission === "granted") {
+    return syncPwaCustomerPushIfGranted();
+  }
+  return registerPwaCustomerPushOnUserAction();
 }

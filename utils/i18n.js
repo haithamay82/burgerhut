@@ -96,6 +96,18 @@ const HE = {
   "customerPush.permissionDenied": "התראות חסומות. אפשרו בהגדרות הדפדפן/האפליקציה.",
   "customerPush.unavailable": "התראות עדיין לא זמינות בשרת.",
   "customerPush.subscribeErr": "לא ניתן להירשם כרגע. נסו שוב מאוחר יותר.",
+  "pwaNotify.title": "קבלו עדכונים על מבצעים והנחות",
+  "pwaNotify.body":
+    "התקנתם את Burger Hut — אפשרו התראות כדי לקבל מבצעים, הנחות וחדשות מהמסעדה.",
+  "pwaNotify.systemHint":
+    "אחרי «אפשר התראות» יופיע חלון של הטלפון — בחרו «אפשר».",
+  "pwaNotify.enableBtn": "אפשר התראות",
+  "pwaNotify.laterBtn": "אולי אחר כך",
+  "pwaNotify.enabling": "מפעיל…",
+  "pwaNotify.permissionDenied":
+    "התראות חסומות. אפשרו בהגדרות האפליקציה/הדפדפן כדי לקבל עדכונים.",
+  "pwaNotify.unavailable": "התראות עדיין לא זמינות בשרת.",
+  "pwaNotify.subscribeErr": "לא ניתן להירשם כרגע. נסו שוב.",
   "pwa.confirmTitle": "להוסיף את Burger Hut למסך הבית?",
   "pwa.confirmBody":
     "בלחיצה אחת תקבלו אייקון בטלפון — הזמנה מהירה יותר בלי לחפש שוב את האתר.",
@@ -739,7 +751,7 @@ const HE = {
   "admin.pushTestErr": "שליחת בדיקת Push נכשלה. נסו שוב.",
   "admin.customerPushTitle": "הודעות ללקוחות (אפליקציה PWA)",
   "admin.customerPushHint":
-    "שליחת Push לכל מי שהתקין את האתר כ-PWA. המערכת נרשמת אוטומטית בפתיחת האפליקציה (ללא באנר). אם אין מנויים — לקוחות צריכים לפתוח את האפליקציה מהמסך הבית פעם אחת.",
+    "שליחת Push לכל מי שהתקין את האתר כ-PWA ואישר התראות. אחרי התקנה או בפתיחת האפליקציה מוצג חלון «אפשר התראות» — רק מי שמאשר נרשם כמנוי.",
   "admin.customerPushStatusLine":
     "מנויי לקוחות PWA: ‏{count} · VAPID ‏{vapid} · Redis ‏{redis}",
   "admin.customerPushTitleLabel": "כותרת ההודעה",
@@ -751,12 +763,12 @@ const HE = {
   "admin.customerPushSendBtn": "שלח התראה לכל המנויים",
   "admin.customerPushSending": "שולח…",
   "admin.customerPushConfirm":
-    "לשלוח התראה Push לכל הלקוחות שאישרו עדכונים באפליקציה?",
+    "לשלוח התראה Push לכל הלקוחות שאישרו התראות באפליקציה?",
   "admin.customerPushOk": "נשלחה התראה ל-{n} מכשיר/ים.",
   "admin.customerPushPartial":
     "נשלח ל-{sent}, נכשל {failed}. הוסרו {removed} מנויים לא תקפים.",
   "admin.customerPushNoSubs":
-    "אין עדיין מנויי Push. לקוחות עם PWA צריכים לפתוח את האפליקציה מהמסך הבית — הרישום מתבצע אוטומטית.",
+    "אין עדיין מנויי Push. לקוחות עם PWA צריכים לפתוח את האפליקציה וללחוץ «אפשר התראות» בחלון שמופיע.",
   "admin.customerPushErr": "שליחת ההודעה נכשלה. נסו שוב.",
   "admin.customerPushInvalid": "יש למלא כותרת ותוכן.",
   "admin.secretLabel": "קוד מנהל",
@@ -1134,6 +1146,18 @@ const AR = {
   "customerPush.permissionDenied": "الإشعارات محظورة. اسمحوا بها من إعدادات التطبيق/المتصفح.",
   "customerPush.unavailable": "الإشعارات غير متاحة على الخادم بعد.",
   "customerPush.subscribeErr": "تعذّر التسجيل الآن. حاولوا لاحقاً.",
+  "pwaNotify.title": "احصلوا على عروض وخصومات",
+  "pwaNotify.body":
+    "ثبّتم Burger Hut — فعّلوا الإشعارات لتصلكم العروض والخصومات والأخبار من المطعم.",
+  "pwaNotify.systemHint":
+    "بعد «تفعيل الإشعارات» ستظهر نافذة من الهاتف — اختاروا «السماح».",
+  "pwaNotify.enableBtn": "تفعيل الإشعارات",
+  "pwaNotify.laterBtn": "لاحقاً",
+  "pwaNotify.enabling": "جارٍ التفعيل…",
+  "pwaNotify.permissionDenied":
+    "الإشعارات محظورة. فعّلوها من إعدادات التطبيق/المتصفح لتصلكم العروض.",
+  "pwaNotify.unavailable": "الإشعارات غير متاحة على الخادم بعد.",
+  "pwaNotify.subscribeErr": "تعذّر التسجيل الآن. حاولوا لاحقاً.",
   "pwa.confirmTitle": "إضافة Burger Hut إلى الشاشة الرئيسية؟",
   "pwa.confirmBody":
     "بضغطة واحدة يظهر أيقونة على هاتفك — طلب أسرع دون البحث عن الموقع من جديد.",
@@ -1780,7 +1804,7 @@ const AR = {
   "admin.pushTestErr": "فشل إرسال اختبار Push. حاولوا مرة أخرى.",
   "admin.customerPushTitle": "إشعارات للعملاء (تطبيق PWA)",
   "admin.customerPushHint":
-    "إرسال Push لمن ثبّت الموقع كـ PWA. التسجيل تلقائي عند فتح التطبيق (بدون بانر). إن لم يوجد مشتركون — يفتح العملاء التطبيق من الشاشة الرئيسية مرة واحدة.",
+    "إرسال Push لمن ثبّت الموقع كـ PWA ووافق على الإشعارات. بعد التثبيت أو عند فتح التطبيق يظهر «تفعيل الإشعارات» — فقط من يوافق يُسجَّل كمشترك.",
   "admin.customerPushStatusLine":
     "مشتركو PWA: ‏{count} · VAPID ‏{vapid} · Redis ‏{redis}",
   "admin.customerPushTitleLabel": "عنوان الرسالة",
@@ -1792,12 +1816,12 @@ const AR = {
   "admin.customerPushSendBtn": "إرسال إشعار لكل المشتركين",
   "admin.customerPushSending": "جارٍ الإرسال…",
   "admin.customerPushConfirm":
-    "إرسال Push لكل العملاء الذين وافقوا على التحديثات في التطبيق؟",
+    "إرسال Push لكل العملاء الذين وافقوا على الإشعارات في التطبيق؟",
   "admin.customerPushOk": "تم الإرسال إلى {n} جهاز/أجهزة.",
   "admin.customerPushPartial":
     "أُرسل إلى {sent}، فشل {failed}. أُزيل {removed} اشتراك غير صالح.",
   "admin.customerPushNoSubs":
-    "لا يوجد مشتركون Push بعد. عملاء PWA يفتحون التطبيق من الشاشة الرئيسية — التسجيل تلقائي.",
+    "لا يوجد مشتركون Push بعد. عملاء PWA يفتحون التطبيق ويضغطون «تفعيل الإشعارات» في النافذة التي تظهر.",
   "admin.customerPushErr": "فشل إرسال الرسالة. حاولوا مرة أخرى.",
   "admin.customerPushInvalid": "يجب تعبئة العنوان والنص.",
   "admin.secretLabel": "رمز المشرف",

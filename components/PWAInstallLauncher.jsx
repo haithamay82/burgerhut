@@ -9,6 +9,7 @@ import {
   buildIosSafariOpenUrl,
   navigateToIosDeepLink,
 } from "@/utils/iosBrowserOpen";
+import { markPwaJustInstalled } from "@/utils/pwaNotificationPrompt";
 
 const HIDE_LAUNCHER_PREFIXES = [
   "/checkout",
@@ -127,7 +128,17 @@ export default function PWAInstallLauncher({ compact = false }) {
       try {
         await dp.prompt();
         if (dp.userChoice && typeof dp.userChoice.then === "function") {
-          await dp.userChoice.catch(() => {});
+          const choice = await dp.userChoice.catch(() => ({
+            outcome: "dismissed",
+          }));
+          if (choice?.outcome === "accepted") {
+            markPwaJustInstalled();
+            try {
+              window.dispatchEvent(new CustomEvent("bh-pwa-installed"));
+            } catch {
+              /* ignore */
+            }
+          }
         }
       } catch {
         /* user dismissed or prompt failed */
