@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import Layout from "@/components/Layout";
+import FoodRatingCard from "@/components/FoodRatingCard";
 import { useLocale } from "@/contexts/LocaleContext";
 import { buildWhatsAppUrl } from "@/utils/whatsapp";
 import {
@@ -24,6 +25,11 @@ import {
   computeInvoiceDeliveryPrefs,
   readHypCallbackQueryFromHref,
 } from "@/lib/hypPayProtocol";
+import {
+  isRatingDoneLocal,
+  markRatingDoneLocal,
+  savePendingRating,
+} from "@/utils/ratingClient";
 
 function deferredCouponClaimStorageKey(orderNumber, code) {
   return `bh_deferred_coupon_claimed_${String(orderNumber)}_${String(code)}`;
@@ -132,6 +138,8 @@ export default function SuccessPage() {
   const [waComposeAlreadyUsed, setWaComposeAlreadyUsed] = useState(false);
   /** תאימות לאחור: סשן ישן עם deferAdminPush + סוד אישור */
   const [waAdminPushPayload, setWaAdminPushPayload] = useState(null);
+  const [ratingHiddenForNow, setRatingHiddenForNow] = useState(false);
+  const [ratingAlreadyDone, setRatingAlreadyDone] = useState(false);
 
   /** אשראי: שחרור הזמנה לניהול פעם אחת רק אחרי Hyp CCode=0 */
   useEffect(() => {
@@ -717,6 +725,39 @@ export default function SuccessPage() {
     }
   }, [payDoneMarker, method, router.asPath]);
 
+  useEffect(() => {
+    if (!router.isReady || typeof window === "undefined") return;
+    const on =
+      orderFromQuery !== undefined &&
+      orderFromQuery !== null &&
+      String(orderFromQuery).trim() !== ""
+        ? String(orderFromQuery).trim()
+        : cardOrder?.orderNumber !== undefined &&
+            cardOrder?.orderNumber !== null
+          ? String(cardOrder.orderNumber).trim()
+          : "";
+    if (!on) return;
+    savePendingRating(on);
+    if (isRatingDoneLocal(on)) {
+      setRatingAlreadyDone(true);
+      return;
+    }
+    let cancelled = false;
+    fetch(`/api/ratings/status?on=${encodeURIComponent(on)}`)
+      .then((r) => r.json().catch(() => ({})))
+      .then((d) => {
+        if (cancelled) return;
+        if (d?.rated) {
+          markRatingDoneLocal(on);
+          setRatingAlreadyDone(true);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [router.isReady, orderFromQuery, cardOrder?.orderNumber]);
+
   const title = payDoneMarker
     ? t("success.paymentCompleted")
     : method === "online"
@@ -806,6 +847,23 @@ export default function SuccessPage() {
     mayStillNeedWaComposer;
   const showSuccessCheckBlock =
     !hideSuccessCheckUntilWaSent && !showMergedWaButton;
+
+  const orderNumberForRating =
+    orderFromQuery !== undefined &&
+    orderFromQuery !== null &&
+    String(orderFromQuery).trim() !== ""
+      ? String(orderFromQuery).trim()
+      : cardOrder?.orderNumber !== undefined &&
+          cardOrder?.orderNumber !== null
+        ? String(cardOrder.orderNumber).trim()
+        : "";
+
+  const showFoodRatingBlock =
+    Boolean(orderNumberForRating) &&
+    !showMergedWaButton &&
+    (showSuccessCheckBlock || waComposeAlreadyUsed) &&
+    !ratingHiddenForNow &&
+    !ratingAlreadyDone;
 
   const waSendClasses =
     "btn-primary flex w-full justify-center px-4 py-3 text-center text-base font-extrabold text-black shadow-[0_0_0_3px_rgba(251,191,36,0.4)] ring-2 ring-amber-400/90";
@@ -970,6 +1028,16 @@ export default function SuccessPage() {
             aria-label={t("success.loadingProgressAria")}
           >
             <div className="success-loading-bar-fill" />
+          </div>
+        ) : null}
+        {showFoodRatingBlock ? (
+          <div className="mt-2 flex w-full justify-center px-3">
+            <FoodRatingCard
+              orderNumber={orderNumberForRating}
+              source="success"
+              onSubmitted={() => setRatingAlreadyDone(true)}
+              onSkip={() => setRatingHiddenForNow(true)}
+            />
           </div>
         ) : null}
       </div>

@@ -1,0 +1,61 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useLocale } from "@/contexts/LocaleContext";
+import { StarDisplay } from "@/components/FoodRatingCard";
+
+export default function HeaderRatingSummary() {
+  const { t } = useLocale();
+  const [summary, setSummary] = useState(
+    /** @type {{ average: number, count: number } | null} */ (null)
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = () => {
+      fetch("/api/ratings/summary")
+        .then((r) => r.json().catch(() => ({})))
+        .then((d) => {
+          if (cancelled) return;
+          const count = Number(d?.count) || 0;
+          if (!d?.ok || count <= 0) {
+            setSummary(null);
+            return;
+          }
+          setSummary({
+            average: Number(d.average) || 0,
+            count,
+          });
+        })
+        .catch(() => {
+          if (!cancelled) setSummary(null);
+        });
+    };
+    load();
+    const onUpdated = () => load();
+    window.addEventListener("bh-rating-updated", onUpdated);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("bh-rating-updated", onUpdated);
+    };
+  }, []);
+
+  if (!summary?.count) return null;
+
+  const avgText = summary.average.toFixed(1);
+
+  return (
+    <p
+      className="mt-0.5 inline-flex flex-wrap items-center justify-center gap-x-1 gap-y-0 text-[10px] leading-tight text-amber-200/90 sm:text-[11px]"
+      dir="rtl"
+      aria-label={t("rating.headerAria")
+        .replace("{avg}", avgText)
+        .replace("{n}", String(summary.count))}
+    >
+      <StarDisplay value={summary.average} size="sm" />
+      <span className="font-semibold tabular-nums">{avgText}</span>
+      <span className="text-gray-400">·</span>
+      <span>{t("rating.headerCount").replace("{n}", String(summary.count))}</span>
+    </p>
+  );
+}

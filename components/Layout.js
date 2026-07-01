@@ -15,6 +15,14 @@ const PWAInstallLauncher = dynamic(() => import("./PWAInstallLauncher"), {
   ),
 });
 
+const HeaderRatingSummary = dynamic(() => import("./HeaderRatingSummary"), {
+  ssr: false,
+});
+
+const FoodRatingReminder = dynamic(() => import("./FoodRatingReminder"), {
+  ssr: false,
+});
+
 export default function Layout({ children }) {
   const { t } = useLocale();
   const { restaurantOpen, todayScheduledOpen } = useOrderingHours();
@@ -94,6 +102,7 @@ export default function Layout({ children }) {
               <p className="mb-0 whitespace-nowrap text-[11px] leading-tight text-gray-400 sm:text-xs">
                 {t("header.tagline")}
               </p>
+              <HeaderRatingSummary />
             </div>
           </div>
 
@@ -227,6 +236,7 @@ export default function Layout({ children }) {
       </main>
       <FloatingWhatsAppButton />
       <PreOpeningDialog />
+      <FoodRatingReminder />
 
       {hoursOpen ? (
         <div
