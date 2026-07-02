@@ -1,4 +1,4 @@
-import { saveFoodRating } from "@/lib/ratingsStore";
+import { saveFoodRating, saveVisitorRating } from "@/lib/ratingsStore";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -14,12 +14,24 @@ export default async function handler(req, res) {
     body = {};
   }
 
-  const result = await saveFoodRating({
-    orderNumber: body.orderNumber,
-    stars: body.stars,
-    comment: body.comment,
-    source: body.source,
-  });
+  const hasOrder =
+    body.orderNumber !== undefined &&
+    body.orderNumber !== null &&
+    String(body.orderNumber).trim() !== "";
+
+  const result = hasOrder
+    ? await saveFoodRating({
+        orderNumber: body.orderNumber,
+        stars: body.stars,
+        comment: body.comment,
+        source: body.source,
+      })
+    : await saveVisitorRating({
+        name: body.name,
+        stars: body.stars,
+        comment: body.comment,
+        source: body.source,
+      });
 
   if (result.error === "redis_not_configured") {
     return res.status(503).json({ ok: false, error: "redis_not_configured" });
@@ -35,7 +47,11 @@ export default async function handler(req, res) {
       rating: result.rating,
     });
   }
-  if (result.error === "invalid_stars" || result.error === "invalid_order_number") {
+  if (
+    result.error === "invalid_stars" ||
+    result.error === "invalid_order_number" ||
+    result.error === "invalid_name"
+  ) {
     return res.status(400).json({ ok: false, error: result.error });
   }
   if (!result.ok) {

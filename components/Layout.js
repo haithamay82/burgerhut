@@ -23,6 +23,10 @@ const FoodRatingReminder = dynamic(() => import("./FoodRatingReminder"), {
   ssr: false,
 });
 
+const SiteRatingDialog = dynamic(() => import("./SiteRatingDialog"), {
+  ssr: false,
+});
+
 export default function Layout({ children }) {
   const { t } = useLocale();
   const { restaurantOpen, todayScheduledOpen } = useOrderingHours();
@@ -238,6 +242,7 @@ export default function Layout({ children }) {
       </main>
       <FloatingWhatsAppButton />
       <PreOpeningDialog />
+      <SiteRatingDialog />
       <FoodRatingReminder />
 
       {hoursOpen ? (
