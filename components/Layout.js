@@ -102,7 +102,6 @@ export default function Layout({ children }) {
               <p className="mb-0 whitespace-nowrap text-[11px] leading-tight text-gray-400 sm:text-xs">
                 {t("header.tagline")}
               </p>
-              <HeaderRatingSummary />
             </div>
           </div>
 
@@ -158,7 +157,7 @@ export default function Layout({ children }) {
             </div>
           </div>
 
-          <div className="pointer-events-none relative z-30 mx-auto flex min-h-[2.25rem] w-full max-w-4xl items-center justify-center">
+          <div className="pointer-events-none relative z-30 mx-auto flex min-h-[3.25rem] w-full max-w-4xl items-center justify-center sm:min-h-[3.5rem]">
             <a
               href={wazeUrl}
               target="_blank"
@@ -177,41 +176,44 @@ export default function Layout({ children }) {
               />
             </a>
             <div
-              className="pointer-events-auto flex flex-row items-center justify-center gap-2"
+              className="pointer-events-auto flex max-w-[min(72vw,16rem)] flex-col items-center justify-center gap-0.5 sm:max-w-none"
               dir="ltr"
             >
-              <p
-                className="flex max-w-[min(42vw,11rem)] flex-col items-center gap-0.5 text-[9px] font-medium leading-tight text-gray-300 sm:max-w-none sm:text-[10px]"
-                dir="rtl"
-                role="status"
-                aria-live="polite"
-              >
-                <span className="inline-flex items-center gap-1.5">
-                  <span
-                    className={`h-2 w-2 shrink-0 rounded-full ${
-                      showAsOpen ? "bg-emerald-500" : "bg-red-500"
-                    }`}
-                    aria-hidden
-                  />
-                  <span>
-                    {showAsOpen
-                      ? t("home.restaurantOpen")
-                      : t("home.restaurantClosed")}
+              <HeaderRatingSummary />
+              <div className="flex flex-row items-center justify-center gap-2">
+                <p
+                  className="flex max-w-[min(42vw,11rem)] flex-col items-center gap-0.5 text-[9px] font-medium leading-tight text-gray-300 sm:max-w-none sm:text-[10px]"
+                  dir="rtl"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    <span
+                      className={`h-2 w-2 shrink-0 rounded-full ${
+                        showAsOpen ? "bg-emerald-500" : "bg-red-500"
+                      }`}
+                      aria-hidden
+                    />
+                    <span>
+                      {showAsOpen
+                        ? t("home.restaurantOpen")
+                        : t("home.restaurantClosed")}
+                    </span>
                   </span>
-                </span>
-                {!showAsOpen && todayScheduledOpen ? (
-                  <span className="block text-center text-[9px] font-medium leading-tight text-gray-300 sm:text-[10px]">
-                    {t("home.restaurantOpensAt16")}
-                  </span>
-                ) : null}
-              </p>
-              <button
-                type="button"
-                onClick={() => setHoursOpen(true)}
-                className="shrink-0 rounded-full border border-slate-600/80 bg-slate-900/40 px-3 py-1 text-[10px] font-semibold text-primary transition-colors hover:border-primary/60 hover:bg-slate-800/50"
-              >
-                {t("home.hoursButton")}
-              </button>
+                  {!showAsOpen && todayScheduledOpen ? (
+                    <span className="block text-center text-[9px] font-medium leading-tight text-gray-300 sm:text-[10px]">
+                      {t("home.restaurantOpensAt16")}
+                    </span>
+                  ) : null}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setHoursOpen(true)}
+                  className="shrink-0 rounded-full border border-slate-600/80 bg-slate-900/40 px-3 py-1 text-[10px] font-semibold text-primary transition-colors hover:border-primary/60 hover:bg-slate-800/50"
+                >
+                  {t("home.hoursButton")}
+                </button>
+              </div>
             </div>
             <a
               href={`tel:${String(t("home.contactPhoneValue")).replace(/\s/g, "")}`}
