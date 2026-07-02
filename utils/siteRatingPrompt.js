@@ -70,7 +70,7 @@ export function shouldShowSiteRatingDialog(pathname = "") {
 }
 
 /**
- * @param {{ name: string, stars: number, source?: string }} input
+ * @param {{ name: string, stars: number, comment?: string, source?: string }} input
  */
 export async function submitVisitorRating(input) {
   const r = await fetch("/api/ratings/submit", {
@@ -79,6 +79,7 @@ export async function submitVisitorRating(input) {
     body: JSON.stringify({
       name: input.name,
       stars: input.stars,
+      comment: input.comment || "",
       source: input.source || "site",
     }),
   });

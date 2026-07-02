@@ -20,6 +20,7 @@ export default function SiteRatingDialog() {
   const [name, setName] = useState("");
   const [stars, setStars] = useState(0);
   const [hover, setHover] = useState(0);
+  const [comment, setComment] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
@@ -77,6 +78,7 @@ export default function SiteRatingDialog() {
     const { ok, data } = await submitVisitorRating({
       name: trimmedName,
       stars,
+      comment,
       source: "site",
     });
     setBusy(false);
@@ -150,6 +152,16 @@ export default function SiteRatingDialog() {
             </button>
           ))}
         </div>
+
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          disabled={busy}
+          rows={2}
+          maxLength={400}
+          placeholder={t("rating.commentPh")}
+          className="mb-3 w-full rounded-xl border border-slate-700 bg-slate-950/80 px-3 py-2 text-right text-sm text-gray-100 placeholder:text-gray-500 focus:border-[#f5a623]/60 focus:outline-none"
+        />
 
         {err ? (
           <p className="mb-3 text-center text-xs text-amber-200/90">{err}</p>
