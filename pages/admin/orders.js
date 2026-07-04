@@ -462,6 +462,13 @@ export default function AdminOrdersPage() {
   const [customerBroadcastUrl, setCustomerBroadcastUrl] = useState("/");
   const [customerBroadcastBusy, setCustomerBroadcastBusy] = useState(false);
   const [customerBroadcastMsg, setCustomerBroadcastMsg] = useState("");
+  const [ratingsPanelOpen, setRatingsPanelOpen] = useState(false);
+  const [ratingsRows, setRatingsRows] = useState([]);
+  const [ratingsSummary, setRatingsSummary] = useState(null);
+  const [ratingsLoading, setRatingsLoading] = useState(false);
+  const [ratingsDeletingId, setRatingsDeletingId] = useState("");
+  const [ratingsDeleteAllBusy, setRatingsDeleteAllBusy] = useState(false);
+  const [ratingsMsg, setRatingsMsg] = useState("");
   const [adminClientReady, setAdminClientReady] = useState(false);
   const [sliderImages, setSliderImages] = useState([]);
   const [sliderDisplayEnabled, setSliderDisplayEnabled] = useState(true);
@@ -1363,6 +1370,114 @@ export default function AdminOrdersPage() {
     setCustomerBroadcastUrl("/");
     setCustomerBroadcastBusy(false);
     setCustomerBroadcastMsg("");
+    setRatingsPanelOpen(false);
+    setRatingsRows([]);
+    setRatingsSummary(null);
+    setRatingsLoading(false);
+    setRatingsDeletingId("");
+    setRatingsDeleteAllBusy(false);
+    setRatingsMsg("");
+  };
+
+  const refreshRatings = useCallback(async () => {
+    const s = secret.trim();
+    if (!s) {
+      setRatingsRows([]);
+      setRatingsSummary(null);
+      return;
+    }
+    setRatingsLoading(true);
+    try {
+      const r = await fetch(`/api/admin/ratings?_=${Date.now()}`, {
+        headers: { "x-admin-secret": s },
+        cache: "no-store",
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) {
+        setRatingsRows(Array.isArray(d.ratings) ? d.ratings : []);
+        setRatingsSummary(d.summary || null);
+        setRatingsMsg("");
+      } else if (d.error === "redis_not_configured") {
+        setRatingsRows([]);
+        setRatingsSummary(null);
+        setRatingsMsg(t("admin.ratingsRedis"));
+      } else {
+        setRatingsMsg(t("admin.ratingsLoadErr"));
+      }
+    } catch {
+      setRatingsMsg(t("admin.ratingsLoadErr"));
+    } finally {
+      setRatingsLoading(false);
+    }
+  }, [secret, t]);
+
+  const deleteRating = async (id) => {
+    const s = secret.trim();
+    const rid = String(id || "").trim();
+    if (!s || !rid || ratingsDeletingId) return;
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(t("admin.ratingsDeleteConfirm"))
+    ) {
+      return;
+    }
+    setRatingsDeletingId(rid);
+    setRatingsMsg("");
+    try {
+      const r = await fetch("/api/admin/ratings", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-secret": s,
+        },
+        body: JSON.stringify({ id: rid }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || !d.ok) {
+        setRatingsMsg(t("admin.ratingsDeleteErr"));
+        return;
+      }
+      setRatingsMsg(t("admin.ratingsDeleteOk"));
+      await refreshRatings();
+    } catch {
+      setRatingsMsg(t("admin.ratingsDeleteErr"));
+    } finally {
+      setRatingsDeletingId("");
+    }
+  };
+
+  const deleteAllRatings = async () => {
+    const s = secret.trim();
+    if (!s || ratingsDeleteAllBusy) return;
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(t("admin.ratingsDeleteAllConfirm"))
+    ) {
+      return;
+    }
+    setRatingsDeleteAllBusy(true);
+    setRatingsMsg("");
+    try {
+      const r = await fetch("/api/admin/ratings", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-secret": s,
+        },
+        body: JSON.stringify({ all: true }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || !d.ok) {
+        setRatingsMsg(t("admin.ratingsDeleteErr"));
+        return;
+      }
+      setRatingsMsg(t("admin.ratingsDeleteAllOk"));
+      await refreshRatings();
+    } catch {
+      setRatingsMsg(t("admin.ratingsDeleteErr"));
+    } finally {
+      setRatingsDeleteAllBusy(false);
+    }
   };
 
   const refreshCustomerPushStatus = useCallback(async () => {
@@ -1598,6 +1713,15 @@ export default function AdminOrdersPage() {
     }
     void refreshCustomerPushStatus();
   }, [loaded, adminRole, refreshCustomerPushStatus]);
+
+  useEffect(() => {
+    if (!loaded || adminRole === "employee") {
+      setRatingsRows([]);
+      setRatingsSummary(null);
+      return;
+    }
+    void refreshRatings();
+  }, [loaded, adminRole, refreshRatings]);
 
   useEffect(() => {
     if (!loaded) {
@@ -4050,6 +4174,164 @@ export default function AdminOrdersPage() {
                           ))}
                         </tbody>
                       </table>
+                    </div>
+                  )}
+                </section>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={() => setRatingsPanelOpen((v) => !v)}
+                aria-expanded={ratingsPanelOpen}
+                className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-right text-sm font-bold text-gray-100 transition-colors hover:border-primary/50 hover:bg-slate-800/60"
+              >
+                <span className="min-w-0 flex-1 leading-snug">
+                  {t("admin.ratingsTitle")}
+                </span>
+                <span
+                  className="shrink-0 text-lg leading-none text-primary"
+                  aria-hidden
+                >
+                  {ratingsPanelOpen ? "▾" : "▶"}
+                </span>
+              </button>
+              {ratingsPanelOpen ? (
+                <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
+                  <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-[11px] leading-relaxed text-gray-500">
+                        {t("admin.ratingsHint")}
+                      </p>
+                      {ratingsSummary ? (
+                        <p className="mt-2 text-xs font-semibold text-primary">
+                          {t("admin.ratingsSummary")
+                            .replace(
+                              "{avg}",
+                              Number(ratingsSummary.average || 0).toFixed(1)
+                            )
+                            .replace(
+                              "{count}",
+                              String(Number(ratingsSummary.count) || 0)
+                            )}
+                        </p>
+                      ) : null}
+                    </div>
+                    <div className="flex shrink-0 flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void refreshRatings()}
+                        disabled={ratingsLoading}
+                        className="rounded-lg border border-slate-600 bg-slate-800/80 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:border-primary/50 hover:bg-slate-800 disabled:opacity-50"
+                      >
+                        {ratingsLoading
+                          ? t("admin.ratingsLoading")
+                          : t("admin.ratingsRefresh")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void deleteAllRatings()}
+                        disabled={
+                          ratingsDeleteAllBusy ||
+                          ratingsLoading ||
+                          ratingsRows.length === 0
+                        }
+                        className="rounded-lg border border-red-900/60 bg-red-950/30 px-3 py-1.5 text-xs font-semibold text-red-300 transition-colors hover:bg-red-950/50 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {ratingsDeleteAllBusy
+                          ? t("admin.ratingsDeleting")
+                          : t("admin.ratingsDeleteAll")}
+                      </button>
+                    </div>
+                  </div>
+                  {ratingsMsg ? (
+                    <p className="mb-3 text-xs font-medium text-amber-200/90">
+                      {ratingsMsg}
+                    </p>
+                  ) : null}
+                  {ratingsLoading ? (
+                    <p className="text-sm text-gray-500">
+                      {t("admin.ratingsLoading")}
+                    </p>
+                  ) : ratingsRows.length === 0 ? (
+                    <p className="text-sm text-gray-500">
+                      {t("admin.ratingsEmpty")}
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {ratingsRows.map((row) => {
+                        const sourceLabel =
+                          row.source === "site"
+                            ? t("admin.ratingsSourceSite")
+                            : row.source === "reminder"
+                              ? t("admin.ratingsSourceReminder")
+                              : row.source === "success"
+                                ? t("admin.ratingsSourceSuccess")
+                                : String(row.source || "—");
+                        return (
+                          <article
+                            key={row.id}
+                            className="rounded-xl border border-slate-800 bg-slate-950/55 p-3 text-right"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0 flex-1 space-y-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className="font-semibold text-gray-100">
+                                    {String(row.name || "").trim() ||
+                                      t("rating.anonymousCustomer")}
+                                  </p>
+                                  <span className="rounded-full border border-primary/25 bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                                    {row.type === "order"
+                                      ? t("admin.ratingsTypeOrder")
+                                      : t("admin.ratingsTypeGuest")}
+                                  </span>
+                                  {row.orderNumber ? (
+                                    <span className="text-[11px] text-gray-500">
+                                      #{row.orderNumber}
+                                    </span>
+                                  ) : null}
+                                </div>
+                                <p className="text-sm text-amber-300">
+                                  {"★".repeat(Math.max(0, Number(row.stars) || 0))}
+                                  <span className="mr-1 text-xs text-gray-500">
+                                    {t("rating.starsOfFive").replace(
+                                      "{n}",
+                                      String(Number(row.stars) || 0)
+                                    )}
+                                  </span>
+                                </p>
+                                {String(row.comment || "").trim() ? (
+                                  <p className="rounded-lg border border-slate-800 bg-black/30 p-2 text-xs leading-relaxed text-gray-300">
+                                    «{String(row.comment).trim()}»
+                                  </p>
+                                ) : (
+                                  <p className="text-xs text-gray-600">
+                                    {t("admin.ratingsNoComment")}
+                                  </p>
+                                )}
+                                <p className="text-[11px] text-gray-500">
+                                  {sourceLabel} ·{" "}
+                                  {row.createdAt
+                                    ? formatTime(row.createdAt, locale)
+                                    : "—"}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => void deleteRating(row.id)}
+                                disabled={
+                                  ratingsDeletingId === row.id ||
+                                  ratingsDeleteAllBusy
+                                }
+                                className="shrink-0 rounded-lg border border-red-900/50 bg-red-950/20 px-2 py-1 text-[11px] text-red-300 hover:bg-red-950/40 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                {ratingsDeletingId === row.id
+                                  ? t("admin.ratingsDeleting")
+                                  : t("admin.ratingsDelete")}
+                              </button>
+                            </div>
+                          </article>
+                        );
+                      })}
                     </div>
                   )}
                 </section>
