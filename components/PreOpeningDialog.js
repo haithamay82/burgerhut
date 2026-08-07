@@ -48,11 +48,11 @@ export default function PreOpeningDialog() {
 
   return (
     <div
-      className="fixed inset-0 z-[520] flex items-center justify-center bg-bh-overlay p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[520] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
       role="presentation"
     >
       <div
-        className="w-full max-w-sm rounded-2xl border border-bh-border-strong bg-bh-card p-5 shadow-2xl"
+        className="w-full max-w-sm rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-2xl"
         role="dialog"
         aria-modal="true"
         aria-labelledby="pre-open-dialog-title"
@@ -64,10 +64,10 @@ export default function PreOpeningDialog() {
         >
           {t("home.preOpenDialogTitle")}
         </h3>
-        <p className="text-sm leading-relaxed text-bh-text">
+        <p className="text-sm leading-relaxed text-gray-100">
           {t("home.preOpenDialogLine1").replace("{openTime}", openTime)}
         </p>
-        <p className="mt-2 text-sm leading-relaxed text-bh-muted">
+        <p className="mt-2 text-sm leading-relaxed text-gray-300">
           {t("home.preOpenDialogLine2").replace("{openTime}", openTime)}
         </p>
         <button

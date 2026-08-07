@@ -57,7 +57,7 @@ export default function HeaderRatingSummary() {
       >
         <StarDisplay value={summary.average} size="sm" />
         <span className="font-semibold tabular-nums">{avgText}</span>
-        <span className="text-bh-faint">·</span>
+        <span className="text-gray-400">·</span>
         <span>{t("rating.headerCount").replace("{n}", String(summary.count))}</span>
       </button>
       <HeaderRatingsDialog

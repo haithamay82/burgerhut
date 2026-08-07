@@ -10,12 +10,9 @@ import {
 } from "@/lib/siteOg";
 
 export default function Document() {
-  const themeBootScript = `(function(){try{var k='bh_theme_customer_v1';var t=localStorage.getItem(k);if(t!=='dark'&&t!=='concrete'){var m=document.cookie.match(/(?:^|; )bh_theme_site_v1=([^;]*)/);t=m?decodeURIComponent(m[1]):'dark';}if(t!=='dark'&&t!=='concrete')t='dark';var d=document.documentElement;d.setAttribute('data-theme',t);d.style.colorScheme=t==='concrete'?'light':'dark';}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();`;
-
   return (
     <Html lang="he" dir="rtl">
       <Head>
-        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
         <link rel="manifest" href="/manifest.webmanifest" />
         <meta name="theme-color" content="#f5a623" />
         <meta name="mobile-web-app-capable" content="yes" />
@@ -40,7 +37,7 @@ export default function Document() {
         <meta name="twitter:description" content={OG_DESCRIPTION} />
         <meta name="twitter:image" content={OG_IMAGE_URL} />
       </Head>
-      <body className="bg-bh-bg text-bh-text font-sans">
+      <body className="bg-black text-gray-100 font-sans">
         <Main />
         <NextScript />
       </body>

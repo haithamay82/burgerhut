@@ -70,12 +70,12 @@ export default function HeaderRatingsDialog({ open, onClose, average, count }) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[223] flex items-center justify-center bg-bh-overlay p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[223] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
       role="presentation"
       onClick={onClose}
     >
       <div
-        className="flex max-h-[min(85vh,28rem)] w-full max-w-md flex-col rounded-2xl border-2 border-[#f5a623] bg-bh-bg shadow-2xl"
+        className="flex max-h-[min(85vh,28rem)] w-full max-w-md flex-col rounded-2xl border-2 border-[#f5a623] bg-black shadow-2xl"
         role="dialog"
         aria-modal="true"
         aria-labelledby="ratings-dialog-title"
@@ -92,18 +92,18 @@ export default function HeaderRatingsDialog({ open, onClose, average, count }) {
           <p className="mt-1 inline-flex flex-wrap items-center justify-center gap-x-1 text-xs text-amber-200/90">
             <StarDisplay value={average} size="sm" />
             <span className="font-semibold tabular-nums">{avgText}</span>
-            <span className="text-bh-faint">·</span>
+            <span className="text-gray-400">·</span>
             <span>{t("rating.headerCount").replace("{n}", String(count))}</span>
           </p>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
           {loading ? (
-            <p className="py-6 text-center text-sm text-bh-faint">
+            <p className="py-6 text-center text-sm text-gray-400">
               {t("rating.listLoading")}
             </p>
           ) : items.length === 0 ? (
-            <p className="py-6 text-center text-sm text-bh-faint">
+            <p className="py-6 text-center text-sm text-gray-400">
               {t("rating.listEmpty")}
             </p>
           ) : (
@@ -115,14 +115,14 @@ export default function HeaderRatingsDialog({ open, onClose, average, count }) {
                 return (
                   <li
                     key={key}
-                    className="rounded-xl border border-white/10 bg-bh-input p-3 text-right"
+                    className="rounded-xl border border-white/10 bg-slate-950/60 p-3 text-right"
                   >
                     <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
                       <span className="text-sm font-semibold text-white">
                         {displayName}
                       </span>
                       {item.createdAt ? (
-                        <span className="text-[10px] tabular-nums text-bh-faint">
+                        <span className="text-[10px] tabular-nums text-gray-500">
                           {formatDate(item.createdAt)}
                         </span>
                       ) : null}
@@ -137,7 +137,7 @@ export default function HeaderRatingsDialog({ open, onClose, average, count }) {
                       </span>
                     </div>
                     {item.comment ? (
-                      <p className="text-xs leading-relaxed text-bh-muted">
+                      <p className="text-xs leading-relaxed text-gray-300">
                         «{item.comment}»
                       </p>
                     ) : null}

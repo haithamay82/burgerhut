@@ -2,8 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-:root,
-html[data-theme="dark"] {
+:root {
   color-scheme: dark;
   --bh-bg: #000000;
   --bh-grad-from: #000000;
@@ -22,25 +21,6 @@ html[data-theme="dark"] {
   --bh-overlay-soft: rgba(0, 0, 0, 0.5);
 }
 
-html[data-theme="concrete"] {
-  color-scheme: light;
-  --bh-bg: #9e9a93;
-  --bh-grad-from: #8f8b84;
-  --bh-grad-via: #a39e96;
-  --bh-grad-to: #8a8680;
-  --bh-surface: rgba(176, 171, 163, 0.92);
-  --bh-card: rgba(196, 191, 182, 0.92);
-  --bh-elevated: #b5b0a8;
-  --bh-input: #d1ccc4;
-  --bh-text: #1c1917;
-  --bh-muted: #44403c;
-  --bh-faint: #57534e;
-  --bh-border: #78716c;
-  --bh-border-strong: #6b6660;
-  --bh-overlay: rgba(28, 25, 23, 0.55);
-  --bh-overlay-soft: rgba(28, 25, 23, 0.28);
-}
-
 html,
 body,
 #__next {
@@ -48,9 +28,7 @@ body,
 }
 
 body {
-  @apply bg-bh-bg text-bh-text antialiased;
-  background-color: var(--bh-bg);
-  color: var(--bh-text);
+  @apply bg-black text-gray-100 antialiased;
 }
 
 .btn-primary {
@@ -58,7 +36,7 @@ body {
 }
 
 .card {
-  @apply rounded-2xl bg-bh-card border border-bh-border shadow-lg;
+  @apply rounded-2xl bg-slate-900/80 border border-slate-800 shadow-lg;
 }
 
 @keyframes promoGlowPulse {

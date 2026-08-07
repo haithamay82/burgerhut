@@ -5,7 +5,6 @@ import FloatingWhatsAppButton from "./FloatingWhatsAppButton";
 import PreOpeningDialog from "./PreOpeningDialog";
 import CurrentDateTime from "./CurrentDateTime";
 import LanguageSwitcher from "./LanguageSwitcher";
-import ThemeSwitcher from "./ThemeSwitcher";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useOrderingHours } from "@/contexts/OrderingHoursContext";
 
@@ -64,8 +63,8 @@ export default function Layout({ children }) {
   }, [hoursOpen]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-bh-grad-from via-bh-grad-via to-bh-grad-to text-bh-text">
-      <header className="sticky top-0 z-30 w-full border-b border-bh-border bg-bh-surface backdrop-blur">
+    <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-black text-gray-100">
+      <header className="sticky top-0 z-30 w-full border-b border-slate-800 bg-black/80 backdrop-blur">
         <div className="relative w-full px-4 py-2 sm:py-2.5">
           <div className="pointer-events-none absolute left-1/2 top-2 z-[40] flex w-max max-w-[calc(100vw-4.5rem)] -translate-x-1/2 justify-center sm:top-2.5">
             <div className="flex w-max max-w-[calc(100vw-4.5rem)] flex-col items-center text-center">
@@ -79,7 +78,7 @@ export default function Layout({ children }) {
                   </div>
                   <Link
                     href="/"
-                    className="relative z-[2] block rounded-lg outline-none transition-opacity hover:opacity-95 focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-bh-bg"
+                    className="relative z-[2] block rounded-lg outline-none transition-opacity hover:opacity-95 focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                     aria-label={t("header.goHome")}
                   >
                     <div className="h-[4.2rem] w-[4.2rem] shrink-0 overflow-hidden rounded-full bg-white ring-1 ring-white/15">
@@ -95,7 +94,7 @@ export default function Layout({ children }) {
                 </div>
                 <Link
                   href="/"
-                  className="relative z-[2] mb-0.5 mt-0.5 rounded-lg outline-none transition-opacity hover:opacity-95 focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-bh-bg"
+                  className="relative z-[2] mb-0.5 mt-0.5 rounded-lg outline-none transition-opacity hover:opacity-95 focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                   aria-label={t("header.goHome")}
                 >
                   <h1 className="inline-flex flex-wrap items-center justify-center gap-x-1 gap-y-0 text-center text-base font-extrabold tracking-tight text-primary sm:text-xl">
@@ -104,19 +103,18 @@ export default function Layout({ children }) {
                   </h1>
                 </Link>
               </div>
-              <p className="mb-0 whitespace-nowrap text-[11px] leading-tight text-bh-faint sm:text-xs">
+              <p className="mb-0 whitespace-nowrap text-[11px] leading-tight text-gray-400 sm:text-xs">
                 {t("header.tagline")}
               </p>
             </div>
           </div>
 
-          <div className="pointer-events-none relative z-30 mx-auto min-h-[7.75rem] max-w-4xl sm:min-h-[8.1rem]">
+          <div className="pointer-events-none relative z-30 mx-auto min-h-[6.85rem] max-w-4xl sm:min-h-[7.25rem]">
             <div className="flex items-start justify-between gap-2 pt-1">
-              <div className="pointer-events-auto relative flex min-h-[44px] shrink-0 flex-col items-start gap-1">
+              <div className="pointer-events-auto relative flex min-h-[44px] shrink-0 items-center">
                 <LanguageSwitcher />
-                <ThemeSwitcher compact />
               </div>
-              <div className="pointer-events-auto flex min-w-0 max-w-[42%] flex-col items-end gap-0.5 text-right text-[11px] text-bh-faint sm:max-w-[38%]">
+              <div className="pointer-events-auto flex min-w-0 max-w-[42%] flex-col items-end gap-0.5 text-right text-[11px] text-gray-400 sm:max-w-[38%]">
                 <span>
                   {t("home.contactAddressLabel")}: {t("home.contactAddressValue")}
                 </span>
@@ -128,7 +126,7 @@ export default function Layout({ children }) {
                     rel="noreferrer"
                     aria-label={t("home.instagramAria")}
                     title={t("home.instagramAria")}
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-bh-card text-pink-300 transition-colors hover:border-pink-300/70 hover:text-pink-200"
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-slate-900/50 text-pink-300 transition-colors hover:border-pink-300/70 hover:text-pink-200"
                   >
                     <svg
                       viewBox="0 0 24 24"
@@ -146,7 +144,7 @@ export default function Layout({ children }) {
                     rel="noreferrer"
                     aria-label={t("home.tiktokAria")}
                     title={t("home.tiktokAria")}
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-bh-card text-cyan-300 transition-colors hover:border-cyan-300/70 hover:text-cyan-200"
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-slate-900/50 text-cyan-300 transition-colors hover:border-cyan-300/70 hover:text-cyan-200"
                   >
                     <svg
                       viewBox="0 0 24 24"
@@ -188,7 +186,7 @@ export default function Layout({ children }) {
               <HeaderRatingSummary />
               <div className="flex flex-row items-center justify-center gap-2">
                 <p
-                  className="flex max-w-[min(42vw,11rem)] flex-col items-center gap-0.5 text-[9px] font-medium leading-tight text-bh-muted sm:max-w-none sm:text-[10px]"
+                  className="flex max-w-[min(42vw,11rem)] flex-col items-center gap-0.5 text-[9px] font-medium leading-tight text-gray-300 sm:max-w-none sm:text-[10px]"
                   dir="rtl"
                   role="status"
                   aria-live="polite"
@@ -207,7 +205,7 @@ export default function Layout({ children }) {
                     </span>
                   </span>
                   {!showAsOpen && todayScheduledOpen ? (
-                    <span className="block text-center text-[9px] font-medium leading-tight text-bh-muted sm:text-[10px]">
+                    <span className="block text-center text-[9px] font-medium leading-tight text-gray-300 sm:text-[10px]">
                       {t("home.restaurantOpensAt16")}
                     </span>
                   ) : null}
@@ -215,7 +213,7 @@ export default function Layout({ children }) {
                 <button
                   type="button"
                   onClick={() => setHoursOpen(true)}
-                  className="shrink-0 rounded-full border border-bh-border-strong bg-bh-card px-3 py-1 text-[10px] font-semibold text-primary transition-colors hover:border-primary/60 hover:bg-bh-elevated"
+                  className="shrink-0 rounded-full border border-slate-600/80 bg-slate-900/40 px-3 py-1 text-[10px] font-semibold text-primary transition-colors hover:border-primary/60 hover:bg-slate-800/50"
                 >
                   {t("home.hoursButton")}
                 </button>
@@ -249,12 +247,12 @@ export default function Layout({ children }) {
 
       {hoursOpen ? (
         <div
-          className="fixed inset-0 z-[200] flex items-center justify-center bg-bh-overlay p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
           role="presentation"
           onClick={() => setHoursOpen(false)}
         >
           <div
-            className="w-full max-w-sm rounded-2xl border border-bh-border-strong bg-bh-card p-5 shadow-2xl"
+            className="w-full max-w-sm rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-2xl"
             role="dialog"
             aria-modal="true"
             aria-labelledby="layout-hours-title"
@@ -270,36 +268,36 @@ export default function Layout({ children }) {
               <button
                 type="button"
                 onClick={() => setHoursOpen(false)}
-                className="rounded-full border border-bh-border-strong px-2 py-0.5 text-sm leading-none text-bh-faint hover:border-bh-border-strong hover:text-bh-text"
+                className="rounded-full border border-slate-600 px-2 py-0.5 text-sm leading-none text-gray-400 hover:border-slate-500 hover:text-gray-200"
                 aria-label={t("ui.wizardClose")}
               >
                 ×
               </button>
             </div>
             {businessHours && businessHours.length ? (
-              <ul className="space-y-2 text-sm text-bh-text">
+              <ul className="space-y-2 text-sm text-gray-100">
                 {[...businessHours]
                   .sort((a, b) => a.weekday - b.weekday)
                   .map((d) => (
                     <li key={d.weekday} className="leading-snug">
-                      <span className="font-semibold text-bh-text">
+                      <span className="font-semibold text-gray-200">
                         {t(`weekday.${d.weekday}`)}
                       </span>
                       {d.enabled ? (
                         <>
-                          <span className="text-bh-faint">: </span>
+                          <span className="text-gray-400">: </span>
                           <span className="font-medium tabular-nums text-primary">
                             {d.open} – {d.close}
                           </span>
                         </>
                       ) : (
                         <>
-                          <span className="text-bh-faint"> — </span>
-                          <span className="font-medium text-bh-faint">
+                          <span className="text-gray-400"> — </span>
+                          <span className="font-medium text-gray-400">
                             {t("home.restaurantClosed")}
                           </span>
                           {String(d.closedReason ?? "").trim() ? (
-                            <span className="mt-0.5 block text-xs font-normal text-bh-faint">
+                            <span className="mt-0.5 block text-xs font-normal text-gray-500">
                               {String(d.closedReason).trim()}
                             </span>
                           ) : null}
@@ -310,13 +308,13 @@ export default function Layout({ children }) {
               </ul>
             ) : (
               <>
-                <p className="text-sm text-bh-text">{t("home.hoursDays")}</p>
-                <p className="mt-2 text-sm font-semibold text-bh-text">
+                <p className="text-sm text-gray-200">{t("home.hoursDays")}</p>
+                <p className="mt-2 text-sm font-semibold text-gray-100">
                   {t("home.hoursTime")}
                 </p>
               </>
             )}
-            <p className="mt-3 text-sm leading-relaxed text-bh-muted">
+            <p className="mt-3 text-sm leading-relaxed text-gray-300">
               {t("home.hoursOrderWindow")}
             </p>
             <button

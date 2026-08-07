@@ -75,7 +75,7 @@ export default function FoodRatingReminder() {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[224] flex items-center justify-center bg-bh-overlay p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[224] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
       role="presentation"
     >
       <div className="w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
@@ -86,7 +86,7 @@ export default function FoodRatingReminder() {
           onSubmitted={() => setOpen(false)}
           onSkip={later}
         />
-        <p className="mt-2 text-center text-[10px] text-bh-faint">
+        <p className="mt-2 text-center text-[10px] text-gray-500">
           {t("rating.reminderHint").replace("{order}", orderNumber)}
         </p>
       </div>

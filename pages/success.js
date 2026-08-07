@@ -873,7 +873,7 @@ export default function SuccessPage() {
       <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
         {postPaymentWhatsAppContext && coupon?.code ? (
           <section className="mb-4 w-full max-w-sm rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-900 via-slate-950 to-cyan-950 p-4 text-right text-white shadow-lg shadow-emerald-900/20">
-            <div className="relative rounded-xl border border-white/10 bg-bh-input p-3 pt-10">
+            <div className="relative rounded-xl border border-white/10 bg-slate-950/70 p-3 pt-10">
               <img
                 src="/logo-burger-hut.png"
                 alt="Burger Hut"
@@ -941,9 +941,9 @@ export default function SuccessPage() {
               ✓
             </div>
             <h2 className="mb-2 text-xl font-bold">{title}</h2>
-            <p className="mb-4 max-w-sm text-sm text-bh-faint">{description}</p>
+            <p className="mb-4 max-w-sm text-sm text-gray-400">{description}</p>
             {orderFromQuery ? (
-              <p className="mb-4 text-xs text-bh-faint">
+              <p className="mb-4 text-xs text-gray-500">
                 #{String(orderFromQuery)}
               </p>
             ) : null}

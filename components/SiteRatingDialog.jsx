@@ -95,11 +95,11 @@ export default function SiteRatingDialog() {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[222] flex items-center justify-center bg-bh-overlay p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[222] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
       role="presentation"
     >
       <div
-        className="w-full max-w-sm rounded-2xl border-2 border-[#f5a623] bg-bh-bg p-5 shadow-2xl"
+        className="w-full max-w-sm rounded-2xl border-2 border-[#f5a623] bg-black p-5 shadow-2xl"
         role="dialog"
         aria-modal="true"
         aria-labelledby="site-rating-title"
@@ -111,11 +111,11 @@ export default function SiteRatingDialog() {
         >
           {t("rating.siteTitle")}
         </h2>
-        <p className="mb-4 text-center text-sm text-bh-muted">
+        <p className="mb-4 text-center text-sm text-gray-300">
           {t("rating.siteSubtitle")}
         </p>
 
-        <label className="mb-1 block text-right text-xs font-medium text-bh-muted">
+        <label className="mb-1 block text-right text-xs font-medium text-gray-300">
           {t("rating.siteNameLabel")}
         </label>
         <input
@@ -125,7 +125,7 @@ export default function SiteRatingDialog() {
           disabled={busy}
           maxLength={80}
           placeholder={t("rating.siteNamePh")}
-          className="mb-3 w-full rounded-xl border border-bh-border-strong bg-bh-input px-3 py-2.5 text-right text-sm text-bh-text placeholder:text-bh-faint focus:border-[#f5a623]/60 focus:outline-none"
+          className="mb-3 w-full rounded-xl border border-slate-700 bg-slate-950/80 px-3 py-2.5 text-right text-sm text-gray-100 placeholder:text-gray-500 focus:border-[#f5a623]/60 focus:outline-none"
         />
 
         <div
@@ -160,7 +160,7 @@ export default function SiteRatingDialog() {
           rows={2}
           maxLength={400}
           placeholder={t("rating.commentPh")}
-          className="mb-3 w-full rounded-xl border border-bh-border-strong bg-bh-input px-3 py-2 text-right text-sm text-bh-text placeholder:text-bh-faint focus:border-[#f5a623]/60 focus:outline-none"
+          className="mb-3 w-full rounded-xl border border-slate-700 bg-slate-950/80 px-3 py-2 text-right text-sm text-gray-100 placeholder:text-gray-500 focus:border-[#f5a623]/60 focus:outline-none"
         />
 
         {err ? (
@@ -180,7 +180,7 @@ export default function SiteRatingDialog() {
             type="button"
             disabled={busy}
             onClick={closeAfterTaste}
-            className="w-full rounded-xl border border-bh-border-strong py-2.5 text-sm font-semibold text-bh-text"
+            className="w-full rounded-xl border border-slate-600 py-2.5 text-sm font-semibold text-gray-200"
           >
             {t("rating.siteAfterTasteBtn")}
           </button>
@@ -188,7 +188,7 @@ export default function SiteRatingDialog() {
             type="button"
             disabled={busy}
             onClick={closeNever}
-            className="w-full rounded-xl py-2 text-xs font-medium text-bh-faint underline decoration-gray-600 underline-offset-2 hover:text-bh-faint"
+            className="w-full rounded-xl py-2 text-xs font-medium text-gray-500 underline decoration-gray-600 underline-offset-2 hover:text-gray-400"
           >
             {t("rating.siteNeverBtn")}
           </button>

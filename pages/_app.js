@@ -3,7 +3,6 @@ import "@/styles/globals.css";
 import { CartProvider } from "@/hooks/useCart";
 import { MealWizardProvider } from "@/contexts/MealWizardContext";
 import { LocaleProvider } from "@/contexts/LocaleContext";
-import { ThemeProvider } from "@/contexts/ThemeContext";
 import { MenuCatalogProvider } from "@/contexts/MenuCatalogContext";
 import { InventoryProvider } from "@/contexts/InventoryContext";
 import { OrderingHoursProvider } from "@/contexts/OrderingHoursContext";
@@ -154,22 +153,20 @@ export default function App({ Component, pageProps }) {
   }, []);
 
   return (
-    <ThemeProvider>
-      <LocaleProvider>
-        <OrderingHoursProvider>
-          <CartProvider>
-            <MenuCatalogProvider>
-              <InventoryProvider>
-                <MealWizardProvider>
-                  <PwaNotificationPrompt />
-                  <Component {...pageProps} />
-                </MealWizardProvider>
-              </InventoryProvider>
-            </MenuCatalogProvider>
-          </CartProvider>
-        </OrderingHoursProvider>
-      </LocaleProvider>
-    </ThemeProvider>
+    <LocaleProvider>
+      <OrderingHoursProvider>
+        <CartProvider>
+          <MenuCatalogProvider>
+            <InventoryProvider>
+              <MealWizardProvider>
+                <PwaNotificationPrompt />
+                <Component {...pageProps} />
+              </MealWizardProvider>
+            </InventoryProvider>
+          </MenuCatalogProvider>
+        </CartProvider>
+      </OrderingHoursProvider>
+    </LocaleProvider>
   );
 }
 
