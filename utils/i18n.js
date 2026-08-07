@@ -66,7 +66,6 @@ const HE = {
     "עקב {reason} מחכה לכם הנחה של {percent}% בקניה מעל {min}.",
   "home.discountAnnounceNoReason":
     "מחכה לכם הנחה של {percent}% בקניה מעל {min}.",
-  "home.specialsNewBadge": "חדש",
   "home.categoryBannerAria": "בחירת קטגוריית תפריט",
   "home.promoSkip": "דלג",
   "home.promoTapForSound": "לחץ להפעלת קול",
@@ -1187,7 +1186,6 @@ const AR = {
     "بسبب {reason} يمكنكم الحصول على خصم بنسبة {percent}% عند الشراء فوق {min}.",
   "home.discountAnnounceNoReason":
     "يمكنكم الحصول على خصم بنسبة {percent}% عند الشراء فوق {min}.",
-  "home.specialsNewBadge": "جديد",
   "home.categoryBannerAria": "اختيار فئة القائمة",
   "home.promoSkip": "تخطي",
   "home.promoTapForSound": "اضغط لتشغيل الصوت",
