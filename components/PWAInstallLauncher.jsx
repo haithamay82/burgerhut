@@ -190,7 +190,7 @@ export default function PWAInstallLauncher({ compact = false }) {
     iosGuide && typeof document !== "undefined"
       ? createPortal(
           <div
-            className="fixed inset-0 z-[221] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-[221] flex items-center justify-center bg-bh-overlay p-4 backdrop-blur-sm"
             role="presentation"
             onClick={() => {
               setIosGuide(null);
@@ -198,7 +198,7 @@ export default function PWAInstallLauncher({ compact = false }) {
             }}
           >
             <div
-              className="max-h-[min(90vh,32rem)] w-full max-w-sm overflow-y-auto rounded-2xl border-2 border-[#f5a623] bg-black p-5 shadow-2xl"
+              className="max-h-[min(90vh,32rem)] w-full max-w-sm overflow-y-auto rounded-2xl border-2 border-[#f5a623] bg-bh-bg p-5 shadow-2xl"
               role="dialog"
               aria-modal="true"
               aria-labelledby="pwa-ios-guide-title"
@@ -215,10 +215,10 @@ export default function PWAInstallLauncher({ compact = false }) {
               </h2>
               {iosGuide === "inapp" ? (
                 <>
-                  <p className="mb-3 text-center text-sm leading-relaxed text-gray-200">
+                  <p className="mb-3 text-center text-sm leading-relaxed text-bh-text">
                     {t("pwa.iosInAppShortLine1")}
                   </p>
-                  <p className="mb-4 text-center text-sm leading-relaxed text-gray-200">
+                  <p className="mb-4 text-center text-sm leading-relaxed text-bh-text">
                     <span>{t("pwa.iosInAppShortPrefix")}</span>
                     <button
                       type="button"
@@ -243,15 +243,15 @@ export default function PWAInstallLauncher({ compact = false }) {
                     </button>
                     <span>{t("pwa.iosInAppShortSuffix")}</span>
                   </p>
-                  <p className="mb-2 text-center text-[11px] leading-snug text-gray-500">
+                  <p className="mb-2 text-center text-[11px] leading-snug text-bh-faint">
                     {t("pwa.iosInAppShortHint")}
                   </p>
-                  <p className="mb-2 break-all text-center text-[11px] text-gray-600">
+                  <p className="mb-2 break-all text-center text-[11px] text-bh-faint">
                     {siteUrl}
                   </p>
                   <button
                     type="button"
-                    className="mb-3 w-full rounded-xl border border-[#f5a623]/50 bg-black py-2.5 text-sm font-semibold text-[#f5a623] transition-colors hover:bg-white/5"
+                    className="mb-3 w-full rounded-xl border border-[#f5a623]/50 bg-bh-bg py-2.5 text-sm font-semibold text-[#f5a623] transition-colors hover:bg-white/5"
                     onClick={() => void copySiteUrl()}
                   >
                     {t("pwa.iosCopyLinkButton")}
@@ -269,7 +269,7 @@ export default function PWAInstallLauncher({ compact = false }) {
                   ) : null}
                 </>
               ) : (
-                <p className="mb-5 whitespace-pre-line text-center text-sm leading-relaxed text-gray-200">
+                <p className="mb-5 whitespace-pre-line text-center text-sm leading-relaxed text-bh-text">
                   {t("pwa.iosInstallHint")}
                 </p>
               )}
@@ -293,12 +293,12 @@ export default function PWAInstallLauncher({ compact = false }) {
     confirmOpen && typeof document !== "undefined"
       ? createPortal(
           <div
-            className="fixed inset-0 z-[220] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-[220] flex items-center justify-center bg-bh-overlay p-4 backdrop-blur-sm"
             role="presentation"
             onClick={() => setConfirmOpen(false)}
           >
             <div
-              className="w-full max-w-sm rounded-2xl border-2 border-[#f5a623] bg-black p-5 shadow-2xl"
+              className="w-full max-w-sm rounded-2xl border-2 border-[#f5a623] bg-bh-bg p-5 shadow-2xl"
               role="alertdialog"
               aria-modal="true"
               aria-labelledby="pwa-confirm-title"
@@ -314,7 +314,7 @@ export default function PWAInstallLauncher({ compact = false }) {
               </h2>
               <p
                 id="pwa-confirm-desc"
-                className="mb-5 text-center text-sm leading-relaxed text-gray-200"
+                className="mb-5 text-center text-sm leading-relaxed text-bh-text"
               >
                 {t("pwa.confirmBody")}
               </p>
@@ -357,8 +357,8 @@ export default function PWAInstallLauncher({ compact = false }) {
           }}
           className={
             compact
-              ? "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-[#f5a623] bg-black/80 text-[#f5a623] shadow-md transition-colors hover:bg-[#f5a623]/15"
-              : "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-[#f5a623] bg-black/80 text-[#f5a623] shadow-md transition-colors hover:bg-[#f5a623]/15"
+              ? "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-[#f5a623] bg-bh-overlay text-[#f5a623] shadow-md transition-colors hover:bg-[#f5a623]/15"
+              : "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-[#f5a623] bg-bh-overlay text-[#f5a623] shadow-md transition-colors hover:bg-[#f5a623]/15"
           }
           aria-label={t("pwa.launcherAria")}
           title={t("pwa.launcherAria")}

@@ -176,7 +176,7 @@ export default function HomeMain({
       </section>
 
       <section
-        className="relative mb-4 rounded-2xl border border-slate-800 shadow-xl"
+        className="relative mb-4 rounded-2xl border border-bh-border shadow-xl"
         aria-label={t("home.categoryBannerAria")}
       >
         <div
@@ -200,7 +200,7 @@ export default function HomeMain({
                   className={`flex min-h-[2.5rem] w-full items-center justify-center rounded-full border px-1 py-1.5 text-center text-[12px] font-semibold leading-tight shadow-md backdrop-blur-sm transition-colors ${
                     activeCategory === catId
                       ? "border-primary bg-primary text-black shadow-lg ring-2 ring-primary/40"
-                      : "border-white/25 bg-black/50 text-gray-100 hover:border-white/40 hover:bg-black/65"
+                      : "border-white/25 bg-bh-overlay-soft text-bh-text hover:border-white/40 hover:bg-bh-overlay-soft"
                   }`}
                 >
                   {t(`cat.${catId}`)}
@@ -223,7 +223,7 @@ export default function HomeMain({
                     className={`relative z-[1] flex min-h-[2.5rem] w-full items-center justify-center rounded-full border px-1 py-1.5 text-center text-[12px] font-semibold leading-tight shadow-md backdrop-blur-sm transition-colors ${
                       activeCategory === "specials"
                         ? "border-primary bg-primary text-black shadow-lg ring-2 ring-primary/40"
-                        : "border-white/25 bg-black/50 text-gray-100 hover:border-white/40 hover:bg-black/65"
+                        : "border-white/25 bg-bh-overlay-soft text-bh-text hover:border-white/40 hover:bg-bh-overlay-soft"
                     }`}
                   >
                     {t("cat.specials")}
@@ -252,7 +252,7 @@ export default function HomeMain({
                     className={`relative z-[1] flex min-h-[2.5rem] w-full min-w-0 max-w-[11rem] flex-1 items-center justify-center rounded-full border px-2 py-1.5 text-center text-[12px] font-semibold leading-tight shadow-md backdrop-blur-sm transition-colors sm:min-h-0 sm:w-auto sm:max-w-none sm:flex-none sm:whitespace-nowrap sm:px-4 sm:py-2 sm:text-[16.8px] sm:leading-normal ${
                       activeCategory === cat.id
                         ? "border-primary bg-primary text-black shadow-lg ring-2 ring-primary/40"
-                        : "border-white/25 bg-black/50 text-gray-100 hover:border-white/40 hover:bg-black/65"
+                        : "border-white/25 bg-bh-overlay-soft text-bh-text hover:border-white/40 hover:bg-bh-overlay-soft"
                     }`}
                   >
                     {t(`cat.${cat.id}`)}
@@ -266,7 +266,7 @@ export default function HomeMain({
                   className={`flex min-h-[2.5rem] w-full min-w-0 max-w-[11rem] flex-1 items-center justify-center rounded-full border px-2 py-1.5 text-center text-[12px] font-semibold leading-tight shadow-md backdrop-blur-sm transition-colors sm:min-h-0 sm:w-auto sm:max-w-none sm:flex-none sm:whitespace-nowrap sm:px-4 sm:py-2 sm:text-[16.8px] sm:leading-normal ${
                     activeCategory === cat.id
                       ? "border-primary bg-primary text-black shadow-lg ring-2 ring-primary/40"
-                      : "border-white/25 bg-black/50 text-gray-100 hover:border-white/40 hover:bg-black/65"
+                      : "border-white/25 bg-bh-overlay-soft text-bh-text hover:border-white/40 hover:bg-bh-overlay-soft"
                   }`}
                 >
                   {t(`cat.${cat.id}`)}
@@ -303,26 +303,26 @@ export default function HomeMain({
       </section>
 
       <section
-        className="mb-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-3"
+        className="mb-4 rounded-2xl border border-bh-border bg-bh-card p-3"
         aria-labelledby="home-terms-heading"
       >
         <h3
           id="home-terms-heading"
-          className="mb-2 text-sm font-semibold text-gray-100"
+          className="mb-2 text-sm font-semibold text-bh-text"
         >
           {t("home.termsTitle")}
         </h3>
-        <p className="mb-2 text-[11px] leading-relaxed text-gray-300">
+        <p className="mb-2 text-[11px] leading-relaxed text-bh-muted">
           {t("home.termsLead")}
         </p>
-        <p className="text-[11px] leading-relaxed text-gray-400">
+        <p className="text-[11px] leading-relaxed text-bh-faint">
           {t("home.termsLawCitation")}
         </p>
       </section>
 
-      <section className="mb-24 rounded-2xl border border-slate-800 bg-slate-900/60 p-3">
+      <section className="mb-24 rounded-2xl border border-bh-border bg-bh-card p-3">
         <h3 className="mb-2 text-sm font-semibold">{t("home.contactTitle")}</h3>
-        <div className="mb-3 space-y-1 text-xs text-gray-300">
+        <div className="mb-3 space-y-1 text-xs text-bh-muted">
           <p className="inline-flex flex-wrap items-center gap-1">
             <span className="inline-flex h-4 w-4 shrink-0 overflow-hidden rounded-full ring-1 ring-white/10">
               <img
@@ -342,7 +342,7 @@ export default function HomeMain({
             </a>
           </p>
           <p>
-            <span className="text-gray-400">{t("home.contactAddressLabel")}:</span>{" "}
+            <span className="text-bh-faint">{t("home.contactAddressLabel")}:</span>{" "}
             {t("home.contactAddressValue")}
           </p>
           <div className="flex flex-wrap items-center gap-3">
@@ -364,7 +364,7 @@ export default function HomeMain({
             </a>
           </div>
         </div>
-        <div className="overflow-hidden rounded-xl border border-slate-800">
+        <div className="overflow-hidden rounded-xl border border-bh-border">
           <iframe
             title="store-location-map"
             src={mapEmbedSrc}
@@ -373,17 +373,17 @@ export default function HomeMain({
             className="h-56 w-full border-0"
           />
         </div>
-        <div className="mt-3 flex justify-center border-t border-slate-800/80 pt-3">
+        <div className="mt-3 flex justify-center border-t border-bh-border pt-3">
           <Link
             href="/admin/orders"
-            className="h-8 w-8 shrink-0 cursor-pointer rounded-[2px] border border-slate-900 bg-black/70 shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] transition-colors hover:border-slate-800 hover:bg-black/90 focus-visible:outline focus-visible:outline-1 focus-visible:outline-slate-600 focus-visible:outline-offset-2"
+            className="h-8 w-8 shrink-0 cursor-pointer rounded-[2px] border border-slate-900 bg-bh-overlay shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] transition-colors hover:border-bh-border hover:bg-bh-overlay focus-visible:outline focus-visible:outline-1 focus-visible:outline-slate-600 focus-visible:outline-offset-2"
             title=""
           >
             <span className="sr-only">{t("home.adminDiscreetSr")}</span>
           </Link>
         </div>
-        <div className="mt-3 space-y-1 border-t border-slate-800/60 pt-3 text-center">
-          <p className="text-[10px] leading-snug text-gray-500">
+        <div className="mt-3 space-y-1 border-t border-bh-border pt-3 text-center">
+          <p className="text-[10px] leading-snug text-bh-faint">
             {t("home.contactCopyright")}
           </p>
           <a

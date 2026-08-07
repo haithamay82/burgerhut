@@ -747,12 +747,12 @@ export default function MealCustomizeWizard({
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex flex-col bg-black/95 text-gray-100 backdrop-blur-sm"
+      className="fixed inset-0 z-[200] flex flex-col bg-bh-overlay text-bh-text backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="meal-wizard-title"
     >
-      <header className="flex shrink-0 items-start justify-between gap-2 border-b border-slate-800 bg-slate-950/90 px-4 py-3">
+      <header className="flex shrink-0 items-start justify-between gap-2 border-b border-bh-border bg-bh-elevated/90 px-4 py-3">
         <div className="min-w-0 flex-1">
           <h2
             id="meal-wizard-title"
@@ -760,7 +760,7 @@ export default function MealCustomizeWizard({
           >
             {name}
           </h2>
-          <p className="mt-1 text-[11px] leading-snug text-gray-500">
+          <p className="mt-1 text-[11px] leading-snug text-bh-faint">
             {isSpecialRestrictedWizard
               ? isSpecialCheeseBomb
                 ? t("ui.wizardSpecialSaladsOnlyCheeseBomb")
@@ -773,7 +773,7 @@ export default function MealCustomizeWizard({
         <button
           type="button"
           onClick={handleClose}
-          className="shrink-0 rounded-full border border-slate-600 px-3 py-1.5 text-xs text-gray-300 hover:border-slate-400"
+          className="shrink-0 rounded-full border border-bh-border-strong px-3 py-1.5 text-xs text-bh-muted hover:border-slate-400"
         >
           {t("ui.wizardClose")}
         </button>
@@ -789,7 +789,7 @@ export default function MealCustomizeWizard({
 
         {isKidsCrispyBurger ? (
           <section className="mb-6 space-y-2 text-xs">
-            <h3 className="text-[11px] font-semibold text-gray-300">
+            <h3 className="text-[11px] font-semibold text-bh-muted">
               {t("ui.kidsCrispyBread.title")}
             </h3>
             <div className="flex flex-wrap gap-1.5">
@@ -802,7 +802,7 @@ export default function MealCustomizeWizard({
                   className={`rounded-full border px-2.5 py-2 text-[11px] ${
                     kidsBreadChoice === opt.id
                       ? "border-primary bg-primary/10 text-primary"
-                      : "border-slate-700 text-gray-300"
+                      : "border-bh-border-strong text-bh-muted"
                   }`}
                 >
                   {t(`ui.kidsCrispyBread.${opt.id}`)}
@@ -814,7 +814,7 @@ export default function MealCustomizeWizard({
 
         {isAdultCrispyBurger ? (
           <section className="mb-6 space-y-2 text-xs">
-            <h3 className="text-[11px] font-semibold text-gray-300">
+            <h3 className="text-[11px] font-semibold text-bh-muted">
               {t("ui.wizardServingTitle")}
             </h3>
             <button
@@ -824,7 +824,7 @@ export default function MealCustomizeWizard({
               className={`rounded-full border px-3 py-2 text-[11px] ${
                 adultCrispyBli
                   ? "border-primary bg-primary/10 text-primary"
-                  : "border-slate-700 text-gray-300"
+                  : "border-bh-border-strong text-bh-muted"
               }`}
             >
               {t("ui.adultCrispyNoRound")}
@@ -835,14 +835,14 @@ export default function MealCustomizeWizard({
         {isSpecialMealCat && specialFixedMealToppingsText ? (
           <section className="mb-6 space-y-1.5 text-xs" aria-live="polite">
             <div className="flex flex-wrap items-baseline justify-between gap-2 gap-y-1">
-              <h3 className="text-[11px] font-semibold text-gray-300">
+              <h3 className="text-[11px] font-semibold text-bh-muted">
                 {t("ui.specialFixedToppingsTitle")}
               </h3>
               <span className="shrink-0 text-[10px] font-semibold text-amber-500/95">
                 {t("ui.specialFixedToppingsHint")}
               </span>
             </div>
-            <p className="rounded-lg border border-slate-700/80 bg-slate-900/55 px-3 py-2.5 text-[11px] leading-relaxed text-gray-300">
+            <p className="rounded-lg border border-bh-border-strong bg-bh-card/55 px-3 py-2.5 text-[11px] leading-relaxed text-bh-muted">
               {specialFixedMealToppingsText}
             </p>
           </section>
@@ -850,7 +850,7 @@ export default function MealCustomizeWizard({
 
         {isSpecialMealCat && !isSpecialCheeseBomb && !isSpecialLettuceBurger ? (
           <section className="mb-6 space-y-2 text-xs">
-            <h3 className="text-[11px] font-semibold text-gray-300">
+            <h3 className="text-[11px] font-semibold text-bh-muted">
               {t("ui.specialPattyTitle")}
             </h3>
             <div className="flex flex-wrap gap-1.5">
@@ -860,10 +860,10 @@ export default function MealCustomizeWizard({
                 onClick={() => setSpecialPattyGrams(200)}
                 className={`rounded-full border px-2.5 py-2 text-[11px] ${
                   !specialCanPatty200
-                    ? "cursor-not-allowed border-slate-700/80 bg-slate-900/40 text-gray-500"
+                    ? "cursor-not-allowed border-bh-border-strong bg-bh-card text-bh-faint"
                     : Number(specialPattyGrams) !== 220
                       ? "border-primary bg-primary/10 text-primary"
-                      : "border-slate-700 text-gray-300"
+                      : "border-bh-border-strong text-bh-muted"
                 }`}
               >
                 {specialCanPatty200
@@ -876,10 +876,10 @@ export default function MealCustomizeWizard({
                 onClick={() => setSpecialPattyGrams(220)}
                 className={`rounded-full border px-2.5 py-2 text-[11px] ${
                   !specialCanPatty220
-                    ? "cursor-not-allowed border-slate-700/80 bg-slate-900/40 text-gray-500"
+                    ? "cursor-not-allowed border-bh-border-strong bg-bh-card text-bh-faint"
                     : Number(specialPattyGrams) === 220
                       ? "border-primary bg-primary/10 text-primary"
-                      : "border-slate-700 text-gray-300"
+                      : "border-bh-border-strong text-bh-muted"
                 }`}
               >
                 {specialCanPatty220
@@ -891,7 +891,7 @@ export default function MealCustomizeWizard({
         ) : null}
 
         <section className="mb-6 space-y-2 text-xs">
-          <h3 className="text-[11px] font-semibold text-gray-300">
+          <h3 className="text-[11px] font-semibold text-bh-muted">
             {t("ui.freeSalads")}
           </h3>
           <div className="grid grid-cols-2 gap-2">
@@ -904,13 +904,13 @@ export default function MealCustomizeWizard({
                   key={x.id}
                   className={`flex items-center gap-1.5 rounded-full border px-2 py-1.5 text-[11px] ${
                     saladOos
-                      ? "cursor-not-allowed border-slate-800 bg-slate-900/50 text-gray-500 opacity-75"
+                      ? "cursor-not-allowed border-bh-border bg-bh-card text-bh-faint opacity-75"
                       : "cursor-pointer"
                   } ${
                     !saladOos && selectedSalads.includes(x.id)
                       ? "border-primary bg-primary/10 text-primary"
                       : !saladOos
-                        ? "border-slate-700 text-gray-300"
+                        ? "border-bh-border-strong text-bh-muted"
                         : ""
                   }`}
                 >
@@ -919,7 +919,7 @@ export default function MealCustomizeWizard({
                       <img
                         src={x.image}
                         alt={t(`salad.${x.id}`)}
-                        className="h-8 w-8 shrink-0 rounded-md border border-slate-700 object-cover"
+                        className="h-8 w-8 shrink-0 rounded-md border border-bh-border-strong object-cover"
                       />
                     ) : null}
                     <span className="min-w-0 flex-1 leading-snug">
@@ -932,7 +932,7 @@ export default function MealCustomizeWizard({
                     </span>
                   </span>
                   {extra > 0 ? (
-                    <span className="shrink-0 text-[10px] text-gray-400 tabular-nums">
+                    <span className="shrink-0 text-[10px] text-bh-faint tabular-nums">
                       {t("ui.saucePlus")}
                       {formatIls(extra)}
                     </span>
@@ -954,14 +954,14 @@ export default function MealCustomizeWizard({
               className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-2 py-1.5 text-[11px] ${
                 noSaladsSelected
                   ? "border-primary bg-primary/10 text-primary"
-                  : "border-slate-700 text-gray-300"
+                  : "border-bh-border-strong text-bh-muted"
               }`}
             >
               <span className="flex min-w-0 flex-1 items-center gap-1.5">
                 <img
                   src={NO_SALADS_CHOICE.image}
                   alt={t("salad.salad_none")}
-                  className="h-8 w-8 shrink-0 rounded-md border border-slate-700 bg-white object-cover"
+                  className="h-8 w-8 shrink-0 rounded-md border border-bh-border-strong bg-white object-cover"
                 />
                 <span className="min-w-0 flex-1 leading-snug">
                   {t("salad.salad_none")}
@@ -980,7 +980,7 @@ export default function MealCustomizeWizard({
 
         {showBunSauceOnMeal ? (
           <section className="mb-6 space-y-2 text-xs">
-            <h3 className="text-[11px] font-semibold text-gray-300">
+            <h3 className="text-[11px] font-semibold text-bh-muted">
               {t("ui.bunSauceOnBunTitle")}
             </h3>
             <div className="flex flex-wrap gap-1.5">
@@ -991,7 +991,7 @@ export default function MealCustomizeWizard({
                 className={`rounded-full border px-2.5 py-2 text-[11px] ${
                   bunSauceOnBun
                     ? "border-primary bg-primary/10 text-primary"
-                    : "border-slate-700 text-gray-300"
+                    : "border-bh-border-strong text-bh-muted"
                 }`}
               >
                 {t("ui.bunSauceYes")}
@@ -1003,7 +1003,7 @@ export default function MealCustomizeWizard({
                 className={`rounded-full border px-2.5 py-2 text-[11px] ${
                   !bunSauceOnBun
                     ? "border-primary bg-primary/10 text-primary"
-                    : "border-slate-700 text-gray-300"
+                    : "border-bh-border-strong text-bh-muted"
                 }`}
               >
                 {t("ui.bunSauceNo")}
@@ -1014,7 +1014,7 @@ export default function MealCustomizeWizard({
 
         {isBeefBurgerMeal ? (
           <section className="mb-6 space-y-2 text-xs">
-            <h3 className="text-[11px] font-semibold text-gray-300">
+            <h3 className="text-[11px] font-semibold text-bh-muted">
               {t("ui.donenessTitle")}
             </h3>
             <div className="flex flex-wrap gap-1.5">
@@ -1027,7 +1027,7 @@ export default function MealCustomizeWizard({
                   className={`rounded-full border px-2.5 py-2 text-[11px] ${
                     donenessId === opt.id
                       ? "border-primary bg-primary/10 text-primary"
-                      : "border-slate-700 text-gray-300"
+                      : "border-bh-border-strong text-bh-muted"
                   }`}
                 >
                   {t(`ui.doneness.${opt.id}`)}
@@ -1039,7 +1039,7 @@ export default function MealCustomizeWizard({
 
         {!isSpecialRestrictedWizard ? (
         <section className="mb-6 space-y-2 text-xs">
-          <h3 className="text-[11px] font-semibold text-gray-300">
+          <h3 className="text-[11px] font-semibold text-bh-muted">
             {item?.category === "crispy"
               ? t("ui.crispyToppings")
               : t("ui.burgerToppings")}
@@ -1060,8 +1060,8 @@ export default function MealCustomizeWizard({
                       cheeseLayers > 0
                         ? "border-primary bg-primary/10 text-primary"
                         : rowBlocked
-                          ? "border-slate-800 text-gray-500 opacity-60"
-                          : "border-slate-700 text-gray-300"
+                          ? "border-bh-border text-bh-faint opacity-60"
+                          : "border-bh-border-strong text-bh-muted"
                     }`}
                   >
                     <button
@@ -1074,7 +1074,7 @@ export default function MealCustomizeWizard({
                         <img
                           src={x.image}
                           alt=""
-                          className="h-8 w-8 shrink-0 rounded-md border border-slate-700 object-cover"
+                          className="h-8 w-8 shrink-0 rounded-md border border-bh-border-strong object-cover"
                         />
                       ) : null}
                       <span className="min-w-0 truncate leading-snug">
@@ -1094,13 +1094,13 @@ export default function MealCustomizeWizard({
                         className={`shrink-0 rounded border px-1 py-0.5 text-[9px] font-semibold leading-none transition-colors ${
                           cheeseLayers === 2
                             ? "border-primary bg-primary/20 text-primary"
-                            : "border-slate-600 text-gray-400 hover:border-slate-500 hover:text-gray-200"
+                            : "border-bh-border-strong text-bh-faint hover:border-bh-border-strong hover:text-bh-text"
                         } disabled:opacity-50`}
                       >
                         {t("ui.doubleWord")}
                       </button>
                     ) : null}
-                    <span className="shrink-0 text-[10px] text-gray-400 tabular-nums">
+                    <span className="shrink-0 text-[10px] text-bh-faint tabular-nums">
                       {cheeseLayers > 0
                         ? `+₪${formatIls(x.price * cheeseLayers)}`
                         : `+₪${formatIls(x.price)}`}
@@ -1114,21 +1114,21 @@ export default function MealCustomizeWizard({
                   key={x.id}
                   className={`flex items-center justify-between gap-1.5 rounded-full border px-2 py-1.5 text-[11px] ${
                     rowBlocked
-                      ? "cursor-not-allowed border-slate-800 text-gray-500 opacity-60"
+                      ? "cursor-not-allowed border-bh-border text-bh-faint opacity-60"
                       : "cursor-pointer"
                   } ${
                     selected
                       ? "border-primary bg-primary/10 text-primary"
                       : rowBlocked
                         ? ""
-                        : "border-slate-700 text-gray-300"
+                        : "border-bh-border-strong text-bh-muted"
                   }`}
                 >
                   {x.image ? (
                     <img
                       src={x.image}
                       alt={toppingDisplayName(x, t, locale)}
-                      className="h-8 w-8 shrink-0 rounded-md border border-slate-700 object-cover"
+                      className="h-8 w-8 shrink-0 rounded-md border border-bh-border-strong object-cover"
                     />
                   ) : null}
                   <span className="min-w-0 flex-1 pr-1 leading-snug">
@@ -1145,7 +1145,7 @@ export default function MealCustomizeWizard({
                     checked={selected}
                     onChange={() => toggleToppingChoice(x.id)}
                   />
-                  <span className="shrink-0 text-[10px] text-gray-400">
+                  <span className="shrink-0 text-[10px] text-bh-faint">
                     +₪{x.price}
                   </span>
                 </label>
@@ -1156,10 +1156,10 @@ export default function MealCustomizeWizard({
         ) : null}
 
         <section className="mb-4 space-y-2 text-xs">
-          <h3 className="text-[11px] font-semibold text-gray-300">
+          <h3 className="text-[11px] font-semibold text-bh-muted">
             {t("ui.extraSauces")}
           </h3>
-          <p className="text-[10px] leading-snug text-gray-500">
+          <p className="text-[10px] leading-snug text-bh-faint">
             {t("ui.saucePricingHint")}
           </p>
           <div className="grid grid-cols-1 gap-2">
@@ -1171,7 +1171,7 @@ export default function MealCustomizeWizard({
                   className={`grid w-full grid-cols-[1fr_auto_1fr] items-center gap-x-2 rounded-full border px-1.5 py-1.5 text-[11px] ${
                     cnt > 0
                       ? "border-primary bg-primary/10 text-primary"
-                      : "border-slate-700 text-gray-300"
+                      : "border-bh-border-strong text-bh-muted"
                   }`}
                 >
                   <div className="flex min-w-0 items-center gap-1.5 justify-self-start">
@@ -1179,7 +1179,7 @@ export default function MealCustomizeWizard({
                       <img
                         src={x.image}
                         alt=""
-                        className="h-8 w-8 shrink-0 rounded-md border border-slate-700 object-cover"
+                        className="h-8 w-8 shrink-0 rounded-md border border-bh-border-strong object-cover"
                       />
                     ) : null}
                     <span className="min-w-0 text-end leading-snug">
@@ -1191,7 +1191,7 @@ export default function MealCustomizeWizard({
                       type="button"
                       disabled={blocked}
                       onClick={() => addSauce(x.id)}
-                      className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-600 text-sm leading-none text-gray-200 hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex h-7 w-7 items-center justify-center rounded-full border border-bh-border-strong text-sm leading-none text-bh-text hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
                       aria-label={t("ui.sauceAddOne")}
                     >
                       +
@@ -1206,14 +1206,14 @@ export default function MealCustomizeWizard({
                       type="button"
                       disabled={blocked || cnt === 0}
                       onClick={() => removeSauce(x.id)}
-                      className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-600 text-sm leading-none text-gray-200 hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-30"
+                      className="flex h-7 w-7 items-center justify-center rounded-full border border-bh-border-strong text-sm leading-none text-bh-text hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-30"
                       aria-label={t("ui.sauceRemoveOne")}
                     >
                       −
                     </button>
                   </div>
                   <div className="flex min-h-[1.25rem] min-w-0 items-center justify-self-end">
-                    <span className="w-full min-w-[2.25rem] text-end text-[10px] leading-tight text-gray-400">
+                    <span className="w-full min-w-[2.25rem] text-end text-[10px] leading-tight text-bh-faint">
                       {sauceNextUnitSuffix(x.id)}
                     </span>
                   </div>
@@ -1226,10 +1226,10 @@ export default function MealCustomizeWizard({
         <div className="mb-4 space-y-1.5">
           <section className="mb-4 space-y-2" aria-labelledby="meal-fries-heading">
             <div id="meal-fries-heading">
-              <h3 className="text-[11px] font-semibold text-gray-300">
+              <h3 className="text-[11px] font-semibold text-bh-muted">
                 {t("ui.mealFriesForMealLabel")}
               </h3>
-              <p className="mt-0.5 text-[10px] text-gray-500">
+              <p className="mt-0.5 text-[10px] text-bh-faint">
                 {t("ui.mealFriesMultiHint")}
               </p>
             </div>
@@ -1254,26 +1254,26 @@ export default function MealCustomizeWizard({
                     className={`flex w-full items-center gap-2 rounded-lg border px-2 py-2 text-start text-[11px] ${
                       selected
                         ? "border-primary bg-primary/10 text-primary"
-                        : "border-slate-700 text-gray-300"
+                        : "border-bh-border-strong text-bh-muted"
                     } ${blocked ? "cursor-not-allowed opacity-50" : ""}`}
                   >
                     {opt.image ? (
                       <img
                         src={opt.image}
                         alt=""
-                        className="h-8 w-8 shrink-0 rounded-md border border-slate-700 object-cover"
+                        className="h-8 w-8 shrink-0 rounded-md border border-bh-border-strong object-cover"
                         loading="lazy"
                       />
                     ) : (
                       <span
-                        className="h-8 w-8 shrink-0 rounded-md border border-slate-700 bg-slate-800/80"
+                        className="h-8 w-8 shrink-0 rounded-md border border-bh-border-strong bg-bh-elevated"
                         aria-hidden
                       />
                     )}
                     <span className="min-w-0 flex-1 leading-snug">
                       {opt.label}
                     </span>
-                    <span className="shrink-0 text-[10px] text-gray-400 tabular-nums">
+                    <span className="shrink-0 text-[10px] text-bh-faint tabular-nums">
                       +₪
                       {formatIls(
                         mealFriesEffectiveExtraPrice(opt.id, mealFriesSelectedIds)
@@ -1286,7 +1286,7 @@ export default function MealCustomizeWizard({
           </section>
           <label
             htmlFor="meal-requested-drink"
-            className="block text-[11px] font-semibold text-gray-300"
+            className="block text-[11px] font-semibold text-bh-muted"
           >
             {t("ui.addDrinkQuestion")}
           </label>
@@ -1297,26 +1297,26 @@ export default function MealCustomizeWizard({
               onClick={() => {
                 setDrinkMenuOpen((v) => !v);
               }}
-              className="flex w-full items-center justify-between rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 text-xs text-gray-100 outline-none transition-colors hover:border-primary disabled:opacity-50"
+              className="flex w-full items-center justify-between rounded-lg border border-bh-border-strong bg-bh-card px-3 py-2 text-xs text-bh-text outline-none transition-colors hover:border-primary disabled:opacity-50"
             >
               <span className="truncate">
                 {selectedDrink
                   ? `${selectedDrink.label} (+₪${formatIls(selectedDrink.price)})`
                   : t("ui.addDrinkSelectPlaceholder")}
               </span>
-              <span className="text-[10px] text-gray-400">
+              <span className="text-[10px] text-bh-faint">
                 {drinkMenuOpen ? "▲" : "▼"}
               </span>
             </button>
             {drinkMenuOpen ? (
-              <div className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-slate-700 bg-slate-950/95 shadow-xl">
+              <div className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-bh-border-strong bg-bh-elevated/95 shadow-xl">
                 <button
                   type="button"
                   onClick={() => {
                     setRequestedDrinkId("");
                     setDrinkMenuOpen(false);
                   }}
-                  className="flex w-full items-center justify-between border-b border-slate-800 px-3 py-2 text-xs text-gray-300 hover:bg-slate-900"
+                  className="flex w-full items-center justify-between border-b border-bh-border px-3 py-2 text-xs text-bh-muted hover:bg-bh-card"
                 >
                   <span>{t("ui.addDrinkSelectPlaceholder")}</span>
                 </button>
@@ -1328,13 +1328,13 @@ export default function MealCustomizeWizard({
                       setRequestedDrinkId(opt.id);
                       setDrinkMenuOpen(false);
                     }}
-                    className={`flex w-full items-center justify-between px-3 py-2 text-xs hover:bg-slate-900 ${
+                    className={`flex w-full items-center justify-between px-3 py-2 text-xs hover:bg-bh-card ${
                       requestedDrinkId === opt.id
                         ? "bg-primary/10 text-primary"
-                        : "text-gray-100"
+                        : "text-bh-text"
                     }`}
                   >
-                    <span className="text-[11px] text-gray-300">
+                    <span className="text-[11px] text-bh-muted">
                       +₪{formatIls(opt.price)}
                     </span>
                     <span className="flex min-w-0 items-center gap-2">
@@ -1342,7 +1342,7 @@ export default function MealCustomizeWizard({
                       <img
                         src={opt.image}
                         alt=""
-                        className="h-7 w-7 shrink-0 rounded-md border border-slate-700 object-cover"
+                        className="h-7 w-7 shrink-0 rounded-md border border-bh-border-strong object-cover"
                         loading="lazy"
                       />
                     </span>
@@ -1356,7 +1356,7 @@ export default function MealCustomizeWizard({
         <div className="mb-4 space-y-1.5">
           <label
             htmlFor="meal-seller-notes"
-            className="block text-[11px] font-semibold text-gray-300"
+            className="block text-[11px] font-semibold text-bh-muted"
           >
             {t("ui.sellerNotes")}
           </label>
@@ -1368,23 +1368,23 @@ export default function MealCustomizeWizard({
             maxLength={500}
             disabled={blocked}
             placeholder={t("ui.sellerNotesPh")}
-            className="w-full resize-y rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 text-xs text-gray-100 outline-none placeholder:text-gray-600 focus:border-primary disabled:opacity-50"
+            className="w-full resize-y rounded-lg border border-bh-border-strong bg-bh-card px-3 py-2 text-xs text-bh-text outline-none placeholder:text-bh-faint focus:border-primary disabled:opacity-50"
           />
         </div>
       </div>
 
       <div
-        className="shrink-0 border-t border-slate-800/90 bg-slate-950/98 px-4 py-2.5 shadow-[0_-6px_16px_-4px_rgba(0,0,0,0.45)] backdrop-blur-sm supports-[backdrop-filter]:bg-slate-950/90"
+        className="shrink-0 border-t border-bh-border/90 bg-bh-elevated/98 px-4 py-2.5 shadow-[0_-6px_16px_-4px_rgba(0,0,0,0.45)] backdrop-blur-sm supports-[backdrop-filter]:bg-bh-elevated/90"
         aria-live="polite"
         aria-atomic="true"
       >
-        <p className="text-center text-sm text-gray-400">
+        <p className="text-center text-sm text-bh-faint">
           {t("ui.wizardPriceLine")}{" "}
           <span className="font-bold text-primary tabular-nums">
             ₪{formatIls(finalUnitPrice)}
           </span>
           {quantity > 1 ? (
-            <span className="mr-1 text-gray-500">
+            <span className="mr-1 text-bh-faint">
               {" "}
               × {quantity} = ₪{formatIls(finalUnitPrice * quantity)}
             </span>
@@ -1393,14 +1393,14 @@ export default function MealCustomizeWizard({
       </div>
       </div>
 
-      <footer className="shrink-0 border-t border-slate-800 bg-slate-950/95 px-4 py-3">
+      <footer className="shrink-0 border-t border-bh-border bg-bh-elevated/95 px-4 py-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="flex items-center justify-center gap-3 sm:justify-start">
             <button
               type="button"
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
               disabled={blocked}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-700 text-lg leading-none disabled:opacity-50"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-bh-border-strong text-lg leading-none disabled:opacity-50"
             >
               −
             </button>
@@ -1411,7 +1411,7 @@ export default function MealCustomizeWizard({
               type="button"
               onClick={() => setQuantity((q) => q + 1)}
               disabled={blocked}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-700 text-lg leading-none disabled:opacity-50"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-bh-border-strong text-lg leading-none disabled:opacity-50"
             >
               +
             </button>
@@ -1433,12 +1433,12 @@ export default function MealCustomizeWizard({
 
       {mealValidateOpen ? (
         <div
-          className="absolute inset-0 z-[210] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          className="absolute inset-0 z-[210] flex items-center justify-center bg-bh-overlay p-4 backdrop-blur-sm"
           role="presentation"
           onClick={handleMealValidateGoBack}
         >
           <div
-            className="w-full max-w-sm rounded-2xl border border-amber-500/45 bg-slate-950 p-4 shadow-2xl"
+            className="w-full max-w-sm rounded-2xl border border-amber-500/45 bg-bh-elevated p-4 shadow-2xl"
             role="alertdialog"
             aria-modal="true"
             aria-labelledby="meal-validate-title"
@@ -1451,7 +1451,7 @@ export default function MealCustomizeWizard({
             >
               {t("ui.mealValidateTitle")}
             </h3>
-            <ul className="mb-4 list-disc space-y-1.5 pr-5 text-sm leading-relaxed text-gray-200">
+            <ul className="mb-4 list-disc space-y-1.5 pr-5 text-sm leading-relaxed text-bh-text">
               {mealValidateMissing.map((key) => (
                 <li key={key}>{t(MEAL_VALIDATE_I18N[key])}</li>
               ))}
@@ -1469,7 +1469,7 @@ export default function MealCustomizeWizard({
               <button
                 type="button"
                 onClick={handleMealValidateGoBack}
-                className="w-full rounded-xl border border-slate-600 py-3 text-sm font-semibold text-gray-200 transition-colors hover:bg-slate-900"
+                className="w-full rounded-xl border border-bh-border-strong py-3 text-sm font-semibold text-bh-text transition-colors hover:bg-bh-card"
               >
                 {t("ui.mealValidateGoBack")}
               </button>

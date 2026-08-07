@@ -6,7 +6,7 @@ const HomeMain = dynamic(() => import("@/components/HomeMain"), {
   ssr: false,
   loading: () => (
     <div
-      className="py-16 text-center text-sm text-gray-500"
+      className="py-16 text-center text-sm text-bh-faint"
       role="status"
       dir="rtl"
     >

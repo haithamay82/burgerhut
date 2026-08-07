@@ -154,7 +154,7 @@ export default function SimpleMenuItemCard({ item }) {
   return (
     <div className="card min-w-0 max-w-full overflow-hidden">
       <div className="flex gap-3 p-3">
-        <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl border border-slate-800">
+        <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl border border-bh-border">
           <img
             src={item.image}
             alt={name}
@@ -175,7 +175,7 @@ export default function SimpleMenuItemCard({ item }) {
               {t("ui.outOfStock")}
             </p>
           ) : null}
-          <p className="line-clamp-3 text-xs text-gray-400">{description}</p>
+          <p className="line-clamp-3 text-xs text-bh-faint">{description}</p>
           <p className="mt-1 text-sm font-semibold text-primary">
             ₪{formatIls(finalUnitPrice * quantity)}
           </p>
@@ -183,16 +183,16 @@ export default function SimpleMenuItemCard({ item }) {
       </div>
       {showSellerNotes ? (
         <div
-          className={`space-y-1.5 border-t border-slate-800 p-3 text-xs ${
+          className={`space-y-1.5 border-t border-bh-border p-3 text-xs ${
             isOutOfStock ? "pointer-events-none opacity-45" : ""
           }`}
         >
           <div className="mb-2 space-y-1.5">
             <div>
-              <p className="text-[11px] font-semibold text-gray-300">
+              <p className="text-[11px] font-semibold text-bh-muted">
                 {t("ui.mealFriesForMealLabel")}
               </p>
-              <p className="mt-0.5 text-[10px] text-gray-500">
+              <p className="mt-0.5 text-[10px] text-bh-faint">
                 {t("ui.mealFriesMultiHint")}
               </p>
             </div>
@@ -217,26 +217,26 @@ export default function SimpleMenuItemCard({ item }) {
                     className={`flex w-full items-center gap-1.5 rounded-lg border px-1.5 py-1.5 text-start text-[10px] ${
                       selected
                         ? "border-primary bg-primary/10 text-primary"
-                        : "border-slate-700 text-gray-300"
+                        : "border-bh-border-strong text-bh-muted"
                     } ${isOutOfStock ? "cursor-not-allowed opacity-50" : ""}`}
                   >
                     {opt.image ? (
                       <img
                         src={opt.image}
                         alt=""
-                        className="h-7 w-7 shrink-0 rounded-md border border-slate-700 object-cover"
+                        className="h-7 w-7 shrink-0 rounded-md border border-bh-border-strong object-cover"
                         loading="lazy"
                       />
                     ) : (
                       <span
-                        className="h-7 w-7 shrink-0 rounded-md border border-slate-700 bg-slate-800/80"
+                        className="h-7 w-7 shrink-0 rounded-md border border-bh-border-strong bg-bh-elevated"
                         aria-hidden
                       />
                     )}
                     <span className="min-w-0 flex-1 leading-snug">
                       {opt.label}
                     </span>
-                    <span className="shrink-0 text-[9px] text-gray-400 tabular-nums">
+                    <span className="shrink-0 text-[9px] text-bh-faint tabular-nums">
                       +₪
                       {formatIls(
                         mealFriesEffectiveExtraPrice(opt.id, mealFriesSelectedIds)
@@ -249,7 +249,7 @@ export default function SimpleMenuItemCard({ item }) {
           </div>
           <label
             htmlFor={`requested-drink-${item.id}`}
-            className="block text-[11px] font-semibold text-gray-300"
+            className="block text-[11px] font-semibold text-bh-muted"
           >
             {t("ui.addDrinkQuestion")}
           </label>
@@ -260,26 +260,26 @@ export default function SimpleMenuItemCard({ item }) {
               onClick={() => {
                 setDrinkMenuOpen((v) => !v);
               }}
-              className="flex w-full items-center justify-between rounded-lg border border-slate-700 bg-slate-900/80 px-2 py-1.5 text-[11px] text-gray-100 outline-none transition-colors hover:border-primary disabled:opacity-50"
+              className="flex w-full items-center justify-between rounded-lg border border-bh-border-strong bg-bh-card px-2 py-1.5 text-[11px] text-bh-text outline-none transition-colors hover:border-primary disabled:opacity-50"
             >
               <span className="truncate">
                 {selectedDrink
                   ? `${selectedDrink.label} (+₪${formatIls(selectedDrink.price)})`
                   : t("ui.addDrinkSelectPlaceholder")}
               </span>
-              <span className="text-[10px] text-gray-400">
+              <span className="text-[10px] text-bh-faint">
                 {drinkMenuOpen ? "▲" : "▼"}
               </span>
             </button>
             {drinkMenuOpen ? (
-              <div className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-slate-700 bg-slate-950/95 shadow-xl">
+              <div className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-bh-border-strong bg-bh-elevated/95 shadow-xl">
                 <button
                   type="button"
                   onClick={() => {
                     setRequestedDrinkId("");
                     setDrinkMenuOpen(false);
                   }}
-                  className="flex w-full items-center justify-between border-b border-slate-800 px-2 py-1.5 text-[11px] text-gray-300 hover:bg-slate-900"
+                  className="flex w-full items-center justify-between border-b border-bh-border px-2 py-1.5 text-[11px] text-bh-muted hover:bg-bh-card"
                 >
                   <span>{t("ui.addDrinkSelectPlaceholder")}</span>
                 </button>
@@ -291,13 +291,13 @@ export default function SimpleMenuItemCard({ item }) {
                       setRequestedDrinkId(opt.id);
                       setDrinkMenuOpen(false);
                     }}
-                    className={`flex w-full items-center justify-between px-2 py-1.5 text-[11px] hover:bg-slate-900 ${
+                    className={`flex w-full items-center justify-between px-2 py-1.5 text-[11px] hover:bg-bh-card ${
                       requestedDrinkId === opt.id
                         ? "bg-primary/10 text-primary"
-                        : "text-gray-100"
+                        : "text-bh-text"
                     }`}
                   >
-                    <span className="text-[10px] text-gray-300">
+                    <span className="text-[10px] text-bh-muted">
                       +₪{formatIls(opt.price)}
                     </span>
                     <span className="flex min-w-0 items-center gap-2">
@@ -305,7 +305,7 @@ export default function SimpleMenuItemCard({ item }) {
                       <img
                         src={opt.image}
                         alt=""
-                        className="h-6 w-6 shrink-0 rounded-md border border-slate-700 object-cover"
+                        className="h-6 w-6 shrink-0 rounded-md border border-bh-border-strong object-cover"
                         loading="lazy"
                       />
                     </span>
@@ -316,7 +316,7 @@ export default function SimpleMenuItemCard({ item }) {
           </div>
           <label
             htmlFor={`seller-notes-${item.id}`}
-            className="block text-[11px] font-semibold text-gray-300"
+            className="block text-[11px] font-semibold text-bh-muted"
           >
             {t("ui.sellerNotes")}
           </label>
@@ -328,12 +328,12 @@ export default function SimpleMenuItemCard({ item }) {
             maxLength={500}
             disabled={isOutOfStock}
             placeholder={t("ui.sellerNotesPh")}
-            className="mb-2 w-full resize-y rounded-lg border border-slate-700 bg-slate-900/80 px-2 py-1.5 text-[11px] text-gray-100 outline-none placeholder:text-gray-600 focus:border-primary disabled:opacity-50"
+            className="mb-2 w-full resize-y rounded-lg border border-bh-border-strong bg-bh-card px-2 py-1.5 text-[11px] text-bh-text outline-none placeholder:text-bh-faint focus:border-primary disabled:opacity-50"
           />
         </div>
       ) : null}
       <div
-        className={`flex items-center justify-between gap-2 border-t border-slate-800 p-3 text-xs ${
+        className={`flex items-center justify-between gap-2 border-t border-bh-border p-3 text-xs ${
           isOutOfStock ? "pointer-events-none opacity-45" : ""
         }`}
       >
@@ -342,7 +342,7 @@ export default function SimpleMenuItemCard({ item }) {
             type="button"
             onClick={() => setQuantity((q) => Math.max(1, q - 1))}
             disabled={isOutOfStock}
-            className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 text-lg leading-none disabled:opacity-50"
+            className="flex h-7 w-7 items-center justify-center rounded-full border border-bh-border-strong text-lg leading-none disabled:opacity-50"
           >
             −
           </button>
@@ -351,7 +351,7 @@ export default function SimpleMenuItemCard({ item }) {
             type="button"
             onClick={() => setQuantity((q) => q + 1)}
             disabled={isOutOfStock}
-            className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 text-lg leading-none disabled:opacity-50"
+            className="flex h-7 w-7 items-center justify-center rounded-full border border-bh-border-strong text-lg leading-none disabled:opacity-50"
           >
             +
           </button>

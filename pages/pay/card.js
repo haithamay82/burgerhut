@@ -189,13 +189,13 @@ export default function CardPayPage() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <h2 className="mb-1 text-lg font-bold">{t("card.title")}</h2>
-            <p className="text-xs text-gray-400">{t("card.subtitle")}</p>
+            <p className="text-xs text-bh-faint">{t("card.subtitle")}</p>
           </div>
           <button
             type="button"
             onClick={backToCheckout}
             disabled={loading}
-            className="shrink-0 self-start rounded-full border border-slate-600 bg-slate-900/60 px-4 py-2 text-center text-xs font-semibold text-primary transition-colors hover:border-primary/50 hover:bg-slate-800/60 disabled:opacity-50 sm:self-center"
+            className="shrink-0 self-start rounded-full border border-bh-border-strong bg-bh-card px-4 py-2 text-center text-xs font-semibold text-primary transition-colors hover:border-primary/50 hover:bg-bh-elevated disabled:opacity-50 sm:self-center"
           >
             {t("payment.backToCheckout")}
           </button>
@@ -207,13 +207,13 @@ export default function CardPayPage() {
           <p className="text-sm text-amber-200/90">{sessionErr}</p>
         ) : (
           <>
-            <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
-              <p className="text-[11px] text-gray-400">{t("card.amountLabel")}</p>
+            <div className="rounded-xl border border-bh-border bg-bh-card p-3">
+              <p className="text-[11px] text-bh-faint">{t("card.amountLabel")}</p>
               <p className="text-lg font-extrabold tracking-tight text-primary">
                 ₪{amount || "—"}
               </p>
               {orderId ? (
-                <p className="mt-1 text-[10px] text-gray-500">
+                <p className="mt-1 text-[10px] text-bh-faint">
                   {t("card.orderRef")}: {orderId}
                 </p>
               ) : null}
@@ -250,7 +250,7 @@ export default function CardPayPage() {
           <button
             type="button"
             onClick={() => router.push("/checkout")}
-            className="w-full rounded-xl border border-slate-600 py-2 text-xs text-gray-300"
+            className="w-full rounded-xl border border-bh-border-strong py-2 text-xs text-bh-muted"
           >
             {t("payment.backToCheckout")}
           </button>

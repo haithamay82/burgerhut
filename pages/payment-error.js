@@ -24,7 +24,7 @@ export default function PaymentErrorPage() {
           !
         </div>
         <h2 className="mb-2 text-xl font-bold">{t("paymentError.title")}</h2>
-        <p className="mb-6 max-w-sm text-sm text-gray-400">
+        <p className="mb-6 max-w-sm text-sm text-bh-faint">
           {t("paymentError.desc")}
         </p>
         <div className="flex flex-col gap-2 sm:flex-row">
@@ -33,7 +33,7 @@ export default function PaymentErrorPage() {
           </button>
           <Link
             href="/"
-            className="rounded-xl border border-slate-600 px-4 py-2 text-sm text-gray-300"
+            className="rounded-xl border border-bh-border-strong px-4 py-2 text-sm text-bh-muted"
           >
             {t("paymentError.backMenu")}
           </Link>

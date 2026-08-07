@@ -212,12 +212,12 @@ export default function BitPayPage() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <h2 className="mb-1 text-lg font-bold">{t("bit.title")}</h2>
-            <p className="text-xs text-gray-400">{t("bit.subtitle")}</p>
+            <p className="text-xs text-bh-faint">{t("bit.subtitle")}</p>
           </div>
           <button
             type="button"
             onClick={backToCheckout}
-            className="shrink-0 self-start rounded-full border border-slate-600 bg-slate-900/60 px-4 py-2 text-center text-xs font-semibold text-primary transition-colors hover:border-primary/50 hover:bg-slate-800/60 sm:self-center"
+            className="shrink-0 self-start rounded-full border border-bh-border-strong bg-bh-card px-4 py-2 text-center text-xs font-semibold text-primary transition-colors hover:border-primary/50 hover:bg-bh-elevated sm:self-center"
           >
             {t("payment.backToCheckout")}
           </button>
@@ -225,7 +225,7 @@ export default function BitPayPage() {
       </section>
 
       <section className="card space-y-3 p-3">
-        <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/60 p-3">
+        <div className="space-y-3 rounded-xl border border-bh-border bg-bh-card p-3">
           {bitOrderNumber ? (
             <p className="text-sm font-semibold text-primary">
               {t("bit.payForOrderLine").replace(
@@ -234,21 +234,21 @@ export default function BitPayPage() {
               )}
             </p>
           ) : null}
-          <p className="whitespace-pre-line text-sm leading-relaxed text-gray-200">
+          <p className="whitespace-pre-line text-sm leading-relaxed text-bh-text">
             {t("bit.payIntro").replace(/\{amount\}/g, total || "—")}
           </p>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => copy(phone || "0504847599")}
-              className="rounded-full border border-slate-700 px-3 py-2 text-xs text-gray-200"
+              className="rounded-full border border-bh-border-strong px-3 py-2 text-xs text-bh-text"
             >
               {t("bit.copyNumber")}
             </button>
             <button
               type="button"
               onClick={() => copy(total)}
-              className="rounded-full border border-slate-700 px-3 py-2 text-xs text-gray-200"
+              className="rounded-full border border-bh-border-strong px-3 py-2 text-xs text-bh-text"
             >
               {t("bit.copyAmount")}
             </button>
@@ -260,13 +260,13 @@ export default function BitPayPage() {
         </button>
 
         {waPendingOk ? (
-          <div className="space-y-3 border-t border-slate-800 pt-3">
-            <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-200">
+          <div className="space-y-3 border-t border-bh-border pt-3">
+            <label className="flex cursor-pointer items-start gap-2 text-sm text-bh-text">
               <input
                 type="checkbox"
                 checked={bitPaidConfirmed}
                 onChange={(e) => setBitPaidConfirmed(e.target.checked)}
-                className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-600 bg-slate-900 text-primary focus:ring-primary"
+                className="mt-0.5 h-4 w-4 shrink-0 rounded border-bh-border-strong bg-bh-card text-primary focus:ring-primary"
               />
               <span>{t("bit.paidCheckbox")}</span>
             </label>
@@ -282,7 +282,7 @@ export default function BitPayPage() {
         ) : null}
 
         {status ? (
-          <p className="text-center text-[11px] text-gray-400">{status}</p>
+          <p className="text-center text-[11px] text-bh-faint">{status}</p>
         ) : null}
       </section>
     </Layout>

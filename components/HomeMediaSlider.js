@@ -79,7 +79,7 @@ export default function HomeMediaSlider({
               key={img.id}
               src={img.url}
               alt=""
-              className="h-44 w-[min(88vw,22rem)] shrink-0 snap-center rounded-xl border border-slate-700 object-cover shadow-lg"
+              className="h-44 w-[min(88vw,22rem)] shrink-0 snap-center rounded-xl border border-bh-border-strong object-cover shadow-lg"
               loading="lazy"
               decoding="async"
               referrerPolicy="no-referrer"
@@ -108,7 +108,7 @@ export default function HomeMediaSlider({
               key={`${img.id}-${i}`}
               src={img.url}
               alt=""
-              className="h-44 w-[min(88vw,22rem)] shrink-0 rounded-xl border border-slate-700 object-cover shadow-lg"
+              className="h-44 w-[min(88vw,22rem)] shrink-0 rounded-xl border border-bh-border-strong object-cover shadow-lg"
               loading="eager"
               decoding="async"
               referrerPolicy="no-referrer"

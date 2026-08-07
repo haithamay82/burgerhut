@@ -1011,11 +1011,11 @@ export default function CheckoutPage() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <h2 className="mb-1 text-lg font-bold">{t("checkout.title")}</h2>
-            <p className="text-xs text-gray-400">{t("checkout.subtitle")}</p>
+            <p className="text-xs text-bh-faint">{t("checkout.subtitle")}</p>
           </div>
           <Link
             href="/"
-            className="shrink-0 self-start rounded-full border border-slate-600 bg-slate-900/60 px-4 py-2 text-center text-xs font-semibold text-primary transition-colors hover:border-primary/50 hover:bg-slate-800/60 sm:self-center"
+            className="shrink-0 self-start rounded-full border border-bh-border-strong bg-bh-card px-4 py-2 text-center text-xs font-semibold text-primary transition-colors hover:border-primary/50 hover:bg-bh-elevated sm:self-center"
           >
             {t("checkout.backToMenu")}
           </Link>
@@ -1023,7 +1023,7 @@ export default function CheckoutPage() {
       </section>
 
       {!items.length ? (
-        <p className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-gray-400">
+        <p className="rounded-xl border border-bh-border bg-bh-card p-4 text-sm text-bh-faint">
           {t("checkout.emptyCart")}
         </p>
       ) : (
@@ -1040,13 +1040,13 @@ export default function CheckoutPage() {
               return (
                 <div
                   key={`${item.id}-${index}`}
-                  className="flex flex-col gap-2 rounded-lg bg-slate-900/70 p-2"
+                  className="flex flex-col gap-2 rounded-lg bg-bh-card p-2"
                 >
                   <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
                       {item.quantity > 1 ? (
-                        <ol className="mb-0.5 list-inside list-decimal space-y-0.5 text-sm font-semibold text-gray-100">
+                        <ol className="mb-0.5 list-inside list-decimal space-y-0.5 text-sm font-semibold text-bh-text">
                           {Array.from(
                             { length: item.quantity },
                             (_, u) => (
@@ -1059,17 +1059,17 @@ export default function CheckoutPage() {
                       )}
                     </div>
                     {item.sizeLabel && (
-                      <p className="text-[11px] text-gray-400">
+                      <p className="text-[11px] text-bh-faint">
                         {t("checkout.size")}: {item.sizeLabel}
                       </p>
                     )}
                     {item.variantLabel && (
-                      <p className="text-[11px] text-gray-400">
+                      <p className="text-[11px] text-bh-faint">
                         {t("checkout.variant")}: {item.variantLabel}
                       </p>
                     )}
                     {item.salads?.length ? (
-                      <p className="text-[11px] text-gray-400">
+                      <p className="text-[11px] text-bh-faint">
                         {t("checkout.saladsPrefix")}:{" "}
                         {sortSaladsForDisplay(item.salads)
                           .map((x) => x.label)
@@ -1086,13 +1086,13 @@ export default function CheckoutPage() {
                       );
                       if (!mealDesc) return null;
                       return (
-                        <p className="text-[11px] text-gray-400">
+                        <p className="text-[11px] text-bh-faint">
                           {t("checkout.specialMealComponentsPrefix")}: {mealDesc}
                         </p>
                       );
                     })()}
                     {typeof item.bunSauceOnBun === "boolean" ? (
-                      <p className="text-[11px] text-gray-400">
+                      <p className="text-[11px] text-bh-faint">
                         {t("checkout.bunSauceOnBunPrefix")}:{" "}
                         {item.bunSauceOnBun
                           ? t("ui.bunSauceYes")
@@ -1100,19 +1100,19 @@ export default function CheckoutPage() {
                       </p>
                     ) : null}
                     {item.burgerDoneness?.label ? (
-                      <p className="text-[11px] text-gray-400">
+                      <p className="text-[11px] text-bh-faint">
                         {t("checkout.donenessPrefix")}:{" "}
                         {item.burgerDoneness.label}
                       </p>
                     ) : null}
                     {item.toppings?.length ? (
-                      <p className="text-[11px] text-gray-400">
+                      <p className="text-[11px] text-bh-faint">
                         {t("checkout.toppingsPrefix")}:{" "}
                         {item.toppings.map((x) => x.label).join(", ")}
                       </p>
                     ) : null}
                     {item.extras?.length ? (
-                      <p className="text-[11px] text-gray-400">
+                      <p className="text-[11px] text-bh-faint">
                         {t("checkout.extrasPrefix")}:{" "}
                         {item.extras.map((x) => x.label).join(", ")}
                       </p>
@@ -1138,7 +1138,7 @@ export default function CheckoutPage() {
                         {t("ui.sellerNotes")}: {item.sellerNotes}
                       </p>
                     ) : null}
-                    <p className="mt-1 text-[11px] text-gray-400">
+                    <p className="mt-1 text-[11px] text-bh-faint">
                       {t("checkout.unitPrice")}: ₪{formatIls(safePrice(item))}
                     </p>
                     {lineOos ? (
@@ -1155,7 +1155,7 @@ export default function CheckoutPage() {
                           setCartPattyError("");
                           updateQuantity(item.id, item.quantity - 1);
                         }}
-                        className="flex h-6 w-6 items-center justify-center rounded-full border border-slate-700 text-xs"
+                        className="flex h-6 w-6 items-center justify-center rounded-full border border-bh-border-strong text-xs"
                       >
                         −
                       </button>
@@ -1171,7 +1171,7 @@ export default function CheckoutPage() {
                           )
                         }
                         disabled={lineOos}
-                        className="flex h-6 w-6 items-center justify-center rounded-full border border-slate-700 text-xs disabled:cursor-not-allowed disabled:opacity-40"
+                        className="flex h-6 w-6 items-center justify-center rounded-full border border-bh-border-strong text-xs disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         +
                       </button>
@@ -1181,7 +1181,7 @@ export default function CheckoutPage() {
                     </p>
                   </div>
                   </div>
-                  <div className="flex flex-wrap items-center justify-center gap-4 border-t border-slate-800/70 pt-2">
+                  <div className="flex flex-wrap items-center justify-center gap-4 border-t border-bh-border/70 pt-2">
                     {isEditableMealCartLine(item, menuItems) ? (
                       <button
                         type="button"
@@ -1209,12 +1209,12 @@ export default function CheckoutPage() {
               );
             })}
           </div>
-          <div className="mt-3 space-y-1 border-t border-slate-800 pt-3">
+          <div className="mt-3 space-y-1 border-t border-bh-border pt-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-bh-faint">
                 {t("checkout.foodSubtotal")}
               </span>
-              <span className="text-sm font-semibold text-gray-200">
+              <span className="text-sm font-semibold text-bh-text">
                 ₪{formatIls(foodTotal)}
               </span>
             </div>
@@ -1243,10 +1243,10 @@ export default function CheckoutPage() {
             {form.orderType === "delivery" && deliveryFeeNis != null ? (
               <>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-bh-faint">
                     {t("checkout.deliveryFeeLine")}
                   </span>
-                  <span className="text-sm font-semibold text-gray-200">
+                  <span className="text-sm font-semibold text-bh-text">
                     ₪{formatIls(deliveryFeeNis)}
                   </span>
                 </div>
@@ -1255,7 +1255,7 @@ export default function CheckoutPage() {
                 geo.status === "ok" &&
                 geo.km != null ? (
                   <div className="space-y-0.5">
-                    <p className="text-[10px] text-gray-500">
+                    <p className="text-[10px] text-bh-faint">
                       {geo.routingMode === "air_fallback"
                         ? t("checkout.distanceKm")
                         : t("checkout.drivingDistanceKm")}
@@ -1276,8 +1276,8 @@ export default function CheckoutPage() {
                 {t("checkout.mapSelectHint")}
               </p>
             ) : null}
-            <div className="flex items-center justify-between border-t border-slate-800 pt-2">
-              <span className="text-xs font-medium text-gray-300">
+            <div className="flex items-center justify-between border-t border-bh-border pt-2">
+              <span className="text-xs font-medium text-bh-muted">
                 {t("checkout.grandTotal")}
               </span>
               <span className="text-base font-bold text-primary">
@@ -1297,7 +1297,7 @@ export default function CheckoutPage() {
 
         <div className="space-y-2">
           <div>
-            <label className="mb-1 block text-[11px] text-gray-300">
+            <label className="mb-1 block text-[11px] text-bh-muted">
               {t("checkout.firstName")}
             </label>
             <input
@@ -1305,7 +1305,7 @@ export default function CheckoutPage() {
               name="firstName"
               value={form.firstName}
               onChange={handleChange}
-              className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs outline-none focus:border-primary"
+              className="w-full rounded-lg border border-bh-border-strong bg-bh-card px-3 py-2 text-xs outline-none focus:border-primary"
               placeholder={t("checkout.firstNamePh")}
               autoComplete="given-name"
             />
@@ -1317,7 +1317,7 @@ export default function CheckoutPage() {
           </div>
 
           <div>
-            <label className="mb-1 block text-[11px] text-gray-300">
+            <label className="mb-1 block text-[11px] text-bh-muted">
               {t("checkout.lastName")}
             </label>
             <input
@@ -1325,7 +1325,7 @@ export default function CheckoutPage() {
               name="lastName"
               value={form.lastName}
               onChange={handleChange}
-              className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs outline-none focus:border-primary"
+              className="w-full rounded-lg border border-bh-border-strong bg-bh-card px-3 py-2 text-xs outline-none focus:border-primary"
               placeholder={t("checkout.lastNamePh")}
               autoComplete="family-name"
             />
@@ -1337,7 +1337,7 @@ export default function CheckoutPage() {
           </div>
 
           <div>
-            <label className="mb-1 block text-[11px] text-gray-300">
+            <label className="mb-1 block text-[11px] text-bh-muted">
               {t("checkout.phone")}
             </label>
             <input
@@ -1345,7 +1345,7 @@ export default function CheckoutPage() {
               name="phone"
               value={form.phone}
               onChange={handleChange}
-              className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs outline-none focus:border-primary"
+              className="w-full rounded-lg border border-bh-border-strong bg-bh-card px-3 py-2 text-xs outline-none focus:border-primary"
               placeholder="05XXXXXXXX"
             />
             {errors.phone && (
@@ -1355,7 +1355,7 @@ export default function CheckoutPage() {
             form.lastName.trim() &&
             form.phone.trim() ? (
               <div className="mt-2 flex flex-wrap items-center gap-2">
-                <span className="text-[11px] text-gray-400">
+                <span className="text-[11px] text-bh-faint">
                   {t("checkout.saveContactQuestion")}
                 </span>
                 <div className="flex gap-1" role="group" aria-label={t("checkout.saveContactQuestion")}>
@@ -1365,7 +1365,7 @@ export default function CheckoutPage() {
                     className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold transition-colors ${
                       saveContactChoice
                         ? "border-primary bg-primary/15 text-primary"
-                        : "border-slate-600 text-gray-400 hover:border-slate-500"
+                        : "border-bh-border-strong text-bh-faint hover:border-bh-border-strong"
                     }`}
                   >
                     {t("checkout.saveContactYes")}
@@ -1376,7 +1376,7 @@ export default function CheckoutPage() {
                     className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold transition-colors ${
                       !saveContactChoice
                         ? "border-primary bg-primary/15 text-primary"
-                        : "border-slate-600 text-gray-400 hover:border-slate-500"
+                        : "border-bh-border-strong text-bh-faint hover:border-bh-border-strong"
                     }`}
                   >
                     {t("checkout.saveContactNo")}
@@ -1387,7 +1387,7 @@ export default function CheckoutPage() {
           </div>
 
           <div>
-            <label className="mb-1 block text-[11px] text-gray-300">
+            <label className="mb-1 block text-[11px] text-bh-muted">
               {t("checkout.orderType")}
             </label>
             <div className="flex gap-2">
@@ -1399,7 +1399,7 @@ export default function CheckoutPage() {
                 className={`flex-1 rounded-full border px-3 py-1 text-[11px] ${
                   form.orderType === "pickup"
                     ? "border-primary bg-primary/10 text-primary"
-                    : "border-slate-700 text-gray-300"
+                    : "border-bh-border-strong text-bh-muted"
                 }`}
               >
                 {t("checkout.pickup")}
@@ -1412,7 +1412,7 @@ export default function CheckoutPage() {
                 className={`flex-1 rounded-full border px-3 py-1 text-[11px] ${
                   form.orderType === "delivery"
                     ? "border-primary bg-primary/10 text-primary"
-                    : "border-slate-700 text-gray-300"
+                    : "border-bh-border-strong text-bh-muted"
                 }`}
               >
                 {t("checkout.delivery")}
@@ -1423,7 +1423,7 @@ export default function CheckoutPage() {
           {form.orderType === "delivery" && (
             <>
               <div>
-                <label className="mb-1 block text-[11px] text-gray-300">
+                <label className="mb-1 block text-[11px] text-bh-muted">
                   {t("checkout.deliveryWhere")}
                 </label>
                 <div className="flex gap-2">
@@ -1433,7 +1433,7 @@ export default function CheckoutPage() {
                     className={`flex-1 rounded-full border px-3 py-2 text-[11px] font-semibold ${
                       form.deliveryZone === "yarka"
                         ? "border-primary bg-primary/10 text-primary"
-                        : "border-slate-700 text-gray-300"
+                        : "border-bh-border-strong text-bh-muted"
                     }`}
                   >
                     {t("checkout.zoneYarka")}
@@ -1444,7 +1444,7 @@ export default function CheckoutPage() {
                     className={`flex-1 rounded-full border px-3 py-2 text-[11px] font-semibold ${
                       form.deliveryZone === "outside"
                         ? "border-primary bg-primary/10 text-primary"
-                        : "border-slate-700 text-gray-300"
+                        : "border-bh-border-strong text-bh-muted"
                     }`}
                   >
                     {t("checkout.zoneOutside")}
@@ -1461,7 +1461,7 @@ export default function CheckoutPage() {
                 form.deliveryZone === "outside") && (
                 <div className="relative space-y-2">
                   <label
-                    className="mb-1 block text-[11px] text-gray-300"
+                    className="mb-1 block text-[11px] text-bh-muted"
                     htmlFor="delivery-address-trigger"
                   >
                     {t("checkout.address")}
@@ -1470,13 +1470,13 @@ export default function CheckoutPage() {
                     id="delivery-address-trigger"
                     type="button"
                     onClick={openMapPicker}
-                    className="flex min-h-[2.75rem] w-full items-start rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-left text-xs outline-none ring-primary/40 focus:border-primary focus:ring-2"
+                    className="flex min-h-[2.75rem] w-full items-start rounded-lg border border-bh-border-strong bg-bh-card px-3 py-2 text-left text-xs outline-none ring-primary/40 focus:border-primary focus:ring-2"
                   >
                     <span
                       className={
                         deliveryMapPoint?.label
-                          ? "text-gray-200"
-                          : "text-gray-500"
+                          ? "text-bh-text"
+                          : "text-bh-faint"
                       }
                     >
                       {deliveryMapPoint?.label ||
@@ -1493,7 +1493,7 @@ export default function CheckoutPage() {
                     </button>
                   ) : null}
                   {geo.status === "loading" ? (
-                    <p className="text-[10px] text-gray-500">
+                    <p className="text-[10px] text-bh-faint">
                       {t("checkout.geocoding")}
                     </p>
                   ) : null}
@@ -1503,7 +1503,7 @@ export default function CheckoutPage() {
                     </p>
                   ) : null}
                   <div>
-                    <label className="mb-1 block text-[11px] text-gray-400">
+                    <label className="mb-1 block text-[11px] text-bh-faint">
                       {t("checkout.outsideNotesOptional")}
                     </label>
                     <textarea
@@ -1511,7 +1511,7 @@ export default function CheckoutPage() {
                       value={form.addressDetail}
                       onChange={handleChange}
                       rows={2}
-                      className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs outline-none focus:border-primary"
+                      className="w-full rounded-lg border border-bh-border-strong bg-bh-card px-3 py-2 text-xs outline-none focus:border-primary"
                       placeholder={t("checkout.outsideNotesPh")}
                     />
                   </div>
@@ -1532,7 +1532,7 @@ export default function CheckoutPage() {
           )}
         </div>
 
-        <div className="mt-2 border-t border-slate-800 pt-3">
+        <div className="mt-2 border-t border-bh-border pt-3">
           <h3 className="mb-2 text-sm font-semibold">{t("checkout.couponTitle")}</h3>
           <div className="flex gap-2">
             <input
@@ -1543,7 +1543,7 @@ export default function CheckoutPage() {
                 if (appliedCoupon) setAppliedCoupon(null);
                 if (couponMsg) setCouponMsg("");
               }}
-              className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs uppercase outline-none focus:border-primary"
+              className="w-full rounded-lg border border-bh-border-strong bg-bh-card px-3 py-2 text-xs uppercase outline-none focus:border-primary"
               placeholder={t("checkout.couponPh")}
             />
             <button
@@ -1566,7 +1566,7 @@ export default function CheckoutPage() {
           ) : null}
         </div>
 
-        <div className="mt-2 border-t border-slate-800 pt-3">
+        <div className="mt-2 border-t border-bh-border pt-3">
           <h3 className="mb-2 text-sm font-semibold">{t("checkout.payment")}</h3>
           <div className="grid grid-cols-3 gap-2 items-end">
             {PAYMENT_METHODS.map((m) => (
@@ -1577,7 +1577,7 @@ export default function CheckoutPage() {
                 className={`rounded-full border px-3 py-2 text-[11px] ${
                   form.payment === m.id
                     ? "border-primary bg-primary/10 text-primary"
-                    : "border-slate-700 text-gray-300"
+                    : "border-bh-border-strong text-bh-muted"
                 }`}
               >
                 {t(`payment.${m.id}`)}
@@ -1587,13 +1587,13 @@ export default function CheckoutPage() {
         </div>
 
         {form.orderType === "delivery" && deliveryFeeNis != null ? (
-          <div className="mt-3 space-y-2 rounded-xl border border-slate-700/80 bg-slate-900/40 p-3">
+          <div className="mt-3 space-y-2 rounded-xl border border-bh-border-strong bg-bh-card p-3">
             {form.payment === "cash" ? (
               <>
-                <h4 className="text-[11px] font-semibold text-gray-200">
+                <h4 className="text-[11px] font-semibold text-bh-text">
                   {t("checkout.deliveryPayCashTitle")}
                 </h4>
-                <p className="text-[11px] leading-snug text-gray-400">
+                <p className="text-[11px] leading-snug text-bh-faint">
                   {t("checkout.cashCourierFullHint")}
                 </p>
                 <p className="text-sm font-bold text-primary">
@@ -1603,10 +1603,10 @@ export default function CheckoutPage() {
               </>
             ) : needsOnlineDeliverySplit ? (
               <>
-                <h4 className="text-[11px] font-semibold text-gray-200">
+                <h4 className="text-[11px] font-semibold text-bh-text">
                   {t("checkout.deliveryPayOnlineTitle")}
                 </h4>
-                <p className="mb-2 text-[10px] leading-snug text-gray-500">
+                <p className="mb-2 text-[10px] leading-snug text-bh-faint">
                   {t("checkout.deliveryPayOnlineHint")}
                 </p>
                 <div className="flex flex-col gap-2">
@@ -1621,7 +1621,7 @@ export default function CheckoutPage() {
                     className={`rounded-xl border px-3 py-2 text-left text-[11px] leading-snug ${
                       form.deliveryPayTo === "restaurant_all"
                         ? "border-primary bg-primary/10 text-primary"
-                        : "border-slate-700 text-gray-300"
+                        : "border-bh-border-strong text-bh-muted"
                     }`}
                   >
                     {t("checkout.payRestaurantAll")}
@@ -1637,7 +1637,7 @@ export default function CheckoutPage() {
                     className={`rounded-xl border px-3 py-2 text-left text-[11px] leading-snug ${
                       form.deliveryPayTo === "courier_delivery"
                         ? "border-primary bg-primary/10 text-primary"
-                        : "border-slate-700 text-gray-300"
+                        : "border-bh-border-strong text-bh-muted"
                     }`}
                   >
                     {t("checkout.payCourierDeliveryFoodPrefix")}
@@ -1654,9 +1654,9 @@ export default function CheckoutPage() {
                     . {t("checkout.onlinePayDeliveryToCourier")}
                   </p>
                 ) : form.deliveryPayTo === "restaurant_all" ? (
-                  <p className="text-[10px] leading-snug text-gray-500">
+                  <p className="text-[10px] leading-snug text-bh-faint">
                     <span>{t("checkout.onlinePayFullLabel")}</span>{" "}
-                    <span className="font-semibold text-gray-300">
+                    <span className="font-semibold text-bh-muted">
                       ₪{formatIls(grandTotal)}
                     </span>
                     .
@@ -1689,7 +1689,7 @@ export default function CheckoutPage() {
 
         {form.payment === "card" ? (
           <div>
-            <label className="mb-1 block text-[11px] font-semibold text-gray-400">
+            <label className="mb-1 block text-[11px] font-semibold text-bh-faint">
               {t("checkout.emailOptional")}
               <input
                 type="email"
@@ -1698,7 +1698,7 @@ export default function CheckoutPage() {
                 inputMode="email"
                 value={form.email}
                 onChange={handleChange}
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs outline-none focus:border-primary"
+                className="mt-1 w-full rounded-lg border border-bh-border-strong bg-bh-card px-3 py-2 text-xs outline-none focus:border-primary"
                 placeholder={t("checkout.emailPlaceholder")}
               />
             </label>
@@ -1716,7 +1716,7 @@ export default function CheckoutPage() {
 
       {!orderingAllowed && items.length > 0 ? (
         <div
-          className="absolute inset-0 z-20 flex items-center justify-center bg-slate-950/80 px-6 py-10 backdrop-blur-sm"
+          className="absolute inset-0 z-20 flex items-center justify-center bg-bh-input px-6 py-10 backdrop-blur-sm"
           role="alert"
           aria-live="polite"
         >

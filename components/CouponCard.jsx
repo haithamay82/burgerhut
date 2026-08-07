@@ -34,7 +34,7 @@ export default function CouponCard({ coupon }) {
 
   return (
     <section className="mb-4 w-full max-w-sm rounded-2xl border border-emerald-400/30 bg-gradient-to-br from-emerald-900/35 via-slate-900 to-cyan-900/35 p-4 shadow-[0_0_25px_-10px_rgba(16,185,129,0.9)]">
-      <div className="rounded-xl border border-white/10 bg-slate-950/80 p-4 text-right">
+      <div className="rounded-xl border border-white/10 bg-bh-input p-4 text-right">
         <p className="mb-2 text-lg font-extrabold text-emerald-300">
           {t("success.couponTitle")}
         </p>
@@ -47,7 +47,7 @@ export default function CouponCard({ coupon }) {
         <p className="mt-1 text-sm font-semibold text-sky-200">
           {t("success.couponCode").replace("{code}", String(coupon.code || ""))}
         </p>
-        <p className="mt-1 text-xs text-gray-300">
+        <p className="mt-1 text-xs text-bh-muted">
           {t("success.couponExpiry").replace("{date}", expiryText)}
         </p>
       </div>

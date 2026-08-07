@@ -73,11 +73,11 @@ export default function PwaNotificationPrompt() {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[225] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[225] flex items-center justify-center bg-bh-overlay p-4 backdrop-blur-sm"
       role="presentation"
     >
       <div
-        className="w-full max-w-sm rounded-2xl border-2 border-[#f5a623] bg-black p-5 shadow-2xl"
+        className="w-full max-w-sm rounded-2xl border-2 border-[#f5a623] bg-bh-bg p-5 shadow-2xl"
         role="dialog"
         aria-modal="true"
         aria-labelledby="pwa-notify-title"
@@ -89,10 +89,10 @@ export default function PwaNotificationPrompt() {
         >
           {t("pwaNotify.title")}
         </h2>
-        <p className="mb-2 text-center text-sm leading-relaxed text-gray-200">
+        <p className="mb-2 text-center text-sm leading-relaxed text-bh-text">
           {t("pwaNotify.body")}
         </p>
-        <p className="mb-4 text-center text-[11px] leading-relaxed text-gray-500">
+        <p className="mb-4 text-center text-[11px] leading-relaxed text-bh-faint">
           {t("pwaNotify.systemHint")}
         </p>
         {msg ? (

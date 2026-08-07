@@ -94,15 +94,15 @@ export default function AdminSliderUploadPage() {
       <Head>
         <title>{t("admin.sliderUploadLiteTitle")}</title>
       </Head>
-      <div className="min-h-screen bg-black px-4 py-8 text-gray-100" dir="rtl">
+      <div className="min-h-screen bg-bh-bg px-4 py-8 text-bh-text" dir="rtl">
         <div className="mx-auto max-w-md space-y-4">
           <h1 className="text-lg font-bold text-primary">
             {t("admin.sliderUploadLiteTitle")}
           </h1>
-          <p className="text-xs leading-relaxed text-gray-400">
+          <p className="text-xs leading-relaxed text-bh-faint">
             {t("admin.sliderUploadLiteHint")}
           </p>
-          <p className="text-[11px] leading-relaxed text-gray-500">
+          <p className="text-[11px] leading-relaxed text-bh-faint">
             {t("admin.secretStorageHint")}
           </p>
           <Link
@@ -112,7 +112,7 @@ export default function AdminSliderUploadPage() {
             {t("admin.sliderUploadLiteBack")}
           </Link>
           <div>
-            <label className="mb-1 block text-xs text-gray-400">
+            <label className="mb-1 block text-xs text-bh-faint">
               {t("admin.secretLabel")}
             </label>
             <input
@@ -120,7 +120,7 @@ export default function AdminSliderUploadPage() {
               autoComplete="current-password"
               value={secret}
               onChange={(e) => setSecret(e.target.value)}
-              className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-primary"
+              className="w-full rounded-lg border border-bh-border-strong bg-bh-card px-3 py-2 text-sm outline-none focus:border-primary"
             />
           </div>
           <div>
@@ -129,7 +129,7 @@ export default function AdminSliderUploadPage() {
               type="file"
               accept="image/jpeg,image/png,image/webp,image/gif"
               disabled={uploading}
-              className="max-w-full text-xs text-gray-400 file:mr-2 file:rounded-lg file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-gray-200"
+              className="max-w-full text-xs text-bh-faint file:mr-2 file:rounded-lg file:border-0 file:bg-bh-elevated file:px-3 file:py-2 file:text-bh-text"
             />
           </div>
           <button
@@ -160,7 +160,7 @@ export default function AdminSliderUploadPage() {
               setErr("");
               setMsg("");
             }}
-            className="w-full rounded-lg border border-slate-700 py-2 text-xs text-gray-400 hover:bg-slate-900"
+            className="w-full rounded-lg border border-bh-border-strong py-2 text-xs text-bh-faint hover:bg-bh-card"
           >
             {t("admin.logoutBtn")}
           </button>

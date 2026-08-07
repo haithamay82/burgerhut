@@ -117,7 +117,7 @@ export default function FoodRatingCard({
 
   return (
     <section
-      className={`w-full rounded-2xl border border-[#f5a623]/40 bg-black/60 text-center shadow-lg ${
+      className={`w-full rounded-2xl border border-[#f5a623]/40 bg-bh-overlay-soft text-center shadow-lg ${
         compact ? "max-w-sm p-4" : "max-w-md p-5"
       }`}
       dir="rtl"
@@ -129,7 +129,7 @@ export default function FoodRatingCard({
       >
         {t("rating.title")}
       </h3>
-      <p className={`text-gray-300 ${compact ? "mb-3 text-xs" : "mb-4 text-sm"}`}>
+      <p className={`text-bh-muted ${compact ? "mb-3 text-xs" : "mb-4 text-sm"}`}>
         {t("rating.subtitle")}
       </p>
       <div
@@ -166,7 +166,7 @@ export default function FoodRatingCard({
           rows={2}
           maxLength={400}
           placeholder={t("rating.commentPh")}
-          className="mb-3 w-full rounded-xl border border-slate-700 bg-slate-950/80 px-3 py-2 text-right text-sm text-gray-100 placeholder:text-gray-500 focus:border-[#f5a623]/60 focus:outline-none"
+          className="mb-3 w-full rounded-xl border border-bh-border-strong bg-bh-input px-3 py-2 text-right text-sm text-bh-text placeholder:text-bh-faint focus:border-[#f5a623]/60 focus:outline-none"
         />
       ) : null}
       {err ? (
@@ -186,7 +186,7 @@ export default function FoodRatingCard({
             type="button"
             disabled={busy}
             onClick={onSkip}
-            className="w-full rounded-xl border border-slate-600 py-2.5 text-sm font-semibold text-gray-300"
+            className="w-full rounded-xl border border-bh-border-strong py-2.5 text-sm font-semibold text-bh-muted"
           >
             {t("rating.skipBtn")}
           </button>

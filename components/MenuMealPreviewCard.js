@@ -63,14 +63,14 @@ export default function MenuMealPreviewCard({ item, onOpenWizard }) {
     <div className="card relative min-w-0 max-w-full overflow-hidden">
       {pattyRemainingFewLabel ? (
         <p
-          className="pointer-events-none absolute left-2 top-2 z-[2] max-w-[calc(100%-1rem)] rounded-md border border-amber-700/60 bg-slate-950/90 px-1.5 py-0.5 text-[9px] font-bold leading-tight text-amber-100/95 shadow-sm sm:text-[10px]"
+          className="pointer-events-none absolute left-2 top-2 z-[2] max-w-[calc(100%-1rem)] rounded-md border border-amber-700/60 bg-bh-elevated/90 px-1.5 py-0.5 text-[9px] font-bold leading-tight text-amber-100/95 shadow-sm sm:text-[10px]"
           dir="rtl"
         >
           {pattyRemainingFewLabel}
         </p>
       ) : null}
       <div className="flex gap-3 p-3">
-        <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl border border-slate-800">
+        <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl border border-bh-border">
           <img
             src={item.image}
             alt={name}
@@ -91,7 +91,7 @@ export default function MenuMealPreviewCard({ item, onOpenWizard }) {
               {t("ui.outOfStock")}
             </p>
           ) : null}
-          <p className="line-clamp-3 text-xs text-gray-400">{description}</p>
+          <p className="line-clamp-3 text-xs text-bh-faint">{description}</p>
           <p
             dir="rtl"
             className="mt-1 text-sm font-semibold text-primary tabular-nums"
@@ -100,7 +100,7 @@ export default function MenuMealPreviewCard({ item, onOpenWizard }) {
           </p>
         </div>
       </div>
-      <div className="border-t border-slate-800 p-3">
+      <div className="border-t border-bh-border p-3">
         <button
           type="button"
           onClick={() => onOpenWizard(item)}

@@ -58,13 +58,13 @@ export default function PromoVideoOverlay() {
 
   return (
     <div
-      className="fixed inset-0 z-[500] flex flex-col bg-black"
+      className="fixed inset-0 z-[500] flex flex-col bg-bh-bg"
       role="dialog"
       aria-modal="true"
       aria-label={t("home.promoAria")}
     >
       <div
-        className={`relative min-h-0 flex-1 touch-manipulation bg-black ${
+        className={`relative min-h-0 flex-1 touch-manipulation bg-bh-bg ${
           muted ? "cursor-pointer" : "cursor-default"
         }`}
         onClick={enableSound}
@@ -93,7 +93,7 @@ export default function PromoVideoOverlay() {
           onEnded={dismiss}
         />
       </div>
-      <div className="flex shrink-0 justify-center border-t border-slate-800 bg-black/90 py-4">
+      <div className="flex shrink-0 justify-center border-t border-bh-border bg-bh-overlay py-4">
         <button
           type="button"
           onClick={dismiss}

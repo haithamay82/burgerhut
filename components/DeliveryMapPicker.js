@@ -82,13 +82,13 @@ export default function DeliveryMapPicker({
 
   return (
     <div
-      className="fixed inset-0 z-[600] flex items-end justify-center bg-black/80 p-3 sm:items-center"
+      className="fixed inset-0 z-[600] flex items-end justify-center bg-bh-overlay p-3 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="delivery-map-title"
     >
-      <div className="flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-800 px-3 py-2">
+      <div className="flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-bh-border-strong bg-bh-card shadow-2xl">
+        <div className="flex items-center justify-between border-b border-bh-border px-3 py-2">
           <h2
             id="delivery-map-title"
             className="text-sm font-bold text-primary"
@@ -98,18 +98,18 @@ export default function DeliveryMapPicker({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full px-2 py-1 text-lg leading-none text-gray-400 hover:bg-slate-800 hover:text-gray-200"
+            className="rounded-full px-2 py-1 text-lg leading-none text-bh-faint hover:bg-bh-elevated hover:text-bh-text"
             aria-label={labels.cancel}
           >
             ×
           </button>
         </div>
-        <p className="px-3 py-2 text-[11px] leading-snug text-gray-400">
+        <p className="px-3 py-2 text-[11px] leading-snug text-bh-faint">
           {labels.hint}
         </p>
         <div
           ref={containerRef}
-          className="relative z-0 min-h-[min(50vh,320px)] w-full flex-1 border-y border-slate-800"
+          className="relative z-0 min-h-[min(50vh,320px)] w-full flex-1 border-y border-bh-border"
           style={{ minHeight: "min(50vh, 360px)" }}
         />
         {applyError ? (
@@ -119,7 +119,7 @@ export default function DeliveryMapPicker({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 rounded-xl border border-slate-600 py-2 text-xs font-semibold text-gray-300 hover:bg-slate-800"
+            className="flex-1 rounded-xl border border-bh-border-strong py-2 text-xs font-semibold text-bh-muted hover:bg-bh-elevated"
           >
             {labels.cancel}
           </button>

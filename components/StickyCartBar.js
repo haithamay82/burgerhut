@@ -90,7 +90,7 @@ export default function StickyCartBar() {
       <div className="pointer-events-auto mx-auto flex w-full max-w-4xl flex-col px-4">
         {panelOpen ? (
           <div
-            className="mb-0 max-h-[min(58vh,28rem)] overflow-y-auto rounded-t-2xl border border-b-0 border-slate-800 bg-slate-950/98 px-3 pb-3 pt-3 shadow-[0_-8px_40px_rgba(0,0,0,0.45)] backdrop-blur-md"
+            className="mb-0 max-h-[min(58vh,28rem)] overflow-y-auto rounded-t-2xl border border-b-0 border-bh-border bg-bh-elevated/98 px-3 pb-3 pt-3 shadow-[0_-8px_40px_rgba(0,0,0,0.45)] backdrop-blur-md"
             role="dialog"
             aria-label={t("cart.panelTitle")}
           >
@@ -99,12 +99,12 @@ export default function StickyCartBar() {
               <button
                 type="button"
                 onClick={() => setPanelOpen(false)}
-                className="rounded-full border border-slate-700 px-3 py-1 text-[11px] text-gray-300 hover:border-slate-500"
+                className="rounded-full border border-bh-border-strong px-3 py-1 text-[11px] text-bh-muted hover:border-bh-border-strong"
               >
                 {t("cart.closePanel")}
               </button>
             </div>
-            <p className="mb-2 text-[10px] leading-snug text-gray-500">
+            <p className="mb-2 text-[10px] leading-snug text-bh-faint">
               {t("cart.menuStillVisibleHint")}
             </p>
             {pattyCartMessage ? (
@@ -118,13 +118,13 @@ export default function StickyCartBar() {
                 return (
                 <div
                   key={`${item.id}-${index}`}
-                  className="flex flex-col gap-2 rounded-lg bg-slate-900/80 p-2 text-xs"
+                  className="flex flex-col gap-2 rounded-lg bg-bh-card p-2 text-xs"
                 >
                   <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
                       {item.quantity > 1 ? (
-                        <ol className="mb-0.5 list-inside list-decimal space-y-0.5 text-sm font-semibold leading-snug text-gray-100">
+                        <ol className="mb-0.5 list-inside list-decimal space-y-0.5 text-sm font-semibold leading-snug text-bh-text">
                           {Array.from(
                             { length: item.quantity },
                             (_, u) => (
@@ -139,17 +139,17 @@ export default function StickyCartBar() {
                       )}
                     </div>
                     {item.sizeLabel ? (
-                      <p className="mt-0.5 text-[11px] text-gray-400">
+                      <p className="mt-0.5 text-[11px] text-bh-faint">
                         {t("checkout.size")}: {item.sizeLabel}
                       </p>
                     ) : null}
                     {item.variantLabel ? (
-                      <p className="text-[11px] text-gray-400">
+                      <p className="text-[11px] text-bh-faint">
                         {t("checkout.variant")}: {item.variantLabel}
                       </p>
                     ) : null}
                     {item.salads?.length ? (
-                      <p className="text-[11px] text-gray-400">
+                      <p className="text-[11px] text-bh-faint">
                         {t("checkout.saladsPrefix")}:{" "}
                         {sortSaladsForDisplay(item.salads)
                           .map((x) => x.label)
@@ -166,13 +166,13 @@ export default function StickyCartBar() {
                       );
                       if (!mealDesc) return null;
                       return (
-                        <p className="text-[11px] text-gray-400">
+                        <p className="text-[11px] text-bh-faint">
                           {t("checkout.specialMealComponentsPrefix")}: {mealDesc}
                         </p>
                       );
                     })()}
                     {typeof item.bunSauceOnBun === "boolean" ? (
-                      <p className="text-[11px] text-gray-400">
+                      <p className="text-[11px] text-bh-faint">
                         {t("checkout.bunSauceOnBunPrefix")}:{" "}
                         {item.bunSauceOnBun
                           ? t("ui.bunSauceYes")
@@ -180,19 +180,19 @@ export default function StickyCartBar() {
                       </p>
                     ) : null}
                     {item.burgerDoneness?.label ? (
-                      <p className="text-[11px] text-gray-400">
+                      <p className="text-[11px] text-bh-faint">
                         {t("checkout.donenessPrefix")}:{" "}
                         {item.burgerDoneness.label}
                       </p>
                     ) : null}
                     {item.toppings?.length ? (
-                      <p className="text-[11px] text-gray-400">
+                      <p className="text-[11px] text-bh-faint">
                         {t("checkout.toppingsPrefix")}:{" "}
                         {item.toppings.map((x) => x.label).join(", ")}
                       </p>
                     ) : null}
                     {item.extras?.length ? (
-                      <p className="text-[11px] text-gray-400">
+                      <p className="text-[11px] text-bh-faint">
                         {t("checkout.extrasPrefix")}:{" "}
                         {item.extras.map((x) => x.label).join(", ")}
                       </p>
@@ -218,7 +218,7 @@ export default function StickyCartBar() {
                         {t("ui.sellerNotes")}: {item.sellerNotes}
                       </p>
                     ) : null}
-                    <p className="mt-1 text-[11px] text-gray-400">
+                    <p className="mt-1 text-[11px] text-bh-faint">
                       {t("checkout.unitPrice")}: ₪{formatIls(safePrice(item))}
                     </p>
                     {lineOos ? (
@@ -235,7 +235,7 @@ export default function StickyCartBar() {
                           setPattyCartMessage("");
                           updateQuantity(item.id, item.quantity - 1);
                         }}
-                        className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 text-sm leading-none"
+                        className="flex h-7 w-7 items-center justify-center rounded-full border border-bh-border-strong text-sm leading-none"
                       >
                         −
                       </button>
@@ -246,7 +246,7 @@ export default function StickyCartBar() {
                         type="button"
                         onClick={() => void tryIncreaseQuantity(item)}
                         disabled={lineOos}
-                        className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-700 text-sm leading-none disabled:cursor-not-allowed disabled:opacity-40"
+                        className="flex h-7 w-7 items-center justify-center rounded-full border border-bh-border-strong text-sm leading-none disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         +
                       </button>
@@ -259,7 +259,7 @@ export default function StickyCartBar() {
                     </p>
                   </div>
                   </div>
-                  <div className="flex flex-wrap items-center justify-center gap-4 border-t border-slate-800/70 pt-2">
+                  <div className="flex flex-wrap items-center justify-center gap-4 border-t border-bh-border/70 pt-2">
                     {isEditableMealCartLine(item, menuItems) ? (
                       <button
                         type="button"
@@ -287,8 +287,8 @@ export default function StickyCartBar() {
               );
               })}
             </div>
-            <div className="mt-3 flex items-center justify-between border-t border-slate-800 pt-3">
-              <span className="text-xs text-gray-400">
+            <div className="mt-3 flex items-center justify-between border-t border-bh-border pt-3">
+              <span className="text-xs text-bh-faint">
                 {t("checkout.grandTotal")}
               </span>
               <span className="text-base font-bold text-primary">
@@ -298,10 +298,10 @@ export default function StickyCartBar() {
           </div>
         ) : null}
 
-        <div className="border-t border-slate-800 bg-black/95 py-3 backdrop-blur">
+        <div className="border-t border-bh-border bg-bh-overlay py-3 backdrop-blur">
           <div className="flex flex-wrap items-center gap-2">
             <div className="min-w-0 flex-1 basis-[8rem]">
-              <span className="text-xs text-gray-400">{t("cart.label")}</span>
+              <span className="text-xs text-bh-faint">{t("cart.label")}</span>
               <p className="text-sm font-semibold">
                 {unitsSummaryText} • ₪{formatIls(total)}
               </p>
@@ -310,7 +310,7 @@ export default function StickyCartBar() {
               type="button"
               onClick={() => setPanelOpen((v) => !v)}
               aria-expanded={panelOpen}
-              className="flex min-h-[2.5rem] flex-1 items-center justify-center rounded-full border border-slate-600 bg-slate-900/80 px-3 text-center text-xs font-medium text-gray-100 hover:border-slate-500 md:flex-none md:px-5"
+              className="flex min-h-[2.5rem] flex-1 items-center justify-center rounded-full border border-bh-border-strong bg-bh-card px-3 text-center text-xs font-medium text-bh-text hover:border-bh-border-strong md:flex-none md:px-5"
             >
               {panelOpen ? t("cart.hideCart") : t("cart.showCart")}
             </button>

@@ -10,7 +10,9 @@ import Head from "next/head";
 import Link from "next/link";
 import { upload as uploadToBlob } from "@vercel/blob/client";
 import { useLocale } from "@/contexts/LocaleContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import ThemeSwitcher from "@/components/ThemeSwitcher";
 import {
   BURGER_TOPPINGS,
   CRISPY_MEAL_SALADS,
@@ -336,6 +338,7 @@ function formatMonthYearTitle(y, m, locale) {
 
 export default function AdminOrdersPage() {
   const { locale, t } = useLocale();
+  const { themeId, siteThemeId, setTheme, setSiteTheme } = useTheme();
   const [secret, setSecret] = useState("");
   /** @type {["admin" | "employee", import("react").Dispatch<import("react").SetStateAction<"admin" | "employee">>] */
   const [adminRole, setAdminRole] = useState("admin");
@@ -469,6 +472,9 @@ export default function AdminOrdersPage() {
   const [ratingsDeletingId, setRatingsDeletingId] = useState("");
   const [ratingsDeleteAllBusy, setRatingsDeleteAllBusy] = useState(false);
   const [ratingsMsg, setRatingsMsg] = useState("");
+  const [themePanelOpen, setThemePanelOpen] = useState(false);
+  const [themeBusy, setThemeBusy] = useState(false);
+  const [themeMsg, setThemeMsg] = useState("");
   const [adminClientReady, setAdminClientReady] = useState(false);
   const [sliderImages, setSliderImages] = useState([]);
   const [sliderDisplayEnabled, setSliderDisplayEnabled] = useState(true);
@@ -1377,6 +1383,24 @@ export default function AdminOrdersPage() {
     setRatingsDeletingId("");
     setRatingsDeleteAllBusy(false);
     setRatingsMsg("");
+    setThemePanelOpen(false);
+    setThemeBusy(false);
+    setThemeMsg("");
+  };
+
+  const saveSiteThemeChoice = async (nextThemeId) => {
+    const s = secret.trim();
+    if (!s || themeBusy) return;
+    setThemeBusy(true);
+    setThemeMsg("");
+    const result = await setSiteTheme(nextThemeId, s);
+    setThemeBusy(false);
+    if (!result.ok) {
+      setThemeMsg(t("admin.themeSaveErr"));
+      return;
+    }
+    setTheme(nextThemeId);
+    setThemeMsg(t("admin.themeSaveOk"));
   };
 
   const refreshRatings = useCallback(async () => {
@@ -2576,8 +2600,8 @@ export default function AdminOrdersPage() {
       <Head>
         <title>{t("admin.title")}</title>
       </Head>
-      <div className="min-h-screen bg-black text-gray-100" dir="rtl">
-        <header className="border-b border-slate-800 bg-slate-950/80 px-4 py-4">
+      <div className="min-h-screen bg-bh-bg text-bh-text" dir="rtl">
+        <header className="border-b border-bh-border bg-bh-input px-4 py-4">
           <div className="mx-auto flex max-w-3xl flex-wrap items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <h1 className="text-lg font-bold text-primary">{t("admin.title")}</h1>
@@ -2586,10 +2610,10 @@ export default function AdminOrdersPage() {
                   {t("admin.employeeBadge")}
                 </p>
               ) : null}
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-bh-faint">
                 {isEmployee ? t("admin.employeeHint") : t("admin.hint")}
               </p>
-              <p className="mt-2 max-w-xl text-[11px] leading-relaxed text-gray-500">
+              <p className="mt-2 max-w-xl text-[11px] leading-relaxed text-bh-faint">
                 {t("admin.secretStorageHint")}
               </p>
             </div>
@@ -2618,6 +2642,7 @@ export default function AdminOrdersPage() {
                 {t("admin.backHome")}
               </Link>
               <LanguageSwitcher />
+              <ThemeSwitcher compact />
             </div>
           </div>
         </header>
@@ -2628,7 +2653,7 @@ export default function AdminOrdersPage() {
             className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end"
           >
             <div className="flex-1">
-              <label className="mb-1 block text-xs text-gray-400">
+              <label className="mb-1 block text-xs text-bh-faint">
                 {t("admin.secretLabel")}
               </label>
               <input
@@ -2636,7 +2661,7 @@ export default function AdminOrdersPage() {
                 autoComplete="current-password"
                 value={secret}
                 onChange={(e) => setSecret(e.target.value)}
-                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-primary"
+                className="w-full rounded-lg border border-bh-border-strong bg-bh-card px-3 py-2 text-sm outline-none focus:border-primary"
                 placeholder={t("admin.secretPh")}
               />
             </div>
@@ -2657,7 +2682,7 @@ export default function AdminOrdersPage() {
 
           {loaded ? (
             <>
-              <p className="mb-3 text-[11px] leading-snug text-gray-500">
+              <p className="mb-3 text-[11px] leading-snug text-bh-faint">
                 {isEmployee
                   ? t("admin.employeeAutoRefreshHint")
                   : t("admin.newOrderAutoRefreshHint")}
@@ -2763,7 +2788,7 @@ export default function AdminOrdersPage() {
                         type="button"
                         disabled={adminPushTestBusy || !secret.trim()}
                         onClick={() => void runAdminPushTest()}
-                        className="mt-2 rounded-lg border border-slate-600/70 bg-slate-900/50 px-3 py-1.5 text-[11px] font-semibold text-gray-100 hover:bg-slate-800/60 disabled:opacity-50"
+                        className="mt-2 rounded-lg border border-bh-border-strong/70 bg-bh-card px-3 py-1.5 text-[11px] font-semibold text-bh-text hover:bg-bh-elevated disabled:opacity-50"
                       >
                         {adminPushTestBusy
                           ? t("admin.pushTestWorking")
@@ -2771,9 +2796,9 @@ export default function AdminOrdersPage() {
                       </button>
                     </div>
                   ) : Notification.permission === "denied" ? (
-                    <div className="mb-4 space-y-2 text-[11px] leading-snug text-gray-500">
+                    <div className="mb-4 space-y-2 text-[11px] leading-snug text-bh-faint">
                       <p>{t("admin.newOrderNotifyDenied")}</p>
-                      <p className="text-gray-400">{t("admin.newOrderNotifyDeniedHelp")}</p>
+                      <p className="text-bh-faint">{t("admin.newOrderNotifyDeniedHelp")}</p>
                     </div>
                   ) : null}
                   {adminPushMsg ? (
@@ -2785,7 +2810,7 @@ export default function AdminOrdersPage() {
               ) : null}
               {adminPushServerStatus ? (
                 <div className="mb-4 space-y-2">
-                  <p className="text-[11px] leading-snug text-gray-500">
+                  <p className="text-[11px] leading-snug text-bh-faint">
                     {t("admin.pushStatusLine")
                       .replace(
                         "{vapid}",
@@ -2874,7 +2899,7 @@ export default function AdminOrdersPage() {
                 type="button"
                 onClick={() => setCatalogOpen((v) => !v)}
                 aria-expanded={catalogOpen}
-                className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-right text-sm font-bold text-gray-100 transition-colors hover:border-primary/50 hover:bg-slate-800/60"
+                className="flex w-full items-center justify-between gap-3 rounded-xl border border-bh-border-strong bg-bh-card px-4 py-3 text-right text-sm font-bold text-bh-text transition-colors hover:border-primary/50 hover:bg-bh-elevated"
               >
                 <span className="min-w-0 flex-1 leading-snug">
                   {t("admin.catalogTitle")}
@@ -2887,11 +2912,11 @@ export default function AdminOrdersPage() {
                 </span>
               </button>
               {catalogOpen ? (
-                <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
-                  <p className="mb-4 text-[11px] text-gray-500">
+                <section className="rounded-2xl border border-bh-border bg-bh-card p-4">
+                  <p className="mb-4 text-[11px] text-bh-faint">
                     {t("admin.catalogHint")}
                   </p>
-                  <p className="mb-2 text-[11px] text-gray-500">
+                  <p className="mb-2 text-[11px] text-bh-faint">
                     {t("admin.catalogExportHint")}
                   </p>
                   <div className="mb-4 flex flex-wrap gap-2">
@@ -2954,12 +2979,12 @@ export default function AdminOrdersPage() {
                                   type="button"
                                   disabled={catalogSaving || !secret.trim()}
                                   onClick={() => openToppingAdd()}
-                                  className="rounded-lg border border-violet-500/40 bg-slate-950 px-2 py-1 text-[11px] font-semibold text-violet-200 hover:bg-slate-900 disabled:opacity-50"
+                                  className="rounded-lg border border-violet-500/40 bg-bh-elevated px-2 py-1 text-[11px] font-semibold text-violet-200 hover:bg-bh-card disabled:opacity-50"
                                 >
                                   {t("admin.catalogToppingAdd")}
                                 </button>
                               </div>
-                              <p className="mb-3 text-[10px] leading-relaxed text-gray-500">
+                              <p className="mb-3 text-[10px] leading-relaxed text-bh-faint">
                                 {t("admin.catalogToppingsHint")}
                               </p>
                               {mergedBurgerToppingsAdmin.length ? (
@@ -2973,18 +2998,18 @@ export default function AdminOrdersPage() {
                                     .map((row) => (
                                       <li
                                         key={row.id}
-                                        className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800/80 bg-slate-950/40 px-2 py-2"
+                                        className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-bh-border bg-bh-input px-2 py-2"
                                       >
-                                        <span className="min-w-0 flex-1 text-xs text-gray-300">
+                                        <span className="min-w-0 flex-1 text-xs text-bh-muted">
                                           {toppingDisplayName(row, t, locale)}
-                                          <span className="mr-2 text-[10px] text-gray-500">
+                                          <span className="mr-2 text-[10px] text-bh-faint">
                                             ({row.id}) · ₪{row.price}
                                           </span>
                                           <span
                                             className={`mr-1 inline-block rounded px-1 py-0.5 text-[9px] font-semibold ${
                                               crispyToppingIdSetAdmin.has(row.id)
                                                 ? "bg-sky-950/60 text-sky-200"
-                                                : "bg-slate-800 text-gray-400"
+                                                : "bg-bh-elevated text-bh-faint"
                                             }`}
                                           >
                                             {crispyToppingIdSetAdmin.has(row.id)
@@ -2997,7 +3022,7 @@ export default function AdminOrdersPage() {
                                             type="button"
                                             disabled={catalogSaving || !secret.trim()}
                                             onClick={() => openToppingEdit(row)}
-                                            className="rounded border border-slate-600 px-2 py-0.5 text-[11px] text-gray-200 hover:border-primary disabled:opacity-50"
+                                            className="rounded border border-bh-border-strong px-2 py-0.5 text-[11px] text-bh-text hover:border-primary disabled:opacity-50"
                                           >
                                             {t("admin.catalogEdit")}
                                           </button>
@@ -3014,7 +3039,7 @@ export default function AdminOrdersPage() {
                                     ))}
                                 </ul>
                               ) : (
-                                <p className="text-[11px] text-gray-600">—</p>
+                                <p className="text-[11px] text-bh-faint">—</p>
                               )}
                             </div>
                           ) : null}
@@ -3027,7 +3052,7 @@ export default function AdminOrdersPage() {
                                 type="button"
                                 disabled={catalogSaving || !secret.trim()}
                                 onClick={() => openCatalogAdd(catId)}
-                                className="rounded-lg border border-primary/40 bg-slate-950 px-2 py-1 text-[11px] font-semibold text-primary hover:bg-slate-900 disabled:opacity-50"
+                                className="rounded-lg border border-primary/40 bg-bh-elevated px-2 py-1 text-[11px] font-semibold text-primary hover:bg-bh-card disabled:opacity-50"
                               >
                                 {t("admin.catalogAdd")}
                               </button>
@@ -3037,11 +3062,11 @@ export default function AdminOrdersPage() {
                                 {catItems.map((row) => (
                                   <li
                                     key={row.id}
-                                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800/80 bg-slate-950/40 px-2 py-2"
+                                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-bh-border bg-bh-input px-2 py-2"
                                   >
-                                    <span className="min-w-0 flex-1 text-xs text-gray-300">
+                                    <span className="min-w-0 flex-1 text-xs text-bh-muted">
                                       {menuItemName(row, t, locale)}
-                                      <span className="mr-2 text-[10px] text-gray-500">
+                                      <span className="mr-2 text-[10px] text-bh-faint">
                                         ({row.id}) · ₪{row.basePrice}
                                       </span>
                                     </span>
@@ -3050,7 +3075,7 @@ export default function AdminOrdersPage() {
                                         type="button"
                                         disabled={catalogSaving || !secret.trim()}
                                         onClick={() => openCatalogEdit(row)}
-                                        className="rounded border border-slate-600 px-2 py-0.5 text-[11px] text-gray-200 hover:border-primary disabled:opacity-50"
+                                        className="rounded border border-bh-border-strong px-2 py-0.5 text-[11px] text-bh-text hover:border-primary disabled:opacity-50"
                                       >
                                         {t("admin.catalogEdit")}
                                       </button>
@@ -3067,7 +3092,7 @@ export default function AdminOrdersPage() {
                                 ))}
                               </ul>
                             ) : (
-                              <p className="text-[11px] text-gray-600">—</p>
+                              <p className="text-[11px] text-bh-faint">—</p>
                             )}
                           </div>
                         </Fragment>
@@ -3085,11 +3110,11 @@ export default function AdminOrdersPage() {
                             return (
                               <li
                                 key={hid}
-                                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800/80 bg-slate-950/40 px-2 py-2"
+                                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-bh-border bg-bh-input px-2 py-2"
                               >
-                                <span className="text-xs text-gray-400">
+                                <span className="text-xs text-bh-faint">
                                   {t(`menu.${hid}.name`)}{" "}
-                                  <span className="text-[10px] text-gray-600">
+                                  <span className="text-[10px] text-bh-faint">
                                     ({hid})
                                   </span>
                                 </span>
@@ -3116,11 +3141,11 @@ export default function AdminOrdersPage() {
                           {hiddenBuiltinToppingIds.map((hid) => (
                             <li
                               key={`hid-top-${hid}`}
-                              className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800/80 bg-slate-950/40 px-2 py-2"
+                              className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-bh-border bg-bh-input px-2 py-2"
                             >
-                              <span className="text-xs text-gray-400">
+                              <span className="text-xs text-bh-faint">
                                 {t(`topping.${hid}`)}{" "}
-                                <span className="text-[10px] text-gray-600">
+                                <span className="text-[10px] text-bh-faint">
                                   ({hid})
                                 </span>
                               </span>
@@ -3147,7 +3172,7 @@ export default function AdminOrdersPage() {
                 type="button"
                 onClick={() => setInventoryOpen((v) => !v)}
                 aria-expanded={inventoryOpen}
-                className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-right text-sm font-bold text-gray-100 transition-colors hover:border-primary/50 hover:bg-slate-800/60"
+                className="flex w-full items-center justify-between gap-3 rounded-xl border border-bh-border-strong bg-bh-card px-4 py-3 text-right text-sm font-bold text-bh-text transition-colors hover:border-primary/50 hover:bg-bh-elevated"
               >
                 <span className="min-w-0 flex-1 leading-snug">
                   {t("admin.inventoryTitle")}
@@ -3160,8 +3185,8 @@ export default function AdminOrdersPage() {
                 </span>
               </button>
               {inventoryOpen ? (
-                <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
-                  <p className="mb-4 text-[11px] text-gray-500">
+                <section className="rounded-2xl border border-bh-border bg-bh-card p-4">
+                  <p className="mb-4 text-[11px] text-bh-faint">
                     {t("admin.inventoryHint")}
                   </p>
                   {invSaving ? (
@@ -3174,14 +3199,14 @@ export default function AdminOrdersPage() {
                       <h3 className="mb-1 text-xs font-semibold text-amber-200">
                         {t("admin.inventoryPattySectionTitle")}
                       </h3>
-                      <p className="mb-3 text-[10px] leading-relaxed text-gray-500">
+                      <p className="mb-3 text-[10px] leading-relaxed text-bh-faint">
                         {t("admin.inventoryPattyHint")}
                       </p>
                       <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                         {PATTY_GRAMS_ORDER.map((g) => (
                           <label
                             key={g}
-                            className="flex flex-col gap-0.5 text-[11px] text-gray-400"
+                            className="flex flex-col gap-0.5 text-[11px] text-bh-faint"
                           >
                             <span>
                               {t("admin.inventoryPattyGramLabel").replace(
@@ -3201,7 +3226,7 @@ export default function AdminOrdersPage() {
                                   [g]: e.target.value,
                                 }))
                               }
-                              className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-gray-100"
+                              className="rounded-lg border border-bh-border-strong bg-bh-elevated px-2 py-1 text-bh-text"
                             />
                           </label>
                         ))}
@@ -3219,7 +3244,7 @@ export default function AdminOrdersPage() {
                           type="button"
                           disabled={invSaving || pattyStock == null}
                           onClick={() => disablePattyTracking()}
-                          className="rounded-lg border border-slate-600 px-3 py-1.5 text-[11px] text-gray-400 hover:bg-slate-900 disabled:opacity-40"
+                          className="rounded-lg border border-bh-border-strong px-3 py-1.5 text-[11px] text-bh-faint hover:bg-bh-card disabled:opacity-40"
                         >
                           {t("admin.inventoryPattyDisableTracking")}
                         </button>
@@ -3245,7 +3270,7 @@ export default function AdminOrdersPage() {
                               return (
                                 <li key={row.id}>
                                   <label
-                                    className={`flex cursor-pointer items-start gap-2 text-xs text-gray-300 ${
+                                    className={`flex cursor-pointer items-start gap-2 text-xs text-bh-muted ${
                                       autoOnly ? "opacity-90" : ""
                                     }`}
                                   >
@@ -3259,7 +3284,7 @@ export default function AdminOrdersPage() {
                                           e.target.checked
                                         )
                                       }
-                                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-600 bg-slate-900 text-primary focus:ring-primary disabled:cursor-not-allowed"
+                                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-bh-border-strong bg-bh-card text-primary focus:ring-primary disabled:cursor-not-allowed"
                                     />
                                     <span className="flex min-w-0 flex-col gap-0.5">
                                       <span>
@@ -3289,7 +3314,7 @@ export default function AdminOrdersPage() {
                             !inventoryEffectiveUnavailableSet.has(row.id);
                           return (
                             <li key={row.id}>
-                              <label className="flex cursor-pointer items-start gap-2 text-xs text-gray-300">
+                              <label className="flex cursor-pointer items-start gap-2 text-xs text-bh-muted">
                                 <input
                                   type="checkbox"
                                   checked={available}
@@ -3300,7 +3325,7 @@ export default function AdminOrdersPage() {
                                       e.target.checked
                                     )
                                   }
-                                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-600 bg-slate-900 text-primary focus:ring-primary"
+                                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-bh-border-strong bg-bh-card text-primary focus:ring-primary"
                                 />
                                 <span>{toppingDisplayName(row, t, locale)}</span>
                               </label>
@@ -3320,7 +3345,7 @@ export default function AdminOrdersPage() {
                               !inventoryEffectiveUnavailableSet.has(row.id);
                             return (
                               <li key={row.id}>
-                                <label className="flex cursor-pointer items-start gap-2 text-xs text-gray-300">
+                                <label className="flex cursor-pointer items-start gap-2 text-xs text-bh-muted">
                                   <input
                                     type="checkbox"
                                     checked={available}
@@ -3331,7 +3356,7 @@ export default function AdminOrdersPage() {
                                         e.target.checked
                                       )
                                     }
-                                    className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-600 bg-slate-900 text-primary focus:ring-primary"
+                                    className="mt-0.5 h-4 w-4 shrink-0 rounded border-bh-border-strong bg-bh-card text-primary focus:ring-primary"
                                   />
                                   <span>{t(`salad.${row.id}`)}</span>
                                 </label>
@@ -3351,7 +3376,7 @@ export default function AdminOrdersPage() {
                 type="button"
                 onClick={togglePromoPanel}
                 aria-expanded={promoOpen}
-                className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-right text-sm font-bold text-gray-100 transition-colors hover:border-primary/50 hover:bg-slate-800/60"
+                className="flex w-full items-center justify-between gap-3 rounded-xl border border-bh-border-strong bg-bh-card px-4 py-3 text-right text-sm font-bold text-bh-text transition-colors hover:border-primary/50 hover:bg-bh-elevated"
               >
                 <span className="min-w-0 flex-1 leading-snug">
                   {t("admin.promoTitle")}
@@ -3364,8 +3389,8 @@ export default function AdminOrdersPage() {
                 </span>
               </button>
               {promoOpen ? (
-                <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
-                  <p className="mb-4 text-[11px] text-gray-500">
+                <section className="rounded-2xl border border-bh-border bg-bh-card p-4">
+                  <p className="mb-4 text-[11px] text-bh-faint">
                     {t("admin.promoHint")}
                   </p>
 
@@ -3375,7 +3400,7 @@ export default function AdminOrdersPage() {
                     </h4>
                     {promo ? (
                       <>
-                        <p className="mb-3 text-xs font-medium text-gray-300">
+                        <p className="mb-3 text-xs font-medium text-bh-muted">
                           {promo.hasFile
                             ? promo.active
                               ? t("admin.promoStatusOn")
@@ -3393,7 +3418,7 @@ export default function AdminOrdersPage() {
                             type="file"
                             accept="video/*"
                             disabled={promoUploading}
-                            className="max-w-full text-xs text-gray-400 file:mr-2 file:rounded-lg file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-gray-200"
+                            className="max-w-full text-xs text-bh-faint file:mr-2 file:rounded-lg file:border-0 file:bg-bh-elevated file:px-3 file:py-2 file:text-bh-text"
                           />
                           <button
                             type="button"
@@ -3407,14 +3432,14 @@ export default function AdminOrdersPage() {
                           </button>
                         </div>
                         {promo.hasFile ? (
-                          <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 p-3">
+                          <div className="rounded-xl border border-bh-border-strong bg-bh-input p-3">
                             <h4 className="mb-2 text-xs font-bold text-primary">
                               {t("admin.promoHomeDisplaySection")}
                             </h4>
-                            <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
+                            <p className="mb-3 text-[11px] leading-relaxed text-bh-faint">
                               {t("admin.promoShowOnHomeHint")}
                             </p>
-                            <label className="flex cursor-pointer items-start gap-2 text-xs text-gray-200">
+                            <label className="flex cursor-pointer items-start gap-2 text-xs text-bh-text">
                               <input
                                 type="checkbox"
                                 checked={Boolean(promo.enabled)}
@@ -3422,7 +3447,7 @@ export default function AdminOrdersPage() {
                                 onChange={(e) =>
                                   savePromoEnabled(e.target.checked)
                                 }
-                                className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-600 bg-slate-900 text-primary focus:ring-primary"
+                                className="mt-0.5 h-4 w-4 shrink-0 rounded border-bh-border-strong bg-bh-card text-primary focus:ring-primary"
                               />
                               <span className="font-medium leading-snug">
                                 {t("admin.promoShowOnHomeCheckbox")}
@@ -3437,7 +3462,7 @@ export default function AdminOrdersPage() {
                         ) : null}
                       </>
                     ) : (
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-bh-faint">
                         {t("admin.promoLoadEmpty")}
                       </p>
                     )}
@@ -3449,7 +3474,7 @@ export default function AdminOrdersPage() {
                 type="button"
                 onClick={toggleSliderPanel}
                 aria-expanded={sliderPanelOpen}
-                className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-right text-sm font-bold text-gray-100 transition-colors hover:border-primary/50 hover:bg-slate-800/60"
+                className="flex w-full items-center justify-between gap-3 rounded-xl border border-bh-border-strong bg-bh-card px-4 py-3 text-right text-sm font-bold text-bh-text transition-colors hover:border-primary/50 hover:bg-bh-elevated"
               >
                 <span className="min-w-0 flex-1 leading-snug">
                   {t("admin.sliderSection")}
@@ -3462,8 +3487,8 @@ export default function AdminOrdersPage() {
                 </span>
               </button>
               {sliderPanelOpen ? (
-                <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
-                  <label className="mb-3 flex cursor-pointer items-start gap-2.5 rounded-lg border border-slate-700/80 bg-slate-950/50 p-3">
+                <section className="rounded-2xl border border-bh-border bg-bh-card p-4">
+                  <label className="mb-3 flex cursor-pointer items-start gap-2.5 rounded-lg border border-bh-border-strong bg-bh-input p-3">
                     <input
                       type="checkbox"
                       checked={sliderDisplayEnabled}
@@ -3471,18 +3496,18 @@ export default function AdminOrdersPage() {
                       onChange={(e) =>
                         void patchSliderDisplay(e.target.checked)
                       }
-                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-500 text-primary focus:ring-2 focus:ring-primary/50"
+                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-bh-border-strong text-primary focus:ring-2 focus:ring-primary/50"
                     />
                     <span className="min-w-0 flex flex-col gap-1 text-right">
-                      <span className="text-xs font-semibold text-gray-200">
+                      <span className="text-xs font-semibold text-bh-text">
                         {t("admin.sliderShowOnHome")}
                       </span>
-                      <span className="text-[11px] leading-relaxed text-gray-500">
+                      <span className="text-[11px] leading-relaxed text-bh-faint">
                         {t("admin.sliderShowOnHomeHintFs")}
                       </span>
                     </span>
                   </label>
-                  <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
+                  <p className="mb-3 text-[11px] leading-relaxed text-bh-faint">
                     {t("admin.sliderHintFs")}
                   </p>
                   <p className="mb-3 text-[11px] leading-relaxed text-amber-200/80">
@@ -3507,7 +3532,7 @@ export default function AdminOrdersPage() {
                       disabled={
                         sliderUploading || !resolveAdminSecret(secret)
                       }
-                      className="max-w-full text-xs text-gray-400 file:mr-2 file:rounded-lg file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-gray-200"
+                      className="max-w-full text-xs text-bh-faint file:mr-2 file:rounded-lg file:border-0 file:bg-bh-elevated file:px-3 file:py-2 file:text-bh-text"
                       onChange={(ev) => {
                         const f = ev.target.files?.[0];
                         if (!f) return;
@@ -3546,7 +3571,7 @@ export default function AdminOrdersPage() {
                       {sliderImages.map((img) => (
                         <li
                           key={img.id}
-                          className="flex items-center gap-2 rounded-lg border border-slate-700/80 bg-slate-950/40 p-2"
+                          className="flex items-center gap-2 rounded-lg border border-bh-border-strong bg-bh-input p-2"
                         >
                           <img
                             src={img.url}
@@ -3554,7 +3579,7 @@ export default function AdminOrdersPage() {
                             className="h-16 w-24 shrink-0 rounded object-cover"
                           />
                           <div className="flex min-w-0 flex-1 flex-col items-stretch gap-1">
-                            <span className="text-[11px] font-medium text-gray-400">
+                            <span className="text-[11px] font-medium text-bh-faint">
                               {img.id?.startsWith("kv-")
                                 ? t("admin.sliderItemKindUpload")
                                 : t("admin.sliderItemKindFs")}
@@ -3579,7 +3604,7 @@ export default function AdminOrdersPage() {
                       ))}
                     </ul>
                   ) : (
-                    <p className="mb-2 text-xs text-gray-500">
+                    <p className="mb-2 text-xs text-bh-faint">
                       {t("admin.sliderEmptyFs")}
                     </p>
                   )}
@@ -3594,7 +3619,7 @@ export default function AdminOrdersPage() {
                     type="button"
                     onClick={() => setHoursPanelOpen((v) => !v)}
                     aria-expanded={hoursPanelOpen}
-                    className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-right text-sm font-bold text-gray-100 transition-colors hover:border-primary/50 hover:bg-slate-800/60"
+                    className="flex w-full items-center justify-between gap-3 rounded-xl border border-bh-border-strong bg-bh-card px-4 py-3 text-right text-sm font-bold text-bh-text transition-colors hover:border-primary/50 hover:bg-bh-elevated"
                   >
                     <span className="min-w-0 flex-1 leading-snug">
                       {t("admin.hoursTitle")}
@@ -3607,8 +3632,8 @@ export default function AdminOrdersPage() {
                     </span>
                   </button>
                   {hoursPanelOpen ? (
-                    <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
-                      <p className="mb-4 text-[11px] text-gray-500">
+                    <section className="rounded-2xl border border-bh-border bg-bh-card p-4">
+                      <p className="mb-4 text-[11px] text-bh-faint">
                         {t("admin.hoursHint")}
                       </p>
                       {hoursMsg ? (
@@ -3616,17 +3641,17 @@ export default function AdminOrdersPage() {
                           {hoursMsg}
                         </p>
                       ) : null}
-                      <div className="mb-4 space-y-0 divide-y divide-slate-800 overflow-hidden rounded-xl border border-slate-800">
+                      <div className="mb-4 space-y-0 divide-y divide-slate-800 overflow-hidden rounded-xl border border-bh-border">
                         {hoursDraft.map((d) => (
                           <div
                             key={d.weekday}
                             dir="rtl"
-                            className="flex flex-wrap items-center gap-3 bg-slate-950/30 px-3 py-2.5"
+                            className="flex flex-wrap items-center gap-3 bg-bh-elevated/30 px-3 py-2.5"
                           >
                             <span className="min-w-[5.5rem] text-xs font-semibold text-primary">
                               {t(`weekday.${d.weekday}`)}
                             </span>
-                            <label className="flex cursor-pointer items-center gap-2 text-xs text-gray-300">
+                            <label className="flex cursor-pointer items-center gap-2 text-xs text-bh-muted">
                               <input
                                 type="checkbox"
                                 checked={d.enabled}
@@ -3639,7 +3664,7 @@ export default function AdminOrdersPage() {
                                       : {}),
                                   })
                                 }
-                                className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-primary focus:ring-primary"
+                                className="h-4 w-4 rounded border-bh-border-strong bg-bh-card text-primary focus:ring-primary"
                               />
                               {t("admin.hoursOpen")}
                             </label>
@@ -3657,11 +3682,11 @@ export default function AdminOrdersPage() {
                                     closedReason: e.target.value.slice(0, 280),
                                   })
                                 }
-                                className="min-w-[10rem] max-w-full flex-1 rounded-md border border-slate-600 bg-slate-900 px-2 py-1.5 text-xs text-gray-100 placeholder:text-gray-600 focus:border-primary/60 focus:outline-none sm:max-w-md"
+                                className="min-w-[10rem] max-w-full flex-1 rounded-md border border-bh-border-strong bg-bh-card px-2 py-1.5 text-xs text-bh-text placeholder:text-bh-faint focus:border-primary/60 focus:outline-none sm:max-w-md"
                               />
                             ) : null}
                             <div className="flex flex-wrap items-center gap-2 text-xs">
-                              <label className="flex items-center gap-1.5 text-gray-400">
+                              <label className="flex items-center gap-1.5 text-bh-faint">
                                 <span>{t("admin.hoursOpening")}</span>
                                 <input
                                   type="time"
@@ -3672,10 +3697,10 @@ export default function AdminOrdersPage() {
                                       open: e.target.value,
                                     })
                                   }
-                                  className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-gray-100 disabled:opacity-40"
+                                  className="rounded-md border border-bh-border-strong bg-bh-card px-2 py-1 text-bh-text disabled:opacity-40"
                                 />
                               </label>
-                              <label className="flex items-center gap-1.5 text-gray-400">
+                              <label className="flex items-center gap-1.5 text-bh-faint">
                                 <span>{t("admin.hoursClosing")}</span>
                                 <input
                                   type="time"
@@ -3686,7 +3711,7 @@ export default function AdminOrdersPage() {
                                       close: e.target.value,
                                     })
                                   }
-                                  className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-gray-100 disabled:opacity-40"
+                                  className="rounded-md border border-bh-border-strong bg-bh-card px-2 py-1 text-bh-text disabled:opacity-40"
                                 />
                               </label>
                             </div>
@@ -3714,7 +3739,7 @@ export default function AdminOrdersPage() {
                     type="button"
                     onClick={() => setDiscountPanelOpen((v) => !v)}
                     aria-expanded={discountPanelOpen}
-                    className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-right text-sm font-bold text-gray-100 transition-colors hover:border-primary/50 hover:bg-slate-800/60"
+                    className="flex w-full items-center justify-between gap-3 rounded-xl border border-bh-border-strong bg-bh-card px-4 py-3 text-right text-sm font-bold text-bh-text transition-colors hover:border-primary/50 hover:bg-bh-elevated"
                   >
                     <span className="min-w-0 flex-1 leading-snug">
                       {t("admin.discountTitle")}
@@ -3727,8 +3752,8 @@ export default function AdminOrdersPage() {
                     </span>
                   </button>
                   {discountPanelOpen ? (
-                    <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
-                      <p className="mb-4 text-[11px] leading-relaxed text-gray-500">
+                    <section className="rounded-2xl border border-bh-border bg-bh-card p-4">
+                      <p className="mb-4 text-[11px] leading-relaxed text-bh-faint">
                         {t("admin.discountHint")}
                       </p>
                       {discountMsg ? (
@@ -3736,8 +3761,8 @@ export default function AdminOrdersPage() {
                           {discountMsg}
                         </p>
                       ) : null}
-                      <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-950/30 p-3">
-                        <label className="flex cursor-pointer items-center gap-2 text-xs text-gray-300">
+                      <div className="space-y-3 rounded-xl border border-bh-border bg-bh-elevated/30 p-3">
+                        <label className="flex cursor-pointer items-center gap-2 text-xs text-bh-muted">
                           <input
                             type="checkbox"
                             checked={Boolean(discountDraft.enabled)}
@@ -3745,12 +3770,12 @@ export default function AdminOrdersPage() {
                             onChange={(e) =>
                               updateDiscountDraft({ enabled: e.target.checked })
                             }
-                            className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-primary focus:ring-primary"
+                            className="h-4 w-4 rounded border-bh-border-strong bg-bh-card text-primary focus:ring-primary"
                           />
                           {t("admin.discountEnabled")}
                         </label>
-                        <div className="my-2 border-t border-slate-800" />
-                        <label className="flex cursor-pointer items-center gap-2 text-xs text-gray-300">
+                        <div className="my-2 border-t border-bh-border" />
+                        <label className="flex cursor-pointer items-center gap-2 text-xs text-bh-muted">
                           <input
                             type="checkbox"
                             checked={Boolean(discountDraft.couponEnabled)}
@@ -3758,11 +3783,11 @@ export default function AdminOrdersPage() {
                             onChange={(e) =>
                               updateDiscountDraft({ couponEnabled: e.target.checked })
                             }
-                            className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-primary focus:ring-primary"
+                            className="h-4 w-4 rounded border-bh-border-strong bg-bh-card text-primary focus:ring-primary"
                           />
                           {t("admin.couponEnabled")}
                         </label>
-                        <label className="flex flex-col gap-1 text-xs text-gray-400">
+                        <label className="flex flex-col gap-1 text-xs text-bh-faint">
                           <span>{t("admin.couponPercent")}</span>
                           <input
                             type="number"
@@ -3774,10 +3799,10 @@ export default function AdminOrdersPage() {
                             onChange={(e) =>
                               updateDiscountDraft({ couponPercent: e.target.value })
                             }
-                            className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-gray-100 disabled:opacity-40"
+                            className="rounded-md border border-bh-border-strong bg-bh-card px-2 py-1 text-bh-text disabled:opacity-40"
                           />
                         </label>
-                        <label className="flex flex-col gap-1 text-xs text-gray-400">
+                        <label className="flex flex-col gap-1 text-xs text-bh-faint">
                           <span>{t("admin.discountPercent")}</span>
                           <input
                             type="number"
@@ -3789,10 +3814,10 @@ export default function AdminOrdersPage() {
                             onChange={(e) =>
                               updateDiscountDraft({ percent: e.target.value })
                             }
-                            className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-gray-100 disabled:opacity-40"
+                            className="rounded-md border border-bh-border-strong bg-bh-card px-2 py-1 text-bh-text disabled:opacity-40"
                           />
                         </label>
-                        <label className="flex flex-col gap-1 text-xs text-gray-400">
+                        <label className="flex flex-col gap-1 text-xs text-bh-faint">
                           <span>{t("admin.discountMinOrder")}</span>
                           <input
                             type="number"
@@ -3805,10 +3830,10 @@ export default function AdminOrdersPage() {
                                 minOrderTotal: e.target.value,
                               })
                             }
-                            className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-gray-100 disabled:opacity-40"
+                            className="rounded-md border border-bh-border-strong bg-bh-card px-2 py-1 text-bh-text disabled:opacity-40"
                           />
                         </label>
-                        <label className="flex flex-col gap-1 text-xs text-gray-400">
+                        <label className="flex flex-col gap-1 text-xs text-bh-faint">
                           <span>{t("admin.discountReason")}</span>
                           <input
                             type="text"
@@ -3819,7 +3844,7 @@ export default function AdminOrdersPage() {
                               updateDiscountDraft({ reason: e.target.value })
                             }
                             placeholder={t("admin.discountReasonPh")}
-                            className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-gray-100 disabled:opacity-40"
+                            className="rounded-md border border-bh-border-strong bg-bh-card px-2 py-1 text-bh-text disabled:opacity-40"
                           />
                         </label>
                       </div>
@@ -3844,7 +3869,7 @@ export default function AdminOrdersPage() {
                   type="button"
                   onClick={() => setCouponPanelOpen((v) => !v)}
                   aria-expanded={couponPanelOpen}
-                  className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-right text-sm font-bold text-gray-100 transition-colors hover:border-primary/50 hover:bg-slate-800/60"
+                  className="flex w-full items-center justify-between gap-3 rounded-xl border border-bh-border-strong bg-bh-card px-4 py-3 text-right text-sm font-bold text-bh-text transition-colors hover:border-primary/50 hover:bg-bh-elevated"
                 >
                   <span className="min-w-0 flex-1 leading-snug">
                     {t("admin.couponsTitle")}
@@ -3857,14 +3882,14 @@ export default function AdminOrdersPage() {
                   </span>
                 </button>
                 {couponPanelOpen ? (
-                  <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
-                    <p className="mb-4 text-[11px] leading-relaxed text-gray-500">
+                  <section className="rounded-2xl border border-bh-border bg-bh-card p-4">
+                    <p className="mb-4 text-[11px] leading-relaxed text-bh-faint">
                       {t("admin.couponsHint")}
                     </p>
                     {!couponsLoading && coupons.length > 0 ? (
-                      <div className="mb-4 flex flex-col gap-1.5 rounded-xl border border-slate-800/90 bg-slate-950/50 px-3 py-2.5 text-xs text-gray-300">
+                      <div className="mb-4 flex flex-col gap-1.5 rounded-xl border border-bh-border/90 bg-bh-input px-3 py-2.5 text-xs text-bh-muted">
                         <p className="flex flex-wrap items-baseline justify-between gap-2">
-                          <span className="text-gray-500">
+                          <span className="text-bh-faint">
                             {t("admin.couponTotalsUnused")}
                           </span>
                           <span className="font-bold text-cyan-200">
@@ -3872,7 +3897,7 @@ export default function AdminOrdersPage() {
                           </span>
                         </p>
                         <p className="flex flex-wrap items-baseline justify-between gap-2">
-                          <span className="text-gray-500">
+                          <span className="text-bh-faint">
                             {t("admin.couponTotalsUsed")}
                           </span>
                           <span className="font-bold text-amber-200">
@@ -3887,17 +3912,17 @@ export default function AdminOrdersPage() {
                       </p>
                     ) : null}
                     {couponsLoading ? (
-                      <p className="text-xs text-gray-400">{t("admin.loading")}</p>
+                      <p className="text-xs text-bh-faint">{t("admin.loading")}</p>
                     ) : coupons.length === 0 ? (
-                      <p className="text-xs text-gray-500">{t("admin.couponsEmpty")}</p>
+                      <p className="text-xs text-bh-faint">{t("admin.couponsEmpty")}</p>
                     ) : (
                       <>
                         <div
-                          className="mb-3 flex flex-wrap items-center gap-2 border-b border-slate-800/80 pb-3 text-[10px]"
+                          className="mb-3 flex flex-wrap items-center gap-2 border-b border-bh-border pb-3 text-[10px]"
                           role="group"
                           aria-label={t("admin.couponFilterLabel")}
                         >
-                          <span className="shrink-0 text-gray-500">
+                          <span className="shrink-0 text-bh-faint">
                             {t("admin.couponFilterLabel")}
                           </span>
                           <button
@@ -3960,7 +3985,7 @@ export default function AdminOrdersPage() {
                                 );
                           if (filteredCoupons.length === 0) {
                             return (
-                              <p className="text-xs text-gray-500">
+                              <p className="text-xs text-bh-faint">
                                 {t("admin.couponFilterEmpty")}
                               </p>
                             );
@@ -3994,7 +4019,7 @@ export default function AdminOrdersPage() {
                           return (
                             <article
                               key={c.code}
-                              className="rounded-xl border border-slate-800 bg-slate-950/50 p-3"
+                              className="rounded-xl border border-bh-border bg-bh-input p-3"
                             >
                               <div className="flex items-start justify-between gap-2">
                                 <div className="min-w-0 flex-1 space-y-1 text-xs">
@@ -4008,29 +4033,29 @@ export default function AdminOrdersPage() {
                                       {badge.label}
                                     </span>
                                   </div>
-                                  <p className="text-gray-300">
+                                  <p className="text-bh-muted">
                                     {t("admin.couponValue")}: ₪
                                     {Number(c.value || 0).toFixed(2)}
                                   </p>
-                                  <p className="text-[11px] text-gray-500">
+                                  <p className="text-[11px] text-bh-faint">
                                     {t("admin.couponCreatedAt")}:{" "}
                                     {formatCouponDateTime(c.createdAt, locale)}
                                   </p>
-                                  <p className="text-[11px] text-gray-500">
+                                  <p className="text-[11px] text-bh-faint">
                                     {t("admin.couponExpiresAt")}:{" "}
                                     {formatCouponDateTime(c.expiresAt, locale)}
                                   </p>
                                   {couponRewardSourceOrderDisplay(c) ? (
                                     <p className="text-[11px] text-slate-400">
                                       {t("admin.couponRewardFromOrder")}{" "}
-                                      <span className="font-semibold text-gray-300">
+                                      <span className="font-semibold text-bh-muted">
                                         #
                                         {couponRewardSourceOrderDisplay(c)}
                                       </span>
                                     </p>
                                   ) : null}
                                   {used ? (
-                                    <div className="space-y-1 border-t border-slate-800/80 pt-1.5 text-[11px] text-amber-200/90">
+                                    <div className="space-y-1 border-t border-bh-border pt-1.5 text-[11px] text-amber-200/90">
                                       <p className="font-semibold text-amber-100/95">
                                         {t("admin.couponRedeemedTitle")}
                                       </p>
@@ -4043,7 +4068,7 @@ export default function AdminOrdersPage() {
                                           )}
                                         </p>
                                       ) : (
-                                        <p className="text-gray-500">
+                                        <p className="text-bh-faint">
                                           {t("admin.couponUsedAtUnknown")}
                                         </p>
                                       )}
@@ -4089,7 +4114,7 @@ export default function AdminOrdersPage() {
                 type="button"
                 onClick={() => setSiteVisitsPanelOpen((v) => !v)}
                 aria-expanded={siteVisitsPanelOpen}
-                className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-right text-sm font-bold text-gray-100 transition-colors hover:border-primary/50 hover:bg-slate-800/60"
+                className="flex w-full items-center justify-between gap-3 rounded-xl border border-bh-border-strong bg-bh-card px-4 py-3 text-right text-sm font-bold text-bh-text transition-colors hover:border-primary/50 hover:bg-bh-elevated"
               >
                 <span className="min-w-0 flex-1 leading-snug">
                   {t("admin.siteVisitsTitle")}
@@ -4103,26 +4128,26 @@ export default function AdminOrdersPage() {
               </button>
               {siteVisitsPanelOpen ? (
                 <section
-                  className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4"
+                  className="rounded-2xl border border-bh-border bg-bh-card p-4"
                   aria-label={t("admin.siteVisitsTitle")}
                 >
                   {typeof pwaInstallTotal === "number" ? (
-                    <div className="mb-4 rounded-xl border border-primary/25 bg-slate-950/60 px-4 py-3">
+                    <div className="mb-4 rounded-xl border border-primary/25 bg-bh-input px-4 py-3">
                       <p className="text-xs font-semibold text-primary">
                         {t("admin.pwaInstallsTotalTitle")}
                       </p>
                       <p
-                        className="mt-1 text-3xl font-bold tabular-nums text-gray-100"
+                        className="mt-1 text-3xl font-bold tabular-nums text-bh-text"
                         aria-live="polite"
                       >
                         {pwaInstallTotal}
                       </p>
-                      <p className="mt-2 text-[11px] leading-relaxed text-gray-500">
+                      <p className="mt-2 text-[11px] leading-relaxed text-bh-faint">
                         {t("admin.pwaInstallsTotalHint")}
                       </p>
                     </div>
                   ) : null}
-                  <p className="mb-4 text-[11px] leading-relaxed text-gray-500">
+                  <p className="mb-4 text-[11px] leading-relaxed text-bh-faint">
                     {t("admin.siteVisitsHint")}
                   </p>
                   {siteVisitsErr === "redis" ? (
@@ -4130,24 +4155,24 @@ export default function AdminOrdersPage() {
                       {t("admin.siteVisitsRedisHint")}
                     </p>
                   ) : siteVisitsErr === "load" ? (
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-bh-faint">
                       {t("admin.siteVisitsLoadErr")}
                     </p>
                   ) : (
-                    <div className="overflow-x-auto rounded-xl border border-slate-800/80">
+                    <div className="overflow-x-auto rounded-xl border border-bh-border">
                       <table className="w-full min-w-[280px] border-collapse text-left text-xs">
                         <thead>
-                          <tr className="border-b border-slate-800 bg-slate-950/60">
-                            <th className="px-3 py-2 font-semibold text-gray-300">
+                          <tr className="border-b border-bh-border bg-bh-input">
+                            <th className="px-3 py-2 font-semibold text-bh-muted">
                               {t("admin.siteVisitsColDay")}
                             </th>
-                            <th className="px-3 py-2 text-center font-semibold text-gray-300">
+                            <th className="px-3 py-2 text-center font-semibold text-bh-muted">
                               {t("admin.siteVisitsColTotal")}
                             </th>
-                            <th className="px-3 py-2 text-center font-semibold text-gray-300">
+                            <th className="px-3 py-2 text-center font-semibold text-bh-muted">
                               {t("admin.siteVisitsColWeb")}
                             </th>
-                            <th className="px-3 py-2 text-center font-semibold text-gray-300">
+                            <th className="px-3 py-2 text-center font-semibold text-bh-muted">
                               {t("admin.siteVisitsColPwa")}
                             </th>
                           </tr>
@@ -4156,18 +4181,18 @@ export default function AdminOrdersPage() {
                           {siteVisitsDays.map((row) => (
                             <tr
                               key={row.date}
-                              className="border-b border-slate-800/60 last:border-0"
+                              className="border-b border-bh-border last:border-0"
                             >
-                              <td className="px-3 py-2 text-gray-200">
+                              <td className="px-3 py-2 text-bh-text">
                                 {formatDayHeading(row.date, locale)}
                               </td>
                               <td className="px-3 py-2 text-center font-semibold tabular-nums text-primary">
                                 {row.total}
                               </td>
-                              <td className="px-3 py-2 text-center tabular-nums text-gray-300">
+                              <td className="px-3 py-2 text-center tabular-nums text-bh-muted">
                                 {row.web}
                               </td>
-                              <td className="px-3 py-2 text-center tabular-nums text-gray-300">
+                              <td className="px-3 py-2 text-center tabular-nums text-bh-muted">
                                 {row.pwa}
                               </td>
                             </tr>
@@ -4181,9 +4206,83 @@ export default function AdminOrdersPage() {
 
               <button
                 type="button"
+                onClick={() => setThemePanelOpen((v) => !v)}
+                aria-expanded={themePanelOpen}
+                className="flex w-full items-center justify-between gap-3 rounded-xl border border-bh-border-strong bg-bh-card px-4 py-3 text-right text-sm font-bold text-bh-text transition-colors hover:border-primary/50 hover:bg-bh-elevated"
+              >
+                <span className="min-w-0 flex-1 leading-snug">
+                  {t("admin.themeTitle")}
+                </span>
+                <span
+                  className="shrink-0 text-lg leading-none text-primary"
+                  aria-hidden
+                >
+                  {themePanelOpen ? "▾" : "▶"}
+                </span>
+              </button>
+              {themePanelOpen ? (
+                <section className="rounded-2xl border border-bh-border bg-bh-card p-4">
+                  <p className="mb-3 text-[11px] leading-relaxed text-bh-faint">
+                    {t("admin.themeHint")}
+                  </p>
+                  <p className="mb-4 text-xs font-semibold text-primary">
+                    {t("admin.themeCurrentSite").replace(
+                      "{theme}",
+                      siteThemeId === "concrete"
+                        ? t("admin.themeConcrete")
+                        : t("admin.themeDark")
+                    )}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      disabled={themeBusy || !secret.trim()}
+                      onClick={() => void saveSiteThemeChoice("dark")}
+                      className={`rounded-xl border px-4 py-2.5 text-sm font-semibold disabled:opacity-50 ${
+                        siteThemeId === "dark"
+                          ? "border-primary bg-primary/15 text-primary"
+                          : "border-bh-border-strong text-bh-muted"
+                      }`}
+                    >
+                      {t("admin.themeDark")}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={themeBusy || !secret.trim()}
+                      onClick={() => void saveSiteThemeChoice("concrete")}
+                      className={`rounded-xl border px-4 py-2.5 text-sm font-semibold disabled:opacity-50 ${
+                        siteThemeId === "concrete"
+                          ? "border-primary bg-primary/15 text-primary"
+                          : "border-bh-border-strong text-bh-muted"
+                      }`}
+                    >
+                      {t("admin.themeConcrete")}
+                    </button>
+                  </div>
+                  {themeMsg ? (
+                    <p className="mt-3 text-xs font-medium text-emerald-600">
+                      {themeMsg}
+                    </p>
+                  ) : null}
+                  {themeBusy ? (
+                    <p className="mt-2 text-xs text-bh-faint">
+                      {t("admin.themeSaving")}
+                    </p>
+                  ) : null}
+                  <p className="mt-4 text-[11px] text-bh-faint">
+                    {t("theme.switch")}:{" "}
+                    {themeId === "concrete"
+                      ? t("theme.concrete")
+                      : t("theme.dark")}
+                  </p>
+                </section>
+              ) : null}
+
+              <button
+                type="button"
                 onClick={() => setRatingsPanelOpen((v) => !v)}
                 aria-expanded={ratingsPanelOpen}
-                className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-right text-sm font-bold text-gray-100 transition-colors hover:border-primary/50 hover:bg-slate-800/60"
+                className="flex w-full items-center justify-between gap-3 rounded-xl border border-bh-border-strong bg-bh-card px-4 py-3 text-right text-sm font-bold text-bh-text transition-colors hover:border-primary/50 hover:bg-bh-elevated"
               >
                 <span className="min-w-0 flex-1 leading-snug">
                   {t("admin.ratingsTitle")}
@@ -4196,10 +4295,10 @@ export default function AdminOrdersPage() {
                 </span>
               </button>
               {ratingsPanelOpen ? (
-                <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
+                <section className="rounded-2xl border border-bh-border bg-bh-card p-4">
                   <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <p className="text-[11px] leading-relaxed text-gray-500">
+                      <p className="text-[11px] leading-relaxed text-bh-faint">
                         {t("admin.ratingsHint")}
                       </p>
                       {ratingsSummary ? (
@@ -4221,7 +4320,7 @@ export default function AdminOrdersPage() {
                         type="button"
                         onClick={() => void refreshRatings()}
                         disabled={ratingsLoading}
-                        className="rounded-lg border border-slate-600 bg-slate-800/80 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:border-primary/50 hover:bg-slate-800 disabled:opacity-50"
+                        className="rounded-lg border border-bh-border-strong bg-bh-elevated px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:border-primary/50 hover:bg-bh-elevated disabled:opacity-50"
                       >
                         {ratingsLoading
                           ? t("admin.ratingsLoading")
@@ -4249,11 +4348,11 @@ export default function AdminOrdersPage() {
                     </p>
                   ) : null}
                   {ratingsLoading ? (
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-bh-faint">
                       {t("admin.ratingsLoading")}
                     </p>
                   ) : ratingsRows.length === 0 ? (
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-bh-faint">
                       {t("admin.ratingsEmpty")}
                     </p>
                   ) : (
@@ -4270,12 +4369,12 @@ export default function AdminOrdersPage() {
                         return (
                           <article
                             key={row.id}
-                            className="rounded-xl border border-slate-800 bg-slate-950/55 p-3 text-right"
+                            className="rounded-xl border border-bh-border bg-bh-input p-3 text-right"
                           >
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0 flex-1 space-y-1">
                                 <div className="flex flex-wrap items-center gap-2">
-                                  <p className="font-semibold text-gray-100">
+                                  <p className="font-semibold text-bh-text">
                                     {String(row.name || "").trim() ||
                                       t("rating.anonymousCustomer")}
                                   </p>
@@ -4285,14 +4384,14 @@ export default function AdminOrdersPage() {
                                       : t("admin.ratingsTypeGuest")}
                                   </span>
                                   {row.orderNumber ? (
-                                    <span className="text-[11px] text-gray-500">
+                                    <span className="text-[11px] text-bh-faint">
                                       #{row.orderNumber}
                                     </span>
                                   ) : null}
                                 </div>
                                 <p className="text-sm text-amber-300">
                                   {"★".repeat(Math.max(0, Number(row.stars) || 0))}
-                                  <span className="mr-1 text-xs text-gray-500">
+                                  <span className="mr-1 text-xs text-bh-faint">
                                     {t("rating.starsOfFive").replace(
                                       "{n}",
                                       String(Number(row.stars) || 0)
@@ -4300,15 +4399,15 @@ export default function AdminOrdersPage() {
                                   </span>
                                 </p>
                                 {String(row.comment || "").trim() ? (
-                                  <p className="rounded-lg border border-slate-800 bg-black/30 p-2 text-xs leading-relaxed text-gray-300">
+                                  <p className="rounded-lg border border-bh-border bg-bh-overlay-soft p-2 text-xs leading-relaxed text-bh-muted">
                                     «{String(row.comment).trim()}»
                                   </p>
                                 ) : (
-                                  <p className="text-xs text-gray-600">
+                                  <p className="text-xs text-bh-faint">
                                     {t("admin.ratingsNoComment")}
                                   </p>
                                 )}
-                                <p className="text-[11px] text-gray-500">
+                                <p className="text-[11px] text-bh-faint">
                                   {sourceLabel} ·{" "}
                                   {row.createdAt
                                     ? formatTime(row.createdAt, locale)
@@ -4341,7 +4440,7 @@ export default function AdminOrdersPage() {
                 type="button"
                 onClick={() => setCustomerPushPanelOpen((v) => !v)}
                 aria-expanded={customerPushPanelOpen}
-                className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-right text-sm font-bold text-gray-100 transition-colors hover:border-primary/50 hover:bg-slate-800/60"
+                className="flex w-full items-center justify-between gap-3 rounded-xl border border-bh-border-strong bg-bh-card px-4 py-3 text-right text-sm font-bold text-bh-text transition-colors hover:border-primary/50 hover:bg-bh-elevated"
               >
                 <span className="min-w-0 flex-1 leading-snug">
                   {t("admin.customerPushTitle")}
@@ -4354,12 +4453,12 @@ export default function AdminOrdersPage() {
                 </span>
               </button>
               {customerPushPanelOpen ? (
-                <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
-                  <p className="mb-4 text-[11px] leading-relaxed text-gray-500">
+                <section className="rounded-2xl border border-bh-border bg-bh-card p-4">
+                  <p className="mb-4 text-[11px] leading-relaxed text-bh-faint">
                     {t("admin.customerPushHint")}
                   </p>
                   {customerPushStatus ? (
-                    <p className="mb-4 text-[11px] leading-snug text-gray-500">
+                    <p className="mb-4 text-[11px] leading-snug text-bh-faint">
                       {t("admin.customerPushStatusLine")
                         .replace(
                           "{count}",
@@ -4380,7 +4479,7 @@ export default function AdminOrdersPage() {
                     </p>
                   ) : null}
                   <div className="space-y-3">
-                    <label className="flex flex-col gap-1 text-xs text-gray-400">
+                    <label className="flex flex-col gap-1 text-xs text-bh-faint">
                       <span>{t("admin.customerPushTitleLabel")}</span>
                       <input
                         type="text"
@@ -4391,10 +4490,10 @@ export default function AdminOrdersPage() {
                           setCustomerBroadcastTitle(e.target.value)
                         }
                         placeholder={t("admin.customerPushTitlePh")}
-                        className="rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-gray-100"
+                        className="rounded-md border border-bh-border-strong bg-bh-elevated px-2 py-1.5 text-sm text-bh-text"
                       />
                     </label>
-                    <label className="flex flex-col gap-1 text-xs text-gray-400">
+                    <label className="flex flex-col gap-1 text-xs text-bh-faint">
                       <span>{t("admin.customerPushBodyLabel")}</span>
                       <textarea
                         rows={4}
@@ -4405,10 +4504,10 @@ export default function AdminOrdersPage() {
                           setCustomerBroadcastBody(e.target.value)
                         }
                         placeholder={t("admin.customerPushBodyPh")}
-                        className="rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-gray-100"
+                        className="rounded-md border border-bh-border-strong bg-bh-elevated px-2 py-1.5 text-sm text-bh-text"
                       />
                     </label>
-                    <label className="flex flex-col gap-1 text-xs text-gray-400">
+                    <label className="flex flex-col gap-1 text-xs text-bh-faint">
                       <span>{t("admin.customerPushUrlLabel")}</span>
                       <input
                         type="text"
@@ -4420,7 +4519,7 @@ export default function AdminOrdersPage() {
                           setCustomerBroadcastUrl(e.target.value)
                         }
                         placeholder={t("admin.customerPushUrlPh")}
-                        className="rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-gray-100"
+                        className="rounded-md border border-bh-border-strong bg-bh-elevated px-2 py-1.5 text-sm text-bh-text"
                       />
                     </label>
                   </div>
@@ -4450,7 +4549,7 @@ export default function AdminOrdersPage() {
               ) : null}
 
               <section
-                className="mb-10 rounded-2xl border border-slate-800 bg-slate-900/40 p-4"
+                className="mb-10 rounded-2xl border border-bh-border bg-bh-card p-4"
                 aria-label={
                   isEmployee
                     ? t("admin.employeeOrdersTitle")
@@ -4467,19 +4566,19 @@ export default function AdminOrdersPage() {
                   <button
                     type="button"
                     onClick={goToToday}
-                    className="rounded-lg border border-slate-600 bg-slate-800/80 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:border-primary/50 hover:bg-slate-800"
+                    className="rounded-lg border border-bh-border-strong bg-bh-elevated px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:border-primary/50 hover:bg-bh-elevated"
                   >
                     {t("admin.calendarTodayBtn")}
                   </button>
                   ) : null}
                 </div>
                 {!isEmployee ? (
-                <p className="mb-4 text-[11px] leading-relaxed text-gray-500">
+                <p className="mb-4 text-[11px] leading-relaxed text-bh-faint">
                   {t("admin.salesCalendarHint")}
                 </p>
                 ) : null}
                 {orders.length === 0 ? (
-                  <p className="mb-4 text-sm text-gray-500">{t("admin.empty")}</p>
+                  <p className="mb-4 text-sm text-bh-faint">{t("admin.empty")}</p>
                 ) : null}
 
                 {!isEmployee ? (
@@ -4492,34 +4591,34 @@ export default function AdminOrdersPage() {
                     type="button"
                     onClick={() => shiftCalMonth(-1)}
                     aria-label={t("admin.calendarPrevMonth")}
-                    className="rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 text-lg leading-none text-gray-200 transition-colors hover:border-primary/40 hover:bg-slate-800"
+                    className="rounded-lg border border-bh-border-strong bg-bh-input px-3 py-2 text-lg leading-none text-bh-text transition-colors hover:border-primary/40 hover:bg-bh-elevated"
                   >
                     ‹
                   </button>
-                  <span className="min-w-0 flex-1 text-center text-sm font-semibold text-gray-200">
+                  <span className="min-w-0 flex-1 text-center text-sm font-semibold text-bh-text">
                     {formatMonthYearTitle(vy, vm, locale)}
                   </span>
                   <button
                     type="button"
                     onClick={() => shiftCalMonth(1)}
                     aria-label={t("admin.calendarNextMonth")}
-                    className="rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 text-lg leading-none text-gray-200 transition-colors hover:border-primary/40 hover:bg-slate-800"
+                    className="rounded-lg border border-bh-border-strong bg-bh-input px-3 py-2 text-lg leading-none text-bh-text transition-colors hover:border-primary/40 hover:bg-bh-elevated"
                   >
                     ›
                   </button>
                 </div>
 
-                <div className="mb-4 rounded-lg border border-slate-700/60 bg-slate-950/40 px-3 py-2.5 text-sm">
-                  <p className="text-gray-400">
+                <div className="mb-4 rounded-lg border border-bh-border-strong/60 bg-bh-input px-3 py-2.5 text-sm">
+                  <p className="text-bh-faint">
                     {t("admin.monthSalesTotal")}{" "}
                     <span className="font-bold tabular-nums text-amber-400">
                       ₪{calendarMonthSalesTotals.food.toFixed(2)}
                     </span>
                   </p>
                   {calendarMonthSalesTotals.delivery > 0 ? (
-                    <p className="mt-1 text-xs text-gray-500">
+                    <p className="mt-1 text-xs text-bh-faint">
                       {t("admin.monthDeliveryFeesTotal")}{" "}
-                      <span className="font-semibold tabular-nums text-gray-300">
+                      <span className="font-semibold tabular-nums text-bh-muted">
                         ₪{calendarMonthSalesTotals.delivery.toFixed(2)}
                       </span>
                     </p>
@@ -4527,7 +4626,7 @@ export default function AdminOrdersPage() {
                 </div>
 
                 <div className="mb-6" dir="ltr">
-                  <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-gray-500 sm:text-xs">
+                  <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-bh-faint sm:text-xs">
                     {weekdayLabels.map((label, i) => (
                       <div key={i} className="py-1">
                         {label}
@@ -4554,7 +4653,7 @@ export default function AdminOrdersPage() {
                               className={`relative flex min-h-[2.25rem] aspect-square items-center justify-center rounded-lg border text-sm font-semibold transition-colors sm:min-h-[2.5rem] ${
                                 isSel
                                   ? "border-primary bg-primary/20 text-primary"
-                                  : "border-slate-700 bg-slate-950/50 text-gray-200 hover:border-slate-500 hover:bg-slate-800/60"
+                                  : "border-bh-border-strong bg-bh-input text-bh-text hover:border-bh-border-strong hover:bg-bh-elevated"
                               } ${
                                 isToday
                                   ? "ring-1 ring-amber-500/60 ring-offset-1 ring-offset-slate-900/80"
@@ -4580,27 +4679,27 @@ export default function AdminOrdersPage() {
 
                 {displayDayKey ? (
                   <>
-                    <h3 className="mb-2 border-b border-slate-800 pb-2 text-sm font-bold text-gray-300">
+                    <h3 className="mb-2 border-b border-bh-border pb-2 text-sm font-bold text-bh-muted">
                       {formatDayHeading(displayDayKey, locale)}
-                      <span className="mr-2 text-xs font-normal text-gray-500">
+                      <span className="mr-2 text-xs font-normal text-bh-faint">
                         ({displayDayKey})
                       </span>
                     </h3>
-                    <p className="mb-3 space-y-1 text-sm text-gray-400">
+                    <p className="mb-3 space-y-1 text-sm text-bh-faint">
                       <span className="block">
                         {t("admin.daySalesTotal")}:{" "}
                         <span className="font-bold text-amber-400">
                           ₪{dayFoodSalesTotal(selectedDayOrders).toFixed(2)}
                         </span>
-                        <span className="mr-2 text-xs text-gray-500">
+                        <span className="mr-2 text-xs text-bh-faint">
                           ({selectedDayOrders.length}{" "}
                           {t("admin.ordersCount")})
                         </span>
                       </span>
                       {dayDeliveryFeesTotal(selectedDayOrders) > 0 ? (
-                        <span className="block text-xs text-gray-500">
+                        <span className="block text-xs text-bh-faint">
                           {t("admin.dayDeliveryFeesTotal")}:{" "}
-                          <span className="font-semibold text-gray-300">
+                          <span className="font-semibold text-bh-muted">
                             ₪
                             {dayDeliveryFeesTotal(selectedDayOrders).toFixed(2)}
                           </span>
@@ -4608,7 +4707,7 @@ export default function AdminOrdersPage() {
                       ) : null}
                     </p>
                     {selectedDayOrders.length === 0 ? (
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-bh-faint">
                         {t("admin.dayOrdersEmpty")}
                       </p>
                     ) : (
@@ -4621,7 +4720,7 @@ export default function AdminOrdersPage() {
                             className={`rounded-2xl border p-3 text-sm ${
                               isDoneOrder
                                 ? "border-emerald-700/60 bg-emerald-950/25"
-                                : "border-slate-800 bg-slate-900/70"
+                                : "border-bh-border bg-bh-card"
                             }`}
                           >
                             <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
@@ -4629,7 +4728,7 @@ export default function AdminOrdersPage() {
                                 <p className="font-semibold text-primary">
                                   {o.customer?.name || "—"}
                                 </p>
-                                <p className="text-xs text-gray-400">
+                                <p className="text-xs text-bh-faint">
                                   {o.customer?.phone}
                                 </p>
                                 <button
@@ -4649,7 +4748,7 @@ export default function AdminOrdersPage() {
                                 <p className="text-xs font-semibold text-primary">
                                   #{o.orderNumber ?? "—"}
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-bh-faint">
                                   {formatTime(o.createdAt, locale)}
                                 </p>
                                 {isDoneOrder ? (
@@ -4657,20 +4756,20 @@ export default function AdminOrdersPage() {
                                     {t("admin.doneStatus")}
                                   </p>
                                 ) : null}
-                                <p className="text-xs text-gray-400">
+                                <p className="text-xs text-bh-faint">
                                   {t("admin.payment")}:{" "}
                                   {t(`payment.${o.payment}`) || o.payment}
                                 </p>
                                 <div className="text-left sm:text-right">
                                   <p className="font-bold text-amber-400">
-                                    <span className="text-[10px] font-normal text-gray-500">
+                                    <span className="text-[10px] font-normal text-bh-faint">
                                       {t("admin.orderFoodAmountLabel")}{" "}
                                     </span>
                                     ₪{orderFoodSalesNis(o).toFixed(2)}
                                   </p>
                                   {orderDeliveryFeeNis(o) > 0 ? (
                                     <p className="text-[11px] font-semibold text-slate-300">
-                                      <span className="font-normal text-gray-500">
+                                      <span className="font-normal text-bh-faint">
                                         {t("admin.orderDeliveryAmountLabel")}{" "}
                                       </span>
                                       ₪
@@ -4698,13 +4797,13 @@ export default function AdminOrdersPage() {
                               </div>
                             </div>
                             {o.customer?.address ? (
-                              <p className="mb-2 text-xs text-gray-500">
+                              <p className="mb-2 text-xs text-bh-faint">
                                 {o.customer.address}
                               </p>
                             ) : null}
                             {o.customer?.orderType === "delivery" &&
                             o.customer?.deliveryFeeNis != null ? (
-                              <p className="mb-1 text-[11px] text-gray-400">
+                              <p className="mb-1 text-[11px] text-bh-faint">
                                 {t("checkout.deliveryFeeLine")}: ₪
                                 {Number(o.customer.deliveryFeeNis).toFixed(0)}
                                 {o.customer.deliveryDistanceKm != null
@@ -4746,7 +4845,7 @@ export default function AdminOrdersPage() {
                                 : -₪{Number(o.customer.couponDiscountNis).toFixed(2)}
                               </p>
                             ) : null}
-                            <ul className="space-y-2 border-t border-slate-800 pt-2 text-xs text-gray-300">
+                            <ul className="space-y-2 border-t border-bh-border pt-2 text-xs text-bh-muted">
                               {getCartItemsInWhatsAppOrder(
                                 o.items,
                                 locale
@@ -4775,9 +4874,9 @@ export default function AdminOrdersPage() {
                                       it.id ||
                                       `${o.id}-wa-${displayIndex}-${it.name}-${it.price}`
                                     }
-                                    className="rounded-lg border border-slate-800/70 bg-slate-950/40 p-2"
+                                    className="rounded-lg border border-bh-border/70 bg-bh-input p-2"
                                   >
-                                    <p className="text-[13px] font-semibold text-gray-100">
+                                    <p className="text-[13px] font-semibold text-bh-text">
                                       <span className="text-primary">
                                         {displayIndex}.
                                       </span>{" "}
@@ -4785,12 +4884,12 @@ export default function AdminOrdersPage() {
                                       {" — "}₪{lineTotal}
                                     </p>
                                     {it.sizeLabel ? (
-                                      <p className="mt-1 text-[11px] text-gray-400">
+                                      <p className="mt-1 text-[11px] text-bh-faint">
                                         {t("checkout.size")}: {it.sizeLabel}
                                       </p>
                                     ) : null}
                                     {it.variantLabel ? (
-                                      <p className="text-[11px] text-gray-400">
+                                      <p className="text-[11px] text-bh-faint">
                                         {t("checkout.variant")}:{" "}
                                         {it.variantLabel}
                                       </p>
@@ -4800,7 +4899,7 @@ export default function AdminOrdersPage() {
                                         formatCartLineSaladsForOrder(it, t);
                                       if (saladsText == null) return null;
                                       return (
-                                        <p className="text-[11px] text-gray-400">
+                                        <p className="text-[11px] text-bh-faint">
                                           {t("checkout.saladsPrefix")}:{" "}
                                           {saladsText}
                                         </p>
@@ -4816,7 +4915,7 @@ export default function AdminOrdersPage() {
                                         );
                                       if (!mealDesc) return null;
                                       return (
-                                        <p className="text-[11px] text-gray-400">
+                                        <p className="text-[11px] text-bh-faint">
                                           {t(
                                             "checkout.specialMealComponentsPrefix"
                                           )}
@@ -4825,7 +4924,7 @@ export default function AdminOrdersPage() {
                                       );
                                     })()}
                                     {typeof it.bunSauceOnBun === "boolean" ? (
-                                      <p className="text-[11px] text-gray-400">
+                                      <p className="text-[11px] text-bh-faint">
                                         {t("checkout.bunSauceOnBunPrefix")}:{" "}
                                         {it.bunSauceOnBun
                                           ? t("ui.bunSauceYes")
@@ -4833,13 +4932,13 @@ export default function AdminOrdersPage() {
                                       </p>
                                     ) : null}
                                     {it.burgerDoneness?.label ? (
-                                      <p className="text-[11px] text-gray-400">
+                                      <p className="text-[11px] text-bh-faint">
                                         {t("checkout.donenessPrefix")}:{" "}
                                         {it.burgerDoneness.label}
                                       </p>
                                     ) : null}
                                     {it.toppings?.length ? (
-                                      <p className="text-[11px] text-gray-400">
+                                      <p className="text-[11px] text-bh-faint">
                                         {t("checkout.toppingsPrefix")}:{" "}
                                         {it.toppings
                                           .map((x) => x.label)
@@ -4847,7 +4946,7 @@ export default function AdminOrdersPage() {
                                       </p>
                                     ) : null}
                                     {it.extras?.length ? (
-                                      <p className="text-[11px] text-gray-400">
+                                      <p className="text-[11px] text-bh-faint">
                                         {t("checkout.extrasPrefix")}:{" "}
                                         {it.extras
                                           .map((x) => x.label)
@@ -4899,7 +4998,7 @@ export default function AdminOrdersPage() {
                                   <p className="mb-1 font-semibold text-amber-200">
                                     {t("admin.pattyPrepTitle")}
                                   </p>
-                                  <ul className="list-inside list-disc space-y-0.5 text-gray-200">
+                                  <ul className="list-inside list-disc space-y-0.5 text-bh-text">
                                     {PATTY_GRAMS_ORDER.map((g) => {
                                       const n = prep.counts[g] || 0;
                                       if (n <= 0) return null;
@@ -4935,7 +5034,7 @@ export default function AdminOrdersPage() {
                                   <p className="mb-1 font-semibold text-emerald-200">
                                     {t("checkout.mealFriesCartSummaryTitle")}
                                   </p>
-                                  <ul className="list-inside list-disc space-y-0.5 text-gray-200">
+                                  <ul className="list-inside list-disc space-y-0.5 text-bh-text">
                                     {rows.map((r) => (
                                       <li key={`prep-fries-${r.key}`}>
                                         {t("admin.prepAggLine")
@@ -4960,7 +5059,7 @@ export default function AdminOrdersPage() {
                                   <p className="mb-1 font-semibold text-amber-200">
                                     {t("admin.prepMealToppingsTitle")}
                                   </p>
-                                  <ul className="list-inside list-disc space-y-0.5 text-gray-200">
+                                  <ul className="list-inside list-disc space-y-0.5 text-bh-text">
                                     {rows.map((r, idx) => (
                                       <li key={`prep-top-${idx}-${r.label}`}>
                                         {t("admin.prepAggLine")
@@ -4985,7 +5084,7 @@ export default function AdminOrdersPage() {
                                   <p className="mb-1 font-semibold text-amber-200">
                                     {t("admin.prepSideExtrasTitle")}
                                   </p>
-                                  <ul className="list-inside list-disc space-y-0.5 text-gray-200">
+                                  <ul className="list-inside list-disc space-y-0.5 text-bh-text">
                                     {rows.map((r, idx) => (
                                       <li key={`prep-ex-${idx}-${r.label}`}>
                                         {t("admin.prepAggLine")
@@ -4997,7 +5096,7 @@ export default function AdminOrdersPage() {
                                 </div>
                               );
                             })()}
-                            <p className="mt-2 text-[10px] text-gray-600">
+                            <p className="mt-2 text-[10px] text-bh-faint">
                               {t("admin.orderId")}: {o.id}
                             </p>
                           </article>
@@ -5013,12 +5112,12 @@ export default function AdminOrdersPage() {
         </main>
         {catalogModal ? (
           <div
-            className="fixed inset-0 z-[300] flex items-end justify-center bg-black/80 p-4 sm:items-center"
+            className="fixed inset-0 z-[300] flex items-end justify-center bg-bh-overlay p-4 sm:items-center"
             role="dialog"
             aria-modal="true"
             aria-labelledby="catalog-modal-title"
           >
-            <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-700 bg-slate-950 p-4 shadow-xl">
+            <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-bh-border-strong bg-bh-elevated p-4 shadow-xl">
               <h3
                 id="catalog-modal-title"
                 className="mb-3 text-sm font-bold text-primary"
@@ -5027,11 +5126,11 @@ export default function AdminOrdersPage() {
                   ? t("admin.catalogModalAdd")
                   : t("admin.catalogModalEdit")}
               </h3>
-              <p className="mb-3 text-[10px] text-gray-500">
+              <p className="mb-3 text-[10px] text-bh-faint">
                 {t("admin.catalogSlugHint")}
               </p>
               <div className="flex flex-col gap-2 text-xs">
-                <label className="flex flex-col gap-1 text-gray-400">
+                <label className="flex flex-col gap-1 text-bh-faint">
                   <span>{t("admin.catalogId")}</span>
                   <input
                     value={catalogModal.draft.id}
@@ -5048,10 +5147,10 @@ export default function AdminOrdersPage() {
                           : null
                       )
                     }
-                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100 disabled:opacity-60"
+                    className="rounded border border-bh-border-strong bg-bh-card px-2 py-1.5 text-bh-text disabled:opacity-60"
                   />
                 </label>
-                <label className="flex flex-col gap-1 text-gray-400">
+                <label className="flex flex-col gap-1 text-bh-faint">
                   <span>{t("admin.catalogCategory")}</span>
                   <select
                     value={catalogModal.draft.category}
@@ -5069,7 +5168,7 @@ export default function AdminOrdersPage() {
                           : null
                       )
                     }
-                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100"
+                    className="rounded border border-bh-border-strong bg-bh-card px-2 py-1.5 text-bh-text"
                   >
                     {CATALOG_CATEGORIES.map((cid) => (
                       <option key={cid} value={cid}>
@@ -5078,7 +5177,7 @@ export default function AdminOrdersPage() {
                     ))}
                   </select>
                 </label>
-                <label className="flex flex-col gap-1 text-gray-400">
+                <label className="flex flex-col gap-1 text-bh-faint">
                   <span>{t("admin.catalogPrice")}</span>
                   <input
                     type="number"
@@ -5099,16 +5198,16 @@ export default function AdminOrdersPage() {
                           : null
                       )
                     }
-                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100"
+                    className="rounded border border-bh-border-strong bg-bh-card px-2 py-1.5 text-bh-text"
                   />
                 </label>
-                <div className="flex flex-col gap-2 text-gray-400">
+                <div className="flex flex-col gap-2 text-bh-faint">
                   <span className="text-xs">{t("admin.catalogImage")}</span>
-                  <p className="text-[10px] leading-snug text-gray-500">
+                  <p className="text-[10px] leading-snug text-bh-faint">
                     {t("admin.catalogImageUrlHint")}
                   </p>
                   <label className="flex flex-col gap-1">
-                    <span className="text-[10px] text-gray-500">
+                    <span className="text-[10px] text-bh-faint">
                       {t("admin.catalogImageUrlPaste")}
                     </span>
                     <input
@@ -5131,10 +5230,10 @@ export default function AdminOrdersPage() {
                         )
                       }
                       placeholder="https://…"
-                      className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-[11px] text-gray-100 placeholder:text-gray-600 disabled:opacity-50"
+                      className="rounded border border-bh-border-strong bg-bh-card px-2 py-1.5 text-[11px] text-bh-text placeholder:text-bh-faint disabled:opacity-50"
                     />
                   </label>
-                  <p className="text-[10px] leading-snug text-gray-500">
+                  <p className="text-[10px] leading-snug text-bh-faint">
                     {t("admin.catalogImageUrlPasteHint")}
                   </p>
                   <input
@@ -5142,7 +5241,7 @@ export default function AdminOrdersPage() {
                     type="file"
                     accept="image/jpeg,image/png,image/webp,image/gif"
                     disabled={catalogSaving || catalogImageUploading}
-                    className="max-w-full text-[11px] text-gray-400 file:mr-2 file:rounded-lg file:border-0 file:bg-slate-800 file:px-2 file:py-1.5 file:text-gray-200 disabled:opacity-50"
+                    className="max-w-full text-[11px] text-bh-faint file:mr-2 file:rounded-lg file:border-0 file:bg-bh-elevated file:px-2 file:py-1.5 file:text-bh-text disabled:opacity-50"
                   />
                   <button
                     type="button"
@@ -5152,7 +5251,7 @@ export default function AdminOrdersPage() {
                       catalogImageUploading ||
                       !secret.trim()
                     }
-                    className="w-fit rounded-lg border border-primary/50 bg-slate-900 px-3 py-1.5 text-[11px] font-semibold text-primary hover:bg-slate-800 disabled:opacity-50"
+                    className="w-fit rounded-lg border border-primary/50 bg-bh-card px-3 py-1.5 text-[11px] font-semibold text-primary hover:bg-bh-elevated disabled:opacity-50"
                   >
                     {catalogImageUploading
                       ? t("admin.catalogImageUploading")
@@ -5168,12 +5267,12 @@ export default function AdminOrdersPage() {
                       <img
                         src={catalogModal.draft.image}
                         alt=""
-                        className="max-h-24 max-w-full rounded-lg border border-slate-700 object-contain"
+                        className="max-h-24 max-w-full rounded-lg border border-bh-border-strong object-contain"
                       />
                     </div>
                   ) : null}
                 </div>
-                <label className="flex flex-col gap-1 text-gray-400">
+                <label className="flex flex-col gap-1 text-bh-faint">
                   <span>{t("admin.catalogNameHe")}</span>
                   <input
                     value={catalogModal.draft.nameHe}
@@ -5191,10 +5290,10 @@ export default function AdminOrdersPage() {
                           : null
                       )
                     }
-                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100"
+                    className="rounded border border-bh-border-strong bg-bh-card px-2 py-1.5 text-bh-text"
                   />
                 </label>
-                <label className="flex flex-col gap-1 text-gray-400">
+                <label className="flex flex-col gap-1 text-bh-faint">
                   <span>{t("admin.catalogNameAr")}</span>
                   <input
                     value={catalogModal.draft.nameAr}
@@ -5212,10 +5311,10 @@ export default function AdminOrdersPage() {
                           : null
                       )
                     }
-                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100"
+                    className="rounded border border-bh-border-strong bg-bh-card px-2 py-1.5 text-bh-text"
                   />
                 </label>
-                <label className="flex flex-col gap-1 text-gray-400">
+                <label className="flex flex-col gap-1 text-bh-faint">
                   <span>{t("admin.catalogDescHe")}</span>
                   <input
                     value={catalogModal.draft.descHe}
@@ -5233,10 +5332,10 @@ export default function AdminOrdersPage() {
                           : null
                       )
                     }
-                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100"
+                    className="rounded border border-bh-border-strong bg-bh-card px-2 py-1.5 text-bh-text"
                   />
                 </label>
-                <label className="flex flex-col gap-1 text-gray-400">
+                <label className="flex flex-col gap-1 text-bh-faint">
                   <span>{t("admin.catalogDescAr")}</span>
                   <input
                     value={catalogModal.draft.descAr}
@@ -5254,7 +5353,7 @@ export default function AdminOrdersPage() {
                           : null
                       )
                     }
-                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100"
+                    className="rounded border border-bh-border-strong bg-bh-card px-2 py-1.5 text-bh-text"
                   />
                 </label>
               </div>
@@ -5277,7 +5376,7 @@ export default function AdminOrdersPage() {
                     setCatalogModalError("");
                     setCatalogModal(null);
                   }}
-                  className="rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-gray-300 hover:bg-slate-900 disabled:opacity-50"
+                  className="rounded-lg border border-bh-border-strong px-3 py-1.5 text-xs text-bh-muted hover:bg-bh-card disabled:opacity-50"
                 >
                   {t("admin.catalogCancel")}
                 </button>
@@ -5299,12 +5398,12 @@ export default function AdminOrdersPage() {
         ) : null}
         {toppingModal ? (
           <div
-            className="fixed inset-0 z-[300] flex items-end justify-center bg-black/80 p-4 sm:items-center"
+            className="fixed inset-0 z-[300] flex items-end justify-center bg-bh-overlay p-4 sm:items-center"
             role="dialog"
             aria-modal="true"
             aria-labelledby="topping-modal-title"
           >
-            <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-700 bg-slate-950 p-4 shadow-xl">
+            <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-bh-border-strong bg-bh-elevated p-4 shadow-xl">
               <h3
                 id="topping-modal-title"
                 className="mb-3 text-sm font-bold text-violet-200"
@@ -5313,13 +5412,13 @@ export default function AdminOrdersPage() {
                   ? t("admin.catalogToppingModalAdd")
                   : t("admin.catalogToppingModalEdit")}
               </h3>
-              <p className="mb-3 text-[10px] text-gray-500">
+              <p className="mb-3 text-[10px] text-bh-faint">
                 {toppingModal.kind === "add"
                   ? t("admin.catalogSlugHint")
                   : null}
               </p>
               <div className="flex flex-col gap-2 text-xs">
-                <label className="flex flex-col gap-1 text-gray-400">
+                <label className="flex flex-col gap-1 text-bh-faint">
                   <span>{t("admin.catalogId")}</span>
                   <input
                     value={toppingModal.draft.id}
@@ -5336,10 +5435,10 @@ export default function AdminOrdersPage() {
                           : null
                       )
                     }
-                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100 disabled:opacity-60"
+                    className="rounded border border-bh-border-strong bg-bh-card px-2 py-1.5 text-bh-text disabled:opacity-60"
                   />
                 </label>
-                <label className="flex flex-col gap-1 text-gray-400">
+                <label className="flex flex-col gap-1 text-bh-faint">
                   <span>{t("admin.catalogToppingPrice")}</span>
                   <input
                     type="number"
@@ -5360,16 +5459,16 @@ export default function AdminOrdersPage() {
                           : null
                       )
                     }
-                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100"
+                    className="rounded border border-bh-border-strong bg-bh-card px-2 py-1.5 text-bh-text"
                   />
                 </label>
-                <div className="flex flex-col gap-2 text-gray-400">
+                <div className="flex flex-col gap-2 text-bh-faint">
                   <span className="text-xs">{t("admin.catalogImage")}</span>
-                  <p className="text-[10px] leading-snug text-gray-500">
+                  <p className="text-[10px] leading-snug text-bh-faint">
                     {t("admin.catalogImageUrlHint")}
                   </p>
                   <label className="flex flex-col gap-1">
-                    <span className="text-[10px] text-gray-500">
+                    <span className="text-[10px] text-bh-faint">
                       {t("admin.catalogImageUrlPaste")}
                     </span>
                     <input
@@ -5392,10 +5491,10 @@ export default function AdminOrdersPage() {
                         )
                       }
                       placeholder="https://…"
-                      className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-[11px] text-gray-100 placeholder:text-gray-600 disabled:opacity-50"
+                      className="rounded border border-bh-border-strong bg-bh-card px-2 py-1.5 text-[11px] text-bh-text placeholder:text-bh-faint disabled:opacity-50"
                     />
                   </label>
-                  <p className="text-[10px] leading-snug text-gray-500">
+                  <p className="text-[10px] leading-snug text-bh-faint">
                     {t("admin.catalogImageUrlPasteHint")}
                   </p>
                   <input
@@ -5403,7 +5502,7 @@ export default function AdminOrdersPage() {
                     type="file"
                     accept="image/jpeg,image/png,image/webp,image/gif"
                     disabled={catalogSaving || toppingImageUploading}
-                    className="max-w-full text-[11px] text-gray-400 file:mr-2 file:rounded-lg file:border-0 file:bg-slate-800 file:px-2 file:py-1.5 file:text-gray-200 disabled:opacity-50"
+                    className="max-w-full text-[11px] text-bh-faint file:mr-2 file:rounded-lg file:border-0 file:bg-bh-elevated file:px-2 file:py-1.5 file:text-bh-text disabled:opacity-50"
                   />
                   <button
                     type="button"
@@ -5411,7 +5510,7 @@ export default function AdminOrdersPage() {
                       catalogSaving || toppingImageUploading || !secret.trim()
                     }
                     onClick={() => void uploadToppingMenuImage()}
-                    className="rounded-lg border border-slate-600 px-3 py-1.5 text-[11px] text-gray-200 hover:border-primary disabled:opacity-50"
+                    className="rounded-lg border border-bh-border-strong px-3 py-1.5 text-[11px] text-bh-text hover:border-primary disabled:opacity-50"
                   >
                     {toppingImageUploading
                       ? t("admin.catalogImageUploading")
@@ -5426,11 +5525,11 @@ export default function AdminOrdersPage() {
                     <img
                       src={toppingModal.draft.image}
                       alt=""
-                      className="mt-1 h-24 w-24 rounded-lg border border-slate-700 object-cover"
+                      className="mt-1 h-24 w-24 rounded-lg border border-bh-border-strong object-cover"
                     />
                   ) : null}
                 </div>
-                <label className="flex flex-col gap-1 text-gray-400">
+                <label className="flex flex-col gap-1 text-bh-faint">
                   <span>{t("admin.catalogNameHe")}</span>
                   <input
                     value={toppingModal.draft.nameHe}
@@ -5448,10 +5547,10 @@ export default function AdminOrdersPage() {
                           : null
                       )
                     }
-                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100"
+                    className="rounded border border-bh-border-strong bg-bh-card px-2 py-1.5 text-bh-text"
                   />
                 </label>
-                <label className="flex flex-col gap-1 text-gray-400">
+                <label className="flex flex-col gap-1 text-bh-faint">
                   <span>{t("admin.catalogNameAr")}</span>
                   <input
                     value={toppingModal.draft.nameAr}
@@ -5469,12 +5568,12 @@ export default function AdminOrdersPage() {
                           : null
                       )
                     }
-                    className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-gray-100"
+                    className="rounded border border-bh-border-strong bg-bh-card px-2 py-1.5 text-bh-text"
                   />
                 </label>
                 {toppingModal.kind === "add" ||
                 toppingModal.toppingKind === "custom" ? (
-                  <label className="flex cursor-pointer items-center gap-2 text-gray-400">
+                  <label className="flex cursor-pointer items-center gap-2 text-bh-faint">
                     <input
                       type="checkbox"
                       checked={Boolean(toppingModal.draft.excludeFromCrispy)}
@@ -5492,12 +5591,12 @@ export default function AdminOrdersPage() {
                             : null
                         )
                       }
-                      className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-primary"
+                      className="h-4 w-4 rounded border-bh-border-strong bg-bh-card text-primary"
                     />
                     <span>{t("admin.catalogToppingExcludeCrispy")}</span>
                   </label>
                 ) : (
-                  <p className="text-[10px] leading-relaxed text-gray-500">
+                  <p className="text-[10px] leading-relaxed text-bh-faint">
                     {t("admin.catalogToppingBuiltinHint")}
                   </p>
                 )}
@@ -5521,7 +5620,7 @@ export default function AdminOrdersPage() {
                     setToppingModalError("");
                     setToppingModal(null);
                   }}
-                  className="rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-gray-300 hover:bg-slate-900 disabled:opacity-50"
+                  className="rounded-lg border border-bh-border-strong px-3 py-1.5 text-xs text-bh-muted hover:bg-bh-card disabled:opacity-50"
                 >
                   {t("admin.catalogCancel")}
                 </button>
