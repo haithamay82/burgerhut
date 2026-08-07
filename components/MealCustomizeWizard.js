@@ -895,31 +895,6 @@ export default function MealCustomizeWizard({
             {t("ui.freeSalads")}
           </h3>
           <div className="grid grid-cols-2 gap-2">
-            <label
-              className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-2 py-1.5 text-[11px] ${
-                noSaladsSelected
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-slate-700 text-gray-300"
-              }`}
-            >
-              <span className="flex min-w-0 flex-1 items-center gap-1.5">
-                <img
-                  src={NO_SALADS_CHOICE.image}
-                  alt={t("salad.salad_none")}
-                  className="h-8 w-8 shrink-0 rounded-md border border-slate-700 bg-white object-cover"
-                />
-                <span className="min-w-0 flex-1 leading-snug">
-                  {t("salad.salad_none")}
-                </span>
-              </span>
-              <input
-                type="checkbox"
-                className="hidden"
-                disabled={blocked}
-                checked={noSaladsSelected}
-                onChange={() => toggleSaladChoice(NO_SALADS_CHOICE_ID)}
-              />
-            </label>
             {saladChoicesList.map((x) => {
               const extra = Number(x.price) || 0;
               const saladOos =
@@ -975,6 +950,31 @@ export default function MealCustomizeWizard({
                 </label>
               );
             })}
+            <label
+              className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-2 py-1.5 text-[11px] ${
+                noSaladsSelected
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-slate-700 text-gray-300"
+              }`}
+            >
+              <span className="flex min-w-0 flex-1 items-center gap-1.5">
+                <img
+                  src={NO_SALADS_CHOICE.image}
+                  alt={t("salad.salad_none")}
+                  className="h-8 w-8 shrink-0 rounded-md border border-slate-700 bg-white object-cover"
+                />
+                <span className="min-w-0 flex-1 leading-snug">
+                  {t("salad.salad_none")}
+                </span>
+              </span>
+              <input
+                type="checkbox"
+                className="hidden"
+                disabled={blocked}
+                checked={noSaladsSelected}
+                onChange={() => toggleSaladChoice(NO_SALADS_CHOICE_ID)}
+              />
+            </label>
           </div>
         </section>
 
