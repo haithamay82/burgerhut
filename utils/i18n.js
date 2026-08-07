@@ -299,6 +299,7 @@ const HE = {
   "topping.veal_corned": "קורנדביף עגל",
   "topping.pulled_asado": "אסאדו מפורק",
 
+  "salad.salad_none": "ללא סלטים",
   "salad.salad_lettuce": "חסה",
   "salad.salad_tomato": "עגבניה",
   "salad.salad_pickles": "חמוצים",
@@ -1404,6 +1405,7 @@ const AR = {
   "topping.veal_corned": "كورندبيف عجل",
   "topping.pulled_asado": "أسادو مفكك",
 
+  "salad.salad_none": "بدون سلطة",
   "salad.salad_lettuce": "خس",
   "salad.salad_tomato": "بندورة",
   "salad.salad_pickles": "خيار مكبوس",

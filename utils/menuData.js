@@ -12,6 +12,13 @@ export const CATEGORIES = [
  */
 export const SHOW_SPECIALS_IN_HOME_MENU = true;
 
+/** בחירה מפורשת «ללא סלטים» בוויזארד — לא נשמרת בסלטים של שורת ההזמנה */
+export const NO_SALADS_CHOICE_ID = "salad_none";
+export const NO_SALADS_CHOICE = {
+  id: NO_SALADS_CHOICE_ID,
+  image: "/menu/salad-none.png",
+};
+
 /** סלטים בחינם — לכל מנה */
 export const FREE_SALADS = [
   { id: "salad_lettuce", image: "/menu/salad-lettuce.png" },

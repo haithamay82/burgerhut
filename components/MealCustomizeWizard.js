@@ -9,6 +9,8 @@ import {
   KIDS_CRISPY_BREAD_CHOICES,
   mealSaladChoicesForCategory,
   INVENTORY_MANAGED_SALAD_IDS,
+  NO_SALADS_CHOICE,
+  NO_SALADS_CHOICE_ID,
 } from "@/utils/menuData";
 import { isBeefBurgerStyleCategory } from "@/utils/menuMealCategories";
 import {
@@ -203,14 +205,33 @@ export default function MealCustomizeWizard({
 
   const saladsPrice = useMemo(
     () =>
-      selectedSalads.reduce(
-        (sum, id) =>
+      selectedSalads.reduce((sum, id) => {
+        if (id === NO_SALADS_CHOICE_ID) return sum;
+        return (
           sum +
-          (Number(saladChoicesList.find((r) => r.id === id)?.price) || 0),
-        0
-      ),
+          (Number(saladChoicesList.find((r) => r.id === id)?.price) || 0)
+        );
+      }, 0),
     [selectedSalads, saladChoicesList]
   );
+
+  const noSaladsSelected = selectedSalads.includes(NO_SALADS_CHOICE_ID);
+
+  const toggleSaladChoice = (id) => {
+    if (blocked) return;
+    if (id === NO_SALADS_CHOICE_ID) {
+      setSelectedSalads((prev) =>
+        prev.includes(NO_SALADS_CHOICE_ID) ? [] : [NO_SALADS_CHOICE_ID]
+      );
+      return;
+    }
+    setSelectedSalads((prev) => {
+      const withoutNone = prev.filter((x) => x !== NO_SALADS_CHOICE_ID);
+      return withoutNone.includes(id)
+        ? withoutNone.filter((x) => x !== id)
+        : [...withoutNone, id];
+    });
+  };
 
   const specialPattyUpcharge =
     item?.category === "specials" &&
@@ -281,7 +302,14 @@ export default function MealCustomizeWizard({
     if (editing) {
       const line = initialCartLine;
       setQuantity(Math.max(1, Number(line.quantity) || 1));
-      setSelectedSalads([...(line.salads || []).map((s) => s.id).filter(Boolean)]);
+      {
+        const saladIds = [
+          ...(line.salads || []).map((s) => s.id).filter(Boolean),
+        ].filter((id) => id !== NO_SALADS_CHOICE_ID);
+        setSelectedSalads(
+          saladIds.length ? saladIds : [NO_SALADS_CHOICE_ID]
+        );
+      }
       setSelectedSauces([...(line.extras || []).map((e) => e.id).filter(Boolean)]);
       const topsFromLine = line.toppings || [];
       const nextCheese = {};
@@ -530,16 +558,20 @@ export default function MealCustomizeWizard({
     } else {
       name = menuItemName(item, t, locale);
     }
-    const salads = selectedSalads.map((id) => {
-      const p =
-        Number(mealSaladChoicesForCategory(item.category).find((r) => r.id === id)?.price) ||
-        0;
-      return {
-        id,
-        label: t(`salad.${id}`),
-        price: p,
-      };
-    });
+    const salads = selectedSalads
+      .filter((id) => id && id !== NO_SALADS_CHOICE_ID)
+      .map((id) => {
+        const p =
+          Number(
+            mealSaladChoicesForCategory(item.category).find((r) => r.id === id)
+              ?.price
+          ) || 0;
+        return {
+          id,
+          label: t(`salad.${id}`),
+          price: p,
+        };
+      });
     const doubleWord = t("ui.doubleWord");
     const toppings = [];
     if (item.category === "specials") {
@@ -863,6 +895,31 @@ export default function MealCustomizeWizard({
             {t("ui.freeSalads")}
           </h3>
           <div className="grid grid-cols-2 gap-2">
+            <label
+              className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-2 py-1.5 text-[11px] ${
+                noSaladsSelected
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-slate-700 text-gray-300"
+              }`}
+            >
+              <span className="flex min-w-0 flex-1 items-center gap-1.5">
+                <img
+                  src={NO_SALADS_CHOICE.image}
+                  alt={t("salad.salad_none")}
+                  className="h-8 w-8 shrink-0 rounded-md border border-slate-700 bg-white object-cover"
+                />
+                <span className="min-w-0 flex-1 leading-snug">
+                  {t("salad.salad_none")}
+                </span>
+              </span>
+              <input
+                type="checkbox"
+                className="hidden"
+                disabled={blocked}
+                checked={noSaladsSelected}
+                onChange={() => toggleSaladChoice(NO_SALADS_CHOICE_ID)}
+              />
+            </label>
             {saladChoicesList.map((x) => {
               const extra = Number(x.price) || 0;
               const saladOos =
@@ -912,7 +969,7 @@ export default function MealCustomizeWizard({
                     checked={selectedSalads.includes(x.id)}
                     onChange={() => {
                       if (saladOos) return;
-                      toggleInList(x.id, selectedSalads, setSelectedSalads);
+                      toggleSaladChoice(x.id);
                     }}
                   />
                 </label>
