@@ -145,7 +145,8 @@ export default function DeliveryMapPicker({
     };
   }, [open, centerLat, centerLng, zoom, locale]);
 
-  const useMyLocation = () => {
+  const useMyLocation = (e) => {
+    e?.preventDefault?.();
     if (isApplying || locating) return;
     setLocateError("");
     if (typeof navigator === "undefined" || !navigator.geolocation) {
@@ -153,33 +154,44 @@ export default function DeliveryMapPicker({
       return;
     }
     setLocating(true);
+
+    const applyPosition = (pos) => {
+      const lat = Number(pos?.coords?.latitude);
+      const lng = Number(pos?.coords?.longitude);
+      setLocating(false);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        setLocateError(labels.locateUnavailable || "");
+        return;
+      }
+      setPicked({ lat, lng });
+      placeMarker(lat, lng);
+    };
+
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = Number(pos?.coords?.latitude);
-        const lng = Number(pos?.coords?.longitude);
-        setLocating(false);
-        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-          setLocateError(labels.locateUnavailable || "");
+      applyPosition,
+      (err) => {
+        if (Number(err?.code) === 1) {
+          setLocating(false);
+          setLocateError(labels.locateDenied || "");
           return;
         }
-        setPicked({ lat, lng });
-        placeMarker(lat, lng);
-      },
-      (err) => {
-        setLocating(false);
-        const code = Number(err?.code);
-        if (code === 1) {
-          setLocateError(labels.locateDenied || "");
-        } else if (code === 3) {
-          setLocateError(labels.locateTimeout || "");
-        } else {
-          setLocateError(labels.locateUnavailable || "");
-        }
+        navigator.geolocation.getCurrentPosition(
+          applyPosition,
+          () => {
+            setLocating(false);
+            setLocateError(labels.locateDenied || "");
+          },
+          {
+            enableHighAccuracy: false,
+            timeout: 20000,
+            maximumAge: 0,
+          }
+        );
       },
       {
         enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 10000,
+        timeout: 20000,
+        maximumAge: 0,
       }
     );
   };
