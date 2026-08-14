@@ -4707,16 +4707,18 @@ export default function AdminOrdersPage() {
                               <p className="mb-1 text-[11px] text-gray-400">
                                 {t("checkout.deliveryFeeLine")}: ₪
                                 {Number(o.customer.deliveryFeeNis).toFixed(0)}
-                                {o.customer.deliveryDistanceKm != null
-                                  ? ` · ${
-                                      o.customer.deliveryRouteMode ===
-                                      "air_fallback"
-                                        ? t("checkout.distanceKm")
-                                        : t("checkout.drivingDistanceKm")
-                                    }: ${Number(
-                                      o.customer.deliveryDistanceKm
-                                    ).toFixed(1)} km`
-                                  : ""}
+                                {o.customer.deliveryVillageLabelHe
+                                  ? ` · ${o.customer.deliveryVillageLabelHe}`
+                                  : o.customer.deliveryDistanceKm != null
+                                    ? ` · ${
+                                        o.customer.deliveryRouteMode ===
+                                        "air_fallback"
+                                          ? t("checkout.distanceKm")
+                                          : t("checkout.drivingDistanceKm")
+                                      }: ${Number(
+                                        o.customer.deliveryDistanceKm
+                                      ).toFixed(1)} km`
+                                    : ""}
                                 {o.customer.deliveryPayTo === "restaurant_all"
                                   ? ` · ${t("checkout.payRestaurantAll")}`
                                   : o.customer.deliveryPayTo ===

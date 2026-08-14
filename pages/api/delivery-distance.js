@@ -1,17 +1,8 @@
 /**
- * א) q=כתובת → גיאוקוד → מרחק נסיעה (OSRM)
- * ב) lat+lon (או lng) → מרחק נסיעה (למפה)
- * גיבוי: מרחק אווירי אם אין מסלול OSRM
+ * א) q=כתובת → גיאוקוד → זיהוי יישוב
+ * ב) lat+lon (או lng) → זיהוי יישוב מדמי משלוח לפי טבלת כפרים
  */
-import {
-  RESTAURANT_COORDS,
-  deliveryFeeOutsideYarkaNis,
-  haversineKm,
-} from "@/utils/deliveryPricing";
-
-const OSRM_BASE =
-  process.env.OSRM_ROUTE_URL ||
-  "https://router.project-osrm.org/route/v1/driving";
+import { findDeliveryVillage } from "@/utils/deliveryPricing";
 
 /** גבולות משוערים לישראל + סביבה קרובה */
 function inServiceBounds(lat, lon) {
@@ -121,9 +112,25 @@ async function googleReverseFormattedLabel(lat, lon) {
     ) {
       return null;
     }
+    const texts = [];
+    for (const result of data.results.slice(0, 4)) {
+      if (typeof result?.formatted_address === "string") {
+        texts.push(result.formatted_address);
+      }
+      const comps = Array.isArray(result?.address_components)
+        ? result.address_components
+        : [];
+      for (const c of comps) {
+        if (typeof c?.long_name === "string") texts.push(c.long_name);
+        if (typeof c?.short_name === "string") texts.push(c.short_name);
+      }
+    }
     const formatted = data.results[0].formatted_address;
-    if (typeof formatted !== "string" || !formatted.trim()) return null;
-    return trimCountryFromFormattedAddress(formatted);
+    const label =
+      typeof formatted === "string" && formatted.trim()
+        ? trimCountryFromFormattedAddress(formatted)
+        : "";
+    return { label, texts };
   } catch {
     return null;
   }
@@ -177,6 +184,19 @@ async function photonReverseParts(lat, lon) {
   }
 }
 
+function collectNominatimTexts(data) {
+  const texts = [];
+  if (typeof data?.display_name === "string") texts.push(data.display_name);
+  if (typeof data?.name === "string") texts.push(data.name);
+  const addr = data && typeof data.address === "object" ? data.address : null;
+  if (addr) {
+    for (const v of Object.values(addr)) {
+      if (typeof v === "string" && v.trim()) texts.push(v.trim());
+    }
+  }
+  return texts;
+}
+
 /** בונה תווית מ־Nominatim; מעדיף display_name המלא (רחוב/יישוב/מחוז/ישראל) ולא רק שם יישוב */
 function buildReverseLabelFromNominatim(data) {
   const addr = data && typeof data.address === "object" ? data.address : null;
@@ -221,13 +241,7 @@ function buildReverseLabelFromNominatim(data) {
   return { label: label.trim(), hasPreciseLabel };
 }
 
-async function resolveDisplayNameForPin(lat, lon) {
-  const googleLabel = await googleReverseFormattedLabel(lat, lon);
-  if (googleLabel) {
-    return (simplifyNominatimDisplayName(googleLabel) || googleLabel).trim();
-  }
-
-  let data = null;
+async function fetchNominatimReverse(lat, lon) {
   try {
     const url =
       `https://nominatim.openstreetmap.org/reverse?format=json` +
@@ -239,9 +253,24 @@ async function resolveDisplayNameForPin(lat, lon) {
         "Accept-Language": "he,ar,en",
       },
     });
-    if (r.ok) data = await r.json();
+    if (r.ok) return await r.json();
   } catch {
     /* ignore */
+  }
+  return null;
+}
+
+async function resolvePinContext(lat, lon) {
+  const texts = [];
+  const [google, data] = await Promise.all([
+    googleReverseFormattedLabel(lat, lon),
+    fetchNominatimReverse(lat, lon),
+  ]);
+  if (google?.texts?.length) texts.push(...google.texts);
+  if (google?.label) texts.push(google.label);
+
+  if (data && typeof data === "object") {
+    texts.push(...collectNominatimTexts(data));
   }
 
   const nom =
@@ -249,11 +278,17 @@ async function resolveDisplayNameForPin(lat, lon) {
       ? buildReverseLabelFromNominatim(data)
       : { label: "", hasPreciseLabel: false };
 
-  let label = nom.label;
-  let precise = nom.hasPreciseLabel;
+  let label = google?.label
+    ? (simplifyNominatimDisplayName(google.label) || google.label).trim()
+    : nom.label;
+  let precise = Boolean(google?.label) || nom.hasPreciseLabel;
+
+  const p = await photonReverseParts(lat, lon);
+  if (p?.locality) texts.push(p.locality);
+  if (p?.streetLine) texts.push(p.streetLine);
+  if (p?.fallbackName) texts.push(p.fallbackName);
 
   if (!precise) {
-    const p = await photonReverseParts(lat, lon);
     if (p?.streetLine) {
       const loc =
         p.locality ||
@@ -287,7 +322,7 @@ async function resolveDisplayNameForPin(lat, lon) {
       "נקודה מהמפה — נא לפרט רחוב, מספר בית והערות למשלוח בשדה ההערות למטה";
   }
 
-  return label;
+  return { label, texts };
 }
 
 async function nominatimGeocode(q) {
@@ -314,55 +349,23 @@ async function nominatimGeocode(q) {
   };
 }
 
-async function osrmDrivingKmKm(fromLat, fromLon, toLat, toLon) {
-  const a = `${fromLon},${fromLat}`;
-  const b = `${toLon},${toLat}`;
-  const url = `${OSRM_BASE}/${a};${b}?overview=false`;
-  try {
-    const r = await fetch(url, {
-      headers: { "User-Agent": "BurgerHutOrdering/1.0" },
-    });
-    if (!r.ok) return null;
-    const data = await r.json();
-    if (data.code !== "Ok" || !data.routes?.[0]) return null;
-    const m = data.routes[0].distance;
-    if (typeof m !== "number" || !Number.isFinite(m)) return null;
-    return Math.max(0, m / 1000);
-  } catch {
-    return null;
-  }
-}
-
 async function computeFromCoords(destLat, destLon) {
-  const { lat: rLat, lng: rLng } = RESTAURANT_COORDS;
+  const pin = await resolvePinContext(destLat, destLon);
+  const village = findDeliveryVillage(destLat, destLon, pin.texts);
 
-  const airKm = haversineKm(rLat, rLng, destLat, destLon);
-  if (!Number.isFinite(airKm) || airKm < 0) {
-    return { ok: false, error: "fee" };
+  if (!village) {
+    return { ok: false, error: "unsupported_village" };
   }
-
-  let drivingKm = await osrmDrivingKmKm(rLat, rLng, destLat, destLon);
-  let routingMode = "driving";
-
-  if (drivingKm == null || !Number.isFinite(drivingKm) || drivingKm < 0) {
-    drivingKm = airKm;
-    routingMode = "air_fallback";
-  }
-
-  const fee = deliveryFeeOutsideYarkaNis(drivingKm);
-  if (fee == null) {
-    return { ok: false, error: "fee" };
-  }
-
-  const displayName = await resolveDisplayNameForPin(destLat, destLon);
 
   return {
     ok: true,
-    km: drivingKm,
-    airKm,
-    fee,
-    displayName,
-    routingMode,
+    fee: village.fee,
+    villageId: village.id,
+    villageLabelHe: village.labelHe,
+    villageLabelAr: village.labelAr,
+    displayName: pin.label,
+    routingMode: "village",
+    km: null,
   };
 }
 

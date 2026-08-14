@@ -153,6 +153,13 @@ export function buildWhatsAppOrderText({
     } else if (z === "outside") {
       lines.push(`${waBoldLabel(tr("wa.deliveryArea"))}: ${tr("wa.zoneOutside")}`);
     }
+    const villageName =
+      locale === "ar"
+        ? customer.deliveryVillageLabelAr || customer.deliveryVillageLabelHe
+        : customer.deliveryVillageLabelHe || customer.deliveryVillageLabelAr;
+    if (villageName) {
+      lines.push(`${waBoldLabel(tr("wa.deliveryVillage"))}: ${villageName}`);
+    }
     if (
       customer.deliveryDistanceKm != null &&
       Number.isFinite(Number(customer.deliveryDistanceKm))

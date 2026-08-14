@@ -43,6 +43,20 @@ const DeliveryMapPicker = dynamic(
 const CHEDDAR_SAUCE_ID = "sauce_cheddar";
 const STANDARD_SAUCE_EXTRA_PRICE = 4;
 
+function emptyGeo(overrides = {}) {
+  return {
+    status: "idle",
+    km: null,
+    fee: null,
+    error: null,
+    routingMode: null,
+    villageId: null,
+    villageLabelHe: null,
+    villageLabelAr: null,
+    ...overrides,
+  };
+}
+
 function buildCheckoutDraftSnapshot(form, geo, deliveryMapPoint) {
   return {
     form: {
@@ -62,6 +76,9 @@ function buildCheckoutDraftSnapshot(form, geo, deliveryMapPoint) {
       fee: geo.fee,
       error: geo.error,
       routingMode: geo.routingMode,
+      villageId: geo.villageId ?? null,
+      villageLabelHe: geo.villageLabelHe ?? null,
+      villageLabelAr: geo.villageLabelAr ?? null,
     },
     deliveryMapPoint: deliveryMapPoint
       ? {
@@ -94,13 +111,8 @@ export default function CheckoutPage() {
     deliveryPayTo: "",
   });
 
-  const [geo, setGeo] = useState({
-    status: "idle",
-    km: null,
-    fee: null,
-    error: null,
-    routingMode: null,
-  });
+  const [geo, setGeo] = useState(emptyGeo());
+  const [outOfVillageOpen, setOutOfVillageOpen] = useState(false);
 
   const [deliveryMapPoint, setDeliveryMapPoint] = useState(null);
   const [mapPickerOpen, setMapPickerOpen] = useState(false);
@@ -188,13 +200,18 @@ export default function CheckoutPage() {
         setForm((prev) => ({ ...prev, ...merged }));
       }
       if (d.geo && typeof d.geo === "object") {
-        setGeo({
-          status: d.geo.status ?? "idle",
-          km: d.geo.km ?? null,
-          fee: d.geo.fee ?? null,
-          error: d.geo.error ?? null,
-          routingMode: d.geo.routingMode ?? null,
-        });
+        setGeo(
+          emptyGeo({
+            status: d.geo.status ?? "idle",
+            km: d.geo.km ?? null,
+            fee: d.geo.fee ?? null,
+            error: d.geo.error ?? null,
+            routingMode: d.geo.routingMode ?? null,
+            villageId: d.geo.villageId ?? null,
+            villageLabelHe: d.geo.villageLabelHe ?? null,
+            villageLabelAr: d.geo.villageLabelAr ?? null,
+          })
+        );
       }
       if (Object.prototype.hasOwnProperty.call(d, "deliveryMapPoint")) {
         setDeliveryMapPoint(d.deliveryMapPoint || null);
@@ -364,13 +381,7 @@ export default function CheckoutPage() {
         addressDetail: "",
         deliveryPayTo: "",
       }));
-      setGeo({
-        status: "idle",
-        km: null,
-        fee: null,
-        error: null,
-        routingMode: null,
-      });
+      setGeo(emptyGeo());
       setDeliveryMapPoint(null);
     }
   }, [form.orderType]);
@@ -429,13 +440,7 @@ export default function CheckoutPage() {
       deliveryPayTo: "",
     }));
     setDeliveryMapPoint(null);
-    setGeo({
-      status: "idle",
-      km: null,
-      fee: null,
-      error: null,
-      routingMode: null,
-    });
+    setGeo(emptyGeo());
   };
 
   const openMapPicker = () => {
@@ -449,22 +454,10 @@ export default function CheckoutPage() {
     const lngN = Number(lng);
     if (!Number.isFinite(latN) || !Number.isFinite(lngN)) {
       setMapApplyError(t("checkout.mapErrBadCoords"));
-      setGeo({
-        status: "error",
-        km: null,
-        fee: null,
-        error: "bad_coords",
-        routingMode: null,
-      });
+      setGeo(emptyGeo({ status: "error", error: "bad_coords" }));
       return;
     }
-    setGeo({
-      status: "loading",
-      km: null,
-      fee: null,
-      error: null,
-      routingMode: null,
-    });
+    setGeo(emptyGeo({ status: "loading" }));
     try {
       const r = await fetch(
         `/api/delivery-distance?lat=${encodeURIComponent(String(latN))}&lon=${encodeURIComponent(
@@ -479,13 +472,11 @@ export default function CheckoutPage() {
       }
       if (!data.ok) {
         const err = data.error || "unknown";
-        setGeo({
-          status: "error",
-          km: null,
-          fee: null,
-          error: err,
-          routingMode: null,
-        });
+        setGeo(emptyGeo({ status: "error", error: err }));
+        if (err === "unsupported_village") {
+          setOutOfVillageOpen(true);
+          return;
+        }
         const msg =
           err === "out_of_bounds"
             ? t("checkout.mapErrBounds")
@@ -506,22 +497,20 @@ export default function CheckoutPage() {
         lng: lngN,
         label: data.displayName || t("checkout.mapAddressFallback"),
       });
-      setGeo({
-        status: "ok",
-        km: data.km,
-        fee: data.fee,
-        error: null,
-        routingMode: data.routingMode || "driving",
-      });
+      setGeo(
+        emptyGeo({
+          status: "ok",
+          km: data.km ?? null,
+          fee: data.fee,
+          routingMode: data.routingMode || "village",
+          villageId: data.villageId || null,
+          villageLabelHe: data.villageLabelHe || null,
+          villageLabelAr: data.villageLabelAr || null,
+        })
+      );
       setMapPickerOpen(false);
     } catch {
-      setGeo({
-        status: "error",
-        km: null,
-        fee: null,
-        error: "network",
-        routingMode: null,
-      });
+      setGeo(emptyGeo({ status: "error", error: "network" }));
       setMapApplyError(t("checkout.mapErrNetwork"));
     }
   };
@@ -581,6 +570,9 @@ export default function CheckoutPage() {
       deliveryZone: form.deliveryZone,
       deliveryFeeNis:
         deliveryFeeNis != null ? deliveryFeeNis : undefined,
+      deliveryVillageId: geo.villageId || undefined,
+      deliveryVillageLabelHe: geo.villageLabelHe || undefined,
+      deliveryVillageLabelAr: geo.villageLabelAr || undefined,
       deliveryDistanceKm:
         (form.deliveryZone === "yarka" || form.deliveryZone === "outside") &&
         geo.status === "ok" &&
@@ -1253,20 +1245,13 @@ export default function CheckoutPage() {
                 {(form.deliveryZone === "outside" ||
                   form.deliveryZone === "yarka") &&
                 geo.status === "ok" &&
-                geo.km != null ? (
-                  <div className="space-y-0.5">
-                    <p className="text-[10px] text-gray-500">
-                      {geo.routingMode === "air_fallback"
-                        ? t("checkout.distanceKm")
-                        : t("checkout.drivingDistanceKm")}
-                      : {geo.km.toFixed(1)} km
-                    </p>
-                    {geo.routingMode === "air_fallback" ? (
-                      <p className="text-[10px] text-amber-200/90">
-                        {t("checkout.airFallbackNote")}
-                      </p>
-                    ) : null}
-                  </div>
+                (geo.villageLabelHe || geo.villageLabelAr) ? (
+                  <p className="text-[10px] text-gray-500">
+                    {t("checkout.deliveryVillageLine")}:{" "}
+                    {locale === "ar"
+                      ? geo.villageLabelAr || geo.villageLabelHe
+                      : geo.villageLabelHe || geo.villageLabelAr}
+                  </p>
                 ) : null}
               </>
             ) : form.orderType === "delivery" &&
@@ -1759,6 +1744,47 @@ export default function CheckoutPage() {
         applyError={mapApplyError}
         onConfirm={(lat, lng) => applyDeliveryMapPoint(lat, lng)}
       />
+
+      {outOfVillageOpen ? (
+        <div
+          className="fixed inset-0 z-[700] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+          role="presentation"
+          onClick={() => setOutOfVillageOpen(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-2xl"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="out-of-village-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3
+              id="out-of-village-title"
+              className="mb-3 text-base font-bold text-primary"
+            >
+              {t("checkout.outOfVillageTitle")}
+            </h3>
+            <p className="text-sm leading-relaxed text-gray-100">
+              {t("checkout.outOfVillageBody")}
+            </p>
+            <div className="mt-5 flex flex-col gap-2">
+              <a
+                href={`tel:${String(t("home.contactPhoneValue")).replace(/\s/g, "")}`}
+                className="btn-primary flex w-full items-center justify-center text-sm"
+              >
+                {t("checkout.outOfVillageCall")}
+              </a>
+              <button
+                type="button"
+                onClick={() => setOutOfVillageOpen(false)}
+                className="w-full rounded-xl border border-slate-600 py-2.5 text-sm font-semibold text-gray-200 hover:bg-slate-800"
+              >
+                {t("checkout.outOfVillageClose")}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </Layout>
   );
 }

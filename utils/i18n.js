@@ -528,7 +528,12 @@ const HE = {
   "checkout.mapChange": "שינוי מיקום במפה",
   "checkout.mapTitle": "בחירת כתובת במפה",
   "checkout.mapTapHint":
-    "הזיזו את המפה, לחצו על נקודת היעד — נחשב מרחק נסיעה מהמסעדה.",
+    "הזיזו את המפה או לחצו «בחר המיקום שלי». דמי המשלוח לפי היישוב: ירכא ₪25, גוליס ₪30, אבו סנאן ₪35, כפר יסיף ₪40, גת ₪35, יאנוח ₪40.",
+  "checkout.deliveryVillageLine": "יישוב",
+  "checkout.outOfVillageTitle": "מחוץ לאזור המשלוח המתומחר",
+  "checkout.outOfVillageBody": "התקשרו למסעדה לברר עלות משלוח",
+  "checkout.outOfVillageCall": "התקשרו למסעדה",
+  "checkout.outOfVillageClose": "סגירה",
   "checkout.mapUseMyLocation": "בחר המיקום שלי",
   "checkout.mapLocating": "מאתרים את המיקום…",
   "checkout.mapLocateDenied":
@@ -710,6 +715,7 @@ const HE = {
   "wa.airDistance": "מרחק אווירי (משוער)",
   "wa.drivingDistance": "מרחק נסיעה משוער (כביש)",
   "wa.deliveryDistanceApprox": "מרחק משוער",
+  "wa.deliveryVillage": "יישוב למשלוח",
   "wa.deliveryFee": "דמי משלוח",
   "wa.payRestaurantInclDelivery": "תשלום למסעדה כולל דמי משלוח",
   "wa.payCourierCashFull":
@@ -1642,7 +1648,12 @@ const AR = {
   "checkout.mapChange": "تغيير الموقع على الخريطة",
   "checkout.mapTitle": "اختيار العنوان على الخريطة",
   "checkout.mapTapHint":
-    "حرّك الخريطة واضغط على نقطة الوصول — نحسب مسافة القيادة من المطعم.",
+    "حرّكوا الخريطة أو اضغطوا «اختر موقعي». أجور التوصيل حسب البلدة: يركا ₪25، جولس ₪30، أبو سنان ₪35، كفر ياسيف ₪40، جت ₪35، يانوح ₪40.",
+  "checkout.deliveryVillageLine": "البلدة",
+  "checkout.outOfVillageTitle": "خارج منطقة التوصيل المسعّرة",
+  "checkout.outOfVillageBody": "اتصلوا بالمطعم للاستفسار عن تكلفة التوصيل",
+  "checkout.outOfVillageCall": "الاتصال بالمطعم",
+  "checkout.outOfVillageClose": "إغلاق",
   "checkout.mapUseMyLocation": "اختر موقعي",
   "checkout.mapLocating": "جارٍ تحديد الموقع…",
   "checkout.mapLocateDenied":
@@ -1827,6 +1838,7 @@ const AR = {
   "wa.airDistance": "مسافة جوية (تقريبية)",
   "wa.drivingDistance": "مسافة قيادة تقريبية (طرق)",
   "wa.deliveryDistanceApprox": "مسافة تقريبية",
+  "wa.deliveryVillage": "بلدة التوصيل",
   "wa.deliveryFee": "أجور التوصيل",
   "wa.payRestaurantInclDelivery": "الدفع للمطعم شاملاً أجور التوصيل",
   "wa.payCourierCashFull":
