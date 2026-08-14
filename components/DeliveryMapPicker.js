@@ -4,6 +4,24 @@ import {
 } from "@/utils/deliveryPricing";
 import { DELIVERY_VILLAGE_BORDERS } from "@/utils/deliveryVillageBorders";
 
+const STREET_TILES = {
+  url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  options: {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19,
+  },
+};
+
+const SATELLITE_TILES = {
+  url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+  options: {
+    attribution:
+      "Tiles &copy; Esri — Esri, Maxar, Earthstar Geographics",
+    maxZoom: 19,
+  },
+};
+
 const VILLAGE_BORDER_COLORS = {
   yarka: "#22c55e",
   julis: "#38bdf8",
@@ -34,9 +52,12 @@ export default function DeliveryMapPicker({
   const mapRef = useRef(null);
   const markerLayerRef = useRef(null);
   const leafletRef = useRef(null);
+  const streetLayerRef = useRef(null);
+  const satelliteLayerRef = useRef(null);
   const [picked, setPicked] = useState(null);
   const [locating, setLocating] = useState(false);
   const [locateError, setLocateError] = useState("");
+  const [mapMode, setMapMode] = useState("street");
 
   const placeMarker = (lat, lng) => {
     const map = mapRef.current;
@@ -54,6 +75,7 @@ export default function DeliveryMapPicker({
       setPicked(null);
       setLocating(false);
       setLocateError("");
+      setMapMode("street");
       return;
     }
 
@@ -80,11 +102,14 @@ export default function DeliveryMapPicker({
         scrollWheelZoom: true,
       }).setView([centerLat, centerLng], zoom);
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 19,
-      }).addTo(map);
+      const streetLayer = L.tileLayer(STREET_TILES.url, STREET_TILES.options);
+      const satelliteLayer = L.tileLayer(
+        SATELLITE_TILES.url,
+        SATELLITE_TILES.options
+      );
+      streetLayer.addTo(map);
+      streetLayerRef.current = streetLayer;
+      satelliteLayerRef.current = satelliteLayer;
 
       const borders = L.geoJSON(DELIVERY_VILLAGE_BORDERS, {
         style: (feat) => {
@@ -155,8 +180,27 @@ export default function DeliveryMapPicker({
       }
       markerLayerRef.current = null;
       leafletRef.current = null;
+      streetLayerRef.current = null;
+      satelliteLayerRef.current = null;
     };
   }, [open, centerLat, centerLng, zoom, locale, prefillLat, prefillLng]);
+
+  const switchMapMode = (mode) => {
+    const map = mapRef.current;
+    const street = streetLayerRef.current;
+    const satellite = satelliteLayerRef.current;
+    if (!map || !street || !satellite || mapMode === mode) return;
+    if (mode === "satellite") {
+      if (map.hasLayer(street)) map.removeLayer(street);
+      if (!map.hasLayer(satellite)) satellite.addTo(map);
+      satellite.bringToBack();
+    } else {
+      if (map.hasLayer(satellite)) map.removeLayer(satellite);
+      if (!map.hasLayer(street)) street.addTo(map);
+      street.bringToBack();
+    }
+    setMapMode(mode);
+  };
 
   const useMyLocation = (e) => {
     e?.preventDefault?.();
@@ -180,18 +224,43 @@ export default function DeliveryMapPicker({
       placeMarker(lat, lng);
     };
 
-    navigator.geolocation.getCurrentPosition(
-      applyPosition,
-      () => {
-        setLocating(false);
-        setLocateError(labels.locateDenied || "");
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 20000,
-        maximumAge: 0,
+    const onError = (err) => {
+      const code = Number(err?.code);
+      if (code === 3) {
+        navigator.geolocation.getCurrentPosition(
+          applyPosition,
+          (retryErr) => {
+            setLocating(false);
+            const retryCode = Number(retryErr?.code);
+            if (retryCode === 1) {
+              setLocateError(labels.locateDenied || "");
+            } else if (retryCode === 3) {
+              setLocateError(labels.locateTimeout || "");
+            } else {
+              setLocateError(labels.locateUnavailable || "");
+            }
+          },
+          {
+            enableHighAccuracy: false,
+            timeout: 20000,
+            maximumAge: 60000,
+          }
+        );
+        return;
       }
-    );
+      setLocating(false);
+      if (code === 1) {
+        setLocateError(labels.locateDenied || "");
+      } else {
+        setLocateError(labels.locateUnavailable || "");
+      }
+    };
+
+    navigator.geolocation.getCurrentPosition(applyPosition, onError, {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 10000,
+    });
   };
 
   if (!open) return null;
@@ -238,11 +307,37 @@ export default function DeliveryMapPicker({
             </p>
           ) : null}
         </div>
-        <div
-          ref={containerRef}
-          className="relative z-0 min-h-[min(50vh,320px)] w-full flex-1 border-y border-bh-border"
-          style={{ minHeight: "min(50vh, 360px)" }}
-        />
+        <div className="relative min-h-[min(50vh,320px)] w-full flex-1 border-y border-bh-border">
+          <div
+            ref={containerRef}
+            className="relative z-0 h-full min-h-[min(50vh,320px)] w-full"
+            style={{ minHeight: "min(50vh, 360px)" }}
+          />
+          <div className="pointer-events-auto absolute right-2 top-2 z-[500] flex overflow-hidden rounded-lg border border-bh-border-strong bg-bh-card/95 shadow-lg backdrop-blur-sm">
+            <button
+              type="button"
+              onClick={() => switchMapMode("street")}
+              className={`px-2.5 py-1.5 text-[11px] font-bold ${
+                mapMode === "street"
+                  ? "bg-primary text-black"
+                  : "text-bh-muted hover:bg-bh-elevated hover:text-bh-text"
+              }`}
+            >
+              {labels.mapStreet || "מפה"}
+            </button>
+            <button
+              type="button"
+              onClick={() => switchMapMode("satellite")}
+              className={`px-2.5 py-1.5 text-[11px] font-bold ${
+                mapMode === "satellite"
+                  ? "bg-primary text-black"
+                  : "text-bh-muted hover:bg-bh-elevated hover:text-bh-text"
+              }`}
+            >
+              {labels.mapSatellite || "לוויין"}
+            </button>
+          </div>
+        </div>
         {applyError ? (
           <p className="px-3 py-2 text-[11px] text-red-400">{applyError}</p>
         ) : null}

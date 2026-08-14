@@ -120,8 +120,6 @@ export default function CheckoutPage() {
 
   const [deliveryMapPoint, setDeliveryMapPoint] = useState(null);
   const [mapPickerOpen, setMapPickerOpen] = useState(false);
-  const [mapPrefill, setMapPrefill] = useState(null);
-  const [gpsBusy, setGpsBusy] = useState(false);
   const [mapApplyError, setMapApplyError] = useState("");
 
   const [errors, setErrors] = useState({});
@@ -432,34 +430,7 @@ export default function CheckoutPage() {
 
   const openMapPicker = () => {
     setMapApplyError("");
-    const openMap = (prefill) => {
-      setMapPrefill(prefill || null);
-      setMapPickerOpen(true);
-    };
-    if (typeof navigator === "undefined" || !navigator.geolocation) {
-      openMap(null);
-      return;
-    }
-    setGpsBusy(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = Number(pos?.coords?.latitude);
-        const lng = Number(pos?.coords?.longitude);
-        setGpsBusy(false);
-        openMap(
-          Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null
-        );
-      },
-      () => {
-        setGpsBusy(false);
-        openMap(null);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 20000,
-        maximumAge: 0,
-      }
-    );
+    setMapPickerOpen(true);
   };
 
   const applyDeliveryMapPoint = async (lat, lng) => {
@@ -1431,14 +1402,11 @@ export default function CheckoutPage() {
                 id="delivery-address-trigger"
                 type="button"
                 onClick={openMapPicker}
-                disabled={gpsBusy}
-                className="w-full rounded-xl border border-primary/70 bg-primary/10 py-3 text-sm font-bold text-primary transition-colors hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-xl border border-primary/70 bg-primary/10 py-3 text-sm font-bold text-primary transition-colors hover:bg-primary/20"
               >
-                {gpsBusy
-                  ? t("checkout.mapLocating")
-                  : deliveryMapPoint
-                    ? t("checkout.mapChange")
-                    : t("checkout.pickLocation")}
+                {deliveryMapPoint
+                  ? t("checkout.mapChange")
+                  : t("checkout.pickLocation")}
               </button>
               {deliveryMapPoint?.label ? (
                 <p className="text-xs leading-snug text-gray-200">
@@ -1701,8 +1669,8 @@ export default function CheckoutPage() {
         open={mapPickerOpen}
         onClose={() => setMapPickerOpen(false)}
         locale={locale}
-        prefillLat={mapPrefill?.lat}
-        prefillLng={mapPrefill?.lng}
+        prefillLat={deliveryMapPoint?.lat}
+        prefillLng={deliveryMapPoint?.lng}
         centerLat={RESTAURANT_COORDS.lat}
         centerLng={RESTAURANT_COORDS.lng}
         labels={{
@@ -1717,6 +1685,8 @@ export default function CheckoutPage() {
           locateUnavailable: t("checkout.mapLocateUnavailable"),
           locateTimeout: t("checkout.mapLocateTimeout"),
           locateUnsupported: t("checkout.mapLocateUnsupported"),
+          mapStreet: t("checkout.mapStreet"),
+          mapSatellite: t("checkout.mapSatellite"),
         }}
         isApplying={geo.status === "loading"}
         applyError={mapApplyError}
