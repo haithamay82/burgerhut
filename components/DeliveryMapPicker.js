@@ -17,11 +17,27 @@ export default function DeliveryMapPicker({
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const markerLayerRef = useRef(null);
+  const leafletRef = useRef(null);
   const [picked, setPicked] = useState(null);
+  const [locating, setLocating] = useState(false);
+  const [locateError, setLocateError] = useState("");
+
+  const placeMarker = (lat, lng) => {
+    const map = mapRef.current;
+    const L = leafletRef.current;
+    if (!map || !L) return;
+    if (markerLayerRef.current) {
+      map.removeLayer(markerLayerRef.current);
+    }
+    markerLayerRef.current = L.marker([lat, lng]).addTo(map);
+    map.setView([lat, lng], Math.max(map.getZoom(), 16));
+  };
 
   useEffect(() => {
     if (!open) {
       setPicked(null);
+      setLocating(false);
+      setLocateError("");
       return;
     }
 
@@ -32,6 +48,7 @@ export default function DeliveryMapPicker({
       await import("leaflet/dist/leaflet.css");
       const L = (await import("leaflet")).default;
       if (cancelled || !containerRef.current) return;
+      leafletRef.current = L;
 
       delete L.Icon.Default.prototype._getIconUrl;
       L.Icon.Default.mergeOptions({
@@ -55,6 +72,7 @@ export default function DeliveryMapPicker({
 
       map.on("click", (e) => {
         const { lat, lng } = e.latlng;
+        setLocateError("");
         setPicked({ lat, lng });
         if (markerLayerRef.current) {
           map.removeLayer(markerLayerRef.current);
@@ -75,8 +93,48 @@ export default function DeliveryMapPicker({
         mapRef.current = null;
       }
       markerLayerRef.current = null;
+      leafletRef.current = null;
     };
   }, [open, centerLat, centerLng, zoom]);
+
+  const useMyLocation = () => {
+    if (isApplying || locating) return;
+    setLocateError("");
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setLocateError(labels.locateUnsupported || "");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = Number(pos?.coords?.latitude);
+        const lng = Number(pos?.coords?.longitude);
+        setLocating(false);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+          setLocateError(labels.locateUnavailable || "");
+          return;
+        }
+        setPicked({ lat, lng });
+        placeMarker(lat, lng);
+      },
+      (err) => {
+        setLocating(false);
+        const code = Number(err?.code);
+        if (code === 1) {
+          setLocateError(labels.locateDenied || "");
+        } else if (code === 3) {
+          setLocateError(labels.locateTimeout || "");
+        } else {
+          setLocateError(labels.locateUnavailable || "");
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 10000,
+      }
+    );
+  };
 
   if (!open) return null;
 
@@ -107,6 +165,21 @@ export default function DeliveryMapPicker({
         <p className="px-3 py-2 text-[11px] leading-snug text-bh-faint">
           {labels.hint}
         </p>
+        <div className="px-3 pb-2">
+          <button
+            type="button"
+            disabled={isApplying || locating}
+            onClick={useMyLocation}
+            className="w-full rounded-xl border border-primary/70 bg-primary/10 py-2.5 text-sm font-bold text-primary transition-colors hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {locating ? labels.locating : labels.useMyLocation}
+          </button>
+          {locateError ? (
+            <p className="mt-2 text-[11px] leading-snug text-amber-200/90">
+              {locateError}
+            </p>
+          ) : null}
+        </div>
         <div
           ref={containerRef}
           className="relative z-0 min-h-[min(50vh,320px)] w-full flex-1 border-y border-bh-border"

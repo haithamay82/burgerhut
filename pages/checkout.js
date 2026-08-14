@@ -1748,6 +1748,12 @@ export default function CheckoutPage() {
           confirm: t("checkout.mapConfirm"),
           cancel: t("checkout.mapCancel"),
           applying: t("checkout.mapApplying"),
+          useMyLocation: t("checkout.mapUseMyLocation"),
+          locating: t("checkout.mapLocating"),
+          locateDenied: t("checkout.mapLocateDenied"),
+          locateUnavailable: t("checkout.mapLocateUnavailable"),
+          locateTimeout: t("checkout.mapLocateTimeout"),
+          locateUnsupported: t("checkout.mapLocateUnsupported"),
         }}
         isApplying={geo.status === "loading"}
         applyError={mapApplyError}

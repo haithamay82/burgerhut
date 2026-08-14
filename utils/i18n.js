@@ -529,6 +529,14 @@ const HE = {
   "checkout.mapTitle": "בחירת כתובת במפה",
   "checkout.mapTapHint":
     "הזיזו את המפה, לחצו על נקודת היעד — נחשב מרחק נסיעה מהמסעדה.",
+  "checkout.mapUseMyLocation": "בחר המיקום שלי",
+  "checkout.mapLocating": "מאתרים את המיקום…",
+  "checkout.mapLocateDenied":
+    "שירות המיקום כבוי או חסום. הפעילו מיקום בהגדרות הטלפון/הדפדפן ואשרו גישה לאתר, ואז לחצו שוב.",
+  "checkout.mapLocateUnavailable":
+    "לא הצלחנו לקבל את המיקום. בדקו ששירות המיקום מופעל ונסו שוב.",
+  "checkout.mapLocateTimeout": "פג הזמן לאיתור המיקום. נסו שוב.",
+  "checkout.mapLocateUnsupported": "הדפדפן לא תומך בשירות מיקום.",
   "checkout.mapConfirm": "אישור והחלת מיקום",
   "checkout.mapCancel": "ביטול",
   "checkout.mapApplying": "מחשבים משלוח…",
@@ -1635,6 +1643,14 @@ const AR = {
   "checkout.mapTitle": "اختيار العنوان على الخريطة",
   "checkout.mapTapHint":
     "حرّك الخريطة واضغط على نقطة الوصول — نحسب مسافة القيادة من المطعم.",
+  "checkout.mapUseMyLocation": "اختر موقعي",
+  "checkout.mapLocating": "جارٍ تحديد الموقع…",
+  "checkout.mapLocateDenied":
+    "خدمة الموقع متوقفة أو محظورة. فعّلوا الموقع من إعدادات الهاتف/المتصفح واسمحوا للموقع، ثم اضغطوا مرة أخرى.",
+  "checkout.mapLocateUnavailable":
+    "تعذّر الحصول على الموقع. تأكدوا أن خدمة الموقع مفعّلة ثم حاولوا مرة أخرى.",
+  "checkout.mapLocateTimeout": "انتهى وقت تحديد الموقع. حاولوا مرة أخرى.",
+  "checkout.mapLocateUnsupported": "المتصفح لا يدعم خدمة الموقع.",
   "checkout.mapConfirm": "تأكيد وتطبيق الموقع",
   "checkout.mapCancel": "إلغاء",
   "checkout.mapApplying": "جارٍ حساب التوصيل…",
