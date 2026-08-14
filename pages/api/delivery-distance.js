@@ -354,7 +354,11 @@ async function computeFromCoords(destLat, destLon) {
   const village = findDeliveryVillage(destLat, destLon, pin.texts);
 
   if (!village) {
-    return { ok: false, error: "unsupported_village" };
+    return {
+      ok: false,
+      error: "unsupported_village",
+      displayName: pin.label || "",
+    };
   }
 
   return {

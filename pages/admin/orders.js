@@ -4703,10 +4703,13 @@ export default function AdminOrdersPage() {
                               </p>
                             ) : null}
                             {o.customer?.orderType === "delivery" &&
-                            o.customer?.deliveryFeeNis != null ? (
+                            (o.customer?.deliveryFeeNis != null ||
+                              o.customer?.deliveryFeeAgreed) ? (
                               <p className="mb-1 text-[11px] text-gray-400">
-                                {t("checkout.deliveryFeeLine")}: ₪
-                                {Number(o.customer.deliveryFeeNis).toFixed(0)}
+                                {t("checkout.deliveryFeeLine")}:{" "}
+                                {o.customer?.deliveryFeeAgreed
+                                  ? t("checkout.deliveryFeeAgreedValue")
+                                  : `₪${Number(o.customer.deliveryFeeNis).toFixed(0)}`}
                                 {o.customer.deliveryVillageLabelHe
                                   ? ` · ${o.customer.deliveryVillageLabelHe}`
                                   : o.customer.deliveryDistanceKm != null
@@ -4730,7 +4733,10 @@ export default function AdminOrdersPage() {
                                     : o.customer.deliveryPayTo ===
                                         "courier_all_cash"
                                       ? ` · ${t("checkout.payCourierCashFull")}`
-                                      : ""}
+                                      : o.customer.deliveryPayTo ===
+                                          "courier_agreed_cash"
+                                        ? ` · ${t("checkout.deliveryFeeAgreedValue")}`
+                                        : ""}
                               </p>
                             ) : null}
                             {Number(o.customer?.discountAmountNis) > 0 ? (

@@ -527,13 +527,19 @@ const HE = {
   "checkout.mapOpenField": "לחצו לפתיחת מפה ובחירת נקודת משלוח",
   "checkout.mapChange": "שינוי מיקום במפה",
   "checkout.mapTitle": "בחירת כתובת במפה",
+  "checkout.pickLocation": "בחר מיקום",
   "checkout.mapTapHint":
-    "הזיזו את המפה או לחצו «בחר המיקום שלי». דמי המשלוח לפי היישוב: ירכא ₪25, גוליס ₪30, אבו סנאן ₪35, כפר יסיף ₪40, גת ₪35, יאנוח ₪40.",
+    "הזיזו את המפה או לחצו «בחר המיקום שלי». הגבולות הצבעוניים הם אזורי המשלוח: ירכא ₪25, גוליס ₪30, אבו סנאן ₪35, כפר יסיף ₪40, גת ₪35, יאנוח ₪40.",
   "checkout.deliveryVillageLine": "יישוב",
   "checkout.outOfVillageTitle": "מחוץ לאזור המשלוח המתומחר",
   "checkout.outOfVillageBody": "התקשרו למסעדה לברר עלות משלוח",
   "checkout.outOfVillageCall": "התקשרו למסעדה",
   "checkout.outOfVillageClose": "סגירה",
+  "checkout.outOfVillagePayCash":
+    "אני מודע לעלות המשלוח ואשלם במזומן לשליח",
+  "checkout.deliveryFeeAgreedValue": "תואמה עם המסעדה",
+  "checkout.agreedDeliveryPayHint":
+    "דמי המשלוח ישולמו במזומן לשליח לפי מה שתואם עם המסעדה. סכום המזון לפי אמצעי התשלום שנבחר.",
   "checkout.mapUseMyLocation": "בחר המיקום שלי",
   "checkout.mapLocating": "מאתרים את המיקום…",
   "checkout.mapLocateDenied":
@@ -716,8 +722,11 @@ const HE = {
   "wa.drivingDistance": "מרחק נסיעה משוער (כביש)",
   "wa.deliveryDistanceApprox": "מרחק משוער",
   "wa.deliveryVillage": "יישוב למשלוח",
+  "wa.deliveryFeeAgreed": "תואמה עם המסעדה",
   "wa.deliveryFee": "דמי משלוח",
   "wa.payRestaurantInclDelivery": "תשלום למסעדה כולל דמי משלוח",
+  "wa.payCourierAgreed":
+    "דמי משלוח במזומן לשליח — תואמה עם המסעדה",
   "wa.payCourierCashFull":
     "מזומן לשליח: סכום מלא (מזון + דמי משלוח) — לשלם לשליח בביקור",
 
@@ -1647,13 +1656,19 @@ const AR = {
   "checkout.mapOpenField": "اضغط لفتح الخريطة واختيار نقطة التوصيل",
   "checkout.mapChange": "تغيير الموقع على الخريطة",
   "checkout.mapTitle": "اختيار العنوان على الخريطة",
+  "checkout.pickLocation": "اختر الموقع",
   "checkout.mapTapHint":
-    "حرّكوا الخريطة أو اضغطوا «اختر موقعي». أجور التوصيل حسب البلدة: يركا ₪25، جولس ₪30، أبو سنان ₪35، كفر ياسيف ₪40، جت ₪35، يانوح ₪40.",
+    "حرّكوا الخريطة أو اضغطوا «اختر موقعي». الحدود الملوّنة هي مناطق التوصيل: يركا ₪25، جولس ₪30، أبو سنان ₪35، كفر ياسيف ₪40، جت ₪35، يانوح ₪40.",
   "checkout.deliveryVillageLine": "البلدة",
   "checkout.outOfVillageTitle": "خارج منطقة التوصيل المسعّرة",
   "checkout.outOfVillageBody": "اتصلوا بالمطعم للاستفسار عن تكلفة التوصيل",
   "checkout.outOfVillageCall": "الاتصال بالمطعم",
   "checkout.outOfVillageClose": "إغلاق",
+  "checkout.outOfVillagePayCash":
+    "أنا على علم بتكلفة التوصيل وسأدفع نقداً للساعي",
+  "checkout.deliveryFeeAgreedValue": "متفق عليها مع المطعم",
+  "checkout.agreedDeliveryPayHint":
+    "أجور التوصيل تُدفع نقداً للساعي حسب الاتفاق مع المطعم. مبلغ الطعام حسب وسيلة الدفع المختارة.",
   "checkout.mapUseMyLocation": "اختر موقعي",
   "checkout.mapLocating": "جارٍ تحديد الموقع…",
   "checkout.mapLocateDenied":
@@ -1839,8 +1854,11 @@ const AR = {
   "wa.drivingDistance": "مسافة قيادة تقريبية (طرق)",
   "wa.deliveryDistanceApprox": "مسافة تقريبية",
   "wa.deliveryVillage": "بلدة التوصيل",
+  "wa.deliveryFeeAgreed": "متفق عليها مع المطعم",
   "wa.deliveryFee": "أجور التوصيل",
   "wa.payRestaurantInclDelivery": "الدفع للمطعم شاملاً أجور التوصيل",
+  "wa.payCourierAgreed":
+    "أجور التوصيل نقداً للساعي — متفق عليها مع المطعم",
   "wa.payCourierCashFull":
     "نقداً للساعي: المبلغ كاملاً (طعام + توصيل) — عند الزيارة",
 

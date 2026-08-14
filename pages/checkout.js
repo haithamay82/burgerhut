@@ -53,6 +53,7 @@ function emptyGeo(overrides = {}) {
     villageId: null,
     villageLabelHe: null,
     villageLabelAr: null,
+    agreedWithRestaurant: false,
     ...overrides,
   };
 }
@@ -79,6 +80,7 @@ function buildCheckoutDraftSnapshot(form, geo, deliveryMapPoint) {
       villageId: geo.villageId ?? null,
       villageLabelHe: geo.villageLabelHe ?? null,
       villageLabelAr: geo.villageLabelAr ?? null,
+      agreedWithRestaurant: Boolean(geo.agreedWithRestaurant),
     },
     deliveryMapPoint: deliveryMapPoint
       ? {
@@ -113,6 +115,8 @@ export default function CheckoutPage() {
 
   const [geo, setGeo] = useState(emptyGeo());
   const [outOfVillageOpen, setOutOfVillageOpen] = useState(false);
+  const [pendingOutOfVillagePoint, setPendingOutOfVillagePoint] =
+    useState(null);
 
   const [deliveryMapPoint, setDeliveryMapPoint] = useState(null);
   const [mapPickerOpen, setMapPickerOpen] = useState(false);
@@ -210,6 +214,7 @@ export default function CheckoutPage() {
             villageId: d.geo.villageId ?? null,
             villageLabelHe: d.geo.villageLabelHe ?? null,
             villageLabelAr: d.geo.villageLabelAr ?? null,
+            agreedWithRestaurant: Boolean(d.geo.agreedWithRestaurant),
           })
         );
       }
@@ -281,22 +286,11 @@ export default function CheckoutPage() {
 
   const deliveryFeeNis = useMemo(() => {
     if (form.orderType !== "delivery") return 0;
-    if (
-      (form.deliveryZone === "yarka" || form.deliveryZone === "outside") &&
-      geo.status === "ok" &&
-      deliveryMapPoint &&
-      geo.fee != null
-    ) {
+    if (geo.status === "ok" && deliveryMapPoint && geo.fee != null) {
       return geo.fee;
     }
     return null;
-  }, [
-    form.orderType,
-    form.deliveryZone,
-    geo.status,
-    geo.fee,
-    deliveryMapPoint,
-  ]);
+  }, [form.orderType, geo.status, geo.fee, deliveryMapPoint]);
 
   const discountAmountNis = useMemo(() => {
     if (!discountCfg.enabled) return 0;
@@ -383,6 +377,7 @@ export default function CheckoutPage() {
       }));
       setGeo(emptyGeo());
       setDeliveryMapPoint(null);
+      setPendingOutOfVillagePoint(null);
     }
   }, [form.orderType]);
 
@@ -433,16 +428,6 @@ export default function CheckoutPage() {
     }
   };
 
-  const setZone = (zone) => {
-    setForm((prev) => ({
-      ...prev,
-      deliveryZone: zone,
-      deliveryPayTo: "",
-    }));
-    setDeliveryMapPoint(null);
-    setGeo(emptyGeo());
-  };
-
   const openMapPicker = () => {
     setMapApplyError("");
     setMapPickerOpen(true);
@@ -474,6 +459,11 @@ export default function CheckoutPage() {
         const err = data.error || "unknown";
         setGeo(emptyGeo({ status: "error", error: err }));
         if (err === "unsupported_village") {
+          setPendingOutOfVillagePoint({
+            lat: latN,
+            lng: lngN,
+            label: data.displayName || t("checkout.mapAddressFallback"),
+          });
           setOutOfVillageOpen(true);
           return;
         }
@@ -497,6 +487,12 @@ export default function CheckoutPage() {
         lng: lngN,
         label: data.displayName || t("checkout.mapAddressFallback"),
       });
+      setForm((prev) => ({
+        ...prev,
+        deliveryZone: data.villageId === "yarka" ? "yarka" : "outside",
+        deliveryPayTo:
+          prev.deliveryPayTo === "courier_agreed_cash" ? "" : prev.deliveryPayTo,
+      }));
       setGeo(
         emptyGeo({
           status: "ok",
@@ -570,26 +566,21 @@ export default function CheckoutPage() {
       deliveryZone: form.deliveryZone,
       deliveryFeeNis:
         deliveryFeeNis != null ? deliveryFeeNis : undefined,
+      deliveryFeeAgreed: geo.agreedWithRestaurant ? true : undefined,
       deliveryVillageId: geo.villageId || undefined,
       deliveryVillageLabelHe: geo.villageLabelHe || undefined,
       deliveryVillageLabelAr: geo.villageLabelAr || undefined,
       deliveryDistanceKm:
-        (form.deliveryZone === "yarka" || form.deliveryZone === "outside") &&
-        geo.status === "ok" &&
-        geo.km != null
-          ? geo.km
-          : null,
-      deliveryRouteMode:
-        (form.deliveryZone === "yarka" || form.deliveryZone === "outside") &&
-        geo.status === "ok"
-          ? geo.routingMode
-          : null,
+        geo.status === "ok" && geo.km != null ? geo.km : null,
+      deliveryRouteMode: geo.status === "ok" ? geo.routingMode : null,
       deliveryPayTo:
-        form.orderType === "delivery" && deliveryFeeNis != null
-          ? form.payment === "cash"
-            ? "courier_all_cash"
-            : form.deliveryPayTo || undefined
-          : undefined,
+        form.orderType === "delivery" && geo.agreedWithRestaurant
+          ? "courier_agreed_cash"
+          : form.orderType === "delivery" && deliveryFeeNis != null
+            ? form.payment === "cash"
+              ? "courier_all_cash"
+              : form.deliveryPayTo || undefined
+            : undefined,
       ...pricingFields,
     };
   };
@@ -608,15 +599,10 @@ export default function CheckoutPage() {
     }
 
     if (form.orderType === "delivery") {
-      if (!form.deliveryZone) {
-        newErrors.deliveryZone = t("err.deliveryZone");
-      }
-      if (form.deliveryZone === "yarka" || form.deliveryZone === "outside") {
-        if (!deliveryMapPoint) {
-          newErrors.address = t("err.mapRequired");
-        } else if (geo.status !== "ok") {
-          newErrors.deliveryGeocode = t("err.deliveryGeocode");
-        }
+      if (!deliveryMapPoint) {
+        newErrors.address = t("err.mapRequired");
+      } else if (geo.status !== "ok") {
+        newErrors.deliveryGeocode = t("err.deliveryGeocode");
       }
       if (
         deliveryFeeNis != null &&
@@ -1232,7 +1218,16 @@ export default function CheckoutPage() {
                 </span>
               </div>
             ) : null}
-            {form.orderType === "delivery" && deliveryFeeNis != null ? (
+            {form.orderType === "delivery" && geo.agreedWithRestaurant ? (
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-400">
+                  {t("checkout.deliveryFeeLine")}
+                </span>
+                <span className="text-sm font-semibold text-amber-200">
+                  {t("checkout.deliveryFeeAgreedValue")}
+                </span>
+              </div>
+            ) : form.orderType === "delivery" && deliveryFeeNis != null ? (
               <>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-400">
@@ -1242,9 +1237,7 @@ export default function CheckoutPage() {
                     ₪{formatIls(deliveryFeeNis)}
                   </span>
                 </div>
-                {(form.deliveryZone === "outside" ||
-                  form.deliveryZone === "yarka") &&
-                geo.status === "ok" &&
+                {geo.status === "ok" &&
                 (geo.villageLabelHe || geo.villageLabelAr) ? (
                   <p className="text-[10px] text-gray-500">
                     {t("checkout.deliveryVillageLine")}:{" "}
@@ -1254,9 +1247,7 @@ export default function CheckoutPage() {
                   </p>
                 ) : null}
               </>
-            ) : form.orderType === "delivery" &&
-              (form.deliveryZone === "outside" ||
-                form.deliveryZone === "yarka") ? (
+            ) : form.orderType === "delivery" ? (
               <p className="text-[10px] text-amber-200/80">
                 {t("checkout.mapSelectHint")}
               </p>
@@ -1406,114 +1397,60 @@ export default function CheckoutPage() {
           </div>
 
           {form.orderType === "delivery" && (
-            <>
-              <div>
-                <label className="mb-1 block text-[11px] text-gray-300">
-                  {t("checkout.deliveryWhere")}
-                </label>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setZone("yarka")}
-                    className={`flex-1 rounded-full border px-3 py-2 text-[11px] font-semibold ${
-                      form.deliveryZone === "yarka"
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-slate-700 text-gray-300"
-                    }`}
-                  >
-                    {t("checkout.zoneYarka")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setZone("outside")}
-                    className={`flex-1 rounded-full border px-3 py-2 text-[11px] font-semibold ${
-                      form.deliveryZone === "outside"
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-slate-700 text-gray-300"
-                    }`}
-                  >
-                    {t("checkout.zoneOutside")}
-                  </button>
-                </div>
-                {errors.deliveryZone && (
-                  <p className="mt-1 text-[11px] text-red-400">
-                    {errors.deliveryZone}
-                  </p>
-                )}
-              </div>
-
-              {(form.deliveryZone === "yarka" ||
-                form.deliveryZone === "outside") && (
-                <div className="relative space-y-2">
-                  <label
-                    className="mb-1 block text-[11px] text-gray-300"
-                    htmlFor="delivery-address-trigger"
-                  >
-                    {t("checkout.address")}
-                  </label>
-                  <button
-                    id="delivery-address-trigger"
-                    type="button"
-                    onClick={openMapPicker}
-                    className="flex min-h-[2.75rem] w-full items-start rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-left text-xs outline-none ring-primary/40 focus:border-primary focus:ring-2"
-                  >
-                    <span
-                      className={
-                        deliveryMapPoint?.label
-                          ? "text-gray-200"
-                          : "text-gray-500"
-                      }
-                    >
-                      {deliveryMapPoint?.label ||
-                        t("checkout.mapOpenField")}
-                    </span>
-                  </button>
-                  {deliveryMapPoint ? (
-                    <button
-                      type="button"
-                      onClick={openMapPicker}
-                      className="text-[11px] font-semibold text-primary hover:underline"
-                    >
-                      {t("checkout.mapChange")}
-                    </button>
-                  ) : null}
-                  {geo.status === "loading" ? (
-                    <p className="text-[10px] text-gray-500">
-                      {t("checkout.geocoding")}
-                    </p>
-                  ) : null}
-                  {geo.status === "error" && !mapPickerOpen ? (
-                    <p className="text-[11px] text-red-400">
-                      {t("checkout.geocodeFail")}
-                    </p>
-                  ) : null}
-                  <div>
-                    <label className="mb-1 block text-[11px] text-gray-400">
-                      {t("checkout.outsideNotesOptional")}
-                    </label>
-                    <textarea
-                      name="addressDetail"
-                      value={form.addressDetail}
-                      onChange={handleChange}
-                      rows={2}
-                      className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs outline-none focus:border-primary"
-                      placeholder={t("checkout.outsideNotesPh")}
-                    />
-                  </div>
-                  {errors.address && (
-                    <p className="mt-1 text-[11px] text-red-400">
-                      {errors.address}
-                    </p>
-                  )}
-                  {errors.deliveryGeocode && (
-                    <p className="mt-1 text-[11px] text-red-400">
-                      {errors.deliveryGeocode}
-                    </p>
-                  )}
-                </div>
+            <div className="relative space-y-2">
+              <button
+                id="delivery-address-trigger"
+                type="button"
+                onClick={openMapPicker}
+                className="w-full rounded-xl border border-primary/70 bg-primary/10 py-3 text-sm font-bold text-primary transition-colors hover:bg-primary/20"
+              >
+                {deliveryMapPoint
+                  ? t("checkout.mapChange")
+                  : t("checkout.pickLocation")}
+              </button>
+              {deliveryMapPoint?.label ? (
+                <p className="text-xs leading-snug text-gray-200">
+                  {deliveryMapPoint.label}
+                </p>
+              ) : (
+                <p className="text-[11px] text-gray-500">
+                  {t("checkout.mapOpenField")}
+                </p>
               )}
-
-            </>
+              {geo.status === "loading" ? (
+                <p className="text-[10px] text-gray-500">
+                  {t("checkout.geocoding")}
+                </p>
+              ) : null}
+              {geo.status === "error" && !mapPickerOpen ? (
+                <p className="text-[11px] text-red-400">
+                  {t("checkout.geocodeFail")}
+                </p>
+              ) : null}
+              <div>
+                <label className="mb-1 block text-[11px] text-gray-400">
+                  {t("checkout.outsideNotesOptional")}
+                </label>
+                <textarea
+                  name="addressDetail"
+                  value={form.addressDetail}
+                  onChange={handleChange}
+                  rows={2}
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs outline-none focus:border-primary"
+                  placeholder={t("checkout.outsideNotesPh")}
+                />
+              </div>
+              {errors.address && (
+                <p className="mt-1 text-[11px] text-red-400">
+                  {errors.address}
+                </p>
+              )}
+              {errors.deliveryGeocode && (
+                <p className="mt-1 text-[11px] text-red-400">
+                  {errors.deliveryGeocode}
+                </p>
+              )}
+            </div>
           )}
         </div>
 
@@ -1571,7 +1508,13 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        {form.orderType === "delivery" && deliveryFeeNis != null ? (
+        {form.orderType === "delivery" && geo.agreedWithRestaurant ? (
+          <div className="mt-3 space-y-2 rounded-xl border border-slate-700/80 bg-slate-900/40 p-3">
+            <p className="text-[11px] leading-snug text-amber-200/90">
+              {t("checkout.agreedDeliveryPayHint")}
+            </p>
+          </div>
+        ) : form.orderType === "delivery" && deliveryFeeNis != null ? (
           <div className="mt-3 space-y-2 rounded-xl border border-slate-700/80 bg-slate-900/40 p-3">
             {form.payment === "cash" ? (
               <>
@@ -1725,6 +1668,7 @@ export default function CheckoutPage() {
       <DeliveryMapPicker
         open={mapPickerOpen}
         onClose={() => setMapPickerOpen(false)}
+        locale={locale}
         centerLat={RESTAURANT_COORDS.lat}
         centerLng={RESTAURANT_COORDS.lng}
         labels={{
@@ -1749,7 +1693,10 @@ export default function CheckoutPage() {
         <div
           className="fixed inset-0 z-[700] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
           role="presentation"
-          onClick={() => setOutOfVillageOpen(false)}
+          onClick={() => {
+            setOutOfVillageOpen(false);
+            setPendingOutOfVillagePoint(null);
+          }}
         >
           <div
             className="w-full max-w-sm rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-2xl"
@@ -1776,7 +1723,48 @@ export default function CheckoutPage() {
               </a>
               <button
                 type="button"
-                onClick={() => setOutOfVillageOpen(false)}
+                onClick={() => {
+                  const point = pendingOutOfVillagePoint;
+                  if (
+                    !point ||
+                    !Number.isFinite(Number(point.lat)) ||
+                    !Number.isFinite(Number(point.lng))
+                  ) {
+                    return;
+                  }
+                  setDeliveryMapPoint({
+                    lat: Number(point.lat),
+                    lng: Number(point.lng),
+                    label:
+                      point.label || t("checkout.mapAddressFallback"),
+                  });
+                  setForm((prev) => ({
+                    ...prev,
+                    deliveryZone: "outside",
+                    deliveryPayTo: "courier_agreed_cash",
+                  }));
+                  setGeo(
+                    emptyGeo({
+                      status: "ok",
+                      routingMode: "agreed",
+                      agreedWithRestaurant: true,
+                    })
+                  );
+                  setPendingOutOfVillagePoint(null);
+                  setOutOfVillageOpen(false);
+                  setMapPickerOpen(false);
+                  setMapApplyError("");
+                }}
+                className="w-full rounded-xl border border-primary/70 bg-primary/10 py-2.5 text-sm font-semibold leading-snug text-primary hover:bg-primary/20"
+              >
+                {t("checkout.outOfVillagePayCash")}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setOutOfVillageOpen(false);
+                  setPendingOutOfVillagePoint(null);
+                }}
                 className="w-full rounded-xl border border-slate-600 py-2.5 text-sm font-semibold text-gray-200 hover:bg-slate-800"
               >
                 {t("checkout.outOfVillageClose")}

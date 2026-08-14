@@ -1,4 +1,17 @@
 import { useEffect, useRef, useState } from "react";
+import {
+  DELIVERY_VILLAGES,
+} from "@/utils/deliveryPricing";
+import { DELIVERY_VILLAGE_BORDERS } from "@/utils/deliveryVillageBorders";
+
+const VILLAGE_BORDER_COLORS = {
+  yarka: "#22c55e",
+  julis: "#38bdf8",
+  abu_snan: "#f59e0b",
+  kfar_yasif: "#a78bfa",
+  jat: "#f472b6",
+  yanuh: "#fb7185",
+};
 
 /**
  * מודל מפה — בחירת נקודת יעד בלחיצה. רץ רק בצד הלקוח (טען עם dynamic ssr:false).
@@ -9,6 +22,7 @@ export default function DeliveryMapPicker({
   centerLat,
   centerLng,
   zoom = 12,
+  locale = "he",
   labels,
   isApplying,
   applyError,
@@ -70,6 +84,40 @@ export default function DeliveryMapPicker({
         maxZoom: 19,
       }).addTo(map);
 
+      const borders = L.geoJSON(DELIVERY_VILLAGE_BORDERS, {
+        style: (feat) => {
+          const color =
+            VILLAGE_BORDER_COLORS[feat?.properties?.id] || "#fbbf24";
+          return {
+            color,
+            weight: 2.5,
+            fillColor: color,
+            fillOpacity: 0.2,
+          };
+        },
+        onEachFeature: (feat, layer) => {
+          const village = DELIVERY_VILLAGES.find(
+            (v) => v.id === feat?.properties?.id
+          );
+          if (!village) return;
+          const name = locale === "ar" ? village.labelAr : village.labelHe;
+          layer.bindTooltip(`${name} · ₪${village.fee}`, {
+            sticky: true,
+            direction: "center",
+            opacity: 0.95,
+          });
+        },
+      }).addTo(map);
+
+      try {
+        const b = borders.getBounds();
+        if (b && b.isValid()) {
+          map.fitBounds(b, { padding: [18, 18], maxZoom: 13 });
+        }
+      } catch {
+        /* keep default center */
+      }
+
       map.on("click", (e) => {
         const { lat, lng } = e.latlng;
         setLocateError("");
@@ -95,7 +143,7 @@ export default function DeliveryMapPicker({
       markerLayerRef.current = null;
       leafletRef.current = null;
     };
-  }, [open, centerLat, centerLng, zoom]);
+  }, [open, centerLat, centerLng, zoom, locale]);
 
   const useMyLocation = () => {
     if (isApplying || locating) return;

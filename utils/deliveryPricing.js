@@ -1,7 +1,7 @@
 /**
- * מסעדה: ירכא 137 (קואורדינטות לנקודת המוצא ולזיהוי יישוב).
- * דמי משלוח לפי יישוב מזוהה מהמפה — לא לפי קילומטרים.
+ * מסעדה: ירכא 137. דמי משלוח לפי גבול יישוב במפה.
  */
+import { DELIVERY_VILLAGE_BORDERS } from "@/utils/deliveryVillageBorders";
 export const RESTAURANT_COORDS = { lat: 32.9519, lng: 35.2092 };
 
 const R = 6371;
@@ -85,8 +85,8 @@ export const DELIVERY_VILLAGES = [
     fee: 35,
     labelHe: "גת",
     labelAr: "جت",
-    lat: 32.9561,
-    lng: 35.2258,
+    lat: 32.9739,
+    lng: 35.2331,
     maxKm: 2.2,
     aliases: ["גת", "جت", "jat", "jatt", "gath"],
   },
@@ -95,8 +95,8 @@ export const DELIVERY_VILLAGES = [
     fee: 40,
     labelHe: "יאנוח",
     labelAr: "يانوح",
-    lat: 32.9925,
-    lng: 35.2444,
+    lat: 32.9837,
+    lng: 35.2519,
     maxKm: 2.6,
     aliases: ["יאנוח", "يانوح", "yanuh", "yanouh", "yanuh jat", "יאנוח גת"],
   },
@@ -144,11 +144,70 @@ function villageWithinRadius(village, lat, lng, maxKm) {
   return Number.isFinite(km) && km <= maxKm;
 }
 
+function pointInRing(lng, lat, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0];
+    const yi = ring[i][1];
+    const xj = ring[j][0];
+    const yj = ring[j][1];
+    const intersect =
+      yi > lat !== yj > lat &&
+      lng < ((xj - xi) * (lat - yi)) / (yj - yi + 0.0) + xi;
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+function pointInPolygonCoords(lng, lat, coordinates) {
+  if (!Array.isArray(coordinates) || !coordinates[0]) return false;
+  const [outer, ...holes] = coordinates;
+  if (!pointInRing(lng, lat, outer)) return false;
+  for (const hole of holes) {
+    if (pointInRing(lng, lat, hole)) return false;
+  }
+  return true;
+}
+
+function pointInGeometry(lng, lat, geometry) {
+  if (!geometry) return false;
+  if (geometry.type === "Polygon") {
+    return pointInPolygonCoords(lng, lat, geometry.coordinates);
+  }
+  if (geometry.type === "MultiPolygon") {
+    return geometry.coordinates.some((poly) =>
+      pointInPolygonCoords(lng, lat, poly)
+    );
+  }
+  return false;
+}
+
+export function findVillageByPolygon(lat, lng) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  const hits = [];
+  const features = DELIVERY_VILLAGE_BORDERS?.features || [];
+  for (const feat of features) {
+    if (!pointInGeometry(lng, lat, feat.geometry)) continue;
+    const village = DELIVERY_VILLAGES.find((v) => v.id === feat.properties?.id);
+    if (village) hits.push(village);
+  }
+  if (hits.length === 1) return hits[0];
+  if (hits.length > 1) {
+    return hits.reduce((best, village) => {
+      const bestKm = haversineKm(lat, lng, best.lat, best.lng);
+      const km = haversineKm(lat, lng, village.lat, village.lng);
+      return km < bestKm ? village : best;
+    });
+  }
+  return null;
+}
+
 /**
- * מזהה יישוב משלוח לפי שמות מגיאוקוד הפוך, עם בדיקת מרחק ממרכז היישוב.
- * אם אין שם — יישוב קרוב מאוד (גיבוי). אחרת null (מחוץ לאזור המתומחר).
+ * מזהה יישוב משלוח: קודם לפי גבול במפה, אחר כך לפי שם מגיאוקוד.
  */
 export function findDeliveryVillage(lat, lng, texts) {
+  const byPoly = findVillageByPolygon(lat, lng);
+  if (byPoly) return byPoly;
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
 
   const list = Array.isArray(texts) ? texts : [];

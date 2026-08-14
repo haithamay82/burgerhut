@@ -174,7 +174,11 @@ export function buildWhatsAppOrderText({
         `${waBoldLabel(distLabel)}: ${Number(customer.deliveryDistanceKm).toFixed(1)} km`
       );
     }
-    if (
+    if (customer.deliveryFeeAgreed) {
+      lines.push(
+        `${waBoldLabel(tr("wa.deliveryFee"))}: ${tr("wa.deliveryFeeAgreed")}`
+      );
+    } else if (
       customer.deliveryFeeNis != null &&
       Number.isFinite(Number(customer.deliveryFeeNis))
     ) {
@@ -196,6 +200,8 @@ export function buildWhatsAppOrderText({
       );
     } else if (customer.deliveryPayTo === "courier_all_cash") {
       lines.push(waBoldLabel(tr("wa.payCourierCashFull")));
+    } else if (customer.deliveryPayTo === "courier_agreed_cash") {
+      lines.push(waBoldLabel(tr("wa.payCourierAgreed")));
     }
   }
   lines.push(
@@ -409,6 +415,11 @@ export function buildWhatsAppOrderText({
           `${waBoldLabel(tr("wa.couponCodeLabel"))}: ${couponCode}`
         );
       }
+    }
+    if (customer.deliveryFeeAgreed) {
+      lines.push(
+        `${waBoldLabel(tr("wa.deliveryFee"))}: ${tr("wa.deliveryFeeAgreed")}`
+      );
     }
     lines.push(
       `${waBoldLabel(tr("wa.total"))}: *₪${formatIls(total)}*`
