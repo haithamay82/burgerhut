@@ -542,14 +542,10 @@ const HE = {
     "דמי המשלוח ישולמו במזומן לשליח לפי מה שתואם עם המסעדה. סכום המזון לפי אמצעי התשלום שנבחר.",
   "checkout.mapUseMyLocation": "בחר המיקום שלי",
   "checkout.mapLocating": "מאתרים את המיקום…",
-  "checkout.mapLocateDenied":
-    "לחצו «אפשר» בחלון שעולה בטלפון, ואז שוב על הכפתור. אפשר גם ללחוץ על המפה.",
-  "checkout.mapLocateUnavailable":
-    "לחצו «אפשר» בחלון שעולה בטלפון, ואז שוב על הכפתור. אפשר גם ללחוץ על המפה.",
-  "checkout.mapLocateTimeout":
-    "לחצו «אפשר» בחלון שעולה בטלפון, ואז שוב על הכפתור. אפשר גם ללחוץ על המפה.",
-  "checkout.mapLocateUnsupported":
-    "לחצו על המפה כדי לבחור מיקום.",
+  "checkout.mapLocateDenied": "לחצו על המפה כדי לבחור מיקום.",
+  "checkout.mapLocateUnavailable": "לחצו על המפה כדי לבחור מיקום.",
+  "checkout.mapLocateTimeout": "לחצו על המפה כדי לבחור מיקום.",
+  "checkout.mapLocateUnsupported": "לחצו על המפה כדי לבחור מיקום.",
   "checkout.mapConfirm": "אישור והחלת מיקום",
   "checkout.mapCancel": "ביטול",
   "checkout.mapApplying": "מחשבים משלוח…",
@@ -1673,14 +1669,10 @@ const AR = {
     "أجور التوصيل تُدفع نقداً للساعي حسب الاتفاق مع المطعم. مبلغ الطعام حسب وسيلة الدفع المختارة.",
   "checkout.mapUseMyLocation": "اختر موقعي",
   "checkout.mapLocating": "جارٍ تحديد الموقع…",
-  "checkout.mapLocateDenied":
-    "اضغطوا «السماح» في النافذة التي تظهر على الهاتف، ثم على الزر مرة أخرى. يمكن أيضاً الضغط على الخريطة.",
-  "checkout.mapLocateUnavailable":
-    "اضغطوا «السماح» في النافذة التي تظهر على الهاتف، ثم على الزر مرة أخرى. يمكن أيضاً الضغط على الخريطة.",
-  "checkout.mapLocateTimeout":
-    "اضغطوا «السماح» في النافذة التي تظهر على الهاتف، ثم على الزر مرة أخرى. يمكن أيضاً الضغط على الخريطة.",
-  "checkout.mapLocateUnsupported":
-    "اضغطوا على الخريطة لاختيار الموقع.",
+  "checkout.mapLocateDenied": "اضغطوا على الخريطة لاختيار الموقع.",
+  "checkout.mapLocateUnavailable": "اضغطوا على الخريطة لاختيار الموقع.",
+  "checkout.mapLocateTimeout": "اضغطوا على الخريطة لاختيار الموقع.",
+  "checkout.mapLocateUnsupported": "اضغطوا على الخريطة لاختيار الموقع.",
   "checkout.mapConfirm": "تأكيد وتطبيق الموقع",
   "checkout.mapCancel": "إلغاء",
   "checkout.mapApplying": "جارٍ حساب التوصيل…",

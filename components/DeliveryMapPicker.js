@@ -21,6 +21,8 @@ export default function DeliveryMapPicker({
   onClose,
   centerLat,
   centerLng,
+  prefillLat,
+  prefillLng,
   zoom = 12,
   locale = "he",
   labels,
@@ -118,6 +120,17 @@ export default function DeliveryMapPicker({
         /* keep default center */
       }
 
+      const startLat = Number(prefillLat);
+      const startLng = Number(prefillLng);
+      if (Number.isFinite(startLat) && Number.isFinite(startLng)) {
+        if (markerLayerRef.current) {
+          map.removeLayer(markerLayerRef.current);
+        }
+        markerLayerRef.current = L.marker([startLat, startLng]).addTo(map);
+        map.setView([startLat, startLng], 16);
+        setPicked({ lat: startLat, lng: startLng });
+      }
+
       map.on("click", (e) => {
         const { lat, lng } = e.latlng;
         setLocateError("");
@@ -143,7 +156,7 @@ export default function DeliveryMapPicker({
       markerLayerRef.current = null;
       leafletRef.current = null;
     };
-  }, [open, centerLat, centerLng, zoom, locale]);
+  }, [open, centerLat, centerLng, zoom, locale, prefillLat, prefillLng]);
 
   const useMyLocation = (e) => {
     e?.preventDefault?.();
@@ -169,24 +182,9 @@ export default function DeliveryMapPicker({
 
     navigator.geolocation.getCurrentPosition(
       applyPosition,
-      (err) => {
-        if (Number(err?.code) === 1) {
-          setLocating(false);
-          setLocateError(labels.locateDenied || "");
-          return;
-        }
-        navigator.geolocation.getCurrentPosition(
-          applyPosition,
-          () => {
-            setLocating(false);
-            setLocateError(labels.locateDenied || "");
-          },
-          {
-            enableHighAccuracy: false,
-            timeout: 20000,
-            maximumAge: 0,
-          }
-        );
+      () => {
+        setLocating(false);
+        setLocateError(labels.locateDenied || "");
       },
       {
         enableHighAccuracy: true,

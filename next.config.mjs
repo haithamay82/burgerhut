@@ -10,15 +10,6 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: "/:path*",
-        headers: [
-          {
-            key: "Permissions-Policy",
-            value: "geolocation=(self)",
-          },
-        ],
-      },
-      {
         source: "/og-share.png",
         headers: [
           { key: "Content-Type", value: "image/png" },
