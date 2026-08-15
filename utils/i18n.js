@@ -1012,6 +1012,14 @@ const HE = {
   "admin.discountSaving": "שומר הנחה…",
   "admin.discountSaved": "ההנחה נשמרה.",
   "admin.discountErr": "לא ניתן היה לשמור את ההנחה.",
+  "admin.deliveryFeesTitle": "דמי משלוח לפי כפר",
+  "admin.deliveryFeesHint":
+    "קבעו את מחיר המשלוח לכל יישוב שמסומן במפה. המחיר חל רק על נקודה בתוך הגבול של אותו כפר.",
+  "admin.deliveryFeesSave": "שמור מחירי משלוח",
+  "admin.deliveryFeesSaving": "שומר מחירי משלוח…",
+  "admin.deliveryFeesSaved": "מחירי המשלוח נשמרו.",
+  "admin.deliveryFeesErr": "לא ניתן היה לשמור את מחירי המשלוח.",
+  "admin.deliveryFeesErrInvalid": "מחיר משלוח חייב להיות מספר בין 0 ל־500.",
   "admin.couponsTitle": "קופונים",
   "admin.couponsHint": "כאן ניתן לראות את כל הקופונים שהופקו ולמחוק לפי צורך.",
   "admin.couponTotalsUnused":
@@ -2146,6 +2154,14 @@ const AR = {
   "admin.discountSaving": "جارٍ حفظ الخصم…",
   "admin.discountSaved": "تم حفظ الخصم.",
   "admin.discountErr": "تعذّر حفظ الخصم.",
+  "admin.deliveryFeesTitle": "أجور التوصيل حسب القرية",
+  "admin.deliveryFeesHint":
+    "حدّدوا سعر التوصيل لكل بلدة مرسومة على الخريطة. السعر يسري فقط على نقطة داخل حدود تلك البلدة.",
+  "admin.deliveryFeesSave": "حفظ أسعار التوصيل",
+  "admin.deliveryFeesSaving": "جارٍ حفظ أسعار التوصيل…",
+  "admin.deliveryFeesSaved": "تم حفظ أسعار التوصيل.",
+  "admin.deliveryFeesErr": "تعذّر حفظ أسعار التوصيل.",
+  "admin.deliveryFeesErrInvalid": "يجب أن يكون سعر التوصيل رقماً بين 0 و500.",
   "admin.couponsTitle": "الكوبونات",
   "admin.couponsHint": "هنا يمكنك مشاهدة جميع الكوبونات التي أنشأها النظام وحذفها عند الحاجة.",
   "admin.couponTotalsUnused":

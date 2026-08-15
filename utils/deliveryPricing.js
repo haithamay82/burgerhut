@@ -140,14 +140,35 @@ function pointInGeometry(lng, lat, geometry) {
   return false;
 }
 
+export function feeForVillage(village, feesById) {
+  if (!village) return null;
+  const n = Number(feesById?.[village.id]);
+  if (Number.isFinite(n) && n >= 0) return Math.round(n);
+  const fallback = Number(village.fee);
+  return Number.isFinite(fallback) ? Math.round(fallback) : null;
+}
+
+export const BORDER_VILLAGE_IDS = {
+  yarka: ["yarka"],
+  julis: ["julis"],
+  abu_snan: ["abu_snan"],
+  kfar_yasif: ["kfar_yasif"],
+  jat: ["jat"],
+  yanuh: ["yanuh"],
+  yanuh_jat: ["jat", "yanuh"],
+};
+
 export function findVillageByPolygon(lat, lng) {
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
   const hits = [];
   const features = DELIVERY_VILLAGE_BORDERS?.features || [];
   for (const feat of features) {
     if (!pointInGeometry(lng, lat, feat.geometry)) continue;
-    const village = DELIVERY_VILLAGES.find((v) => v.id === feat.properties?.id);
-    if (village) hits.push(village);
+    const ids = BORDER_VILLAGE_IDS[feat.properties?.id] || [feat.properties?.id];
+    for (const id of ids) {
+      const village = DELIVERY_VILLAGES.find((v) => v.id === id);
+      if (village) hits.push(village);
+    }
   }
   if (hits.length === 1) return hits[0];
   if (hits.length > 1) {

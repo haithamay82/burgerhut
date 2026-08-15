@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   DELIVERY_VILLAGES,
+  BORDER_VILLAGE_IDS,
 } from "@/utils/deliveryPricing";
 import { DELIVERY_VILLAGE_BORDERS } from "@/utils/deliveryVillageBorders";
 
@@ -29,6 +30,7 @@ const VILLAGE_BORDER_COLORS = {
   kfar_yasif: "#a78bfa",
   jat: "#f472b6",
   yanuh: "#fb7185",
+  yanuh_jat: "#f472b6",
 };
 
 /**
@@ -43,6 +45,7 @@ export default function DeliveryMapPicker({
   prefillLng,
   zoom = 12,
   locale = "he",
+  villageFees = {},
   labels,
   isApplying,
   applyError,
@@ -125,12 +128,20 @@ export default function DeliveryMapPicker({
           };
         },
         onEachFeature: (feat, layer) => {
-          const village = DELIVERY_VILLAGES.find(
-            (v) => v.id === feat?.properties?.id
-          );
-          if (!village) return;
-          const name = locale === "ar" ? village.labelAr : village.labelHe;
-          layer.bindTooltip(`${name} · ₪${village.fee}`, {
+          const ids =
+            BORDER_VILLAGE_IDS[feat?.properties?.id] ||
+            [feat?.properties?.id].filter(Boolean);
+          const villages = ids
+            .map((id) => DELIVERY_VILLAGES.find((v) => v.id === id))
+            .filter(Boolean);
+          if (!villages.length) return;
+          const parts = villages.map((village) => {
+            const name = locale === "ar" ? village.labelAr : village.labelHe;
+            const feeN = Number(villageFees?.[village.id]);
+            const fee = Number.isFinite(feeN) ? Math.round(feeN) : village.fee;
+            return `${name} · ₪${fee}`;
+          });
+          layer.bindTooltip(parts.join(" · "), {
             sticky: true,
             direction: "center",
             opacity: 0.95,
@@ -186,7 +197,7 @@ export default function DeliveryMapPicker({
       streetLayerRef.current = null;
       satelliteLayerRef.current = null;
     };
-  }, [open, centerLat, centerLng, zoom, locale]);
+  }, [open, centerLat, centerLng, zoom, locale, villageFees]);
 
   useEffect(() => {
     if (!open || !mapRef.current) return;

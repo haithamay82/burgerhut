@@ -133,6 +133,7 @@ export default function CheckoutPage() {
     percent: 0,
     minOrderTotal: 0,
   });
+  const [villageFees, setVillageFees] = useState({});
   const [couponCodeInput, setCouponCodeInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponBusy, setCouponBusy] = useState(false);
@@ -279,7 +280,18 @@ export default function CheckoutPage() {
         /* ignore */
       }
     };
+    const loadVillageFees = async () => {
+      try {
+        const r = await fetch("/api/delivery-fees");
+        const d = await r.json().catch(() => ({}));
+        if (cancelled || !r.ok || !d?.ok || !d.fees) return;
+        setVillageFees(d.fees);
+      } catch {
+        /* ignore */
+      }
+    };
     loadDiscount();
+    loadVillageFees();
     return () => {
       cancelled = true;
     };
@@ -1687,6 +1699,7 @@ export default function CheckoutPage() {
         open={mapPickerOpen}
         onClose={() => setMapPickerOpen(false)}
         locale={locale}
+        villageFees={villageFees}
         prefillLat={mapGpsFix?.lat ?? deliveryMapPoint?.lat}
         prefillLng={mapGpsFix?.lng ?? deliveryMapPoint?.lng}
         centerLat={RESTAURANT_COORDS.lat}

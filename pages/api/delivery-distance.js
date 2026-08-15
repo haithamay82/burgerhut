@@ -2,7 +2,8 @@
  * א) q=כתובת → גיאוקוד → זיהוי יישוב
  * ב) lat+lon (או lng) → זיהוי יישוב מדמי משלוח לפי טבלת כפרים
  */
-import { findDeliveryVillage } from "@/utils/deliveryPricing";
+import { findDeliveryVillage, feeForVillage } from "@/utils/deliveryPricing";
+import { getDeliveryVillageFees } from "@/lib/deliveryFeesStore";
 
 /** גבולות משוערים לישראל + סביבה קרובה */
 function inServiceBounds(lat, lon) {
@@ -352,8 +353,10 @@ async function nominatimGeocode(q) {
 async function computeFromCoords(destLat, destLon) {
   const pin = await resolvePinContext(destLat, destLon);
   const village = findDeliveryVillage(destLat, destLon);
+  const fees = await getDeliveryVillageFees();
+  const fee = feeForVillage(village, fees);
 
-  if (!village) {
+  if (!village || fee == null) {
     return {
       ok: false,
       error: "unsupported_village",
@@ -363,7 +366,7 @@ async function computeFromCoords(destLat, destLon) {
 
   return {
     ok: true,
-    fee: village.fee,
+    fee,
     villageId: village.id,
     villageLabelHe: village.labelHe,
     villageLabelAr: village.labelAr,

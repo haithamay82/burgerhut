@@ -402,6 +402,10 @@ export default function AdminOrdersPage() {
   const [sliderPanelOpen, setSliderPanelOpen] = useState(false);
   const [hoursPanelOpen, setHoursPanelOpen] = useState(false);
   const [discountPanelOpen, setDiscountPanelOpen] = useState(false);
+  const [deliveryFeesDraft, setDeliveryFeesDraft] = useState(null);
+  const [deliveryFeesSaving, setDeliveryFeesSaving] = useState(false);
+  const [deliveryFeesMsg, setDeliveryFeesMsg] = useState("");
+  const [deliveryFeesPanelOpen, setDeliveryFeesPanelOpen] = useState(false);
   const [promo, setPromo] = useState(null);
   const [promoUploading, setPromoUploading] = useState(false);
   const [promoSaving, setPromoSaving] = useState(false);
@@ -1105,6 +1109,7 @@ export default function AdminOrdersPage() {
         setLoaded(false);
         setHoursDraft(null);
         setDiscountDraft(null);
+        setDeliveryFeesDraft(null);
         setPromo(null);
         setCoupons([]);
         setSiteVisitsDays([]);
@@ -1243,6 +1248,24 @@ export default function AdminOrdersPage() {
           couponEnabled: false,
           couponPercent: 0,
         });
+      }
+      try {
+        const fr = await fetch("/api/delivery-fees");
+        const fd = await fr.json().catch(() => ({}));
+        if (fr.ok && fd.ok && Array.isArray(fd.villages)) {
+          setDeliveryFeesDraft(
+            fd.villages.map((v) => ({
+              id: v.id,
+              labelHe: v.labelHe,
+              labelAr: v.labelAr,
+              fee: Number(v.fee) || 0,
+            }))
+          );
+        } else {
+          setDeliveryFeesDraft(null);
+        }
+      } catch {
+        setDeliveryFeesDraft(null);
       }
       try {
         const pr = await fetch("/api/promo");
@@ -1991,6 +2014,55 @@ export default function AdminOrdersPage() {
 
   const updateDiscountDraft = (patch) => {
     setDiscountDraft((prev) => (prev ? { ...prev, ...patch } : prev));
+  };
+
+  const saveDeliveryFees = async () => {
+    if (!secret.trim() || !deliveryFeesDraft) return;
+    setError("");
+    setDeliveryFeesMsg("");
+    setDeliveryFeesSaving(true);
+    try {
+      const fees = {};
+      for (const v of deliveryFeesDraft) {
+        fees[v.id] = Number(v.fee);
+      }
+      const r = await fetch("/api/delivery-fees", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-secret": secret.trim(),
+        },
+        body: JSON.stringify({ fees }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setError(
+          d.error === "admin_not_configured"
+            ? t("admin.errConfig")
+            : d.error === "forbidden"
+              ? t("admin.errAuth")
+              : d.error === "invalid_fee"
+                ? t("admin.deliveryFeesErrInvalid")
+                : t("admin.deliveryFeesErr")
+        );
+        return;
+      }
+      if (Array.isArray(d.villages)) {
+        setDeliveryFeesDraft(
+          d.villages.map((v) => ({
+            id: v.id,
+            labelHe: v.labelHe,
+            labelAr: v.labelAr,
+            fee: Number(v.fee) || 0,
+          }))
+        );
+      }
+      setDeliveryFeesMsg(t("admin.deliveryFeesSaved"));
+    } catch {
+      setError(t("admin.errNet"));
+    } finally {
+      setDeliveryFeesSaving(false);
+    }
   };
 
   const loadHomeSlider = async () => {
@@ -3702,6 +3774,82 @@ export default function AdminOrdersPage() {
                         {hoursSaving
                           ? t("admin.hoursSaving")
                           : t("admin.hoursSave")}
+                      </button>
+                    </section>
+                  ) : null}
+                </>
+              ) : null}
+
+              {!isEmployee && deliveryFeesDraft?.length ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryFeesPanelOpen((v) => !v)}
+                    aria-expanded={deliveryFeesPanelOpen}
+                    className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-right text-sm font-bold text-gray-100 transition-colors hover:border-primary/50 hover:bg-slate-800/60"
+                  >
+                    <span className="min-w-0 flex-1 leading-snug">
+                      {t("admin.deliveryFeesTitle")}
+                    </span>
+                    <span
+                      className="shrink-0 text-lg leading-none text-primary"
+                      aria-hidden
+                    >
+                      {deliveryFeesPanelOpen ? "▾" : "▶"}
+                    </span>
+                  </button>
+                  {deliveryFeesPanelOpen ? (
+                    <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
+                      <p className="mb-4 text-[11px] leading-relaxed text-gray-500">
+                        {t("admin.deliveryFeesHint")}
+                      </p>
+                      {deliveryFeesMsg ? (
+                        <p className="mb-3 text-xs font-medium text-emerald-400/95">
+                          {deliveryFeesMsg}
+                        </p>
+                      ) : null}
+                      <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-950/30 p-3">
+                        {deliveryFeesDraft.map((v) => (
+                          <label
+                            key={v.id}
+                            className="flex items-center justify-between gap-3 text-xs text-gray-300"
+                          >
+                            <span className="min-w-0 flex-1 font-semibold">
+                              {locale === "ar" ? v.labelAr : v.labelHe}
+                            </span>
+                            <span className="flex shrink-0 items-center gap-1">
+                              <span className="text-gray-500">₪</span>
+                              <input
+                                type="number"
+                                min={0}
+                                max={500}
+                                step="1"
+                                value={v.fee}
+                                disabled={deliveryFeesSaving}
+                                onChange={(e) =>
+                                  setDeliveryFeesDraft((prev) =>
+                                    (prev || []).map((row) =>
+                                      row.id === v.id
+                                        ? { ...row, fee: e.target.value }
+                                        : row
+                                    )
+                                  )
+                                }
+                                className="w-20 rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-gray-100 disabled:opacity-40"
+                              />
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={saveDeliveryFees}
+                        disabled={deliveryFeesSaving || !secret.trim()}
+                        className="btn-primary mt-4 text-sm disabled:opacity-50"
+                      >
+                        {deliveryFeesSaving
+                          ? t("admin.deliveryFeesSaving")
+                          : t("admin.deliveryFeesSave")}
                       </button>
                     </section>
                   ) : null}
