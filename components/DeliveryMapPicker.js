@@ -54,6 +54,8 @@ export default function DeliveryMapPicker({
   const leafletRef = useRef(null);
   const streetLayerRef = useRef(null);
   const satelliteLayerRef = useRef(null);
+  const prefillRef = useRef({ lat: prefillLat, lng: prefillLng });
+  prefillRef.current = { lat: prefillLat, lng: prefillLng };
   const [picked, setPicked] = useState(null);
   const [locating, setLocating] = useState(false);
   const [locateError, setLocateError] = useState("");
@@ -145,8 +147,9 @@ export default function DeliveryMapPicker({
         /* keep default center */
       }
 
-      const startLat = Number(prefillLat);
-      const startLng = Number(prefillLng);
+      const start = prefillRef.current;
+      const startLat = Number(start?.lat);
+      const startLng = Number(start?.lng);
       if (Number.isFinite(startLat) && Number.isFinite(startLng)) {
         if (markerLayerRef.current) {
           map.removeLayer(markerLayerRef.current);
@@ -183,7 +186,16 @@ export default function DeliveryMapPicker({
       streetLayerRef.current = null;
       satelliteLayerRef.current = null;
     };
-  }, [open, centerLat, centerLng, zoom, locale, prefillLat, prefillLng]);
+  }, [open, centerLat, centerLng, zoom, locale]);
+
+  useEffect(() => {
+    if (!open || !mapRef.current) return;
+    const lat = Number(prefillLat);
+    const lng = Number(prefillLng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+    setPicked({ lat, lng });
+    placeMarker(lat, lng);
+  }, [open, prefillLat, prefillLng]);
 
   const switchMapMode = (mode) => {
     const map = mapRef.current;
@@ -212,6 +224,12 @@ export default function DeliveryMapPicker({
     }
     setLocating(true);
 
+    const deniedText = () =>
+      (labels.locateDenied || "").replace(
+        "{host}",
+        typeof window !== "undefined" ? window.location.hostname : ""
+      );
+
     const applyPosition = (pos) => {
       const lat = Number(pos?.coords?.latitude);
       const lng = Number(pos?.coords?.longitude);
@@ -233,7 +251,7 @@ export default function DeliveryMapPicker({
             setLocating(false);
             const retryCode = Number(retryErr?.code);
             if (retryCode === 1) {
-              setLocateError(labels.locateDenied || "");
+              setLocateError(deniedText());
             } else if (retryCode === 3) {
               setLocateError(labels.locateTimeout || "");
             } else {
@@ -250,7 +268,7 @@ export default function DeliveryMapPicker({
       }
       setLocating(false);
       if (code === 1) {
-        setLocateError(labels.locateDenied || "");
+        setLocateError(deniedText());
       } else {
         setLocateError(labels.locateUnavailable || "");
       }
@@ -267,9 +285,11 @@ export default function DeliveryMapPicker({
 
   return (
     <div
-      className="fixed inset-0 z-[600] flex items-end justify-center bg-bh-overlay p-3 sm:items-center"
+      className={`fixed inset-0 z-[600] flex items-end justify-center px-3 pb-3 pt-16 sm:items-center ${
+        locating ? "bg-black/35" : "bg-bh-overlay"
+      }`}
       role="dialog"
-      aria-modal="true"
+      aria-modal={!locating}
       aria-labelledby="delivery-map-title"
     >
       <div className="flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-bh-border-strong bg-bh-card shadow-2xl">

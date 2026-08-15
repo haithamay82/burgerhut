@@ -120,6 +120,7 @@ export default function CheckoutPage() {
 
   const [deliveryMapPoint, setDeliveryMapPoint] = useState(null);
   const [mapPickerOpen, setMapPickerOpen] = useState(false);
+  const [mapGpsFix, setMapGpsFix] = useState(null);
   const [mapApplyError, setMapApplyError] = useState("");
 
   const [errors, setErrors] = useState({});
@@ -430,7 +431,24 @@ export default function CheckoutPage() {
 
   const openMapPicker = () => {
     setMapApplyError("");
+    setMapGpsFix(null);
     setMapPickerOpen(true);
+    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = Number(pos?.coords?.latitude);
+        const lng = Number(pos?.coords?.longitude);
+        if (Number.isFinite(lat) && Number.isFinite(lng)) {
+          setMapGpsFix({ lat, lng });
+        }
+      },
+      () => {},
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 10000,
+      }
+    );
   };
 
   const applyDeliveryMapPoint = async (lat, lng) => {
@@ -1669,8 +1687,8 @@ export default function CheckoutPage() {
         open={mapPickerOpen}
         onClose={() => setMapPickerOpen(false)}
         locale={locale}
-        prefillLat={deliveryMapPoint?.lat}
-        prefillLng={deliveryMapPoint?.lng}
+        prefillLat={mapGpsFix?.lat ?? deliveryMapPoint?.lat}
+        prefillLng={mapGpsFix?.lng ?? deliveryMapPoint?.lng}
         centerLat={RESTAURANT_COORDS.lat}
         centerLng={RESTAURANT_COORDS.lng}
         labels={{
