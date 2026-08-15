@@ -29,8 +29,8 @@ import { redis, isRedisConfigured } from "@/lib/redis";
 import {
   authorizeAdminOnly,
   authorizeAdminOrEmployee,
-  filterOrdersToTodayJerusalem,
-  isOrderTodayJerusalem,
+  filterOrdersForEmployeeJerusalem,
+  isOrderInEmployeeWindowJerusalem,
 } from "@/lib/adminAuth";
 
 function lineProductId(line) {
@@ -75,7 +75,7 @@ export default async function handler(req, res) {
     const allOrders = await listOrdersForAdmin();
     const orders =
       auth.role === "employee"
-        ? filterOrdersToTodayJerusalem(allOrders)
+        ? filterOrdersForEmployeeJerusalem(allOrders)
         : allOrders;
     return res.status(200).json({ ok: true, orders, role: auth.role });
   }
@@ -296,7 +296,7 @@ export default async function handler(req, res) {
     if (auth.role === "employee") {
       const allOrders = await listOrdersForAdmin();
       const target = allOrders.find((o) => o && o.id === id);
-      if (!target || !isOrderTodayJerusalem(target)) {
+      if (!target || !isOrderInEmployeeWindowJerusalem(target)) {
         return res.status(403).json({ ok: false, error: "forbidden" });
       }
     }

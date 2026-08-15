@@ -2564,6 +2564,11 @@ export default function AdminOrdersPage() {
 
   const isEmployee = adminRole === "employee";
   const todayKey = jerusalemDayKey();
+  const yesterdayKey = (() => {
+    const { y, m, d } = parseDayKey(todayKey);
+    const utc = new Date(Date.UTC(y, m - 1, d - 1));
+    return utc.toISOString().slice(0, 10);
+  })();
   const { y: vy, m: vm } = calView;
   const dim = daysInMonth(vy, vm);
   const lead = weekdaySun0(vy, vm, 1);
@@ -2572,7 +2577,11 @@ export default function AdminOrdersPage() {
   for (let d = 1; d <= dim; d += 1) {
     calendarCells.push(dayKeyFromParts(vy, vm, d));
   }
-  const displayDayKey = isEmployee ? todayKey : selectedDayKey;
+  const displayDayKey = isEmployee
+    ? selectedDayKey === yesterdayKey
+      ? yesterdayKey
+      : todayKey
+    : selectedDayKey;
   const selectedDayOrders =
     displayDayKey != null ? ordersByDay.get(displayDayKey) ?? [] : [];
   const nowTs = Date.now();
@@ -4619,7 +4628,34 @@ export default function AdminOrdersPage() {
                   >
                     {t("admin.calendarTodayBtn")}
                   </button>
-                  ) : null}
+                  ) : (
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDayKey(todayKey)}
+                      aria-pressed={displayDayKey === todayKey}
+                      className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                        displayDayKey === todayKey
+                          ? "border-primary bg-primary/20 text-primary"
+                          : "border-slate-600 bg-slate-800/80 text-gray-200 hover:border-primary/50"
+                      }`}
+                    >
+                      {t("admin.employeeTodayBtn")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDayKey(yesterdayKey)}
+                      aria-pressed={displayDayKey === yesterdayKey}
+                      className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                        displayDayKey === yesterdayKey
+                          ? "border-primary bg-primary/20 text-primary"
+                          : "border-slate-600 bg-slate-800/80 text-gray-200 hover:border-primary/50"
+                      }`}
+                    >
+                      {t("admin.employeeYesterdayBtn")}
+                    </button>
+                  </div>
+                  )}
                 </div>
                 {!isEmployee ? (
                 <p className="mb-4 text-[11px] leading-relaxed text-gray-500">
