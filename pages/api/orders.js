@@ -25,6 +25,7 @@ import {
 } from "@/utils/mergeMenuCatalog";
 import { isOrderingAllowedAt } from "@/utils/orderingHours";
 import { getBusinessHours } from "@/lib/businessHoursStore";
+import { isManualStoreClosedNow } from "@/lib/storeCloseStore";
 import { redis, isRedisConfigured } from "@/lib/redis";
 import {
   authorizeAdminOnly,
@@ -101,7 +102,11 @@ export default async function handler(req, res) {
     }
 
     const businessDays = await getBusinessHours();
-    if (!isOrderingAllowedAt(new Date(), businessDays)) {
+    const now = new Date();
+    if (!isOrderingAllowedAt(now, businessDays)) {
+      return res.status(403).json({ ok: false, error: "ordering_closed" });
+    }
+    if (await isManualStoreClosedNow(businessDays, now)) {
       return res.status(403).json({ ok: false, error: "ordering_closed" });
     }
 

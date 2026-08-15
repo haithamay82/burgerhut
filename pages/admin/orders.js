@@ -30,6 +30,7 @@ import {
 } from "@/utils/mergeMenuCatalog";
 import { menuItemName, toppingDisplayName } from "@/utils/menuItemLabels";
 import { getDefaultBusinessSchedule } from "@/utils/businessHoursDefaults";
+import { isRestaurantOpenAt } from "@/utils/orderingHours";
 import {
   aggregatePattyCountsFromOrderItems,
   computeAutoUnavailableBurgerIds,
@@ -401,6 +402,9 @@ export default function AdminOrdersPage() {
   /** סליידר מחוץ לפאנל הפרסום — מונע סגירה/באגים בנייד אחרי בורר קבצים */
   const [sliderPanelOpen, setSliderPanelOpen] = useState(false);
   const [hoursPanelOpen, setHoursPanelOpen] = useState(false);
+  const [storeManualClosed, setStoreManualClosed] = useState(false);
+  const [storeCloseBusy, setStoreCloseBusy] = useState(false);
+  const [hoursClockTick, setHoursClockTick] = useState(0);
   const [discountPanelOpen, setDiscountPanelOpen] = useState(false);
   const [deliveryFeesDraft, setDeliveryFeesDraft] = useState(null);
   const [deliveryFeesSaving, setDeliveryFeesSaving] = useState(false);
@@ -1108,6 +1112,7 @@ export default function AdminOrdersPage() {
         setOrders([]);
         setLoaded(false);
         setHoursDraft(null);
+        setStoreManualClosed(false);
         setDiscountDraft(null);
         setDeliveryFeesDraft(null);
         setPromo(null);
@@ -1172,11 +1177,14 @@ export default function AdminOrdersPage() {
         const bhData = await bhR.json().catch(() => ({}));
         if (bhR.ok && Array.isArray(bhData.days)) {
           setHoursDraft(bhData.days.map((d) => ({ ...d })));
+          setStoreManualClosed(Boolean(bhData.manualClosed));
         } else {
           setHoursDraft(getDefaultBusinessSchedule());
+          setStoreManualClosed(false);
         }
       } catch {
         setHoursDraft(getDefaultBusinessSchedule());
+        setStoreManualClosed(false);
       }
       if (role !== "employee") {
       try {
@@ -1330,6 +1338,7 @@ export default function AdminOrdersPage() {
       setLoaded(false);
       setAdminRole("admin");
       setHoursDraft(null);
+      setStoreManualClosed(false);
       setDiscountDraft(null);
       setPromo(null);
       setCoupons([]);
@@ -1363,6 +1372,7 @@ export default function AdminOrdersPage() {
     setOrders([]);
     setLoaded(false);
     setHoursDraft(null);
+    setStoreManualClosed(false);
     setDiscountDraft(null);
     setPromo(null);
     setCoupons([]);
@@ -1400,6 +1410,38 @@ export default function AdminOrdersPage() {
     setRatingsDeletingId("");
     setRatingsDeleteAllBusy(false);
     setRatingsMsg("");
+  };
+
+  const toggleStoreClosed = async () => {
+    if (!secret.trim() || storeCloseBusy) return;
+    setStoreCloseBusy(true);
+    setError("");
+    try {
+      const r = await fetch("/api/store-close", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-secret": secret.trim(),
+        },
+        body: JSON.stringify({ closed: !storeManualClosed }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setError(
+          d.error === "outside_hours"
+            ? t("admin.storeCloseOutsideHours")
+            : d.error === "forbidden"
+              ? t("admin.errAuth")
+              : t("admin.storeCloseErr")
+        );
+        return;
+      }
+      setStoreManualClosed(Boolean(d.manualClosed));
+    } catch {
+      setError(t("admin.errNet"));
+    } finally {
+      setStoreCloseBusy(false);
+    }
   };
 
   const refreshRatings = useCallback(async () => {
@@ -1628,6 +1670,14 @@ export default function AdminOrdersPage() {
   }, []);
 
   useEffect(() => {
+    if (!loaded || adminRole === "employee") return;
+    const id = window.setInterval(() => {
+      setHoursClockTick((n) => n + 1);
+    }, 15000);
+    return () => window.clearInterval(id);
+  }, [loaded, adminRole]);
+
+  useEffect(() => {
     setAdminClientReady(true);
   }, []);
 
@@ -1819,6 +1869,20 @@ export default function AdminOrdersPage() {
         }
         syncAdminOrdersKnownIdsRef(ordersKnownIdsRef, list);
         setOrders(list);
+        if (adminRole !== "employee") {
+          try {
+            const bhR = await fetch(`/api/business-hours?_=${Date.now()}`);
+            const bhData = await bhR.json().catch(() => ({}));
+            if (bhR.ok && bhData?.ok) {
+              setStoreManualClosed(Boolean(bhData.manualClosed));
+              if (Array.isArray(bhData.days)) {
+                setHoursDraft(bhData.days.map((d) => ({ ...d })));
+              }
+            }
+          } catch {
+            /* ignore */
+          }
+        }
       } catch {
         /* ignore */
       }
@@ -1829,7 +1893,7 @@ export default function AdminOrdersPage() {
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [loaded, secret, t, locale]);
+  }, [loaded, secret, t, locale, adminRole]);
 
   const deleteCoupon = async (code) => {
     if (!secret.trim() || !code) return;
@@ -2563,6 +2627,11 @@ export default function AdminOrdersPage() {
   };
 
   const isEmployee = adminRole === "employee";
+  const inBusinessHours = Boolean(
+    hoursClockTick >= 0 &&
+      hoursDraft &&
+      isRestaurantOpenAt(new Date(), hoursDraft)
+  );
   const todayKey = jerusalemDayKey();
   const yesterdayKey = (() => {
     const { y, m, d } = parseDayKey(todayKey);
@@ -2699,6 +2768,27 @@ export default function AdminOrdersPage() {
                 {t("admin.backHome")}
               </Link>
               <LanguageSwitcher />
+              {loaded && !isEmployee ? (
+                <button
+                  type="button"
+                  disabled={!inBusinessHours || storeCloseBusy}
+                  title={
+                    inBusinessHours
+                      ? undefined
+                      : t("admin.storeCloseOutsideHours")
+                  }
+                  onClick={() => void toggleStoreClosed()}
+                  className={
+                    storeManualClosed
+                      ? "rounded-lg border border-emerald-800/70 bg-emerald-950/40 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-950/60 disabled:cursor-not-allowed disabled:opacity-40"
+                      : "rounded-lg border border-red-900/60 bg-red-950/30 px-3 py-1.5 text-xs font-semibold text-red-200 hover:bg-red-950/50 disabled:cursor-not-allowed disabled:opacity-40"
+                  }
+                >
+                  {storeManualClosed
+                    ? t("admin.openStore")
+                    : t("admin.closeStore")}
+                </button>
+              ) : null}
             </div>
           </div>
         </header>

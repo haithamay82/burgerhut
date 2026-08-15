@@ -236,6 +236,23 @@ export function jerusalemDayKey(date = new Date()) {
 }
 
 /**
+ * יום המשמרת הנוכחית: בזנב לילי (אחרי חצות עד close) זה יום אתמול.
+ */
+export function jerusalemBusinessShiftDayKey(date = new Date(), days) {
+  const today = jerusalemDayKey(date);
+  if (!days || !Array.isArray(days) || days.length !== 7) return today;
+  const { h, m } = getJerusalemHourMinute(date);
+  const curMin = h * 60 + m;
+  const wd = getJerusalemWeekday(date);
+  const prevWd = (wd - 1 + 7) % 7;
+  const prevRow = rowByWeekday(days, prevWd);
+  if (!isInOvernightMorningTail(prevRow, curMin)) return today;
+  const [y, mo, d] = today.split("-").map((x) => Number(x));
+  const utc = new Date(Date.UTC(y, mo - 1, d - 1));
+  return utc.toISOString().slice(0, 10);
+}
+
+/**
  * @deprecated Use isOrderingAllowedAt(date, days) with schedule; fallback 10:00–22:00 when no schedule.
  * @param {Date} [date]
  */

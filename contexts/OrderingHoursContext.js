@@ -46,9 +46,14 @@ export function OrderingHoursProvider({ children }) {
         if (cancelled) return;
         const now = new Date();
         if (data?.ok && Array.isArray(data.days)) {
+          const manualClosed = Boolean(data.manualClosed);
           setTodayScheduledOpen(isTodayEnabledInSchedule(data.days));
-          setOrderingAllowed(isOrderingAllowedAt(now, data.days));
-          setRestaurantOpen(isRestaurantOpenAt(now, data.days));
+          setOrderingAllowed(
+            isOrderingAllowedAt(now, data.days) && !manualClosed
+          );
+          setRestaurantOpen(
+            isRestaurantOpenAt(now, data.days) && !manualClosed
+          );
           setTodayOpenTimeDisplay(getTodayOpenTimeDisplay(data.days, now));
           setTodayClosedReason(getTodayClosedReason(data.days, now));
           setPreOpeningWindow(isInPreOpeningDialogWindow(now, data.days));
