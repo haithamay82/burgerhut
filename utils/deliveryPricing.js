@@ -102,48 +102,6 @@ export const DELIVERY_VILLAGES = [
   },
 ];
 
-const NAME_FALLBACK_MAX_KM = 0.8;
-
-export function normalizePlaceName(value) {
-  return String(value || "")
-    .toLowerCase()
-    .normalize("NFKC")
-    .replace(/[׳'’`״"]/g, "")
-    .replace(/[-–—_/(),]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function isKiryatGatText(normalized) {
-  return (
-    normalized.includes("קריית גת") ||
-    normalized.includes("كريات جات") ||
-    normalized.includes("kiryat gat") ||
-    normalized.includes("qiryat gat") ||
-    normalized.includes("kriyat gat")
-  );
-}
-
-function textHasAlias(normalizedHaystack, alias) {
-  const a = normalizePlaceName(alias);
-  if (!normalizedHaystack || !a) return false;
-  if (a === "גת" && isKiryatGatText(normalizedHaystack)) return false;
-  if (normalizedHaystack === a) return true;
-  if (normalizedHaystack.startsWith(`${a} `) || normalizedHaystack.endsWith(` ${a}`)) {
-    return true;
-  }
-  return normalizedHaystack.includes(` ${a} `);
-}
-
-function villageMatchesText(village, normalized) {
-  return village.aliases.some((alias) => textHasAlias(normalized, alias));
-}
-
-function villageWithinRadius(village, lat, lng, maxKm) {
-  const km = haversineKm(lat, lng, village.lat, village.lng);
-  return Number.isFinite(km) && km <= maxKm;
-}
-
 function pointInRing(lng, lat, ring) {
   let inside = false;
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
@@ -203,48 +161,8 @@ export function findVillageByPolygon(lat, lng) {
 }
 
 /**
- * מזהה יישוב משלוח: קודם לפי גבול במפה, אחר כך לפי שם מגיאוקוד.
+ * דמי משלוח לפי טבלה רק אם הנקודה בתוך גבול יישוב שסומן במפה.
  */
-export function findDeliveryVillage(lat, lng, texts) {
-  const byPoly = findVillageByPolygon(lat, lng);
-  if (byPoly) return byPoly;
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-
-  const list = Array.isArray(texts) ? texts : [];
-  const normalized = [];
-  for (const raw of list) {
-    const n = normalizePlaceName(raw);
-    if (n) normalized.push(n);
-  }
-
-  const named = [];
-  const seen = new Set();
-  for (const village of DELIVERY_VILLAGES) {
-    const hit = normalized.some((n) => villageMatchesText(village, n));
-    if (!hit || seen.has(village.id)) continue;
-    if (!villageWithinRadius(village, lat, lng, village.maxKm)) continue;
-    seen.add(village.id);
-    named.push(village);
-  }
-
-  if (named.length === 1) return named[0];
-  if (named.length > 1) {
-    return named.reduce((best, village) => {
-      const bestKm = haversineKm(lat, lng, best.lat, best.lng);
-      const km = haversineKm(lat, lng, village.lat, village.lng);
-      return km < bestKm ? village : best;
-    });
-  }
-
-  let nearest = null;
-  let nearestKm = Infinity;
-  for (const village of DELIVERY_VILLAGES) {
-    const km = haversineKm(lat, lng, village.lat, village.lng);
-    if (!Number.isFinite(km) || km > NAME_FALLBACK_MAX_KM) continue;
-    if (km < nearestKm) {
-      nearest = village;
-      nearestKm = km;
-    }
-  }
-  return nearest;
+export function findDeliveryVillage(lat, lng) {
+  return findVillageByPolygon(lat, lng);
 }

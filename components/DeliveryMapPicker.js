@@ -333,14 +333,14 @@ export default function DeliveryMapPicker({
             className="relative z-0 h-full min-h-[min(50vh,320px)] w-full"
             style={{ minHeight: "min(50vh, 360px)" }}
           />
-          <div className="pointer-events-auto absolute right-2 top-2 z-[500] flex overflow-hidden rounded-lg border border-bh-border-strong bg-bh-card/95 shadow-lg backdrop-blur-sm">
+          <div className="pointer-events-auto absolute right-2 top-2 z-[500] flex overflow-hidden rounded-lg border border-black/20 bg-white shadow-lg">
             <button
               type="button"
               onClick={() => switchMapMode("street")}
-              className={`px-2.5 py-1.5 text-[11px] font-bold ${
+              className={`px-2.5 py-1.5 text-[11px] font-bold text-black ${
                 mapMode === "street"
-                  ? "bg-primary text-black"
-                  : "text-bh-muted hover:bg-bh-elevated hover:text-bh-text"
+                  ? "bg-primary"
+                  : "hover:bg-neutral-100"
               }`}
             >
               {labels.mapStreet || "מפה"}
@@ -348,10 +348,10 @@ export default function DeliveryMapPicker({
             <button
               type="button"
               onClick={() => switchMapMode("satellite")}
-              className={`px-2.5 py-1.5 text-[11px] font-bold ${
+              className={`px-2.5 py-1.5 text-[11px] font-bold text-black ${
                 mapMode === "satellite"
-                  ? "bg-primary text-black"
-                  : "text-bh-muted hover:bg-bh-elevated hover:text-bh-text"
+                  ? "bg-primary"
+                  : "hover:bg-neutral-100"
               }`}
             >
               {labels.mapSatellite || "לוויין"}

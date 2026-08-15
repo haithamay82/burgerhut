@@ -351,7 +351,7 @@ async function nominatimGeocode(q) {
 
 async function computeFromCoords(destLat, destLon) {
   const pin = await resolvePinContext(destLat, destLon);
-  const village = findDeliveryVillage(destLat, destLon, pin.texts);
+  const village = findDeliveryVillage(destLat, destLon);
 
   if (!village) {
     return {
@@ -407,7 +407,11 @@ export default async function handler(req, res) {
       }
       const result = await computeFromCoords(lat, lon);
       if (!result.ok) {
-        return res.status(200).json({ ok: false, error: result.error });
+        return res.status(200).json({
+          ok: false,
+          error: result.error,
+          displayName: result.displayName || "",
+        });
       }
       return res.status(200).json({ ok: true, ...result });
     }
