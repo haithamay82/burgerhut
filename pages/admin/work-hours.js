@@ -4,28 +4,12 @@ import Link from "next/link";
 import { useLocale } from "@/contexts/LocaleContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { formatHoursMinutes } from "@/utils/employeeHours";
-
-const SESSION_KEY = "burgerhut:employee-hours-secret";
-
-function readSecret() {
-  if (typeof window === "undefined") return "";
-  try {
-    return String(window.sessionStorage.getItem(SESSION_KEY) || "").trim();
-  } catch {
-    return "";
-  }
-}
-
-function writeSecret(v) {
-  if (typeof window === "undefined") return;
-  try {
-    const s = String(v || "").trim();
-    if (s) window.sessionStorage.setItem(SESSION_KEY, s);
-    else window.sessionStorage.removeItem(SESSION_KEY);
-  } catch {
-    /* ignore */
-  }
-}
+import {
+  clearEmployeeHoursSecret,
+  hasRememberedEmployeeHoursSecret,
+  readEmployeeHoursSecret,
+  writeEmployeeHoursSecret,
+} from "@/utils/employeeHoursAuthPersist";
 
 function formatDayLabel(dayKey, locale) {
   const [y, m, d] = String(dayKey)
@@ -65,6 +49,8 @@ export default function EmployeeWorkHoursPage() {
   const [secret, setSecret] = useState("");
   const [regName, setRegName] = useState("");
   const [regPassword, setRegPassword] = useState("");
+  const [regRemember, setRegRemember] = useState(true);
+  const [loginRemember, setLoginRemember] = useState(false);
   const [employeeName, setEmployeeName] = useState("");
   const [authed, setAuthed] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -132,11 +118,10 @@ export default function EmployeeWorkHoursPage() {
         const d = await r.json().catch(() => ({}));
         if (!r.ok) {
           setAuthed(false);
-          writeSecret("");
+          clearEmployeeHoursSecret();
           setError(mapAuthError(d.error, t));
           return false;
         }
-        writeSecret(s);
         setSecret(s);
         setAuthed(true);
         applyPayload(d);
@@ -152,9 +137,10 @@ export default function EmployeeWorkHoursPage() {
   );
 
   useEffect(() => {
-    const stored = readSecret();
+    const stored = readEmployeeHoursSecret();
     if (stored) {
       setSecret(stored);
+      setLoginRemember(hasRememberedEmployeeHoursSecret());
       void loadData(stored);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- hydrate once
@@ -178,6 +164,7 @@ export default function EmployeeWorkHoursPage() {
         setError(mapAuthError(d.error, t));
         return;
       }
+      writeEmployeeHoursSecret(s, loginRemember);
       await loadData(s);
     } catch {
       setError(t("workHours.errNet"));
@@ -205,10 +192,15 @@ export default function EmployeeWorkHoursPage() {
         setError(mapAuthError(d.error, t));
         return;
       }
+      writeEmployeeHoursSecret(password, regRemember);
       setSecret(password);
       setRegName("");
       setRegPassword("");
-      setMsg(t("workHours.registered"));
+      setMsg(
+        regRemember
+          ? t("workHours.registeredRemembered")
+          : t("workHours.registered")
+      );
       await loadData(password);
     } catch {
       setError(t("workHours.errNet"));
@@ -218,7 +210,7 @@ export default function EmployeeWorkHoursPage() {
   };
 
   const logout = () => {
-    writeSecret("");
+    clearEmployeeHoursSecret();
     setSecret("");
     setEmployeeName("");
     setAuthed(false);
@@ -342,6 +334,15 @@ export default function EmployeeWorkHoursPage() {
                     {loading ? t("workHours.loading") : t("workHours.login")}
                   </button>
                 </div>
+                <label className="mt-3 flex cursor-pointer items-start gap-2 text-xs text-gray-300">
+                  <input
+                    type="checkbox"
+                    checked={loginRemember}
+                    onChange={(e) => setLoginRemember(e.target.checked)}
+                    className="mt-0.5"
+                  />
+                  <span>{t("workHours.rememberPassword")}</span>
+                </label>
               </form>
 
               <form
@@ -393,6 +394,15 @@ export default function EmployeeWorkHoursPage() {
                       : t("workHours.register")}
                   </button>
                 </div>
+                <label className="mt-3 flex cursor-pointer items-start gap-2 text-xs text-gray-300">
+                  <input
+                    type="checkbox"
+                    checked={regRemember}
+                    onChange={(e) => setRegRemember(e.target.checked)}
+                    className="mt-0.5"
+                  />
+                  <span>{t("workHours.rememberPasswordAsk")}</span>
+                </label>
               </form>
             </div>
           ) : null}

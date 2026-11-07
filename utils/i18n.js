@@ -877,6 +877,9 @@ const HE = {
   "workHours.loginTitle": "כניסת עובד",
   "workHours.registerTitle": "הרשמת עובד חדש",
   "workHours.registerHint": "פעם ראשונה: שם + סיסמה. אחר כך כניסה בסיסמה בלבד.",
+  "workHours.rememberPasswordAsk":
+    "האם תרצה שהמערכת תזכור את הסיסמה שלך בפעמים הבאות שתרצה להיכנס?",
+  "workHours.rememberPassword": "זכור את הסיסמה במכשיר זה לכניסות הבאות",
   "workHours.nameLabel": "שם",
   "workHours.namePh": "שם מלא",
   "workHours.secretLabel": "סיסמה",
@@ -884,6 +887,8 @@ const HE = {
   "workHours.login": "כניסה",
   "workHours.register": "הרשמה",
   "workHours.registered": "נרשמת בהצלחה.",
+  "workHours.registeredRemembered":
+    "נרשמת בהצלחה. הסיסמה נשמרה במכשיר זה לכניסות הבאות.",
   "workHours.logout": "יציאה",
   "workHours.loading": "טוען…",
   "workHours.saving": "שומר…",
@@ -2104,6 +2109,9 @@ const AR = {
   "workHours.loginTitle": "دخول الموظف",
   "workHours.registerTitle": "تسجيل موظف جديد",
   "workHours.registerHint": "أول مرة: الاسم + كلمة المرور. بعدها الدخول بكلمة المرور فقط.",
+  "workHours.rememberPasswordAsk":
+    "هل تريد أن تتذكر المنظومة كلمة المرور في المرات القادمة؟",
+  "workHours.rememberPassword": "تذكر كلمة المرور على هذا الجهاز للمرات القادمة",
   "workHours.nameLabel": "الاسم",
   "workHours.namePh": "الاسم الكامل",
   "workHours.secretLabel": "كلمة المرور",
@@ -2111,6 +2119,8 @@ const AR = {
   "workHours.login": "دخول",
   "workHours.register": "تسجيل",
   "workHours.registered": "تم التسجيل بنجاح.",
+  "workHours.registeredRemembered":
+    "تم التسجيل بنجاح. حُفظت كلمة المرور على هذا الجهاز للمرات القادمة.",
   "workHours.logout": "خروج",
   "workHours.loading": "جارٍ التحميل…",
   "workHours.saving": "جارٍ الحفظ…",

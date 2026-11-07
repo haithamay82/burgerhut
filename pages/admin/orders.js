@@ -13,6 +13,7 @@ import { upload as uploadToBlob } from "@vercel/blob/client";
 import { useLocale } from "@/contexts/LocaleContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import AdminEmployeeHoursPanel from "@/components/AdminEmployeeHoursPanel";
+import { writeEmployeeHoursSecret } from "@/utils/employeeHoursAuthPersist";
 import {
   BURGER_TOPPINGS,
   CRISPY_MEAL_SALADS,
@@ -337,8 +338,6 @@ function formatMonthYearTitle(y, m, locale) {
   });
 }
 
-const EMPLOYEE_HOURS_SESSION_KEY = "burgerhut:employee-hours-secret";
-
 export default function AdminOrdersPage() {
   const { locale, t } = useLocale();
   const router = useRouter();
@@ -346,8 +345,11 @@ export default function AdminOrdersPage() {
   const [employeeHoursSecret, setEmployeeHoursSecret] = useState("");
   const [employeeHoursLoginBusy, setEmployeeHoursLoginBusy] = useState(false);
   const [employeeHoursLoginError, setEmployeeHoursLoginError] = useState("");
+  const [employeeHoursLoginRemember, setEmployeeHoursLoginRemember] =
+    useState(false);
   const [employeeHoursRegName, setEmployeeHoursRegName] = useState("");
   const [employeeHoursRegPassword, setEmployeeHoursRegPassword] = useState("");
+  const [employeeHoursRegRemember, setEmployeeHoursRegRemember] = useState(true);
   const [employeeHoursRegisterBusy, setEmployeeHoursRegisterBusy] =
     useState(false);
   const [workHoursPanelOpen, setWorkHoursPanelOpen] = useState(false);
@@ -1448,11 +1450,7 @@ export default function AdminOrdersPage() {
         );
         return;
       }
-      try {
-        window.sessionStorage.setItem(EMPLOYEE_HOURS_SESSION_KEY, s);
-      } catch {
-        /* ignore */
-      }
+      writeEmployeeHoursSecret(s, employeeHoursLoginRemember);
       void router.push("/admin/work-hours");
     } catch {
       setEmployeeHoursLoginError(t("workHours.errNet"));
@@ -1485,11 +1483,7 @@ export default function AdminOrdersPage() {
         setEmployeeHoursLoginError(t(map[d.error] || "workHours.errLoad"));
         return;
       }
-      try {
-        window.sessionStorage.setItem(EMPLOYEE_HOURS_SESSION_KEY, password);
-      } catch {
-        /* ignore */
-      }
+      writeEmployeeHoursSecret(password, employeeHoursRegRemember);
       void router.push("/admin/work-hours");
     } catch {
       setEmployeeHoursLoginError(t("workHours.errNet"));
@@ -2910,32 +2904,45 @@ export default function AdminOrdersPage() {
             <div className="mb-6 space-y-3">
               <form
                 onSubmit={loginEmployeeHours}
-                className="flex flex-col gap-2 sm:flex-row sm:items-end"
+                className="flex flex-col gap-2"
               >
-                <div className="flex-1">
-                  <label className="mb-1 block text-xs text-gray-400">
-                    {t("workHours.employeeLoginLabel")}
-                  </label>
-                  <input
-                    type="password"
-                    autoComplete="current-password"
-                    value={employeeHoursSecret}
-                    onChange={(e) => setEmployeeHoursSecret(e.target.value)}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-primary"
-                    placeholder={t("workHours.secretPh")}
-                  />
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                  <div className="flex-1">
+                    <label className="mb-1 block text-xs text-gray-400">
+                      {t("workHours.employeeLoginLabel")}
+                    </label>
+                    <input
+                      type="password"
+                      autoComplete="current-password"
+                      value={employeeHoursSecret}
+                      onChange={(e) => setEmployeeHoursSecret(e.target.value)}
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-primary"
+                      placeholder={t("workHours.secretPh")}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={
+                      employeeHoursLoginBusy || !employeeHoursSecret.trim()
+                    }
+                    className="btn-primary whitespace-nowrap px-6 text-sm disabled:opacity-50"
+                  >
+                    {employeeHoursLoginBusy
+                      ? t("workHours.loading")
+                      : t("workHours.login")}
+                  </button>
                 </div>
-                <button
-                  type="submit"
-                  disabled={
-                    employeeHoursLoginBusy || !employeeHoursSecret.trim()
-                  }
-                  className="btn-primary whitespace-nowrap px-6 text-sm disabled:opacity-50"
-                >
-                  {employeeHoursLoginBusy
-                    ? t("workHours.loading")
-                    : t("workHours.login")}
-                </button>
+                <label className="flex cursor-pointer items-start gap-2 text-xs text-gray-300">
+                  <input
+                    type="checkbox"
+                    checked={employeeHoursLoginRemember}
+                    onChange={(e) =>
+                      setEmployeeHoursLoginRemember(e.target.checked)
+                    }
+                    className="mt-0.5"
+                  />
+                  <span>{t("workHours.rememberPassword")}</span>
+                </label>
               </form>
               <form
                 onSubmit={registerEmployeeHours}
@@ -2987,6 +2994,17 @@ export default function AdminOrdersPage() {
                       : t("workHours.register")}
                   </button>
                 </div>
+                <label className="mt-3 flex cursor-pointer items-start gap-2 text-xs text-gray-300">
+                  <input
+                    type="checkbox"
+                    checked={employeeHoursRegRemember}
+                    onChange={(e) =>
+                      setEmployeeHoursRegRemember(e.target.checked)
+                    }
+                    className="mt-0.5"
+                  />
+                  <span>{t("workHours.rememberPasswordAsk")}</span>
+                </label>
               </form>
             </div>
           ) : null}
