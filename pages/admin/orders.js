@@ -8,9 +8,11 @@ import {
 } from "react";
 import Head from "next/head";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { upload as uploadToBlob } from "@vercel/blob/client";
 import { useLocale } from "@/contexts/LocaleContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { formatHoursMinutes } from "@/utils/employeeHours";
 import {
   BURGER_TOPPINGS,
   CRISPY_MEAL_SALADS,
@@ -335,9 +337,43 @@ function formatMonthYearTitle(y, m, locale) {
   });
 }
 
+const EMPLOYEE_HOURS_SESSION_KEY = "burgerhut:employee-hours-secret";
+
+function formatWorkHoursDuration(minutes, t) {
+  const { hours, minutes: rem } = formatHoursMinutes(minutes);
+  return t("workHours.duration")
+    .replace("{h}", String(hours))
+    .replace("{m}", String(rem));
+}
+
+function formatWorkHoursDayLabel(dayKey, locale) {
+  const [y, m, d] = String(dayKey)
+    .split("-")
+    .map((x) => Number(x));
+  if (!y || !m || !d) return dayKey;
+  const loc = locale === "ar" ? "ar" : "he-IL";
+  return new Date(Date.UTC(y, m - 1, d, 12, 0, 0)).toLocaleDateString(loc, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 export default function AdminOrdersPage() {
   const { locale, t } = useLocale();
+  const router = useRouter();
   const [secret, setSecret] = useState("");
+  const [employeeHoursSecret, setEmployeeHoursSecret] = useState("");
+  const [employeeHoursLoginBusy, setEmployeeHoursLoginBusy] = useState(false);
+  const [employeeHoursLoginError, setEmployeeHoursLoginError] = useState("");
+  const [workHoursPanelOpen, setWorkHoursPanelOpen] = useState(false);
+  const [workHoursEntries, setWorkHoursEntries] = useState([]);
+  const [workHoursMonthKey, setWorkHoursMonthKey] = useState("");
+  const [workHoursMonthMinutes, setWorkHoursMonthMinutes] = useState(0);
+  const [workHoursLoading, setWorkHoursLoading] = useState(false);
+  const [workHoursMsg, setWorkHoursMsg] = useState("");
   /** @type {["admin" | "employee", import("react").Dispatch<import("react").SetStateAction<"admin" | "employee">>] */
   const [adminRole, setAdminRole] = useState("admin");
   const [orders, setOrders] = useState([]);
@@ -1410,7 +1446,80 @@ export default function AdminOrdersPage() {
     setRatingsDeletingId("");
     setRatingsDeleteAllBusy(false);
     setRatingsMsg("");
+    setWorkHoursPanelOpen(false);
+    setWorkHoursEntries([]);
+    setWorkHoursMonthKey("");
+    setWorkHoursMonthMinutes(0);
+    setWorkHoursMsg("");
+    setEmployeeHoursLoginError("");
   };
+
+  const loginEmployeeHours = async (e) => {
+    e.preventDefault();
+    const s = employeeHoursSecret.trim();
+    if (!s || employeeHoursLoginBusy) return;
+    setEmployeeHoursLoginBusy(true);
+    setEmployeeHoursLoginError("");
+    try {
+      const r = await fetch(`/api/employee-hours?_=${Date.now()}`, {
+        headers: { "x-employee-hours-secret": s },
+        cache: "no-store",
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setEmployeeHoursLoginError(
+          d.error === "unauthorized"
+            ? t("workHours.errAuth")
+            : t("workHours.errLoad")
+        );
+        return;
+      }
+      try {
+        window.sessionStorage.setItem(EMPLOYEE_HOURS_SESSION_KEY, s);
+      } catch {
+        /* ignore */
+      }
+      void router.push("/admin/work-hours");
+    } catch {
+      setEmployeeHoursLoginError(t("workHours.errNet"));
+    } finally {
+      setEmployeeHoursLoginBusy(false);
+    }
+  };
+
+  const refreshWorkHoursReport = useCallback(async () => {
+    const s = secret.trim();
+    if (!s) {
+      setWorkHoursEntries([]);
+      setWorkHoursMonthMinutes(0);
+      return;
+    }
+    setWorkHoursLoading(true);
+    setWorkHoursMsg("");
+    try {
+      const r = await fetch(`/api/employee-hours?_=${Date.now()}`, {
+        headers: { "x-admin-secret": s },
+        cache: "no-store",
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setWorkHoursMsg(
+          d.error === "forbidden" || d.error === "unauthorized"
+            ? t("admin.errAuth")
+            : t("workHours.errLoad")
+        );
+        setWorkHoursEntries([]);
+        return;
+      }
+      setWorkHoursEntries(Array.isArray(d.entries) ? d.entries : []);
+      setWorkHoursMonthKey(String(d.monthKey || ""));
+      setWorkHoursMonthMinutes(Number(d.monthMinutes) || 0);
+    } catch {
+      setWorkHoursMsg(t("admin.errNet"));
+    } finally {
+      setWorkHoursLoading(false);
+    }
+  }, [secret, t]);
 
   const toggleStoreClosed = async () => {
     if (!secret.trim() || storeCloseBusy) return;
@@ -1795,6 +1904,11 @@ export default function AdminOrdersPage() {
     }
     void refreshRatings();
   }, [loaded, adminRole, refreshRatings]);
+
+  useEffect(() => {
+    if (!loaded || adminRole === "employee" || !workHoursPanelOpen) return;
+    void refreshWorkHoursReport();
+  }, [loaded, adminRole, workHoursPanelOpen, refreshWorkHoursReport]);
 
   useEffect(() => {
     if (!loaded) {
@@ -2819,6 +2933,42 @@ export default function AdminOrdersPage() {
               {loading ? t("admin.loading") : t("admin.load")}
             </button>
           </form>
+
+          {!loaded ? (
+            <form
+              onSubmit={loginEmployeeHours}
+              className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end"
+            >
+              <div className="flex-1">
+                <label className="mb-1 block text-xs text-gray-400">
+                  {t("workHours.employeeLoginLabel")}
+                </label>
+                <input
+                  type="password"
+                  autoComplete="current-password"
+                  value={employeeHoursSecret}
+                  onChange={(e) => setEmployeeHoursSecret(e.target.value)}
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-primary"
+                  placeholder={t("workHours.secretPh")}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={employeeHoursLoginBusy || !employeeHoursSecret.trim()}
+                className="btn-primary whitespace-nowrap px-6 text-sm disabled:opacity-50"
+              >
+                {employeeHoursLoginBusy
+                  ? t("workHours.loading")
+                  : t("workHours.login")}
+              </button>
+            </form>
+          ) : null}
+
+          {employeeHoursLoginError ? (
+            <p className="mb-4 rounded-lg border border-red-900/60 bg-red-950/40 px-3 py-2 text-sm text-red-300">
+              {employeeHoursLoginError}
+            </p>
+          ) : null}
 
           {error ? (
             <p className="mb-4 rounded-lg border border-red-900/60 bg-red-950/40 px-3 py-2 text-sm text-red-300">
@@ -4416,6 +4566,106 @@ export default function AdminOrdersPage() {
                               </td>
                               <td className="px-3 py-2 text-center tabular-nums text-gray-300">
                                 {row.pwa}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </section>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={() => setWorkHoursPanelOpen((v) => !v)}
+                aria-expanded={workHoursPanelOpen}
+                className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-right text-sm font-bold text-gray-100 transition-colors hover:border-primary/50 hover:bg-slate-800/60"
+              >
+                <span className="min-w-0 flex-1 leading-snug">
+                  {t("admin.workHoursReportTitle")}
+                </span>
+                <span
+                  className="shrink-0 text-lg leading-none text-primary"
+                  aria-hidden
+                >
+                  {workHoursPanelOpen ? "▾" : "▶"}
+                </span>
+              </button>
+              {workHoursPanelOpen ? (
+                <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
+                  <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-[11px] leading-relaxed text-gray-500">
+                        {t("admin.workHoursReportHint")}
+                      </p>
+                      <p className="mt-2 text-sm font-semibold text-primary">
+                        {t("workHours.monthTotalLabel")}
+                        {workHoursMonthKey ? ` (${workHoursMonthKey})` : ""}
+                        {": "}
+                        {formatWorkHoursDuration(workHoursMonthMinutes, t)}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => void refreshWorkHoursReport()}
+                      disabled={workHoursLoading}
+                      className="rounded-lg border border-slate-600 bg-slate-800/80 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:border-primary/50 hover:bg-slate-800 disabled:opacity-50"
+                    >
+                      {workHoursLoading
+                        ? t("workHours.loading")
+                        : t("admin.workHoursRefresh")}
+                    </button>
+                  </div>
+                  {workHoursMsg ? (
+                    <p className="mb-3 text-xs font-medium text-amber-200/90">
+                      {workHoursMsg}
+                    </p>
+                  ) : null}
+                  {workHoursLoading ? (
+                    <p className="text-sm text-gray-500">
+                      {t("workHours.loading")}
+                    </p>
+                  ) : workHoursEntries.length === 0 ? (
+                    <p className="text-sm text-gray-500">
+                      {t("workHours.empty")}
+                    </p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[28rem] text-right text-sm">
+                        <thead>
+                          <tr className="border-b border-slate-700 text-xs text-gray-400">
+                            <th className="px-2 py-2 font-semibold">
+                              {t("workHours.colDate")}
+                            </th>
+                            <th className="px-2 py-2 font-semibold">
+                              {t("workHours.colStart")}
+                            </th>
+                            <th className="px-2 py-2 font-semibold">
+                              {t("workHours.colEnd")}
+                            </th>
+                            <th className="px-2 py-2 font-semibold">
+                              {t("workHours.colTotal")}
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {workHoursEntries.map((row) => (
+                            <tr
+                              key={row.dayKey}
+                              className="border-b border-slate-800/80"
+                            >
+                              <td className="px-2 py-2">
+                                {formatWorkHoursDayLabel(row.dayKey, locale)}
+                              </td>
+                              <td className="px-2 py-2 tabular-nums">
+                                {row.start}
+                              </td>
+                              <td className="px-2 py-2 tabular-nums">
+                                {row.end}
+                              </td>
+                              <td className="px-2 py-2 font-semibold text-primary">
+                                {formatWorkHoursDuration(row.minutes, t)}
                               </td>
                             </tr>
                           ))}
