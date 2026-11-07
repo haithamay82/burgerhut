@@ -1,4 +1,5 @@
 import { authorizeAdminOnly } from "@/lib/adminAuth";
+import { broadcastEmployeeHoursToAdmins } from "@/lib/adminPushNotify";
 import {
   addEmployeeHoursEntry,
   authorizeEmployeeHours,
@@ -84,6 +85,21 @@ export default async function handler(req, res) {
     const data = result.data;
     const payload = buildHoursPayload(data, emp.employee.id, jerusalemMonthKey());
     const full = data.employees.find((e) => e.id === emp.employee.id);
+    try {
+      await broadcastEmployeeHoursToAdmins({
+        employeeName: emp.employee.name,
+        employeeId: emp.employee.id,
+        start: result.entry.start,
+        end: result.entry.end,
+        dayKey: result.entry.dayKey,
+        isUpdate: false,
+      });
+    } catch (e) {
+      console.warn(
+        "[adminPush] employee hours create notify failed",
+        e?.message || e
+      );
+    }
     return res.status(200).json({
       ...payload,
       entry: payload.entries.find(
@@ -141,6 +157,21 @@ export default async function handler(req, res) {
       response.employee = full
         ? publicEmployeeProfile(full, data.entries, payload.monthKey)
         : auth.employee;
+      try {
+        await broadcastEmployeeHoursToAdmins({
+          employeeName: auth.employee.name,
+          employeeId,
+          start: result.entry.start,
+          end: result.entry.end,
+          dayKey: result.entry.dayKey,
+          isUpdate: true,
+        });
+      } catch (e) {
+        console.warn(
+          "[adminPush] employee hours update notify failed",
+          e?.message || e
+        );
+      }
     }
     return res.status(200).json(response);
   }
