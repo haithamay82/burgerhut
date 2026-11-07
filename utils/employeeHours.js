@@ -61,6 +61,15 @@ export function isEndTimeInTheFuture(start, end, date = new Date()) {
   return endM > nowM;
 }
 
+/** Monday = closed for employee hour reporting (Asia/Jerusalem). */
+export function isJerusalemMonday(date = new Date()) {
+  const short = date.toLocaleDateString("en-US", {
+    timeZone: "Asia/Jerusalem",
+    weekday: "short",
+  });
+  return short === "Mon";
+}
+
 /** @param {number} minutes */
 export function formatHoursMinutes(minutes) {
   const m = Math.max(0, Math.round(Number(minutes) || 0));

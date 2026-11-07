@@ -6,6 +6,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import {
   formatHoursMinutes,
   isEndTimeInTheFuture,
+  isJerusalemMonday,
 } from "@/utils/employeeHours";
 import {
   clearEmployeeHoursSecret,
@@ -227,6 +228,10 @@ export default function EmployeeWorkHoursPage() {
   const onSave = async (e) => {
     e.preventDefault();
     if (!secret.trim() || saving) return;
+    if (isJerusalemMonday()) {
+      setError(t("workHours.errMonday"));
+      return;
+    }
     if (isEndTimeInTheFuture(start, end)) {
       setError(t("workHours.errFutureEnd"));
       return;
@@ -255,6 +260,7 @@ export default function EmployeeWorkHoursPage() {
           invalid_range: "workHours.errRange",
           invalid_day: "workHours.errDay",
           future_end: "workHours.errFutureEnd",
+          monday_closed: "workHours.errMonday",
         };
         setError(t(map[d.error] || "workHours.errSave"));
         return;
@@ -268,8 +274,10 @@ export default function EmployeeWorkHoursPage() {
     }
   };
 
+  const mondayClosed = isJerusalemMonday();
   const canSubmit =
     Boolean(todayKey && start && end) &&
+    !mondayClosed &&
     !isEndTimeInTheFuture(start, end);
 
   return (
@@ -473,7 +481,11 @@ export default function EmployeeWorkHoursPage() {
                 <h2 className="mb-3 text-sm font-bold text-gray-100">
                   {t("workHours.reportTitle")}
                 </h2>
-                {todayEntry ? (
+                {mondayClosed ? (
+                  <p className="mb-3 text-xs text-amber-200/90">
+                    {t("workHours.errMonday")}
+                  </p>
+                ) : todayEntry ? (
                   <p className="mb-3 text-xs text-amber-200/90">
                     {t("workHours.todayEditableHint")}
                   </p>
@@ -500,7 +512,8 @@ export default function EmployeeWorkHoursPage() {
                       type="time"
                       value={start}
                       onChange={(e) => setStart(e.target.value)}
-                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-primary"
+                      disabled={mondayClosed}
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-primary disabled:opacity-50"
                     />
                   </div>
                   <div>
@@ -511,7 +524,8 @@ export default function EmployeeWorkHoursPage() {
                       type="time"
                       value={end}
                       onChange={(e) => setEnd(e.target.value)}
-                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-primary"
+                      disabled={mondayClosed}
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-primary disabled:opacity-50"
                     />
                   </div>
                   <div className="sm:col-span-3">

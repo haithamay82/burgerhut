@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   formatHoursMinutes,
   isEndTimeInTheFuture,
+  isJerusalemMonday,
   minutesBetweenHHmm,
 } from "@/utils/employeeHours";
 
@@ -160,6 +161,10 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
     const s = String(secret || "").trim();
     const draft = editDrafts[employeeId];
     if (!s || !draft || !todayKey) return;
+    if (isJerusalemMonday()) {
+      setMsg(t("workHours.errMonday"));
+      return;
+    }
     if (isEndTimeInTheFuture(draft.start, draft.end)) {
       setMsg(t("workHours.errFutureEnd"));
       return;
@@ -185,7 +190,9 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
         setMsg(
           d.error === "future_end"
             ? t("workHours.errFutureEnd")
-            : t("workHours.errSave")
+            : d.error === "monday_closed"
+              ? t("workHours.errMonday")
+              : t("workHours.errSave")
         );
         return;
       }
@@ -202,6 +209,7 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
   const selectedEntries = selected
     ? entries.filter((e) => e.employeeId === selected.id)
     : entries;
+  const mondayClosed = isJerusalemMonday();
 
   return (
     <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
@@ -229,6 +237,11 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
         </button>
       </div>
 
+          {mondayClosed ? (
+        <p className="mb-3 text-xs font-medium text-amber-200/90">
+          {t("workHours.errMonday")}
+        </p>
+      ) : null}
       {msg ? (
         <p className="mb-3 text-xs font-medium text-amber-200/90">{msg}</p>
       ) : null}
@@ -514,6 +527,7 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
                                 void saveTodayEdit(row.employeeId)
                               }
                               disabled={
+                                mondayClosed ||
                                 busyId === row.employeeId ||
                                 !draft.start ||
                                 !draft.end ||
