@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   formatHoursMinutes,
+  isEndTimeInTheFuture,
   minutesBetweenHHmm,
 } from "@/utils/employeeHours";
 
@@ -159,6 +160,10 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
     const s = String(secret || "").trim();
     const draft = editDrafts[employeeId];
     if (!s || !draft || !todayKey) return;
+    if (isEndTimeInTheFuture(draft.start, draft.end)) {
+      setMsg(t("workHours.errFutureEnd"));
+      return;
+    }
     setBusyId(employeeId);
     setMsg("");
     try {
@@ -177,7 +182,11 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) {
-        setMsg(t("workHours.errSave"));
+        setMsg(
+          d.error === "future_end"
+            ? t("workHours.errFutureEnd")
+            : t("workHours.errSave")
+        );
         return;
       }
       applyPayload(d);
@@ -507,7 +516,8 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
                               disabled={
                                 busyId === row.employeeId ||
                                 !draft.start ||
-                                !draft.end
+                                !draft.end ||
+                                isEndTimeInTheFuture(draft.start, draft.end)
                               }
                               className="rounded-lg border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary disabled:opacity-50"
                             >

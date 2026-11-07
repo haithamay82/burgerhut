@@ -3,7 +3,10 @@ import Head from "next/head";
 import Link from "next/link";
 import { useLocale } from "@/contexts/LocaleContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
-import { formatHoursMinutes } from "@/utils/employeeHours";
+import {
+  formatHoursMinutes,
+  isEndTimeInTheFuture,
+} from "@/utils/employeeHours";
 import {
   clearEmployeeHoursSecret,
   hasRememberedEmployeeHoursSecret,
@@ -224,6 +227,10 @@ export default function EmployeeWorkHoursPage() {
   const onSave = async (e) => {
     e.preventDefault();
     if (!secret.trim() || saving) return;
+    if (isEndTimeInTheFuture(start, end)) {
+      setError(t("workHours.errFutureEnd"));
+      return;
+    }
     setSaving(true);
     setError("");
     setMsg("");
@@ -247,6 +254,7 @@ export default function EmployeeWorkHoursPage() {
           invalid_time: "workHours.errTime",
           invalid_range: "workHours.errRange",
           invalid_day: "workHours.errDay",
+          future_end: "workHours.errFutureEnd",
         };
         setError(t(map[d.error] || "workHours.errSave"));
         return;
@@ -260,7 +268,9 @@ export default function EmployeeWorkHoursPage() {
     }
   };
 
-  const canSubmit = Boolean(todayKey && start && end);
+  const canSubmit =
+    Boolean(todayKey && start && end) &&
+    !isEndTimeInTheFuture(start, end);
 
   return (
     <>

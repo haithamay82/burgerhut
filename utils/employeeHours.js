@@ -24,6 +24,43 @@ export function minutesBetweenHHmm(start, end) {
   return endM - startM;
 }
 
+function jerusalemNowMinutes(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Jerusalem",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+  const n = (type) =>
+    Number(parts.find((p) => p.type === type)?.value ?? 0);
+  return n("hour") * 60 + n("minute");
+}
+
+/**
+ * True when end time is still ahead of "now" (Asia/Jerusalem).
+ * Overnight shifts (end <= start): end is treated as next morning.
+ * @param {string} start
+ * @param {string} end
+ * @param {Date} [date]
+ */
+export function isEndTimeInTheFuture(start, end, date = new Date()) {
+  const a = parseHHmm(start);
+  const b = parseHHmm(end);
+  if (!a || !b) return false;
+  const [sh, sm] = a.split(":").map(Number);
+  const [eh, em] = b.split(":").map(Number);
+  const startM = sh * 60 + sm;
+  const endM = eh * 60 + em;
+  const nowM = jerusalemNowMinutes(date);
+  const overnight = endM <= startM;
+  if (overnight) {
+    const endAbs = endM + 24 * 60;
+    const nowAbs = nowM < startM ? nowM + 24 * 60 : nowM;
+    return endAbs > nowAbs;
+  }
+  return endM > nowM;
+}
+
 /** @param {number} minutes */
 export function formatHoursMinutes(minutes) {
   const m = Math.max(0, Math.round(Number(minutes) || 0));
