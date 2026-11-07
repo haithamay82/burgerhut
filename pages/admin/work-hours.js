@@ -49,19 +49,38 @@ function formatDuration(minutes, t) {
     .replace("{m}", String(rem));
 }
 
+function mapAuthError(code, t) {
+  const map = {
+    unauthorized: "workHours.errAuth",
+    invalid_name: "workHours.errName",
+    invalid_password: "workHours.errPasswordWeak",
+    name_taken: "workHours.errNameTaken",
+    password_taken: "workHours.errPasswordTaken",
+  };
+  return t(map[code] || "workHours.errLoad");
+}
+
 export default function EmployeeWorkHoursPage() {
   const { locale, t } = useLocale();
   const [secret, setSecret] = useState("");
+  const [regName, setRegName] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [employeeName, setEmployeeName] = useState("");
   const [authed, setAuthed] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [registerBusy, setRegisterBusy] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [msg, setMsg] = useState("");
   const [todayKey, setTodayKey] = useState("");
   const [monthKey, setMonthKey] = useState("");
   const [monthMinutes, setMonthMinutes] = useState(0);
+  const [monthCostIls, setMonthCostIls] = useState(0);
+  const [currentRateIls, setCurrentRateIls] = useState(0);
+  const [paidTotalIls, setPaidTotalIls] = useState(0);
+  const [balanceIls, setBalanceIls] = useState(0);
+  const [totalEarnedIls, setTotalEarnedIls] = useState(0);
   const [entries, setEntries] = useState([]);
-  const [dayKey, setDayKey] = useState("");
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
 
@@ -71,16 +90,33 @@ export default function EmployeeWorkHoursPage() {
   );
 
   const applyPayload = useCallback((d) => {
-    setTodayKey(String(d.todayKey || ""));
+    const today = String(d.todayKey || "");
+    const list = Array.isArray(d.entries) ? d.entries : [];
+    setTodayKey(today);
     setMonthKey(String(d.monthKey || ""));
     setMonthMinutes(Number(d.monthMinutes) || 0);
-    setEntries(Array.isArray(d.entries) ? d.entries : []);
-    const today = String(d.todayKey || "");
-    setDayKey((prev) => {
-      if (prev && prev <= today) return prev;
-      return today;
-    });
+    setMonthCostIls(Number(d.monthCostIls ?? d.employee?.monthCostIls) || 0);
+    setEntries(list);
+    if (d.employee?.name) setEmployeeName(String(d.employee.name));
+    setCurrentRateIls(Number(d.employee?.currentRateIls) || 0);
+    setPaidTotalIls(Number(d.employee?.paidTotalIls) || 0);
+    setBalanceIls(Number(d.employee?.balanceIls) || 0);
+    setTotalEarnedIls(Number(d.employee?.totalEarnedIls) || 0);
+    const todayRow = list.find((e) => e.dayKey === today);
+    if (todayRow) {
+      setStart(String(todayRow.start || ""));
+      setEnd(String(todayRow.end || ""));
+    } else {
+      setStart("");
+      setEnd("");
+    }
   }, []);
+
+  function formatMoney(n) {
+    const v = Number(n);
+    if (!Number.isFinite(v)) return "₪0.00";
+    return `₪${v.toFixed(2)}`;
+  }
 
   const loadData = useCallback(
     async (sec) => {
@@ -97,11 +133,7 @@ export default function EmployeeWorkHoursPage() {
         if (!r.ok) {
           setAuthed(false);
           writeSecret("");
-          setError(
-            d.error === "unauthorized"
-              ? t("workHours.errAuth")
-              : t("workHours.errLoad")
-          );
+          setError(mapAuthError(d.error, t));
           return false;
         }
         writeSecret(s);
@@ -131,12 +163,64 @@ export default function EmployeeWorkHoursPage() {
   const onLogin = async (e) => {
     e.preventDefault();
     setMsg("");
-    await loadData(secret);
+    setError("");
+    const s = secret.trim();
+    if (!s) return;
+    setLoading(true);
+    try {
+      const r = await fetch("/api/employee-hours/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: s }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setError(mapAuthError(d.error, t));
+        return;
+      }
+      await loadData(s);
+    } catch {
+      setError(t("workHours.errNet"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRegister = async (e) => {
+    e.preventDefault();
+    setMsg("");
+    setError("");
+    const name = regName.trim();
+    const password = regPassword.trim();
+    if (!name || !password || registerBusy) return;
+    setRegisterBusy(true);
+    try {
+      const r = await fetch("/api/employee-hours/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, password }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setError(mapAuthError(d.error, t));
+        return;
+      }
+      setSecret(password);
+      setRegName("");
+      setRegPassword("");
+      setMsg(t("workHours.registered"));
+      await loadData(password);
+    } catch {
+      setError(t("workHours.errNet"));
+    } finally {
+      setRegisterBusy(false);
+    }
   };
 
   const logout = () => {
     writeSecret("");
     setSecret("");
+    setEmployeeName("");
     setAuthed(false);
     setEntries([]);
     setError("");
@@ -151,20 +235,23 @@ export default function EmployeeWorkHoursPage() {
     setSaving(true);
     setError("");
     setMsg("");
+    const isUpdate = Boolean(todayEntry);
     try {
       const r = await fetch("/api/employee-hours", {
-        method: "POST",
+        method: isUpdate ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
           "x-employee-hours-secret": secret.trim(),
         },
-        body: JSON.stringify({ dayKey, start, end }),
+        body: JSON.stringify({ dayKey: todayKey, start, end }),
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) {
         const map = {
           future_day: "workHours.errFuture",
+          not_today: "workHours.errNotToday",
           already_exists: "workHours.errExists",
+          not_found: "workHours.errNotFound",
           invalid_time: "workHours.errTime",
           invalid_range: "workHours.errRange",
           invalid_day: "workHours.errDay",
@@ -173,9 +260,7 @@ export default function EmployeeWorkHoursPage() {
         return;
       }
       applyPayload(d);
-      setStart("");
-      setEnd("");
-      setMsg(t("workHours.saved"));
+      setMsg(isUpdate ? t("workHours.updated") : t("workHours.saved"));
     } catch {
       setError(t("workHours.errNet"));
     } finally {
@@ -183,13 +268,7 @@ export default function EmployeeWorkHoursPage() {
     }
   };
 
-  const dayAlreadyLogged = Boolean(
-    dayKey && entries.some((e) => e.dayKey === dayKey)
-  );
-  const canSubmit =
-    Boolean(dayKey && start && end) &&
-    !dayAlreadyLogged &&
-    (!todayKey || dayKey <= todayKey);
+  const canSubmit = Boolean(todayKey && start && end);
 
   return (
     <>
@@ -204,7 +283,11 @@ export default function EmployeeWorkHoursPage() {
               <h1 className="text-lg font-bold text-primary">
                 {t("workHours.title")}
               </h1>
-              <p className="text-xs text-gray-500">{t("workHours.hint")}</p>
+              <p className="text-xs text-gray-500">
+                {authed && employeeName
+                  ? t("workHours.hello").replace("{name}", employeeName)
+                  : t("workHours.hint")}
+              </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               {authed ? (
@@ -229,31 +312,89 @@ export default function EmployeeWorkHoursPage() {
 
         <main className="mx-auto max-w-3xl px-4 py-6">
           {!authed ? (
-            <form
-              onSubmit={onLogin}
-              className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end"
-            >
-              <div className="flex-1">
-                <label className="mb-1 block text-xs text-gray-400">
-                  {t("workHours.secretLabel")}
-                </label>
-                <input
-                  type="password"
-                  autoComplete="current-password"
-                  value={secret}
-                  onChange={(e) => setSecret(e.target.value)}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-primary"
-                  placeholder={t("workHours.secretPh")}
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading || !secret.trim()}
-                className="btn-primary whitespace-nowrap px-6 text-sm disabled:opacity-50"
+            <div className="mb-6 space-y-4">
+              <form
+                onSubmit={onLogin}
+                className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4"
               >
-                {loading ? t("workHours.loading") : t("workHours.login")}
-              </button>
-            </form>
+                <h2 className="mb-3 text-sm font-bold text-gray-100">
+                  {t("workHours.loginTitle")}
+                </h2>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                  <div className="flex-1">
+                    <label className="mb-1 block text-xs text-gray-400">
+                      {t("workHours.secretLabel")}
+                    </label>
+                    <input
+                      type="password"
+                      autoComplete="current-password"
+                      value={secret}
+                      onChange={(e) => setSecret(e.target.value)}
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-primary"
+                      placeholder={t("workHours.secretPh")}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={loading || !secret.trim()}
+                    className="btn-primary whitespace-nowrap px-6 text-sm disabled:opacity-50"
+                  >
+                    {loading ? t("workHours.loading") : t("workHours.login")}
+                  </button>
+                </div>
+              </form>
+
+              <form
+                onSubmit={onRegister}
+                className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4"
+              >
+                <h2 className="mb-1 text-sm font-bold text-gray-100">
+                  {t("workHours.registerTitle")}
+                </h2>
+                <p className="mb-3 text-[11px] text-gray-500">
+                  {t("workHours.registerHint")}
+                </p>
+                <div className="grid gap-2 sm:grid-cols-3 sm:items-end">
+                  <div>
+                    <label className="mb-1 block text-xs text-gray-400">
+                      {t("workHours.nameLabel")}
+                    </label>
+                    <input
+                      type="text"
+                      autoComplete="name"
+                      value={regName}
+                      onChange={(e) => setRegName(e.target.value)}
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-primary"
+                      placeholder={t("workHours.namePh")}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs text-gray-400">
+                      {t("workHours.secretLabel")}
+                    </label>
+                    <input
+                      type="password"
+                      autoComplete="new-password"
+                      value={regPassword}
+                      onChange={(e) => setRegPassword(e.target.value)}
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-primary"
+                      placeholder={t("workHours.secretPh")}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={
+                      registerBusy || !regName.trim() || !regPassword.trim()
+                    }
+                    className="btn-primary whitespace-nowrap px-6 text-sm disabled:opacity-50"
+                  >
+                    {registerBusy
+                      ? t("workHours.loading")
+                      : t("workHours.register")}
+                  </button>
+                </div>
+              </form>
+            </div>
           ) : null}
 
           {error ? (
@@ -277,6 +418,35 @@ export default function EmployeeWorkHoursPage() {
                 <p className="mt-1 text-2xl font-bold text-primary">
                   {formatDuration(monthMinutes, t)}
                 </p>
+                <p className="mt-1 text-lg font-semibold text-amber-200">
+                  {t("workHours.monthCostLabel")}: {formatMoney(monthCostIls)}
+                </p>
+                <div className="mt-3 grid gap-1 text-xs text-gray-300 sm:grid-cols-2">
+                  <p>
+                    {t("workHours.hourRateLabel")}:{" "}
+                    <span className="font-semibold text-primary">
+                      {formatMoney(currentRateIls)}
+                    </span>
+                  </p>
+                  <p>
+                    {t("workHours.totalEarnedLabel")}:{" "}
+                    <span className="font-semibold text-primary">
+                      {formatMoney(totalEarnedIls)}
+                    </span>
+                  </p>
+                  <p>
+                    {t("workHours.paidLabel")}:{" "}
+                    <span className="font-semibold text-emerald-300">
+                      {formatMoney(paidTotalIls)}
+                    </span>
+                  </p>
+                  <p>
+                    {t("workHours.balanceLabel")}:{" "}
+                    <span className="font-semibold text-amber-200">
+                      {formatMoney(balanceIls)}
+                    </span>
+                  </p>
+                </div>
               </section>
 
               <section className="mb-6 rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
@@ -285,7 +455,7 @@ export default function EmployeeWorkHoursPage() {
                 </h2>
                 {todayEntry ? (
                   <p className="mb-3 text-xs text-amber-200/90">
-                    {t("workHours.todayAlreadyLogged")}
+                    {t("workHours.todayEditableHint")}
                   </p>
                 ) : null}
                 <form onSubmit={onSave} className="grid gap-3 sm:grid-cols-3">
@@ -295,9 +465,10 @@ export default function EmployeeWorkHoursPage() {
                     </label>
                     <input
                       type="date"
-                      value={dayKey}
+                      value={todayKey}
+                      min={todayKey || undefined}
                       max={todayKey || undefined}
-                      onChange={(e) => setDayKey(e.target.value)}
+                      readOnly
                       className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-primary"
                     />
                   </div>
@@ -309,8 +480,7 @@ export default function EmployeeWorkHoursPage() {
                       type="time"
                       value={start}
                       onChange={(e) => setStart(e.target.value)}
-                      disabled={dayAlreadyLogged}
-                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-primary disabled:opacity-50"
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-primary"
                     />
                   </div>
                   <div>
@@ -321,8 +491,7 @@ export default function EmployeeWorkHoursPage() {
                       type="time"
                       value={end}
                       onChange={(e) => setEnd(e.target.value)}
-                      disabled={dayAlreadyLogged}
-                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-primary disabled:opacity-50"
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-primary"
                     />
                   </div>
                   <div className="sm:col-span-3">
@@ -331,13 +500,15 @@ export default function EmployeeWorkHoursPage() {
                       disabled={saving || !canSubmit}
                       className="btn-primary px-6 text-sm disabled:opacity-50"
                     >
-                      {saving ? t("workHours.saving") : t("workHours.save")}
+                      {saving
+                        ? t("workHours.saving")
+                        : todayEntry
+                          ? t("workHours.update")
+                          : t("workHours.save")}
                     </button>
-                    {dayAlreadyLogged ? (
-                      <p className="mt-2 text-[11px] text-gray-500">
-                        {t("workHours.noEditHistory")}
-                      </p>
-                    ) : null}
+                    <p className="mt-2 text-[11px] text-gray-500">
+                      {t("workHours.noEditHistory")}
+                    </p>
                   </div>
                 </form>
               </section>
@@ -365,21 +536,35 @@ export default function EmployeeWorkHoursPage() {
                           <th className="px-2 py-2 font-semibold">
                             {t("workHours.colTotal")}
                           </th>
+                          <th className="px-2 py-2 font-semibold">
+                            {t("workHours.colRate")}
+                          </th>
+                          <th className="px-2 py-2 font-semibold">
+                            {t("workHours.colCost")}
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
                         {entries.map((row) => (
                           <tr
-                            key={row.dayKey}
+                            key={`${row.employeeId}-${row.dayKey}`}
                             className="border-b border-slate-800/80"
                           >
                             <td className="px-2 py-2">
                               {formatDayLabel(row.dayKey, locale)}
                             </td>
-                            <td className="px-2 py-2 tabular-nums">{row.start}</td>
+                            <td className="px-2 py-2 tabular-nums">
+                              {row.start}
+                            </td>
                             <td className="px-2 py-2 tabular-nums">{row.end}</td>
                             <td className="px-2 py-2 font-semibold text-primary">
                               {formatDuration(row.minutes, t)}
+                            </td>
+                            <td className="px-2 py-2 tabular-nums">
+                              {formatMoney(row.rateIls)}
+                            </td>
+                            <td className="px-2 py-2 font-semibold text-amber-200">
+                              {formatMoney(row.costIls)}
                             </td>
                           </tr>
                         ))}

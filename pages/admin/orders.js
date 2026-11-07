@@ -12,7 +12,7 @@ import { useRouter } from "next/router";
 import { upload as uploadToBlob } from "@vercel/blob/client";
 import { useLocale } from "@/contexts/LocaleContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
-import { formatHoursMinutes } from "@/utils/employeeHours";
+import AdminEmployeeHoursPanel from "@/components/AdminEmployeeHoursPanel";
 import {
   BURGER_TOPPINGS,
   CRISPY_MEAL_SALADS,
@@ -339,28 +339,6 @@ function formatMonthYearTitle(y, m, locale) {
 
 const EMPLOYEE_HOURS_SESSION_KEY = "burgerhut:employee-hours-secret";
 
-function formatWorkHoursDuration(minutes, t) {
-  const { hours, minutes: rem } = formatHoursMinutes(minutes);
-  return t("workHours.duration")
-    .replace("{h}", String(hours))
-    .replace("{m}", String(rem));
-}
-
-function formatWorkHoursDayLabel(dayKey, locale) {
-  const [y, m, d] = String(dayKey)
-    .split("-")
-    .map((x) => Number(x));
-  if (!y || !m || !d) return dayKey;
-  const loc = locale === "ar" ? "ar" : "he-IL";
-  return new Date(Date.UTC(y, m - 1, d, 12, 0, 0)).toLocaleDateString(loc, {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-}
-
 export default function AdminOrdersPage() {
   const { locale, t } = useLocale();
   const router = useRouter();
@@ -368,12 +346,11 @@ export default function AdminOrdersPage() {
   const [employeeHoursSecret, setEmployeeHoursSecret] = useState("");
   const [employeeHoursLoginBusy, setEmployeeHoursLoginBusy] = useState(false);
   const [employeeHoursLoginError, setEmployeeHoursLoginError] = useState("");
+  const [employeeHoursRegName, setEmployeeHoursRegName] = useState("");
+  const [employeeHoursRegPassword, setEmployeeHoursRegPassword] = useState("");
+  const [employeeHoursRegisterBusy, setEmployeeHoursRegisterBusy] =
+    useState(false);
   const [workHoursPanelOpen, setWorkHoursPanelOpen] = useState(false);
-  const [workHoursEntries, setWorkHoursEntries] = useState([]);
-  const [workHoursMonthKey, setWorkHoursMonthKey] = useState("");
-  const [workHoursMonthMinutes, setWorkHoursMonthMinutes] = useState(0);
-  const [workHoursLoading, setWorkHoursLoading] = useState(false);
-  const [workHoursMsg, setWorkHoursMsg] = useState("");
   /** @type {["admin" | "employee", import("react").Dispatch<import("react").SetStateAction<"admin" | "employee">>] */
   const [adminRole, setAdminRole] = useState("admin");
   const [orders, setOrders] = useState([]);
@@ -1447,10 +1424,6 @@ export default function AdminOrdersPage() {
     setRatingsDeleteAllBusy(false);
     setRatingsMsg("");
     setWorkHoursPanelOpen(false);
-    setWorkHoursEntries([]);
-    setWorkHoursMonthKey("");
-    setWorkHoursMonthMinutes(0);
-    setWorkHoursMsg("");
     setEmployeeHoursLoginError("");
   };
 
@@ -1461,9 +1434,10 @@ export default function AdminOrdersPage() {
     setEmployeeHoursLoginBusy(true);
     setEmployeeHoursLoginError("");
     try {
-      const r = await fetch(`/api/employee-hours?_=${Date.now()}`, {
-        headers: { "x-employee-hours-secret": s },
-        cache: "no-store",
+      const r = await fetch("/api/employee-hours/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: s }),
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) {
@@ -1487,39 +1461,42 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const refreshWorkHoursReport = useCallback(async () => {
-    const s = secret.trim();
-    if (!s) {
-      setWorkHoursEntries([]);
-      setWorkHoursMonthMinutes(0);
-      return;
-    }
-    setWorkHoursLoading(true);
-    setWorkHoursMsg("");
+  const registerEmployeeHours = async (e) => {
+    e.preventDefault();
+    const name = employeeHoursRegName.trim();
+    const password = employeeHoursRegPassword.trim();
+    if (!name || !password || employeeHoursRegisterBusy) return;
+    setEmployeeHoursRegisterBusy(true);
+    setEmployeeHoursLoginError("");
     try {
-      const r = await fetch(`/api/employee-hours?_=${Date.now()}`, {
-        headers: { "x-admin-secret": s },
-        cache: "no-store",
+      const r = await fetch("/api/employee-hours/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, password }),
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) {
-        setWorkHoursMsg(
-          d.error === "forbidden" || d.error === "unauthorized"
-            ? t("admin.errAuth")
-            : t("workHours.errLoad")
-        );
-        setWorkHoursEntries([]);
+        const map = {
+          invalid_name: "workHours.errName",
+          invalid_password: "workHours.errPasswordWeak",
+          name_taken: "workHours.errNameTaken",
+          password_taken: "workHours.errPasswordTaken",
+        };
+        setEmployeeHoursLoginError(t(map[d.error] || "workHours.errLoad"));
         return;
       }
-      setWorkHoursEntries(Array.isArray(d.entries) ? d.entries : []);
-      setWorkHoursMonthKey(String(d.monthKey || ""));
-      setWorkHoursMonthMinutes(Number(d.monthMinutes) || 0);
+      try {
+        window.sessionStorage.setItem(EMPLOYEE_HOURS_SESSION_KEY, password);
+      } catch {
+        /* ignore */
+      }
+      void router.push("/admin/work-hours");
     } catch {
-      setWorkHoursMsg(t("admin.errNet"));
+      setEmployeeHoursLoginError(t("workHours.errNet"));
     } finally {
-      setWorkHoursLoading(false);
+      setEmployeeHoursRegisterBusy(false);
     }
-  }, [secret, t]);
+  };
 
   const toggleStoreClosed = async () => {
     if (!secret.trim() || storeCloseBusy) return;
@@ -1904,11 +1881,6 @@ export default function AdminOrdersPage() {
     }
     void refreshRatings();
   }, [loaded, adminRole, refreshRatings]);
-
-  useEffect(() => {
-    if (!loaded || adminRole === "employee" || !workHoursPanelOpen) return;
-    void refreshWorkHoursReport();
-  }, [loaded, adminRole, workHoursPanelOpen, refreshWorkHoursReport]);
 
   useEffect(() => {
     if (!loaded) {
@@ -2935,33 +2907,88 @@ export default function AdminOrdersPage() {
           </form>
 
           {!loaded ? (
-            <form
-              onSubmit={loginEmployeeHours}
-              className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end"
-            >
-              <div className="flex-1">
-                <label className="mb-1 block text-xs text-gray-400">
-                  {t("workHours.employeeLoginLabel")}
-                </label>
-                <input
-                  type="password"
-                  autoComplete="current-password"
-                  value={employeeHoursSecret}
-                  onChange={(e) => setEmployeeHoursSecret(e.target.value)}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-primary"
-                  placeholder={t("workHours.secretPh")}
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={employeeHoursLoginBusy || !employeeHoursSecret.trim()}
-                className="btn-primary whitespace-nowrap px-6 text-sm disabled:opacity-50"
+            <div className="mb-6 space-y-3">
+              <form
+                onSubmit={loginEmployeeHours}
+                className="flex flex-col gap-2 sm:flex-row sm:items-end"
               >
-                {employeeHoursLoginBusy
-                  ? t("workHours.loading")
-                  : t("workHours.login")}
-              </button>
-            </form>
+                <div className="flex-1">
+                  <label className="mb-1 block text-xs text-gray-400">
+                    {t("workHours.employeeLoginLabel")}
+                  </label>
+                  <input
+                    type="password"
+                    autoComplete="current-password"
+                    value={employeeHoursSecret}
+                    onChange={(e) => setEmployeeHoursSecret(e.target.value)}
+                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-primary"
+                    placeholder={t("workHours.secretPh")}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={
+                    employeeHoursLoginBusy || !employeeHoursSecret.trim()
+                  }
+                  className="btn-primary whitespace-nowrap px-6 text-sm disabled:opacity-50"
+                >
+                  {employeeHoursLoginBusy
+                    ? t("workHours.loading")
+                    : t("workHours.login")}
+                </button>
+              </form>
+              <form
+                onSubmit={registerEmployeeHours}
+                className="rounded-xl border border-slate-800 bg-slate-900/40 p-3"
+              >
+                <p className="mb-2 text-xs font-semibold text-gray-300">
+                  {t("workHours.registerTitle")}
+                </p>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                  <div className="flex-1">
+                    <label className="mb-1 block text-xs text-gray-400">
+                      {t("workHours.nameLabel")}
+                    </label>
+                    <input
+                      type="text"
+                      autoComplete="name"
+                      value={employeeHoursRegName}
+                      onChange={(e) => setEmployeeHoursRegName(e.target.value)}
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-primary"
+                      placeholder={t("workHours.namePh")}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="mb-1 block text-xs text-gray-400">
+                      {t("workHours.secretLabel")}
+                    </label>
+                    <input
+                      type="password"
+                      autoComplete="new-password"
+                      value={employeeHoursRegPassword}
+                      onChange={(e) =>
+                        setEmployeeHoursRegPassword(e.target.value)
+                      }
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-primary"
+                      placeholder={t("workHours.secretPh")}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={
+                      employeeHoursRegisterBusy ||
+                      !employeeHoursRegName.trim() ||
+                      !employeeHoursRegPassword.trim()
+                    }
+                    className="btn-primary whitespace-nowrap px-6 text-sm disabled:opacity-50"
+                  >
+                    {employeeHoursRegisterBusy
+                      ? t("workHours.loading")
+                      : t("workHours.register")}
+                  </button>
+                </div>
+              </form>
+            </div>
           ) : null}
 
           {employeeHoursLoginError ? (
@@ -4593,87 +4620,11 @@ export default function AdminOrdersPage() {
                 </span>
               </button>
               {workHoursPanelOpen ? (
-                <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
-                  <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <p className="text-[11px] leading-relaxed text-gray-500">
-                        {t("admin.workHoursReportHint")}
-                      </p>
-                      <p className="mt-2 text-sm font-semibold text-primary">
-                        {t("workHours.monthTotalLabel")}
-                        {workHoursMonthKey ? ` (${workHoursMonthKey})` : ""}
-                        {": "}
-                        {formatWorkHoursDuration(workHoursMonthMinutes, t)}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => void refreshWorkHoursReport()}
-                      disabled={workHoursLoading}
-                      className="rounded-lg border border-slate-600 bg-slate-800/80 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:border-primary/50 hover:bg-slate-800 disabled:opacity-50"
-                    >
-                      {workHoursLoading
-                        ? t("workHours.loading")
-                        : t("admin.workHoursRefresh")}
-                    </button>
-                  </div>
-                  {workHoursMsg ? (
-                    <p className="mb-3 text-xs font-medium text-amber-200/90">
-                      {workHoursMsg}
-                    </p>
-                  ) : null}
-                  {workHoursLoading ? (
-                    <p className="text-sm text-gray-500">
-                      {t("workHours.loading")}
-                    </p>
-                  ) : workHoursEntries.length === 0 ? (
-                    <p className="text-sm text-gray-500">
-                      {t("workHours.empty")}
-                    </p>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full min-w-[28rem] text-right text-sm">
-                        <thead>
-                          <tr className="border-b border-slate-700 text-xs text-gray-400">
-                            <th className="px-2 py-2 font-semibold">
-                              {t("workHours.colDate")}
-                            </th>
-                            <th className="px-2 py-2 font-semibold">
-                              {t("workHours.colStart")}
-                            </th>
-                            <th className="px-2 py-2 font-semibold">
-                              {t("workHours.colEnd")}
-                            </th>
-                            <th className="px-2 py-2 font-semibold">
-                              {t("workHours.colTotal")}
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {workHoursEntries.map((row) => (
-                            <tr
-                              key={row.dayKey}
-                              className="border-b border-slate-800/80"
-                            >
-                              <td className="px-2 py-2">
-                                {formatWorkHoursDayLabel(row.dayKey, locale)}
-                              </td>
-                              <td className="px-2 py-2 tabular-nums">
-                                {row.start}
-                              </td>
-                              <td className="px-2 py-2 tabular-nums">
-                                {row.end}
-                              </td>
-                              <td className="px-2 py-2 font-semibold text-primary">
-                                {formatWorkHoursDuration(row.minutes, t)}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </section>
+                <AdminEmployeeHoursPanel
+                  secret={secret}
+                  locale={locale}
+                  t={t}
+                />
               ) : null}
 
               <button
