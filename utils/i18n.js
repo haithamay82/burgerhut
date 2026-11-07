@@ -917,6 +917,8 @@ const HE = {
   "workHours.deleteEmployee": "מחק עובד",
   "workHours.deleteConfirm":
     "למחוק את {name}? יימחקו גם כל שעות העבודה ופרטי הכניסה.",
+  "workHours.deleteDay": "מחק יום",
+  "workHours.deleteDayConfirm": "למחוק את יום העבודה {day}?",
   "workHours.hourRateLabel": "תעריף לשעה",
   "workHours.monthCostLabel": "עלות החודש",
   "workHours.totalEarnedLabel": "סה״כ נצבר",
@@ -2151,6 +2153,8 @@ const AR = {
   "workHours.deleteEmployee": "حذف الموظف",
   "workHours.deleteConfirm":
     "حذف {name}؟ سيتم أيضاً حذف كل ساعات العمل وبيانات الدخول.",
+  "workHours.deleteDay": "حذف اليوم",
+  "workHours.deleteDayConfirm": "حذف يوم العمل {day}؟",
   "workHours.hourRateLabel": "أجر الساعة",
   "workHours.monthCostLabel": "تكلفة الشهر",
   "workHours.totalEarnedLabel": "الإجمالي المتراكم",

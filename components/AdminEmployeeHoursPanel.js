@@ -124,9 +124,16 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
     setMsg("");
     try {
       const isDelete = body._method === "DELETE";
+      const deleteQs = isDelete
+        ? `employeeId=${encodeURIComponent(body.employeeId)}${
+            body.dayKey
+              ? `&dayKey=${encodeURIComponent(body.dayKey)}`
+              : ""
+          }`
+        : "";
       const r = await fetch(
         isDelete
-          ? `/api/employee-hours/manage?employeeId=${encodeURIComponent(body.employeeId)}`
+          ? `/api/employee-hours/manage?${deleteQs}`
           : "/api/employee-hours/manage",
         {
           method: isDelete ? "DELETE" : "PUT",
@@ -520,28 +527,63 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
                           {formatMoney(row.costIls)}
                         </td>
                         <td className="px-2 py-2">
-                          {isToday ? (
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {isToday ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  void saveTodayEdit(row.employeeId)
+                                }
+                                disabled={
+                                  mondayClosed ||
+                                  busyId ===
+                                    `${row.employeeId}:${row.dayKey}` ||
+                                  busyId === row.employeeId ||
+                                  !draft.start ||
+                                  !draft.end ||
+                                  isEndTimeInTheFuture(draft.start, draft.end)
+                                }
+                                className="rounded-lg border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary disabled:opacity-50"
+                              >
+                                {busyId === row.employeeId
+                                  ? t("workHours.saving")
+                                  : t("workHours.update")}
+                              </button>
+                            ) : null}
                             <button
                               type="button"
-                              onClick={() =>
-                                void saveTodayEdit(row.employeeId)
-                              }
+                              onClick={() => {
+                                if (
+                                  typeof window !== "undefined" &&
+                                  !window.confirm(
+                                    t("workHours.deleteDayConfirm").replace(
+                                      "{day}",
+                                      formatDayLabel(row.dayKey, locale)
+                                    )
+                                  )
+                                ) {
+                                  return;
+                                }
+                                void manage(
+                                  {
+                                    _method: "DELETE",
+                                    employeeId: row.employeeId,
+                                    dayKey: row.dayKey,
+                                  },
+                                  `${row.employeeId}:${row.dayKey}`
+                                );
+                              }}
                               disabled={
-                                mondayClosed ||
-                                busyId === row.employeeId ||
-                                !draft.start ||
-                                !draft.end ||
-                                isEndTimeInTheFuture(draft.start, draft.end)
+                                busyId === `${row.employeeId}:${row.dayKey}` ||
+                                busyId === row.employeeId
                               }
-                              className="rounded-lg border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary disabled:opacity-50"
+                              className="rounded-lg border border-red-900/60 bg-red-950/30 px-2.5 py-1 text-xs font-semibold text-red-300 hover:bg-red-950/50 disabled:opacity-50"
                             >
-                              {busyId === row.employeeId
+                              {busyId === `${row.employeeId}:${row.dayKey}`
                                 ? t("workHours.saving")
-                                : t("workHours.update")}
+                                : t("workHours.deleteDay")}
                             </button>
-                          ) : (
-                            <span className="text-[11px] text-gray-500">—</span>
-                          )}
+                          </div>
                         </td>
                       </tr>
                     );

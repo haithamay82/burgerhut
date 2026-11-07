@@ -2,6 +2,7 @@ import { authorizeAdminOnly } from "@/lib/adminAuth";
 import {
   buildHoursPayload,
   deleteEmployeeAccount,
+  deleteEmployeeHoursDay,
   getEmployeeHoursData,
   jerusalemMonthKey,
   publicEmployeeProfile,
@@ -35,7 +36,10 @@ export default async function handler(req, res) {
     const employeeId = String(
       req.body?.employeeId || req.query?.employeeId || ""
     ).trim();
-    const result = await deleteEmployeeAccount(employeeId);
+    const dayKey = String(req.body?.dayKey || req.query?.dayKey || "").trim();
+    const result = dayKey
+      ? await deleteEmployeeHoursDay(employeeId, dayKey)
+      : await deleteEmployeeAccount(employeeId);
     if (!result.ok) {
       const status = result.error === "not_found" ? 404 : 400;
       return res.status(status).json({ ok: false, error: result.error });
