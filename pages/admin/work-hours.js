@@ -14,6 +14,10 @@ import {
   readEmployeeHoursSecret,
   writeEmployeeHoursSecret,
 } from "@/utils/employeeHoursAuthPersist";
+import {
+  downloadEmployeeHoursPdf,
+  employeeHoursPdfLabels,
+} from "@/utils/employeeHoursPdfExport";
 
 function formatDayLabel(dayKey, locale) {
   const [y, m, d] = String(dayKey)
@@ -73,6 +77,7 @@ export default function EmployeeWorkHoursPage() {
   const [entries, setEntries] = useState([]);
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
+  const [exportBusy, setExportBusy] = useState(false);
 
   const todayEntry = useMemo(
     () => entries.find((e) => e.dayKey === todayKey) || null,
@@ -280,6 +285,40 @@ export default function EmployeeWorkHoursPage() {
     !mondayClosed &&
     !isEndTimeInTheFuture(start, end);
 
+  const exportPdf = async () => {
+    if (exportBusy || !authed) return;
+    setExportBusy(true);
+    setError("");
+    try {
+      const namePart = String(employeeName || "employee").replace(/\s+/g, "-");
+      await downloadEmployeeHoursPdf({
+        title: t("workHours.pdfTitle"),
+        monthKey,
+        locale,
+        labels: employeeHoursPdfLabels(t),
+        sections: [
+          {
+            employee: {
+              name: employeeName,
+              currentRateIls,
+              monthMinutes,
+              monthCostIls,
+              totalEarnedIls,
+              paidTotalIls,
+              balanceIls,
+            },
+            entries,
+          },
+        ],
+        fileName: `burger-hut-hours-${monthKey || "month"}-${namePart}.pdf`,
+      });
+    } catch {
+      setError(t("workHours.errExportPdf"));
+    } finally {
+      setExportBusy(false);
+    }
+  };
+
   return (
     <>
       <Head>
@@ -439,16 +478,31 @@ export default function EmployeeWorkHoursPage() {
           {authed ? (
             <>
               <section className="mb-4 rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
-                <p className="text-xs text-gray-400">
-                  {t("workHours.monthTotalLabel")}
-                  {monthKey ? ` (${monthKey})` : ""}
-                </p>
-                <p className="mt-1 text-2xl font-bold text-primary">
-                  {formatDuration(monthMinutes, t)}
-                </p>
-                <p className="mt-1 text-lg font-semibold text-amber-200">
-                  {t("workHours.monthCostLabel")}: {formatMoney(monthCostIls)}
-                </p>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs text-gray-400">
+                      {t("workHours.monthTotalLabel")}
+                      {monthKey ? ` (${monthKey})` : ""}
+                    </p>
+                    <p className="mt-1 text-2xl font-bold text-primary">
+                      {formatDuration(monthMinutes, t)}
+                    </p>
+                    <p className="mt-1 text-lg font-semibold text-amber-200">
+                      {t("workHours.monthCostLabel")}:{" "}
+                      {formatMoney(monthCostIls)}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void exportPdf()}
+                    disabled={exportBusy}
+                    className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20 disabled:opacity-50"
+                  >
+                    {exportBusy
+                      ? t("workHours.exportPdfBusy")
+                      : t("workHours.exportPdf")}
+                  </button>
+                </div>
                 <div className="mt-3 grid gap-1 text-xs text-gray-300 sm:grid-cols-2">
                   <p>
                     {t("workHours.hourRateLabel")}:{" "}

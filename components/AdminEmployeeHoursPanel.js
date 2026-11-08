@@ -5,6 +5,10 @@ import {
   isJerusalemMonday,
   minutesBetweenHHmm,
 } from "@/utils/employeeHours";
+import {
+  downloadEmployeeHoursPdf,
+  employeeHoursPdfLabels,
+} from "@/utils/employeeHoursPdfExport";
 
 function formatDuration(minutes, t) {
   const { hours, minutes: rem } = formatHoursMinutes(minutes);
@@ -51,6 +55,7 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
   const [rateDrafts, setRateDrafts] = useState({});
   const [paidDrafts, setPaidDrafts] = useState({});
   const [selectedId, setSelectedId] = useState("");
+  const [exportBusy, setExportBusy] = useState("");
 
   const applyPayload = useCallback((d) => {
     const list = Array.isArray(d.entries) ? d.entries : [];
@@ -218,6 +223,49 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
     : entries;
   const mondayClosed = isJerusalemMonday();
 
+  const exportPdf = async (mode) => {
+    if (exportBusy) return;
+    const labels = employeeHoursPdfLabels(t);
+    const sections =
+      mode === "all"
+        ? employees.map((emp) => ({
+            employee: emp,
+            entries: entries.filter((e) => e.employeeId === emp.id),
+          }))
+        : selected
+          ? [
+              {
+                employee: selected,
+                entries: selectedEntries,
+              },
+            ]
+          : [];
+    if (!sections.length) {
+      setMsg(t("workHours.empty"));
+      return;
+    }
+    setExportBusy(mode);
+    setMsg("");
+    try {
+      const namePart =
+        mode === "all"
+          ? "all"
+          : String(selected?.name || "employee").replace(/\s+/g, "-");
+      await downloadEmployeeHoursPdf({
+        title: t("workHours.pdfTitle"),
+        monthKey,
+        locale,
+        labels,
+        sections,
+        fileName: `burger-hut-hours-${monthKey || "month"}-${namePart}.pdf`,
+      });
+    } catch {
+      setMsg(t("workHours.errExportPdf"));
+    } finally {
+      setExportBusy("");
+    }
+  };
+
   return (
     <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
@@ -234,14 +282,36 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
             {formatMoney(monthCostIls)}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => void refresh()}
-          disabled={loading}
-          className="rounded-lg border border-slate-600 bg-slate-800/80 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:border-primary/50 hover:bg-slate-800 disabled:opacity-50"
-        >
-          {loading ? t("workHours.loading") : t("admin.workHoursRefresh")}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => void exportPdf("selected")}
+            disabled={loading || !selected || Boolean(exportBusy)}
+            className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20 disabled:opacity-50"
+          >
+            {exportBusy === "selected"
+              ? t("workHours.exportPdfBusy")
+              : t("workHours.exportPdfSelected")}
+          </button>
+          <button
+            type="button"
+            onClick={() => void exportPdf("all")}
+            disabled={loading || employees.length === 0 || Boolean(exportBusy)}
+            className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20 disabled:opacity-50"
+          >
+            {exportBusy === "all"
+              ? t("workHours.exportPdfBusy")
+              : t("workHours.exportPdfAll")}
+          </button>
+          <button
+            type="button"
+            onClick={() => void refresh()}
+            disabled={loading}
+            className="rounded-lg border border-slate-600 bg-slate-800/80 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:border-primary/50 hover:bg-slate-800 disabled:opacity-50"
+          >
+            {loading ? t("workHours.loading") : t("admin.workHoursRefresh")}
+          </button>
+        </div>
       </div>
 
           {mondayClosed ? (
