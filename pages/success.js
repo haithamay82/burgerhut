@@ -33,6 +33,7 @@ import {
 import { saveLastOrderForReorder } from "@/utils/lastOrderReorder";
 import {
   enableActiveOrderBrowseMode,
+  readActiveOrderResume,
   saveActiveOrderResume,
 } from "@/utils/activeOrderResume";
 import { bindCustomerOrderPush } from "@/utils/bindCustomerOrderPush";
@@ -151,6 +152,10 @@ export default function SuccessPage() {
   const [ratingHiddenForNow, setRatingHiddenForNow] = useState(false);
   const [ratingAlreadyDone, setRatingAlreadyDone] = useState(false);
   const [resumeOrderGone, setResumeOrderGone] = useState(false);
+  /** מזומן: סוד ביטול לקוח + סטטוס לקביעת מתי להציג קופון */
+  const [customerCancelSecret, setCustomerCancelSecret] = useState(null);
+  const [cancelOrderId, setCancelOrderId] = useState(null);
+  const [fulfillmentStatus, setFulfillmentStatus] = useState(null);
 
   /** אשראי: שחרור הזמנה לניהול פעם אחת רק אחרי Hyp CCode=0 */
   useEffect(() => {
@@ -275,6 +280,20 @@ export default function SuccessPage() {
             setCardOrder(co);
           }
           if (
+            restored.customerCancelSecret != null &&
+            String(restored.customerCancelSecret).trim() !== ""
+          ) {
+            setCustomerCancelSecret(
+              String(restored.customerCancelSecret).trim()
+            );
+          }
+          if (
+            restored.cardOrder?.orderId != null &&
+            String(restored.cardOrder.orderId).trim() !== ""
+          ) {
+            setCancelOrderId(String(restored.cardOrder.orderId).trim());
+          }
+          if (
             payDoneMarker &&
             restored.deferredCouponCode &&
             restored.deferredCouponClaimOrderNumber != null &&
@@ -350,9 +369,25 @@ export default function SuccessPage() {
         orderNumber: snap.orderNumber ?? orderFromQuery,
         total: grand,
       });
+      const snapCancelSecret =
+        snap.customerCancelSecret != null &&
+        String(snap.customerCancelSecret).trim() !== ""
+          ? String(snap.customerCancelSecret).trim()
+          : null;
+      if (snapCancelSecret) {
+        setCustomerCancelSecret(snapCancelSecret);
+      }
+      if (
+        snap.orderRowId != null &&
+        String(snap.orderRowId).trim() !== ""
+      ) {
+        setCancelOrderId(String(snap.orderRowId).trim());
+      }
       saveActiveOrderResume({
         orderNumber: snap.orderNumber ?? orderFromQuery,
         method: snap.payment || method || "cash",
+        orderId: snap.orderRowId,
+        cancelSecret: snapCancelSecret,
       });
       const snapOrderNum =
         snap.orderNumber != null && String(snap.orderNumber).trim() !== ""
@@ -433,6 +468,7 @@ export default function SuccessPage() {
           adminPushOrderRowId: snap.orderRowId,
           adminPushOrderNumber: snapOrderNum ?? undefined,
           adminPushConfirmSecret: snap.adminPushConfirmSecret,
+          customerCancelSecret: snapCancelSecret || undefined,
         });
         if (methodStr === "cash" || methodStr === "bit") {
           try {
@@ -886,7 +922,22 @@ export default function SuccessPage() {
       saveActiveOrderResume({
         orderNumber: orderNumberForRating,
         method: method || "cash",
+        orderId: cancelOrderId || cardOrder?.orderId,
+        cancelSecret: customerCancelSecret,
       });
+    } else {
+      const resume = readActiveOrderResume();
+      if (
+        resume &&
+        String(resume.orderNumber) === String(orderNumberForRating)
+      ) {
+        if (resume.cancelSecret && !customerCancelSecret) {
+          setCustomerCancelSecret(resume.cancelSecret);
+        }
+        if (resume.orderId && !cancelOrderId) {
+          setCancelOrderId(resume.orderId);
+        }
+      }
     }
     void (async () => {
       try {
@@ -896,10 +947,30 @@ export default function SuccessPage() {
       }
       await bindCustomerOrderPush(orderNumberForRating);
     })();
-  }, [router.isReady, orderNumberForRating, method, isResume]);
+  }, [
+    router.isReady,
+    orderNumberForRating,
+    method,
+    isResume,
+    cardOrder?.orderId,
+    cancelOrderId,
+    customerCancelSecret,
+  ]);
 
   const showResumeStatusScreen =
     isResume && Boolean(orderNumberForRating);
+
+  const cashCouponUnlocked =
+    method !== "cash" ||
+    fulfillmentStatus === "preparing" ||
+    fulfillmentStatus === "ready" ||
+    fulfillmentStatus === "delivered";
+
+  const handleFulfillmentStatus = (st) => {
+    const s = String(st || "");
+    if (s) setFulfillmentStatus(s);
+    if (s === "cancelled") setResumeOrderGone(true);
+  };
 
   const showFoodRatingBlock =
     Boolean(orderNumberForRating) &&
@@ -930,9 +1001,9 @@ export default function SuccessPage() {
             <OrderFulfillmentCustomer
               orderNumber={orderNumberForRating}
               t={t}
-              onStatus={(st) => {
-                if (st === "cancelled") setResumeOrderGone(true);
-              }}
+              cancelSecret={customerCancelSecret}
+              orderId={cancelOrderId || cardOrder?.orderId || null}
+              onStatus={handleFulfillmentStatus}
             />
             <Link
               href="/"
@@ -943,7 +1014,10 @@ export default function SuccessPage() {
             </Link>
           </div>
         ) : null}
-        {!showResumeStatusScreen && postPaymentWhatsAppContext && coupon?.code ? (
+        {!showResumeStatusScreen &&
+        postPaymentWhatsAppContext &&
+        coupon?.code &&
+        cashCouponUnlocked ? (
           <section className="mb-4 w-full max-w-sm rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-900 via-slate-950 to-cyan-950 p-4 text-right text-white shadow-lg shadow-emerald-900/20">
             <div className="relative rounded-xl border border-white/10 bg-slate-950/70 p-3 pt-10">
               <img
@@ -1024,6 +1098,9 @@ export default function SuccessPage() {
                 <OrderFulfillmentCustomer
                   orderNumber={orderNumberForRating}
                   t={t}
+                  cancelSecret={customerCancelSecret}
+                  orderId={cancelOrderId || cardOrder?.orderId || null}
+                  onStatus={handleFulfillmentStatus}
                 />
               </div>
             ) : null}
@@ -1045,61 +1122,70 @@ export default function SuccessPage() {
                 <h2 className="text-xl font-extrabold leading-snug text-white sm:text-2xl">
                   {t("success.waCashHeadline")}
                 </h2>
-                <p className="text-base font-semibold text-slate-200 sm:text-lg">
-                  {t("success.waCashSubline")}
-                </p>
               </div>
             ) : null}
             {orderNumberForRating ? (
               <OrderFulfillmentCustomer
                 orderNumber={orderNumberForRating}
                 t={t}
+                cancelSecret={customerCancelSecret}
+                orderId={cancelOrderId || cardOrder?.orderId || null}
+                onStatus={handleFulfillmentStatus}
               />
             ) : null}
-            <a
-              href={cardWaUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => {
-                e.preventDefault();
-                const wa = cardWaUrl;
+            <div className="flex w-full max-w-xs flex-col items-center gap-2">
+              <p className="text-sm font-semibold text-slate-300">
+                {t("success.waQuestionsHint")}
+              </p>
+              <a
+                href={cardWaUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  const wa = cardWaUrl;
 
-                if (
-                  waAdminPushPayload?.orderRowId &&
-                  waAdminPushPayload?.orderNumber &&
-                  waAdminPushPayload?.adminPushConfirmSecret
-                ) {
-                  fireDeferredAdminPushNotify(waAdminPushPayload);
-                } else if (cardOrder?.orderId) {
-                  fireCouponRevealAfterWhatsAppCompose({
-                    orderRowId: String(cardOrder.orderId).trim(),
+                  if (
+                    waAdminPushPayload?.orderRowId &&
+                    waAdminPushPayload?.orderNumber &&
+                    waAdminPushPayload?.adminPushConfirmSecret
+                  ) {
+                    fireDeferredAdminPushNotify(waAdminPushPayload);
+                  } else if (cardOrder?.orderId) {
+                    fireCouponRevealAfterWhatsAppCompose({
+                      orderRowId: String(cardOrder.orderId).trim(),
+                    });
+                  }
+                  const mk = buildSuccessPageMatchKey({
+                    method,
+                    orderOn: orderFromQuery,
+                    hypReturn: payDoneMarker,
                   });
-                }
-                const mk = buildSuccessPageMatchKey({
-                  method,
-                  orderOn: orderFromQuery,
-                  hypReturn: payDoneMarker,
-                });
-                try {
-                  window.sessionStorage.setItem(
-                    SUCCESS_WA_SENT_KEY,
-                    JSON.stringify({ matchKey: mk, savedAt: Date.now() })
-                  );
-                } catch {
-                  /* ignore */
-                }
+                  try {
+                    window.sessionStorage.setItem(
+                      SUCCESS_WA_SENT_KEY,
+                      JSON.stringify({ matchKey: mk, savedAt: Date.now() })
+                    );
+                  } catch {
+                    /* ignore */
+                  }
 
-                const opened = window.open(wa, "_blank", "noopener,noreferrer");
-                const popupBlocked = !opened || opened.closed;
-                setWaComposeAlreadyUsed(true);
-                if (popupBlocked) {
-                  window.location.href = wa;
-                }
-              }}
-              className={`${waSendClasses} w-full max-w-xs`}
-            >
-              {t("success.waSendOrder")}
-            </a>
+                  const opened = window.open(
+                    wa,
+                    "_blank",
+                    "noopener,noreferrer"
+                  );
+                  const popupBlocked = !opened || opened.closed;
+                  setWaComposeAlreadyUsed(true);
+                  if (popupBlocked) {
+                    window.location.href = wa;
+                  }
+                }}
+                className={`${waSendClasses} w-full`}
+              >
+                {t("success.waSendOrder")}
+              </a>
+            </div>
           </div>
         ) : !showResumeStatusScreen &&
           postPaymentWhatsAppContext &&

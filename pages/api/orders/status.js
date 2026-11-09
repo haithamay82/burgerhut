@@ -4,7 +4,11 @@ import {
   syncOrderFulfillmentById,
 } from "@/lib/ordersStore";
 import { notifyCustomerOrderFulfillmentPush } from "@/lib/customerPushNotify";
-import { resolveFulfillment } from "@/utils/orderFulfillment";
+import {
+  canCustomerCancelOrder,
+  getCustomerCancelEndsAtMs,
+  resolveFulfillment,
+} from "@/utils/orderFulfillment";
 
 /**
  * Public order fulfillment status for the customer success screen.
@@ -59,9 +63,16 @@ export default async function handler(req, res) {
   }
 
   const fulfillment = resolveFulfillment(order);
+  const cancelEndsAtMs = getCustomerCancelEndsAtMs(order);
   return res.status(200).json({
     ok: true,
     orderNumber: order.orderNumber,
+    orderId: order.id,
+    payment: order.payment || "cash",
+    createdAt: order.createdAt || null,
+    canCancel: canCustomerCancelOrder(order),
+    cancelEndsAt:
+      cancelEndsAtMs != null ? new Date(cancelEndsAtMs).toISOString() : null,
     fulfillment: {
       status: fulfillment.status,
       prepMinutes: fulfillment.prepMinutes,

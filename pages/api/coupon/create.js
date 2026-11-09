@@ -94,9 +94,17 @@ export default async function handler(req, res) {
             Number.isFinite(existingVal) &&
             existingVal >= MIN_COUPON_DISPLAY_VALUE_NIS
           ) {
+            const existingPay = String(
+              orderRowForMeta?.payment || ""
+            )
+              .trim()
+              .toLowerCase();
+            // ביט/אשראי: הקופון גלוי למנהל גם לפני ווטסאפ
             if (
               orderHeldForCustomerWa &&
-              !existingCoupon.couponAdminHidden
+              !existingCoupon.couponAdminHidden &&
+              existingPay !== "bit" &&
+              existingPay !== "card"
             ) {
               const patched = {
                 ...existingCoupon,
@@ -146,7 +154,9 @@ export default async function handler(req, res) {
       });
     }
 
-    if (orderHeldForCustomerWa) {
+    // ביט/אשראי משתחררים לניהול אחרי תשלום (לא אחרי ווטסאפ) — לא מסתירים קופון ממנהל
+    const pay = String(orderRowForMeta?.payment || "").trim().toLowerCase();
+    if (orderHeldForCustomerWa && pay !== "bit" && pay !== "card") {
       coupon.couponAdminHidden = true;
     }
 

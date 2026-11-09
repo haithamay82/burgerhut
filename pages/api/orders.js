@@ -200,7 +200,9 @@ export default async function handler(req, res) {
     const bodyMeta =
       meta && typeof meta === "object" && !Array.isArray(meta) ? { ...meta } : {};
     const deferPush = Boolean(deferAdminPush);
+    const paymentMethod = String(payment || "cash").trim().toLowerCase() || "cash";
     let adminPushConfirmSecret = null;
+    let customerCancelSecret = null;
     let orderMeta = bodyMeta;
     if (deferPush) {
       adminPushConfirmSecret = crypto.randomBytes(16).toString("hex");
@@ -210,6 +212,15 @@ export default async function handler(req, res) {
         adminPushSecretHash: crypto
           .createHash("sha256")
           .update(adminPushConfirmSecret)
+          .digest("hex"),
+      };
+    } else if (paymentMethod === "cash") {
+      customerCancelSecret = crypto.randomBytes(16).toString("hex");
+      orderMeta = {
+        ...bodyMeta,
+        customerCancelSecretHash: crypto
+          .createHash("sha256")
+          .update(customerCancelSecret)
           .digest("hex"),
       };
     }
@@ -268,6 +279,9 @@ export default async function handler(req, res) {
     const out = { ok: true, order: row };
     if (adminPushConfirmSecret) {
       out.adminPushConfirmSecret = adminPushConfirmSecret;
+    }
+    if (customerCancelSecret) {
+      out.customerCancelSecret = customerCancelSecret;
     }
     return res.status(201).json(out);
   }

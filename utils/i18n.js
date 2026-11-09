@@ -638,7 +638,8 @@ const HE = {
     "לא נשלחה חשבונית מהמסוף: בשדה «אימייל (לא חובה)» בצ'קאאוט צריך להופיע אימייל תקין כדי שהאתר יבקש מהמסוף חשבונית במייל, או מספר נייד ישראלי תקין ל־SMS. בלי אחד מאלה המסוף לא מקבל בקשה לשליחת חשבונית.",
   "success.invoiceHypNoReceipt":
     "האתר ביקש חשבונית לפי הפרטים שהזנתם, אך בכתובת החזרה מהמסוף לא מופיע מספר חשבונית (Hesh). בדקו במסוף Hyp שהופעל מודול חשבוניות ודוא״ל, בתיקיית דואר נכנס ובספאם. סכום קטן (למשל 1 ₪) לא אמור למנוע זאת בקוד האתר.",
-  "success.waSendOrder": "שלח לווטסאפ",
+  "success.waSendOrder": "דבר איתנו בווטסאפ",
+  "success.waQuestionsHint": "יש לך שאלות? לברר משהו..?",
   "success.waCashHeadline": "הזמנתך נרשמה במערכת",
   "success.waCashSubline": "שלח אותה כדי לתאם זמן הכנה וקבלה",
   "success.resumeTitle": "ההזמנה שלך עדיין פעילה",
@@ -651,6 +652,9 @@ const HE = {
   "success.resumeBannerHint": "הזמנה {order} — אפשר לפתוח מעקב או להמשיך לגלוש בתפריט",
   "success.resumeBannerOpen": "צפה בסטטוס ההזמנה",
   "orderStatus.cancelled": "בוטלה",
+  "orderStatus.cancelOrder": "בטל הזמנה",
+  "orderStatus.cancelling": "מבטל…",
+  "orderStatus.cancelFailed": "לא ניתן לבטל את ההזמנה כרגע.",
   "orderStatus.pushEnableHint":
     "כדי לקבל התראה כשההזמנה מתקבלת, נדחית או מוכנה — אשרו התראות בטלפון.",
   "orderStatus.pushEnableBtn": "אפשר התראות להזמנה",
@@ -1930,7 +1934,8 @@ const AR = {
     "لم تُرسل فاتورة من البوابة: أدخلوا في الطلب بريداً إلكترونياً صالحاً (حقل البريد الاختياري) أو رقم جوال إسرائيلي صالحاً لـ SMS. بدون ذلك لا يُرسل الموقع للبوابة طلب إصدار فاتورة.",
   "success.invoiceHypNoReceipt":
     "طلب الموقع فاتورة وفق بياناتكم، لكن عنوان العودة من البوابة لا يحتوي رقم مستند (Hesh). تحققوا من تفعيل وحدة الفوترة والبريد في طرفية Hyp، والوارد والبريد المزعج. مبلغ صغير (مثل 1 ₪) لا يمنع ذلك في كود الموقع.",
-  "success.waSendOrder": "أرسل إلى واتساب",
+  "success.waSendOrder": "تحدثوا معنا على واتساب",
+  "success.waQuestionsHint": "لديكم أسئلة؟ تريدون الاستفسار عن شيء..؟",
   "success.waCashHeadline": "تم تسجيل طلبك في النظام",
   "success.waCashSubline": "أرسله لتنسيق وقت التحضير والاستلام",
   "success.resumeTitle": "طلبك ما زال نشطاً",
@@ -1943,6 +1948,9 @@ const AR = {
   "success.resumeBannerHint": "طلب {order} — يمكن فتح المتابعة أو متابعة التصفح في القائمة",
   "success.resumeBannerOpen": "عرض حالة الطلب",
   "orderStatus.cancelled": "ملغى",
+  "orderStatus.cancelOrder": "إلغاء الطلب",
+  "orderStatus.cancelling": "جارٍ الإلغاء…",
+  "orderStatus.cancelFailed": "تعذّر إلغاء الطلب الآن.",
   "orderStatus.pushEnableHint":
     "لتلقي إشعار عند قبول الطلب أو رفضه أو جهوزيته — اسمحوا بالإشعارات على الهاتف.",
   "orderStatus.pushEnableBtn": "تفعيل إشعارات الطلب",

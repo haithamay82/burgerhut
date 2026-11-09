@@ -4,7 +4,11 @@ export const ORDER_FULFILLMENT_STATUSES = [
   "ready",
   "delivered",
   "rejected",
+  "cancelled",
 ];
+
+/** חלון ביטול הזמנת מזומן ע״י הלקוח */
+export const CUSTOMER_CANCEL_WINDOW_MS = 60 * 1000;
 
 export const ORDER_PREP_MINUTE_PRESETS = [
   10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60,
@@ -121,6 +125,7 @@ export function fulfillmentStatusLabelKey(status) {
   if (s === "ready") return "orderStatus.ready";
   if (s === "delivered") return "orderStatus.delivered";
   if (s === "rejected") return "orderStatus.rejected";
+  if (s === "cancelled") return "orderStatus.cancelled";
   return "orderStatus.pending";
 }
 
@@ -129,6 +134,31 @@ export function fulfillmentStatusToneClass(status) {
   if (s === "preparing") return "border-amber-500/50 bg-amber-950/40 text-amber-200";
   if (s === "ready") return "border-emerald-500/50 bg-emerald-950/40 text-emerald-200";
   if (s === "delivered") return "border-sky-500/50 bg-sky-950/40 text-sky-200";
-  if (s === "rejected") return "border-red-500/50 bg-red-950/40 text-red-200";
+  if (s === "rejected" || s === "cancelled")
+    return "border-red-500/50 bg-red-950/40 text-red-200";
   return "border-slate-500/50 bg-slate-900/60 text-slate-200";
+}
+
+/**
+ * @param {object | null | undefined} order
+ * @param {number} [nowMs]
+ */
+export function getCustomerCancelEndsAtMs(order, nowMs = Date.now()) {
+  const created = new Date(order?.createdAt || 0).getTime();
+  if (!Number.isFinite(created) || created <= 0) return null;
+  return created + CUSTOMER_CANCEL_WINDOW_MS;
+}
+
+/**
+ * @param {object | null | undefined} order
+ * @param {number} [nowMs]
+ */
+export function canCustomerCancelOrder(order, nowMs = Date.now()) {
+  const payment = String(order?.payment || "cash").trim().toLowerCase();
+  if (payment !== "cash") return false;
+  const f = resolveFulfillment(order, nowMs);
+  if (f.status !== "pending") return false;
+  const ends = getCustomerCancelEndsAtMs(order, nowMs);
+  if (ends == null) return false;
+  return nowMs < ends;
 }

@@ -8,7 +8,12 @@ const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const OPEN_STATUSES = new Set(["pending", "preparing"]);
 
 /**
- * @param {{ orderNumber?: unknown, method?: unknown }} p
+ * @param {{
+ *   orderNumber?: unknown,
+ *   method?: unknown,
+ *   orderId?: unknown,
+ *   cancelSecret?: unknown,
+ * }} p
  */
 export function saveActiveOrderResume(p) {
   if (typeof window === "undefined") return;
@@ -22,10 +27,20 @@ export function saveActiveOrderResume(p) {
     methodRaw === "card" || methodRaw === "bit" || methodRaw === "cash"
       ? methodRaw
       : "cash";
+  const orderId =
+    p?.orderId != null && String(p.orderId).trim() !== ""
+      ? String(p.orderId).trim()
+      : null;
+  const cancelSecret =
+    p?.cancelSecret != null && String(p.cancelSecret).trim() !== ""
+      ? String(p.cancelSecret).trim()
+      : null;
   const payload = {
     v: 1,
     orderNumber,
     method,
+    orderId,
+    cancelSecret,
     savedAt: Date.now(),
   };
   try {
@@ -35,7 +50,7 @@ export function saveActiveOrderResume(p) {
   }
 }
 
-/** @returns {{ orderNumber: string, method: string, savedAt: number } | null} */
+/** @returns {{ orderNumber: string, method: string, orderId: string | null, cancelSecret: string | null, savedAt: number } | null} */
 export function readActiveOrderResume() {
   if (typeof window === "undefined") return null;
   try {
@@ -58,7 +73,19 @@ export function readActiveOrderResume() {
       methodRaw === "card" || methodRaw === "bit" || methodRaw === "cash"
         ? methodRaw
         : "cash";
-    return { orderNumber, method, savedAt };
+    return {
+      orderNumber,
+      method,
+      orderId:
+        data.orderId != null && String(data.orderId).trim() !== ""
+          ? String(data.orderId).trim()
+          : null,
+      cancelSecret:
+        data.cancelSecret != null && String(data.cancelSecret).trim() !== ""
+          ? String(data.cancelSecret).trim()
+          : null,
+      savedAt,
+    };
   } catch {
     return null;
   }

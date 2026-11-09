@@ -769,6 +769,7 @@ export default function CheckoutPage() {
             pattyShortfalls: data?.pattyShortfalls,
             pattyAffectedLines: data?.pattyAffectedLines,
             adminPushConfirmSecret: null,
+            customerCancelSecret: null,
           };
         }
         return {
@@ -777,9 +778,15 @@ export default function CheckoutPage() {
           pattyShortfalls: undefined,
           pattyAffectedLines: undefined,
           adminPushConfirmSecret: data?.adminPushConfirmSecret ?? null,
+          customerCancelSecret: data?.customerCancelSecret ?? null,
         };
       } catch {
-        return { order: null, error: "network", adminPushConfirmSecret: null };
+        return {
+          order: null,
+          error: "network",
+          adminPushConfirmSecret: null,
+          customerCancelSecret: null,
+        };
       }
     };
 
@@ -790,6 +797,7 @@ export default function CheckoutPage() {
           error: poErr,
           pattyShortfalls: cashPattySf,
           pattyAffectedLines: cashPattyLines,
+          customerCancelSecret: cashCancelSecret,
         } = await persistOrder("checkout_cash");
         if (poErr === "item_unavailable" || poErr === "insufficient_patties") {
           await refreshInventory();
@@ -838,6 +846,7 @@ export default function CheckoutPage() {
                 waGrandTotal: persistTotal,
                 couponRewardBaseNis,
                 orderRowId: savedOrder?.id,
+                customerCancelSecret: cashCancelSecret || undefined,
               })
             );
           } catch {
@@ -847,6 +856,8 @@ export default function CheckoutPage() {
         saveActiveOrderResume({
           orderNumber: savedOrder?.orderNumber,
           method: "cash",
+          orderId: savedOrder?.id,
+          cancelSecret: cashCancelSecret,
         });
         clearCart();
         router.push(
