@@ -75,7 +75,7 @@ export default function ActiveOrderHomeBanner() {
         <div
           className={`mt-2 inline-flex items-center rounded-lg border px-2.5 py-1 text-[11px] font-bold ${fulfillmentStatusToneClass(
             status
-          )}`}
+          )}${status === "pending" ? " order-pending-status-blink" : ""}`}
         >
           {t(fulfillmentStatusLabelKey(status))}
         </div>
