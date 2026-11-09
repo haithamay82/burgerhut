@@ -1,0 +1,208 @@
+import { useEffect, useMemo, useState } from "react";
+import {
+  ORDER_PREP_MINUTE_PRESETS,
+  ORDER_PREP_MINUTES_MAX,
+  ORDER_PREP_MINUTES_MIN,
+  formatCountdown,
+  fulfillmentStatusLabelKey,
+  fulfillmentStatusToneClass,
+  normalizePrepMinutes,
+  prepRemainingMs,
+  resolveFulfillment,
+} from "@/utils/orderFulfillment";
+
+/**
+ * @param {{
+ *   order: object,
+ *   secret: string,
+ *   t: (k: string) => string,
+ *   busyId: string,
+ *   onBusy: (id: string) => void,
+ *   onIdle: () => void,
+ *   onUpdated: (order: object) => void,
+ *   onError: (msg: string) => void,
+ * }} props
+ */
+export default function OrderFulfillmentControls({
+  order,
+  secret,
+  t,
+  busyId,
+  onBusy,
+  onIdle,
+  onUpdated,
+  onError,
+}) {
+  const [tick, setTick] = useState(0);
+  const [pickingTime, setPickingTime] = useState(false);
+  const [customMins, setCustomMins] = useState("");
+
+  const fulfillment = useMemo(
+    () => resolveFulfillment(order, Date.now()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- tick forces refresh
+    [order, tick]
+  );
+
+  useEffect(() => {
+    if (fulfillment.status !== "preparing" || !fulfillment.prepEndsAt) return;
+    const id = window.setInterval(() => setTick((n) => n + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [fulfillment.status, fulfillment.prepEndsAt]);
+
+  const remaining = prepRemainingMs(fulfillment, Date.now());
+  const busy = busyId === order.id;
+
+  const patch = async (body) => {
+    const s = String(secret || "").trim();
+    if (!s || !order?.id) return;
+    onBusy(order.id);
+    onError("");
+    try {
+      const r = await fetch(`/api/orders?id=${encodeURIComponent(order.id)}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-secret": s,
+        },
+        body: JSON.stringify(body),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        const map = {
+          invalid_state: "orderStatus.errState",
+          invalid_prep_minutes: "orderStatus.errPrepMinutes",
+          not_found: "admin.doneErr",
+        };
+        onError(t(map[d.error] || "admin.doneErr"));
+        return;
+      }
+      if (d?.order && typeof d.order === "object") {
+        onUpdated(d.order);
+      }
+      setPickingTime(false);
+      setCustomMins("");
+    } catch {
+      onError(t("admin.errNet"));
+    } finally {
+      onIdle();
+    }
+  };
+
+  const acceptWithMinutes = (mins) => {
+    const n = normalizePrepMinutes(mins);
+    if (n == null) {
+      onError(t("orderStatus.errPrepMinutes"));
+      return;
+    }
+    void patch({ action: "accept", prepMinutes: n });
+  };
+
+  return (
+    <div className="mt-2 space-y-2">
+      <div
+        className={`inline-flex items-center rounded-lg border px-2.5 py-1 text-[11px] font-bold ${fulfillmentStatusToneClass(
+          fulfillment.status
+        )}`}
+      >
+        {t(fulfillmentStatusLabelKey(fulfillment.status))}
+      </div>
+
+      {fulfillment.status === "preparing" ? (
+        <p className="text-sm font-extrabold tabular-nums text-amber-200">
+          {t("orderStatus.countdownLabel")}: {formatCountdown(remaining)}
+          {fulfillment.prepMinutes != null
+            ? ` · ${fulfillment.prepMinutes} ${t("orderStatus.minutesUnit")}`
+            : ""}
+        </p>
+      ) : null}
+
+      {fulfillment.status === "pending" && !pickingTime ? (
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => setPickingTime(true)}
+            className="rounded-lg border border-emerald-700/60 bg-emerald-900/30 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-900/50 disabled:opacity-50"
+          >
+            {busy ? t("orderStatus.saving") : t("orderStatus.accept")}
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void patch({ action: "reject" })}
+            className="rounded-lg border border-red-900/60 bg-red-950/30 px-2.5 py-1.5 text-[11px] font-semibold text-red-300 hover:bg-red-950/50 disabled:opacity-50"
+          >
+            {t("orderStatus.reject")}
+          </button>
+        </div>
+      ) : null}
+
+      {fulfillment.status === "pending" && pickingTime ? (
+        <div className="space-y-2 rounded-xl border border-slate-700 bg-slate-950/60 p-2">
+          <p className="text-[11px] font-semibold text-gray-300">
+            {t("orderStatus.pickPrepMinutes")}
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {ORDER_PREP_MINUTE_PRESETS.map((m) => (
+              <button
+                key={m}
+                type="button"
+                disabled={busy}
+                onClick={() => acceptWithMinutes(m)}
+                className="rounded-md border border-amber-700/50 bg-amber-950/30 px-2 py-1 text-[11px] font-semibold text-amber-100 hover:bg-amber-950/50 disabled:opacity-50"
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-end gap-2">
+            <div className="min-w-[6.5rem] flex-1">
+              <label className="mb-0.5 block text-[10px] text-gray-400">
+                {t("orderStatus.customMinutes")}
+              </label>
+              <input
+                type="number"
+                min={ORDER_PREP_MINUTES_MIN}
+                max={ORDER_PREP_MINUTES_MAX}
+                value={customMins}
+                onChange={(e) => setCustomMins(e.target.value)}
+                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm outline-none focus:border-primary"
+                placeholder={`${ORDER_PREP_MINUTES_MIN}–${ORDER_PREP_MINUTES_MAX}`}
+              />
+            </div>
+            <button
+              type="button"
+              disabled={busy || !customMins}
+              onClick={() => acceptWithMinutes(customMins)}
+              className="rounded-lg border border-emerald-700/60 bg-emerald-900/30 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-200 disabled:opacity-50"
+            >
+              {t("orderStatus.confirmPrep")}
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                setPickingTime(false);
+                setCustomMins("");
+              }}
+              className="rounded-lg border border-slate-600 px-2.5 py-1.5 text-[11px] font-semibold text-gray-300"
+            >
+              {t("orderStatus.cancel")}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {fulfillment.status === "ready" ? (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void patch({ action: "deliver" })}
+          className="rounded-lg border border-sky-700/60 bg-sky-950/30 px-2.5 py-1.5 text-[11px] font-semibold text-sky-200 hover:bg-sky-950/50 disabled:opacity-50"
+        >
+          {busy ? t("orderStatus.saving") : t("orderStatus.markDelivered")}
+        </button>
+      ) : null}
+    </div>
+  );
+}

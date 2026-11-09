@@ -1,9 +1,11 @@
 import crypto from "crypto";
 import {
   appendOrder,
+  decorateOrderFulfillment,
   deleteOrderById,
   listOrdersForAdmin,
   markOrderDoneById,
+  updateOrderFulfillmentById,
 } from "@/lib/ordersStore";
 import { broadcastNewOrderToAdmins } from "@/lib/adminPushNotify";
 import {
@@ -74,10 +76,11 @@ export default async function handler(req, res) {
       return authErrorResponse(res, auth);
     }
     const allOrders = await listOrdersForAdmin();
-    const orders =
+    const scoped =
       auth.role === "employee"
         ? filterOrdersForEmployeeJerusalem(allOrders)
         : allOrders;
+    const orders = scoped.map((o) => decorateOrderFulfillment(o));
     return res.status(200).json({ ok: true, orders, role: auth.role });
   }
 
@@ -305,7 +308,13 @@ export default async function handler(req, res) {
         return res.status(403).json({ ok: false, error: "forbidden" });
       }
     }
-    const result = await markOrderDoneById(id);
+    const action = String(req.body?.action || "").trim();
+    const result = action
+      ? await updateOrderFulfillmentById(id, {
+          action,
+          prepMinutes: req.body?.prepMinutes,
+        })
+      : await markOrderDoneById(id);
     if (!result.ok) {
       if (result.error === "not_found") {
         return res.status(404).json({ ok: false, error: "not_found" });
@@ -315,7 +324,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       ok: true,
       already: Boolean(result.already),
-      order: result.order || null,
+      order: result.order ? decorateOrderFulfillment(result.order) : null,
     });
   }
 

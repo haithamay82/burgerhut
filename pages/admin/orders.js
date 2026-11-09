@@ -72,6 +72,8 @@ import {
 } from "@/utils/adminPushClient";
 import html2canvas from "html2canvas";
 import AdminMenuExportSheet from "@/components/AdminMenuExportSheet";
+import OrderFulfillmentControls from "@/components/OrderFulfillmentControls";
+import { resolveFulfillment } from "@/utils/orderFulfillment";
 
 const INVENTORY_CATEGORIES = ["burgers", "specials", "crispy"];
 const CATALOG_CATEGORIES = ["burgers", "specials", "crispy", "sides", "drinks"];
@@ -5107,14 +5109,24 @@ export default function AdminOrdersPage() {
                     ) : (
                       <div className="space-y-3">
                         {selectedDayOrders.map((o) => {
-                          const isDoneOrder = Boolean(o?.meta?.adminDone || o?.meta?.adminDoneAt);
+                          const fulfillment = resolveFulfillment(o);
+                          const isDoneOrder =
+                            fulfillment.status === "delivered" ||
+                            Boolean(o?.meta?.adminDone || o?.meta?.adminDoneAt);
+                          const isRejected = fulfillment.status === "rejected";
                           return (
                           <article
                             key={o.id}
                             className={`rounded-2xl border p-3 text-sm ${
-                              isDoneOrder
-                                ? "border-emerald-700/60 bg-emerald-950/25"
-                                : "border-slate-800 bg-slate-900/70"
+                              isRejected
+                                ? "border-red-800/60 bg-red-950/20"
+                                : isDoneOrder
+                                  ? "border-emerald-700/60 bg-emerald-950/25"
+                                  : fulfillment.status === "ready"
+                                    ? "border-emerald-600/50 bg-emerald-950/15"
+                                    : fulfillment.status === "preparing"
+                                      ? "border-amber-700/50 bg-amber-950/15"
+                                      : "border-slate-800 bg-slate-900/70"
                             }`}
                           >
                             <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
@@ -5125,18 +5137,32 @@ export default function AdminOrdersPage() {
                                 <p className="text-xs text-gray-400">
                                   {o.customer?.phone}
                                 </p>
-                                <button
-                                  type="button"
-                                  onClick={() => markOrderDone(o.id)}
-                                  disabled={Boolean(isDoneOrder) || completingId !== null}
-                                  className="mt-2 rounded-lg border border-emerald-700/60 bg-emerald-900/20 px-2 py-1 text-[11px] text-emerald-300 hover:bg-emerald-900/35 disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                  {completingId === o.id
-                                    ? t("admin.markingDone")
-                                    : isDoneOrder
-                                      ? t("admin.doneStatus")
-                                      : t("admin.markDone")}
-                                </button>
+                                <OrderFulfillmentControls
+                                  order={o}
+                                  secret={secret}
+                                  t={t}
+                                  busyId={completingId || ""}
+                                  onBusy={(id) => setCompletingId(id)}
+                                  onIdle={() => setCompletingId(null)}
+                                  onError={setError}
+                                  onUpdated={(nextOrder) => {
+                                    setOrders((prev) =>
+                                      prev.map((row) =>
+                                        row.id === nextOrder.id
+                                          ? {
+                                              ...row,
+                                              ...nextOrder,
+                                              meta:
+                                                nextOrder.meta || row.meta || {},
+                                              fulfillment:
+                                                nextOrder.fulfillment ||
+                                                row.fulfillment,
+                                            }
+                                          : row
+                                      )
+                                    );
+                                  }}
+                                />
                               </div>
                               <div className="text-right">
                                 <p className="text-xs font-semibold text-primary">
@@ -5145,11 +5171,6 @@ export default function AdminOrdersPage() {
                                 <p className="text-xs text-gray-500">
                                   {formatTime(o.createdAt, locale)}
                                 </p>
-                                {isDoneOrder ? (
-                                  <p className="text-[11px] font-semibold text-emerald-300">
-                                    {t("admin.doneStatus")}
-                                  </p>
-                                ) : null}
                                 <p className="text-xs text-gray-400">
                                   {t("admin.payment")}:{" "}
                                   {t(`payment.${o.payment}`) || o.payment}

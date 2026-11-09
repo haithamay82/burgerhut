@@ -31,6 +31,7 @@ import {
   savePendingRating,
 } from "@/utils/ratingClient";
 import { saveLastOrderForReorder } from "@/utils/lastOrderReorder";
+import OrderFulfillmentCustomer from "@/components/OrderFulfillmentCustomer";
 
 function deferredCouponClaimStorageKey(orderNumber, code) {
   return `bh_deferred_coupon_claimed_${String(orderNumber)}_${String(code)}`;
@@ -953,6 +954,14 @@ export default function SuccessPage() {
                 #{String(orderFromQuery)}
               </p>
             ) : null}
+            {orderNumberForRating ? (
+              <div className="mb-4 flex w-full justify-center px-3">
+                <OrderFulfillmentCustomer
+                  orderNumber={orderNumberForRating}
+                  t={t}
+                />
+              </div>
+            ) : null}
           </>
         ) : null}
         {showMergedWaButton ? (
@@ -975,6 +984,12 @@ export default function SuccessPage() {
                   {t("success.waCashSubline")}
                 </p>
               </div>
+            ) : null}
+            {orderNumberForRating ? (
+              <OrderFulfillmentCustomer
+                orderNumber={orderNumberForRating}
+                t={t}
+              />
             ) : null}
             <a
               href={cardWaUrl}
