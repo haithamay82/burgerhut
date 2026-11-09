@@ -39,7 +39,6 @@ export default function OrderFulfillmentCustomer({
   const [err, setErr] = useState("");
   const [gone, setGone] = useState(false);
   const [pushOffer, setPushOffer] = useState(false);
-  const [pushDenied, setPushDenied] = useState(false);
   const [pushBusy, setPushBusy] = useState(false);
   const [pushMsg, setPushMsg] = useState("");
   const [canCancel, setCanCancel] = useState(false);
@@ -62,26 +61,18 @@ export default function OrderFulfillmentCustomer({
     if (typeof window === "undefined") return;
     if (typeof Notification === "undefined") {
       setPushOffer(false);
-      setPushDenied(false);
       return;
     }
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
       setPushOffer(false);
-      setPushDenied(false);
       return;
     }
-    if (Notification.permission === "denied") {
-      setPushDenied(true);
-      setPushOffer(false);
-      return;
-    }
-    setPushDenied(false);
+    // מסתירים רק אם כבר רשום לקבלת התראות; אחרת תמיד מציגים «אפשר התראות»
     if (Notification.permission === "granted") {
       const subbed = await getCustomerLocalPushSubscribed();
       setPushOffer(!subbed);
       return;
     }
-    // default — עוד לא ביקשו / אופסו הגדרות: מציגים לחצן הפעלה
     setPushOffer(true);
   }, []);
 
@@ -173,12 +164,10 @@ export default function OrderFulfillmentCustomer({
     if (r.ok) {
       await bindCustomerOrderPush(on);
       setPushOffer(false);
-      setPushDenied(false);
       setPushMsg(t("orderStatus.pushEnabledOk"));
       window.setTimeout(() => setPushMsg(""), 2500);
     } else if (r.error === "permission_denied") {
-      setPushDenied(true);
-      setPushOffer(false);
+      // חסום בהגדרות — משאירים את הלחצן; בלי התראות זה בסדר
       setPushMsg("");
     } else if (
       r.error === "no_vapid" ||
@@ -347,21 +336,7 @@ export default function OrderFulfillmentCustomer({
           ) : null}
         </div>
       ) : null}
-      {!gone && !pushOffer && pushDenied ? (
-        <div className="mt-3 space-y-2 border-t border-slate-700/80 pt-3">
-          <p className="text-[11px] leading-snug text-amber-200/90">
-            {t("orderStatus.pushPermissionDenied")}
-          </p>
-          <button
-            type="button"
-            onClick={() => void refreshPushOffer()}
-            className="w-full rounded-lg border border-slate-600 bg-slate-800/80 px-3 py-2 text-xs font-semibold text-gray-100 hover:border-slate-500"
-          >
-            {t("orderStatus.pushRecheckBtn")}
-          </button>
-        </div>
-      ) : null}
-      {!gone && !pushOffer && !pushDenied && pushMsg ? (
+      {!gone && !pushOffer && pushMsg ? (
         <p className="mt-2 text-[11px] text-emerald-300/90">{pushMsg}</p>
       ) : null}
     </div>

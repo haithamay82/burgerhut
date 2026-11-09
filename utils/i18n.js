@@ -662,7 +662,6 @@ const HE = {
   "orderStatus.pushEnabledOk": "התראות הופעלו להזמנה זו.",
   "orderStatus.pushPermissionDenied":
     "התראות חסומות בהגדרות הטלפון/הדפדפן. אפשר לאפשר בהגדרות האתר ואז לחזור לכאן.",
-  "orderStatus.pushRecheckBtn": "בדקתי בהגדרות — בדוק שוב",
   "orderStatus.pushUnavailable": "התראות עדיין לא זמינות בשרת.",
   "orderStatus.pushSubscribeErr": "לא ניתן להפעיל התראות כרגע. נסו שוב.",
   "success.waCardHeadline": "מעולה! יש לנו הזמנה",
@@ -1959,7 +1958,6 @@ const AR = {
   "orderStatus.pushEnabledOk": "تم تفعيل الإشعارات لهذا الطلب.",
   "orderStatus.pushPermissionDenied":
     "الإشعارات محظورة في إعدادات الهاتف/المتصفح. يمكن السماح من إعدادات الموقع ثم العودة هنا.",
-  "orderStatus.pushRecheckBtn": "فحصت الإعدادات — تحقق مجدداً",
   "orderStatus.pushUnavailable": "الإشعارات غير متاحة على الخادم بعد.",
   "orderStatus.pushSubscribeErr": "تعذّر تفعيل الإشعارات الآن. حاولوا مجدداً.",
   "success.waCardHeadline": "رائع! لدينا طلبيتك",
