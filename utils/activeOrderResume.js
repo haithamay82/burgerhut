@@ -1,5 +1,7 @@
 /** הזמנה פתוחה (ממתינה/בהכנה) — שחזור מסך סטטוס אחרי סגירת האתר */
 export const ACTIVE_ORDER_LS_KEY = "bh_active_order_v1";
+/** בסשן הנוכחי המשתמש בחר להמשיך לתפריט — בלי הפניה כפויה */
+export const ACTIVE_ORDER_BROWSE_SS = "bh_active_order_browse_v1";
 
 const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
@@ -68,6 +70,35 @@ export function clearActiveOrderResume() {
     window.localStorage.removeItem(ACTIVE_ORDER_LS_KEY);
   } catch {
     /* ignore */
+  }
+  clearActiveOrderBrowseMode();
+}
+
+/** משתמש בחר לנווט באתר — לא להפנות בכוח למסך סטטוס בסשן הזה */
+export function enableActiveOrderBrowseMode() {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(ACTIVE_ORDER_BROWSE_SS, "1");
+  } catch {
+    /* ignore */
+  }
+}
+
+export function clearActiveOrderBrowseMode() {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.removeItem(ACTIVE_ORDER_BROWSE_SS);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function isActiveOrderBrowseMode() {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.sessionStorage.getItem(ACTIVE_ORDER_BROWSE_SS) === "1";
+  } catch {
+    return false;
   }
 }
 

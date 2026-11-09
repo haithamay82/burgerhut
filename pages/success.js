@@ -31,7 +31,10 @@ import {
   savePendingRating,
 } from "@/utils/ratingClient";
 import { saveLastOrderForReorder } from "@/utils/lastOrderReorder";
-import { saveActiveOrderResume } from "@/utils/activeOrderResume";
+import {
+  enableActiveOrderBrowseMode,
+  saveActiveOrderResume,
+} from "@/utils/activeOrderResume";
 import { bindCustomerOrderPush } from "@/utils/bindCustomerOrderPush";
 import { syncPwaCustomerPushIfGranted } from "@/utils/customerPushClient";
 import OrderFulfillmentCustomer from "@/components/OrderFulfillmentCustomer";
@@ -147,6 +150,7 @@ export default function SuccessPage() {
   const [waAdminPushPayload, setWaAdminPushPayload] = useState(null);
   const [ratingHiddenForNow, setRatingHiddenForNow] = useState(false);
   const [ratingAlreadyDone, setRatingAlreadyDone] = useState(false);
+  const [resumeOrderGone, setResumeOrderGone] = useState(false);
 
   /** אשראי: שחרור הזמנה לניהול פעם אחת רק אחרי Hyp CCode=0 */
   useEffect(() => {
@@ -877,10 +881,13 @@ export default function SuccessPage() {
   useEffect(() => {
     if (!router.isReady) return;
     if (!orderNumberForRating) return;
-    saveActiveOrderResume({
-      orderNumber: orderNumberForRating,
-      method: method || "cash",
-    });
+    // בשחזור — לא לכתוב מחדש הזמנה שנמחקה; השמירה נעשית בצ'קאאוט/סנאפשוט
+    if (!isResume) {
+      saveActiveOrderResume({
+        orderNumber: orderNumberForRating,
+        method: method || "cash",
+      });
+    }
     void (async () => {
       try {
         await syncPwaCustomerPushIfGranted();
@@ -889,7 +896,7 @@ export default function SuccessPage() {
       }
       await bindCustomerOrderPush(orderNumberForRating);
     })();
-  }, [router.isReady, orderNumberForRating, method]);
+  }, [router.isReady, orderNumberForRating, method, isResume]);
 
   const showResumeStatusScreen =
     isResume && Boolean(orderNumberForRating);
@@ -910,18 +917,26 @@ export default function SuccessPage() {
         {showResumeStatusScreen ? (
           <div className="mb-4 flex w-full max-w-md flex-col items-center gap-4 px-3 text-center">
             <h2 className="text-xl font-extrabold leading-snug text-white sm:text-2xl">
-              {t("success.resumeTitle")}
+              {resumeOrderGone
+                ? t("success.resumeGoneTitle")
+                : t("success.resumeTitle")}
             </h2>
             <p className="text-base font-semibold text-slate-200 sm:text-lg">
-              {t("success.resumeSubline")}
+              {resumeOrderGone
+                ? t("success.resumeGoneSubline")
+                : t("success.resumeSubline")}
             </p>
             <p className="text-xs text-gray-500">#{orderNumberForRating}</p>
             <OrderFulfillmentCustomer
               orderNumber={orderNumberForRating}
               t={t}
+              onStatus={(st) => {
+                if (st === "cancelled") setResumeOrderGone(true);
+              }}
             />
             <Link
               href="/"
+              onClick={() => enableActiveOrderBrowseMode()}
               className="rounded-full border border-slate-600 bg-slate-800/80 px-5 py-2.5 text-sm font-semibold text-gray-100 hover:border-slate-500 hover:bg-slate-800"
             >
               {t("success.resumeBackHome")}

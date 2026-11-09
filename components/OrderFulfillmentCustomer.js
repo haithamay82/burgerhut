@@ -29,6 +29,7 @@ export default function OrderFulfillmentCustomer({
   const [fulfillment, setFulfillment] = useState(null);
   const [tick, setTick] = useState(0);
   const [err, setErr] = useState("");
+  const [gone, setGone] = useState(false);
 
   const on = String(orderNumber ?? "").trim();
 
@@ -40,10 +41,19 @@ export default function OrderFulfillmentCustomer({
         { cache: "no-store" }
       );
       const d = await r.json().catch(() => ({}));
+      if (r.status === 404 || d.error === "not_found") {
+        clearActiveOrderResume();
+        setGone(true);
+        setFulfillment(null);
+        setErr("");
+        if (typeof onStatus === "function") onStatus("cancelled");
+        return;
+      }
       if (!r.ok) {
         setErr(t("orderStatus.errLoad"));
         return;
       }
+      setGone(false);
       setErr("");
       const f = d.fulfillment || null;
       setFulfillment(f);
@@ -95,7 +105,15 @@ export default function OrderFulfillmentCustomer({
       <p className="text-[11px] font-semibold text-gray-400">
         {t("orderStatus.customerTitle")}
       </p>
-      {err ? (
+      {gone ? (
+        <div
+          className={`mt-2 inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-extrabold ${fulfillmentStatusToneClass(
+            "rejected"
+          )}`}
+        >
+          {t("orderStatus.cancelled")}
+        </div>
+      ) : err ? (
         <p className="mt-1 text-xs text-amber-200">{err}</p>
       ) : resolved ? (
         <>
