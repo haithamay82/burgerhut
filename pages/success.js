@@ -872,7 +872,7 @@ export default function SuccessPage() {
     !ratingAlreadyDone;
 
   const waSendClasses =
-    "btn-primary flex w-full justify-center px-4 py-3 text-center text-base font-extrabold text-black shadow-[0_0_0_3px_rgba(251,191,36,0.4)] ring-2 ring-amber-400/90";
+    "flex w-full justify-center rounded-full bg-[#25D366] px-4 py-3 text-center text-base font-extrabold text-white shadow-lg shadow-[#25D366]/40 transition-colors hover:bg-[#20BD5A] ring-2 ring-[#25D366]/80";
 
   return (
     <Layout>
