@@ -149,14 +149,14 @@ export default function OrderFulfillmentControls({
               ? t("orderStatus.pickExtendMinutes")
               : t("orderStatus.pickPrepMinutes")}
           </p>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
             {ORDER_PREP_MINUTE_PRESETS.map((m) => (
               <button
                 key={m}
                 type="button"
                 disabled={busy}
                 onClick={() => submitMinutes(m)}
-                className="rounded-md border border-amber-700/50 bg-amber-950/30 px-2 py-1 text-[11px] font-semibold text-amber-100 hover:bg-amber-950/50 disabled:opacity-50"
+                className="flex min-h-[3rem] items-center justify-center rounded-xl border border-amber-700/50 bg-amber-950/30 px-3 py-3 text-base font-extrabold tabular-nums text-amber-100 hover:bg-amber-950/50 disabled:opacity-50 sm:min-h-[3.25rem]"
               >
                 {m}
               </button>
