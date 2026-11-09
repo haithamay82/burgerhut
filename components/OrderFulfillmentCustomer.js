@@ -5,6 +5,10 @@ import {
 } from "@/utils/activeOrderResume";
 import { bindCustomerOrderPush } from "@/utils/bindCustomerOrderPush";
 import {
+  getCustomerLocalPushSubscribed,
+  registerPwaCustomerPushOnUserAction,
+} from "@/utils/customerPushClient";
+import {
   formatCountdown,
   fulfillmentStatusLabelKey,
   fulfillmentStatusToneClass,
@@ -30,8 +34,37 @@ export default function OrderFulfillmentCustomer({
   const [tick, setTick] = useState(0);
   const [err, setErr] = useState("");
   const [gone, setGone] = useState(false);
+  const [pushOffer, setPushOffer] = useState(false);
+  const [pushDenied, setPushDenied] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushMsg, setPushMsg] = useState("");
 
   const on = String(orderNumber ?? "").trim();
+
+  const refreshPushOffer = useCallback(async () => {
+    if (typeof window === "undefined") return;
+    if (typeof Notification === "undefined") {
+      setPushOffer(false);
+      setPushDenied(false);
+      return;
+    }
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      setPushOffer(false);
+      return;
+    }
+    if (Notification.permission === "denied") {
+      setPushDenied(true);
+      setPushOffer(false);
+      return;
+    }
+    setPushDenied(false);
+    if (Notification.permission === "granted") {
+      const subbed = await getCustomerLocalPushSubscribed();
+      setPushOffer(!subbed);
+      return;
+    }
+    setPushOffer(true);
+  }, []);
 
   const load = useCallback(async () => {
     if (!on || !/^\d{3,8}$/.test(on)) return;
@@ -72,9 +105,40 @@ export default function OrderFulfillmentCustomer({
   }, [load]);
 
   useEffect(() => {
+    void refreshPushOffer();
+  }, [refreshPushOffer]);
+
+  useEffect(() => {
     if (!on) return;
     void bindCustomerOrderPush(on);
   }, [on]);
+
+  const enablePush = async () => {
+    if (pushBusy) return;
+    setPushBusy(true);
+    setPushMsg("");
+    const r = await registerPwaCustomerPushOnUserAction();
+    if (r.ok) {
+      await bindCustomerOrderPush(on);
+      setPushOffer(false);
+      setPushDenied(false);
+      setPushMsg(t("orderStatus.pushEnabledOk"));
+      window.setTimeout(() => setPushMsg(""), 2500);
+    } else if (r.error === "permission_denied") {
+      setPushDenied(true);
+      setPushOffer(false);
+      setPushMsg("");
+    } else if (
+      r.error === "no_vapid" ||
+      r.error === "redis_not_configured"
+    ) {
+      setPushMsg(t("orderStatus.pushUnavailable"));
+    } else {
+      setPushMsg(t("orderStatus.pushSubscribeErr"));
+    }
+    setPushBusy(false);
+    await refreshPushOffer();
+  };
 
   useEffect(() => {
     if (!on) return;
@@ -141,6 +205,30 @@ export default function OrderFulfillmentCustomer({
       ) : (
         <p className="mt-2 text-xs text-gray-500">{t("orderStatus.loading")}</p>
       )}
+
+      {!gone && pushOffer ? (
+        <div className="mt-3 space-y-2 border-t border-slate-700/80 pt-3">
+          <p className="text-[11px] leading-snug text-gray-300">
+            {t("orderStatus.pushEnableHint")}
+          </p>
+          <button
+            type="button"
+            disabled={pushBusy}
+            onClick={() => void enablePush()}
+            className="w-full rounded-lg border border-primary/50 bg-primary/15 px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/25 disabled:opacity-50"
+          >
+            {pushBusy
+              ? t("orderStatus.pushEnabling")
+              : t("orderStatus.pushEnableBtn")}
+          </button>
+          {pushMsg ? (
+            <p className="text-[11px] text-amber-200/90">{pushMsg}</p>
+          ) : null}
+        </div>
+      ) : null}
+      {!gone && !pushOffer && pushMsg ? (
+        <p className="mt-2 text-[11px] text-emerald-300/90">{pushMsg}</p>
+      ) : null}
     </div>
   );
 }

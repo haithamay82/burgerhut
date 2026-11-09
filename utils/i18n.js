@@ -651,6 +651,15 @@ const HE = {
   "success.resumeBannerHint": "הזמנה {order} — אפשר לפתוח מעקב או להמשיך לגלוש בתפריט",
   "success.resumeBannerOpen": "צפה בסטטוס ההזמנה",
   "orderStatus.cancelled": "בוטלה",
+  "orderStatus.pushEnableHint":
+    "כדי לקבל התראה כשההזמנה מתקבלת, נדחית או מוכנה — אשרו התראות בטלפון.",
+  "orderStatus.pushEnableBtn": "אפשר התראות להזמנה",
+  "orderStatus.pushEnabling": "מפעיל…",
+  "orderStatus.pushEnabledOk": "התראות הופעלו להזמנה זו.",
+  "orderStatus.pushPermissionDenied":
+    "התראות חסומות בהגדרות הטלפון/הדפדפן. אפשר לאפשר בהגדרות האתר ואז לחזור לכאן.",
+  "orderStatus.pushUnavailable": "התראות עדיין לא זמינות בשרת.",
+  "orderStatus.pushSubscribeErr": "לא ניתן להפעיל התראות כרגע. נסו שוב.",
   "success.waCardHeadline": "מעולה! יש לנו הזמנה",
   "success.waCardNowLine": "עכשיו:",
   "success.waOrderRecordedWithId": "הזמנתך #{order} מוכנה לשליחה",
@@ -1934,6 +1943,15 @@ const AR = {
   "success.resumeBannerHint": "طلب {order} — يمكن فتح المتابعة أو متابعة التصفح في القائمة",
   "success.resumeBannerOpen": "عرض حالة الطلب",
   "orderStatus.cancelled": "ملغى",
+  "orderStatus.pushEnableHint":
+    "لتلقي إشعار عند قبول الطلب أو رفضه أو جهوزيته — اسمحوا بالإشعارات على الهاتف.",
+  "orderStatus.pushEnableBtn": "تفعيل إشعارات الطلب",
+  "orderStatus.pushEnabling": "جارٍ التفعيل…",
+  "orderStatus.pushEnabledOk": "تم تفعيل الإشعارات لهذا الطلب.",
+  "orderStatus.pushPermissionDenied":
+    "الإشعارات محظورة في إعدادات الهاتف/المتصفح. يمكن السماح من إعدادات الموقع ثم العودة هنا.",
+  "orderStatus.pushUnavailable": "الإشعارات غير متاحة على الخادم بعد.",
+  "orderStatus.pushSubscribeErr": "تعذّر تفعيل الإشعارات الآن. حاولوا مجدداً.",
   "success.waCardHeadline": "رائع! لدينا طلبيتك",
   "success.waCardNowLine": "الآن:",
   "success.waOrderRecordedWithId": "طلبك #{order} جاهز للإرسال",
