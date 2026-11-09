@@ -638,8 +638,8 @@ const HE = {
     "לא נשלחה חשבונית מהמסוף: בשדה «אימייל (לא חובה)» בצ'קאאוט צריך להופיע אימייל תקין כדי שהאתר יבקש מהמסוף חשבונית במייל, או מספר נייד ישראלי תקין ל־SMS. בלי אחד מאלה המסוף לא מקבל בקשה לשליחת חשבונית.",
   "success.invoiceHypNoReceipt":
     "האתר ביקש חשבונית לפי הפרטים שהזנתם, אך בכתובת החזרה מהמסוף לא מופיע מספר חשבונית (Hesh). בדקו במסוף Hyp שהופעל מודול חשבוניות ודוא״ל, בתיקיית דואר נכנס ובספאם. סכום קטן (למשל 1 ₪) לא אמור למנוע זאת בקוד האתר.",
-  "success.waSendOrder": "דבר איתנו בווטסאפ",
-  "success.waQuestionsHint": "יש לך שאלות? לברר משהו..?",
+  "success.waSendOrder": "דברו איתנו בווטסאפ",
+  "success.waQuestionsHint": "יש לכם שאלות? לברר משהו..?",
   "success.waCashHeadline": "הזמנתך נרשמה במערכת",
   "success.waCashSubline": "שלח אותה כדי לתאם זמן הכנה וקבלה",
   "success.resumeTitle": "ההזמנה שלך עדיין פעילה",
@@ -662,6 +662,7 @@ const HE = {
   "orderStatus.pushEnabledOk": "התראות הופעלו להזמנה זו.",
   "orderStatus.pushPermissionDenied":
     "התראות חסומות בהגדרות הטלפון/הדפדפן. אפשר לאפשר בהגדרות האתר ואז לחזור לכאן.",
+  "orderStatus.pushRecheckBtn": "בדקתי בהגדרות — בדוק שוב",
   "orderStatus.pushUnavailable": "התראות עדיין לא זמינות בשרת.",
   "orderStatus.pushSubscribeErr": "לא ניתן להפעיל התראות כרגע. נסו שוב.",
   "success.waCardHeadline": "מעולה! יש לנו הזמנה",
@@ -1958,6 +1959,7 @@ const AR = {
   "orderStatus.pushEnabledOk": "تم تفعيل الإشعارات لهذا الطلب.",
   "orderStatus.pushPermissionDenied":
     "الإشعارات محظورة في إعدادات الهاتف/المتصفح. يمكن السماح من إعدادات الموقع ثم العودة هنا.",
+  "orderStatus.pushRecheckBtn": "فحصت الإعدادات — تحقق مجدداً",
   "orderStatus.pushUnavailable": "الإشعارات غير متاحة على الخادم بعد.",
   "orderStatus.pushSubscribeErr": "تعذّر تفعيل الإشعارات الآن. حاولوا مجدداً.",
   "success.waCardHeadline": "رائع! لدينا طلبيتك",

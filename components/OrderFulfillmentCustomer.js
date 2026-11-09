@@ -67,6 +67,7 @@ export default function OrderFulfillmentCustomer({
     }
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
       setPushOffer(false);
+      setPushDenied(false);
       return;
     }
     if (Notification.permission === "denied") {
@@ -80,6 +81,7 @@ export default function OrderFulfillmentCustomer({
       setPushOffer(!subbed);
       return;
     }
+    // default — עוד לא ביקשו / אופסו הגדרות: מציגים לחצן הפעלה
     setPushOffer(true);
   }, []);
 
@@ -140,6 +142,22 @@ export default function OrderFulfillmentCustomer({
 
   useEffect(() => {
     void refreshPushOffer();
+  }, [refreshPushOffer]);
+
+  // אחרי חסימה בהגדרות הטלפון — כשחוזרים למסך בודקים שוב אם אפשר להציג לחצן
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        void refreshPushOffer();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
   }, [refreshPushOffer]);
 
   useEffect(() => {
@@ -329,7 +347,21 @@ export default function OrderFulfillmentCustomer({
           ) : null}
         </div>
       ) : null}
-      {!gone && !pushOffer && pushMsg ? (
+      {!gone && !pushOffer && pushDenied ? (
+        <div className="mt-3 space-y-2 border-t border-slate-700/80 pt-3">
+          <p className="text-[11px] leading-snug text-amber-200/90">
+            {t("orderStatus.pushPermissionDenied")}
+          </p>
+          <button
+            type="button"
+            onClick={() => void refreshPushOffer()}
+            className="w-full rounded-lg border border-slate-600 bg-slate-800/80 px-3 py-2 text-xs font-semibold text-gray-100 hover:border-slate-500"
+          >
+            {t("orderStatus.pushRecheckBtn")}
+          </button>
+        </div>
+      ) : null}
+      {!gone && !pushOffer && !pushDenied && pushMsg ? (
         <p className="mt-2 text-[11px] text-emerald-300/90">{pushMsg}</p>
       ) : null}
     </div>
