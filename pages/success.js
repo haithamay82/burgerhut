@@ -146,7 +146,6 @@ export default function SuccessPage() {
    * false = קופונים כבויים או אחוז 0 — כפתור ווטסאפ פעיל מיד בלי להמתין לקופון
    */
   const [customerCouponsActive, setCustomerCouponsActive] = useState(null);
-  const [waComposeAlreadyUsed, setWaComposeAlreadyUsed] = useState(false);
   /** תאימות לאחור: סשן ישן עם deferAdminPush + סוד אישור */
   const [waAdminPushPayload, setWaAdminPushPayload] = useState(null);
   const [ratingHiddenForNow, setRatingHiddenForNow] = useState(false);
@@ -538,42 +537,6 @@ export default function SuccessPage() {
       method === "bit" ||
       Boolean(cardWaUrl) ||
       hasValidCardSuccessSnapshot();
-    if (!waAuxFlow) return;
-    const mk = buildSuccessPageMatchKey({
-      method,
-      orderOn: orderFromQuery,
-      hypReturn: payDoneMarker,
-    });
-    const RESTORE_MAX_AGE_MS = 48 * 3600 * 1000;
-    let used = false;
-    try {
-      const rawSent = window.sessionStorage.getItem(SUCCESS_WA_SENT_KEY);
-      if (rawSent) {
-        const sent = JSON.parse(rawSent);
-        const age = Date.now() - Number(sent?.savedAt || 0);
-        if (
-          sent?.matchKey === mk &&
-          age >= 0 &&
-          age <= RESTORE_MAX_AGE_MS
-        ) {
-          used = true;
-        }
-      }
-    } catch {
-      /* ignore */
-    }
-    setWaComposeAlreadyUsed(used);
-  }, [router.isReady, payDoneMarker, method, orderFromQuery, cardWaUrl]);
-
-  useEffect(() => {
-    if (!router.isReady || typeof window === "undefined") return;
-    const waAuxFlow =
-      Boolean(payDoneMarker) ||
-      method === "card" ||
-      method === "cash" ||
-      method === "bit" ||
-      Boolean(cardWaUrl) ||
-      hasValidCardSuccessSnapshot();
     if (!waAuxFlow) {
       setCustomerCouponsActive(null);
       return;
@@ -814,28 +777,6 @@ export default function SuccessPage() {
     };
   }, [router.isReady, orderFromQuery, cardOrder?.orderNumber]);
 
-  const title = payDoneMarker
-    ? t("success.paymentCompleted")
-    : method === "online"
-      ? t("success.titleOnline")
-      : method === "cash" || method === "bit"
-        ? t("success.titleOk")
-        : method === "card"
-          ? t("success.paymentCompleted")
-          : t("success.titleOk");
-
-  const description = payDoneMarker
-    ? t("success.paymentCompletedSub")
-    : method === "online"
-      ? t("success.descOnline")
-      : method === "bit"
-        ? t("success.descBit")
-        : method === "card"
-          ? t("success.descCard")
-          : method === "cash"
-            ? t("success.descCash")
-            : t("success.descCard");
-
   const formatCouponDate = (ts) => {
     const d = new Date(Number(ts) || Date.now());
     const intlLocale = locale === "ar" ? "ar-EG" : "he-IL";
@@ -874,10 +815,7 @@ export default function SuccessPage() {
         : false;
 
   const showMergedWaButton =
-    postPaymentWhatsAppContext &&
-    cardWaUrl &&
-    !waComposeAlreadyUsed &&
-    couponReadyForWaButton;
+    postPaymentWhatsAppContext && cardWaUrl && couponReadyForWaButton;
 
   /** מסך כפתור ווטסאפ אחרי אשראי מאושר (כולל חזרה מ־Hyp עם מזהה בעמוד) */
   const showCardWaHeadlineCopy =
@@ -887,22 +825,6 @@ export default function SuccessPage() {
   /** מזומן / ביט: טקסט מעל כפתור ווטסאפ לתיאום הכנה וקבלה */
   const showCashWaHeadlineCopy =
     showMergedWaButton && (method === "cash" || method === "bit");
-
-  /**
-   * לא להציג ✓/«התקבלה» בזמן המתנה לקופון ולווטסאפ (אשראי/מזומן/ביט/חזרה מ-Hyp).
-   */
-  const mayStillNeedWaComposer =
-    Boolean(cardWaUrl) ||
-    method === "card" ||
-    method === "cash" ||
-    method === "bit" ||
-    Boolean(payDoneMarker);
-  const hideSuccessCheckUntilWaSent =
-    postPaymentWhatsAppContext &&
-    !waComposeAlreadyUsed &&
-    mayStillNeedWaComposer;
-  const showSuccessCheckBlock =
-    !hideSuccessCheckUntilWaSent && !showMergedWaButton;
 
   const orderNumberForRating =
     orderFromQuery !== undefined &&
@@ -974,8 +896,6 @@ export default function SuccessPage() {
 
   const showFoodRatingBlock =
     Boolean(orderNumberForRating) &&
-    !showMergedWaButton &&
-    (showSuccessCheckBlock || waComposeAlreadyUsed) &&
     !ratingHiddenForNow &&
     !ratingAlreadyDone;
 
@@ -1081,31 +1001,6 @@ export default function SuccessPage() {
             {cardInvoiceNotice.text}
           </p>
         ) : null}
-        {!showResumeStatusScreen && showSuccessCheckBlock ? (
-          <>
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 text-3xl text-emerald-400">
-              ✓
-            </div>
-            <h2 className="mb-2 text-xl font-bold">{title}</h2>
-            <p className="mb-4 max-w-sm text-sm text-gray-400">{description}</p>
-            {orderFromQuery ? (
-              <p className="mb-4 text-xs text-gray-500">
-                #{String(orderFromQuery)}
-              </p>
-            ) : null}
-            {orderNumberForRating ? (
-              <div className="mb-4 flex w-full justify-center px-3">
-                <OrderFulfillmentCustomer
-                  orderNumber={orderNumberForRating}
-                  t={t}
-                  cancelSecret={customerCancelSecret}
-                  orderId={cancelOrderId || cardOrder?.orderId || null}
-                  onStatus={handleFulfillmentStatus}
-                />
-              </div>
-            ) : null}
-          </>
-        ) : null}
         {!showResumeStatusScreen && showMergedWaButton ? (
           <div className="mb-4 flex w-full max-w-md flex-col items-center gap-4 px-3 text-center">
             {showCardWaHeadlineCopy ? (
@@ -1132,6 +1027,16 @@ export default function SuccessPage() {
                 orderId={cancelOrderId || cardOrder?.orderId || null}
                 onStatus={handleFulfillmentStatus}
               />
+            ) : null}
+            {showFoodRatingBlock ? (
+              <div className="flex w-full justify-center">
+                <FoodRatingCard
+                  orderNumber={orderNumberForRating}
+                  source="success"
+                  onSubmitted={() => setRatingAlreadyDone(true)}
+                  onSkip={() => setRatingHiddenForNow(true)}
+                />
+              </div>
             ) : null}
             <div className="flex w-full max-w-xs flex-col items-center gap-2">
               <p className="text-sm font-semibold text-slate-300">
@@ -1176,7 +1081,6 @@ export default function SuccessPage() {
                     "noopener,noreferrer"
                   );
                   const popupBlocked = !opened || opened.closed;
-                  setWaComposeAlreadyUsed(true);
                   if (popupBlocked) {
                     window.location.href = wa;
                   }
@@ -1190,7 +1094,6 @@ export default function SuccessPage() {
         ) : !showResumeStatusScreen &&
           postPaymentWhatsAppContext &&
           cardWaUrl &&
-          !waComposeAlreadyUsed &&
           !couponReadyForWaButton ? (
           <div
             className="success-loading-bar-track mb-4 shrink-0"
@@ -1201,16 +1104,6 @@ export default function SuccessPage() {
             aria-label={t("success.loadingProgressAria")}
           >
             <div className="success-loading-bar-fill" />
-          </div>
-        ) : null}
-        {!showResumeStatusScreen && showFoodRatingBlock ? (
-          <div className="mt-2 flex w-full justify-center px-3">
-            <FoodRatingCard
-              orderNumber={orderNumberForRating}
-              source="success"
-              onSubmitted={() => setRatingAlreadyDone(true)}
-              onSkip={() => setRatingHiddenForNow(true)}
-            />
           </div>
         ) : null}
       </div>
