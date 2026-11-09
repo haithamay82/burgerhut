@@ -8,6 +8,7 @@ import { InventoryProvider } from "@/contexts/InventoryContext";
 import { OrderingHoursProvider } from "@/contexts/OrderingHoursContext";
 import { isStandalonePwaDisplay } from "@/utils/pwaDisplay";
 import { markPwaJustInstalled } from "@/utils/pwaNotificationPrompt";
+import { isCustomerPushRegisterLocked } from "@/utils/customerPushClient";
 import PwaNotificationPrompt from "@/components/PwaNotificationPrompt";
 
 const SITE_VISIT_STORAGE_KEY = "bh_site_visit_v1";
@@ -130,18 +131,41 @@ export default function App({ Component, pageProps }) {
     if (!isStandalonePwaDisplay()) return;
 
     let sawHidden = false;
+    /** @type {string | null} */
+    let permissionWhenHidden = null;
     const onVisibility = () => {
       if (document.visibilityState === "hidden") {
         sawHidden = true;
+        permissionWhenHidden =
+          typeof Notification !== "undefined"
+            ? Notification.permission
+            : null;
         return;
       }
-      if (document.visibilityState === "visible" && sawHidden) {
-        window.location.reload();
+      if (document.visibilityState !== "visible" || !sawHidden) return;
+
+      // אל תרענן באמצע «אפשר התראות» — הרענון קטע את הרישום ואת חלון ההרשאה
+      if (isCustomerPushRegisterLocked()) {
+        sawHidden = false;
+        return;
       }
+      if (
+        permissionWhenHidden === "default" &&
+        typeof Notification !== "undefined" &&
+        Notification.permission === "granted"
+      ) {
+        sawHidden = false;
+        permissionWhenHidden = null;
+        return;
+      }
+
+      window.location.reload();
     };
 
     const onPageShow = (e) => {
-      if (e.persisted) window.location.reload();
+      if (!e.persisted) return;
+      if (isCustomerPushRegisterLocked()) return;
+      window.location.reload();
     };
 
     document.addEventListener("visibilitychange", onVisibility);

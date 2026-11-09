@@ -5,6 +5,50 @@ import {
 } from "@/utils/customerPushClientId";
 import { clearPwaJustInstalledFlag } from "@/utils/pwaNotificationPrompt";
 
+/** מונע רענון PWA באמצע חלון הרשאת התראות / רישום Push */
+export const CUSTOMER_PUSH_REGISTER_LOCK_KEY = "bh_push_register_lock";
+
+export function beginCustomerPushRegisterLock() {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(
+      CUSTOMER_PUSH_REGISTER_LOCK_KEY,
+      String(Date.now())
+    );
+  } catch {
+    /* ignore */
+  }
+}
+
+export function endCustomerPushRegisterLock() {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.removeItem(CUSTOMER_PUSH_REGISTER_LOCK_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function isCustomerPushRegisterLocked() {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = window.sessionStorage.getItem(CUSTOMER_PUSH_REGISTER_LOCK_KEY);
+    if (!raw) return false;
+    const started = Number(raw);
+    if (!Number.isFinite(started) || started <= 0) {
+      window.sessionStorage.removeItem(CUSTOMER_PUSH_REGISTER_LOCK_KEY);
+      return false;
+    }
+    if (Date.now() - started > 2 * 60 * 1000) {
+      window.sessionStorage.removeItem(CUSTOMER_PUSH_REGISTER_LOCK_KEY);
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** @param {string} base64String */
 function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -17,6 +61,17 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
+async function ensureServiceWorkerReady() {
+  if (!("serviceWorker" in navigator)) {
+    throw new Error("no_sw");
+  }
+  let reg = await navigator.serviceWorker.getRegistration();
+  if (!reg) {
+    reg = await navigator.serviceWorker.register("/sw.js");
+  }
+  return navigator.serviceWorker.ready;
+}
+
 /**
  * @returns {Promise<boolean>}
  */
@@ -26,7 +81,7 @@ export async function getCustomerLocalPushSubscribed() {
     return false;
   }
   try {
-    const reg = await navigator.serviceWorker.ready;
+    const reg = await ensureServiceWorkerReady();
     const sub = await reg.pushManager.getSubscription();
     return Boolean(sub);
   } catch {
@@ -58,7 +113,7 @@ async function saveSubscriptionToServer(sub) {
 }
 
 async function subscribeAfterPermissionGranted() {
-  const reg = await navigator.serviceWorker.ready;
+  const reg = await ensureServiceWorkerReady();
   let sub = await reg.pushManager.getSubscription();
   if (!sub) {
     const rk = await fetch("/api/push/vapid-public");
@@ -117,6 +172,7 @@ export async function registerPwaCustomerPushOnUserAction() {
     return { ok: false, error: "permission_denied" };
   }
 
+  beginCustomerPushRegisterLock();
   try {
     if (Notification.permission === "default") {
       const perm = await Notification.requestPermission();
@@ -131,6 +187,8 @@ export async function registerPwaCustomerPushOnUserAction() {
     return result;
   } catch {
     return { ok: false, error: "subscribe_failed" };
+  } finally {
+    endCustomerPushRegisterLock();
   }
 }
 

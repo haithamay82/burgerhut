@@ -167,12 +167,13 @@ export default function OrderFulfillmentCustomer({
       setPushMsg(t("orderStatus.pushEnabledOk"));
       window.setTimeout(() => setPushMsg(""), 2500);
     } else if (r.error === "permission_denied") {
-      // חסום בהגדרות — משאירים את הלחצן; בלי התראות זה בסדר
-      setPushMsg("");
+      setPushMsg(t("orderStatus.pushPermissionDenied"));
     } else if (
       r.error === "no_vapid" ||
       r.error === "redis_not_configured"
     ) {
+      setPushMsg(t("orderStatus.pushUnavailable"));
+    } else if (r.error === "push_unavailable") {
       setPushMsg(t("orderStatus.pushUnavailable"));
     } else {
       setPushMsg(t("orderStatus.pushSubscribeErr"));
