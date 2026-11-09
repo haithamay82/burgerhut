@@ -30,6 +30,7 @@ import {
   markRatingDoneLocal,
   savePendingRating,
 } from "@/utils/ratingClient";
+import { saveLastOrderForReorder } from "@/utils/lastOrderReorder";
 
 function deferredCouponClaimStorageKey(orderNumber, code) {
   return `bh_deferred_coupon_claimed_${String(orderNumber)}_${String(code)}`;
@@ -334,6 +335,11 @@ export default function SuccessPage() {
         (Number.isFinite(amountFromSnap) && amountFromSnap > 0
           ? amountFromSnap
           : amountFromItems) || 0;
+      saveLastOrderForReorder({
+        items: snap.items,
+        orderNumber: snap.orderNumber ?? orderFromQuery,
+        total: grand,
+      });
       const snapOrderNum =
         snap.orderNumber != null && String(snap.orderNumber).trim() !== ""
           ? snap.orderNumber

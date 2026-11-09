@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import HomeMediaSlider from "@/components/HomeMediaSlider";
 import HomeBurgerMascot from "@/components/HomeBurgerMascot";
 import TypingLoopText from "@/components/TypingLoopText";
+import LastOrderReorderPrompt from "@/components/LastOrderReorderPrompt";
 
 export default function HomeMain({
   initialHomeSliderImages = [],
@@ -152,6 +153,7 @@ export default function HomeMain({
           </p>
         </section>
       ) : null}
+      <LastOrderReorderPrompt />
       <section className="mb-4">
         <div className="min-w-0">
           <h2 className="mb-1 flex w-full min-h-0 justify-center text-lg font-bold leading-tight [--home-title-mascot:calc(2lh+0.25rem)]">
