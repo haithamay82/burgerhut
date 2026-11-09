@@ -31,7 +31,9 @@ import {
   savePendingRating,
 } from "@/utils/ratingClient";
 import { saveLastOrderForReorder } from "@/utils/lastOrderReorder";
+import { saveActiveOrderResume } from "@/utils/activeOrderResume";
 import OrderFulfillmentCustomer from "@/components/OrderFulfillmentCustomer";
+import Link from "next/link";
 
 function deferredCouponClaimStorageKey(orderNumber, code) {
   return `bh_deferred_coupon_claimed_${String(orderNumber)}_${String(code)}`;
@@ -89,6 +91,7 @@ export default function SuccessPage() {
   const router = useRouter();
   const { t, locale } = useLocale();
   const method = firstQuery(router, "method") || "";
+  const isResume = firstQuery(router, "resume") === "1";
   const orderFromQuery = Array.isArray(router.query.on)
     ? router.query.on[0]
     : router.query.on;
@@ -340,6 +343,10 @@ export default function SuccessPage() {
         items: snap.items,
         orderNumber: snap.orderNumber ?? orderFromQuery,
         total: grand,
+      });
+      saveActiveOrderResume({
+        orderNumber: snap.orderNumber ?? orderFromQuery,
+        method: snap.payment || method || "cash",
       });
       const snapOrderNum =
         snap.orderNumber != null && String(snap.orderNumber).trim() !== ""
@@ -865,6 +872,18 @@ export default function SuccessPage() {
         ? String(cardOrder.orderNumber).trim()
         : "";
 
+  useEffect(() => {
+    if (!router.isReady) return;
+    if (!orderNumberForRating) return;
+    saveActiveOrderResume({
+      orderNumber: orderNumberForRating,
+      method: method || "cash",
+    });
+  }, [router.isReady, orderNumberForRating, method]);
+
+  const showResumeStatusScreen =
+    isResume && Boolean(orderNumberForRating);
+
   const showFoodRatingBlock =
     Boolean(orderNumberForRating) &&
     !showMergedWaButton &&
@@ -878,7 +897,28 @@ export default function SuccessPage() {
   return (
     <Layout>
       <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
-        {postPaymentWhatsAppContext && coupon?.code ? (
+        {showResumeStatusScreen ? (
+          <div className="mb-4 flex w-full max-w-md flex-col items-center gap-4 px-3 text-center">
+            <h2 className="text-xl font-extrabold leading-snug text-white sm:text-2xl">
+              {t("success.resumeTitle")}
+            </h2>
+            <p className="text-base font-semibold text-slate-200 sm:text-lg">
+              {t("success.resumeSubline")}
+            </p>
+            <p className="text-xs text-gray-500">#{orderNumberForRating}</p>
+            <OrderFulfillmentCustomer
+              orderNumber={orderNumberForRating}
+              t={t}
+            />
+            <Link
+              href="/"
+              className="rounded-full border border-slate-600 bg-slate-800/80 px-5 py-2.5 text-sm font-semibold text-gray-100 hover:border-slate-500 hover:bg-slate-800"
+            >
+              {t("success.resumeBackHome")}
+            </Link>
+          </div>
+        ) : null}
+        {!showResumeStatusScreen && postPaymentWhatsAppContext && coupon?.code ? (
           <section className="mb-4 w-full max-w-sm rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-900 via-slate-950 to-cyan-950 p-4 text-right text-white shadow-lg shadow-emerald-900/20">
             <div className="relative rounded-xl border border-white/10 bg-slate-950/70 p-3 pt-10">
               <img
@@ -934,7 +974,7 @@ export default function SuccessPage() {
             </p>
           </section>
         ) : null}
-        {cardInvoiceNotice ? (
+        {!showResumeStatusScreen && cardInvoiceNotice ? (
           <p
             className={cardInvoiceNotice.className}
             dir="rtl"
@@ -942,7 +982,7 @@ export default function SuccessPage() {
             {cardInvoiceNotice.text}
           </p>
         ) : null}
-        {showSuccessCheckBlock ? (
+        {!showResumeStatusScreen && showSuccessCheckBlock ? (
           <>
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 text-3xl text-emerald-400">
               ✓
@@ -964,7 +1004,7 @@ export default function SuccessPage() {
             ) : null}
           </>
         ) : null}
-        {showMergedWaButton ? (
+        {!showResumeStatusScreen && showMergedWaButton ? (
           <div className="mb-4 flex w-full max-w-md flex-col items-center gap-4 px-3 text-center">
             {showCardWaHeadlineCopy ? (
               <div className="w-full space-y-2">
@@ -1036,7 +1076,8 @@ export default function SuccessPage() {
               {t("success.waSendOrder")}
             </a>
           </div>
-        ) : postPaymentWhatsAppContext &&
+        ) : !showResumeStatusScreen &&
+          postPaymentWhatsAppContext &&
           cardWaUrl &&
           !waComposeAlreadyUsed &&
           !couponReadyForWaButton ? (
@@ -1051,7 +1092,7 @@ export default function SuccessPage() {
             <div className="success-loading-bar-fill" />
           </div>
         ) : null}
-        {showFoodRatingBlock ? (
+        {!showResumeStatusScreen && showFoodRatingBlock ? (
           <div className="mt-2 flex w-full justify-center px-3">
             <FoodRatingCard
               orderNumber={orderNumberForRating}

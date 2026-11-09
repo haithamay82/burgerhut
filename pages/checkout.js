@@ -26,6 +26,7 @@ import {
   CHECKOUT_SAVED_CONTACT_KEY,
   SUCCESS_WA_SNAPSHOT_KEY,
 } from "@/utils/checkoutSessionKeys";
+import { saveActiveOrderResume } from "@/utils/activeOrderResume";
 import { insufficientPattiesUiMessage } from "@/utils/pattyCheckoutErrorText";
 import {
   pattyCartShortageMessage,
@@ -843,6 +844,10 @@ export default function CheckoutPage() {
             /* ignore */
           }
         }
+        saveActiveOrderResume({
+          orderNumber: savedOrder?.orderNumber,
+          method: "cash",
+        });
         clearCart();
         router.push(
           `/success?method=cash&on=${encodeURIComponent(
@@ -920,6 +925,10 @@ export default function CheckoutPage() {
           }
         }
 
+        saveActiveOrderResume({
+          orderNumber: savedOrder?.orderNumber,
+          method: "bit",
+        });
         clearCart();
         router.push(
           `/pay/bit?amount=${encodeURIComponent(
@@ -999,6 +1008,10 @@ export default function CheckoutPage() {
         } catch {
           /* ignore */
         }
+        saveActiveOrderResume({
+          orderNumber: savedCardOrder?.orderNumber,
+          method: "card",
+        });
         clearCart();
         router.push(
           `/pay/card?amount=${encodeURIComponent(

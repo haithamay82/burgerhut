@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import {
+  clearActiveOrderResume,
+  isOpenFulfillmentStatus,
+} from "@/utils/activeOrderResume";
+import {
   formatCountdown,
   fulfillmentStatusLabelKey,
   fulfillmentStatusToneClass,
@@ -12,12 +16,14 @@ import {
  *   orderNumber: string | number,
  *   t: (k: string) => string,
  *   className?: string,
+ *   onStatus?: (status: string) => void,
  * }} props
  */
 export default function OrderFulfillmentCustomer({
   orderNumber,
   t,
   className = "",
+  onStatus,
 }) {
   const [fulfillment, setFulfillment] = useState(null);
   const [tick, setTick] = useState(0);
@@ -38,11 +44,17 @@ export default function OrderFulfillmentCustomer({
         return;
       }
       setErr("");
-      setFulfillment(d.fulfillment || null);
+      const f = d.fulfillment || null;
+      setFulfillment(f);
+      const st = String(f?.status || "");
+      if (st && !isOpenFulfillmentStatus(st)) {
+        clearActiveOrderResume();
+      }
+      if (st && typeof onStatus === "function") onStatus(st);
     } catch {
       setErr(t("orderStatus.errLoad"));
     }
-  }, [on, t]);
+  }, [on, t, onStatus]);
 
   useEffect(() => {
     void load();

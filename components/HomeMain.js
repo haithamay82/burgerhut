@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useRouter } from "next/router";
 import PromoVideoOverlay from "@/components/PromoVideoOverlay";
 import StickyCartBar from "@/components/StickyCartBar";
 import { useOrderingHours } from "@/contexts/OrderingHoursContext";
@@ -14,13 +15,23 @@ import HomeMediaSlider from "@/components/HomeMediaSlider";
 import HomeBurgerMascot from "@/components/HomeBurgerMascot";
 import TypingLoopText from "@/components/TypingLoopText";
 import LastOrderReorderPrompt from "@/components/LastOrderReorderPrompt";
+import {
+  buildActiveOrderSuccessHref,
+  clearActiveOrderResume,
+  isOpenFulfillmentStatus,
+  readActiveOrderResume,
+} from "@/utils/activeOrderResume";
 
 export default function HomeMain({
   initialHomeSliderImages = [],
   initialSliderVersion = 0,
 }) {
+  const router = useRouter();
   const { t } = useLocale();
   const { menuItems } = useMenuCatalog();
+  const [resumingActiveOrder, setResumingActiveOrder] = useState(() =>
+    typeof window !== "undefined" ? Boolean(readActiveOrderResume()) : false
+  );
   const {
     orderingAllowed,
     restaurantOpen,
@@ -85,7 +96,52 @@ export default function HomeMain({
     }
   }, [activeCategory]);
 
+  useEffect(() => {
+    let cancelled = false;
+    const active = readActiveOrderResume();
+    if (!active?.orderNumber) {
+      setResumingActiveOrder(false);
+      return;
+    }
+    setResumingActiveOrder(true);
+    (async () => {
+      try {
+        const r = await fetch(
+          `/api/orders/status?on=${encodeURIComponent(active.orderNumber)}&_=${Date.now()}`,
+          { cache: "no-store" }
+        );
+        const d = await r.json().catch(() => ({}));
+        if (cancelled) return;
+        const st = String(d?.fulfillment?.status || "");
+        if (r.ok && isOpenFulfillmentStatus(st)) {
+          void router.replace(buildActiveOrderSuccessHref(active));
+          return;
+        }
+        clearActiveOrderResume();
+        setResumingActiveOrder(false);
+      } catch {
+        if (!cancelled) setResumingActiveOrder(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
+
   const showClosedTodayFloat = !orderingAllowed && !todayScheduledOpen;
+
+  if (resumingActiveOrder) {
+    return (
+      <div
+        className="flex min-h-[40vh] flex-col items-center justify-center px-4 py-16 text-center"
+        role="status"
+      >
+        <p className="text-sm font-semibold text-primary">
+          {t("success.resumeLoading")}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <>
