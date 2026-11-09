@@ -34,7 +34,8 @@ export default function OrderFulfillmentControls({
   onError,
 }) {
   const [tick, setTick] = useState(0);
-  const [pickingTime, setPickingTime] = useState(false);
+  /** @type {"accept" | "extend" | null} */
+  const [pickingMode, setPickingMode] = useState(null);
   const [customMins, setCustomMins] = useState("");
 
   const fulfillment = useMemo(
@@ -79,7 +80,7 @@ export default function OrderFulfillmentControls({
       if (d?.order && typeof d.order === "object") {
         onUpdated(d.order);
       }
-      setPickingTime(false);
+      setPickingMode(null);
       setCustomMins("");
     } catch {
       onError(t("admin.errNet"));
@@ -88,17 +89,21 @@ export default function OrderFulfillmentControls({
     }
   };
 
-  const acceptWithMinutes = (mins) => {
+  const submitMinutes = (mins) => {
     const n = normalizePrepMinutes(mins);
     if (n == null) {
       onError(t("orderStatus.errPrepMinutes"));
+      return;
+    }
+    if (pickingMode === "extend") {
+      void patch({ action: "extend", prepMinutes: n });
       return;
     }
     void patch({ action: "accept", prepMinutes: n });
   };
 
   return (
-    <div className="mt-2 space-y-2">
+    <div className="mt-2 space-y-3">
       <div
         className={`inline-flex items-center rounded-lg border px-2.5 py-1 text-[11px] font-bold ${fulfillmentStatusToneClass(
           fulfillment.status
@@ -116,13 +121,13 @@ export default function OrderFulfillmentControls({
         </p>
       ) : null}
 
-      {fulfillment.status === "pending" && !pickingTime ? (
-        <div className="flex flex-wrap gap-2">
+      {fulfillment.status === "pending" && !pickingMode ? (
+        <div className="flex flex-wrap items-center gap-5">
           <button
             type="button"
             disabled={busy}
-            onClick={() => setPickingTime(true)}
-            className="rounded-lg border border-emerald-700/60 bg-emerald-900/30 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-900/50 disabled:opacity-50"
+            onClick={() => setPickingMode("accept")}
+            className="rounded-lg border border-emerald-700/60 bg-emerald-900/30 px-3 py-2 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-900/50 disabled:opacity-50"
           >
             {busy ? t("orderStatus.saving") : t("orderStatus.accept")}
           </button>
@@ -130,17 +135,19 @@ export default function OrderFulfillmentControls({
             type="button"
             disabled={busy}
             onClick={() => void patch({ action: "reject" })}
-            className="rounded-lg border border-red-900/60 bg-red-950/30 px-2.5 py-1.5 text-[11px] font-semibold text-red-300 hover:bg-red-950/50 disabled:opacity-50"
+            className="rounded-lg border border-red-900/60 bg-red-950/30 px-3 py-2 text-[11px] font-semibold text-red-300 hover:bg-red-950/50 disabled:opacity-50"
           >
             {t("orderStatus.reject")}
           </button>
         </div>
       ) : null}
 
-      {fulfillment.status === "pending" && pickingTime ? (
+      {pickingMode ? (
         <div className="space-y-2 rounded-xl border border-slate-700 bg-slate-950/60 p-2">
           <p className="text-[11px] font-semibold text-gray-300">
-            {t("orderStatus.pickPrepMinutes")}
+            {pickingMode === "extend"
+              ? t("orderStatus.pickExtendMinutes")
+              : t("orderStatus.pickPrepMinutes")}
           </p>
           <div className="flex flex-wrap gap-1.5">
             {ORDER_PREP_MINUTE_PRESETS.map((m) => (
@@ -148,7 +155,7 @@ export default function OrderFulfillmentControls({
                 key={m}
                 type="button"
                 disabled={busy}
-                onClick={() => acceptWithMinutes(m)}
+                onClick={() => submitMinutes(m)}
                 className="rounded-md border border-amber-700/50 bg-amber-950/30 px-2 py-1 text-[11px] font-semibold text-amber-100 hover:bg-amber-950/50 disabled:opacity-50"
               >
                 {m}
@@ -173,16 +180,18 @@ export default function OrderFulfillmentControls({
             <button
               type="button"
               disabled={busy || !customMins}
-              onClick={() => acceptWithMinutes(customMins)}
+              onClick={() => submitMinutes(customMins)}
               className="rounded-lg border border-emerald-700/60 bg-emerald-900/30 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-200 disabled:opacity-50"
             >
-              {t("orderStatus.confirmPrep")}
+              {pickingMode === "extend"
+                ? t("orderStatus.confirmExtend")
+                : t("orderStatus.confirmPrep")}
             </button>
             <button
               type="button"
               disabled={busy}
               onClick={() => {
-                setPickingTime(false);
+                setPickingMode(null);
                 setCustomMins("");
               }}
               className="rounded-lg border border-slate-600 px-2.5 py-1.5 text-[11px] font-semibold text-gray-300"
@@ -193,15 +202,42 @@ export default function OrderFulfillmentControls({
         </div>
       ) : null}
 
-      {fulfillment.status === "ready" ? (
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => void patch({ action: "deliver" })}
-          className="rounded-lg border border-sky-700/60 bg-sky-950/30 px-2.5 py-1.5 text-[11px] font-semibold text-sky-200 hover:bg-sky-950/50 disabled:opacity-50"
-        >
-          {busy ? t("orderStatus.saving") : t("orderStatus.markDelivered")}
-        </button>
+      {fulfillment.status === "preparing" && !pickingMode ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => setPickingMode("extend")}
+            className="rounded-lg border border-amber-700/50 bg-amber-950/30 px-3 py-2 text-[11px] font-semibold text-amber-100 hover:bg-amber-950/50 disabled:opacity-50"
+          >
+            {t("orderStatus.addTime")}
+          </button>
+        </div>
+      ) : null}
+
+      {fulfillment.status === "preparing" || fulfillment.status === "ready" ? (
+        <div className="flex flex-wrap items-center gap-5">
+          <button
+            type="button"
+            disabled={busy || fulfillment.status !== "preparing"}
+            onClick={() => void patch({ action: "mark_ready" })}
+            className="rounded-lg border border-emerald-700/60 bg-emerald-900/30 px-3 py-2 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-900/50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {busy && fulfillment.status === "preparing"
+              ? t("orderStatus.saving")
+              : t("orderStatus.markReady")}
+          </button>
+          <button
+            type="button"
+            disabled={busy || fulfillment.status !== "ready"}
+            onClick={() => void patch({ action: "deliver" })}
+            className="rounded-lg border border-sky-700/60 bg-sky-950/30 px-3 py-2 text-[11px] font-semibold text-sky-200 hover:bg-sky-950/50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {busy && fulfillment.status === "ready"
+              ? t("orderStatus.saving")
+              : t("orderStatus.markDelivered")}
+          </button>
+        </div>
       ) : null}
     </div>
   );

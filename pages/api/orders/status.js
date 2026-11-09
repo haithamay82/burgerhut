@@ -3,6 +3,7 @@ import {
   findOrderByOrderNumber,
   syncOrderFulfillmentById,
 } from "@/lib/ordersStore";
+import { notifyCustomerOrderFulfillmentPush } from "@/lib/customerPushNotify";
 import { resolveFulfillment } from "@/utils/orderFulfillment";
 
 /**
@@ -40,6 +41,19 @@ export default async function handler(req, res) {
   const sync = await syncOrderFulfillmentById(String(found.id));
   if (sync.ok && sync.order) {
     order = sync.order;
+    if (sync.notifyEvent) {
+      try {
+        await notifyCustomerOrderFulfillmentPush({
+          order,
+          event: sync.notifyEvent,
+        });
+      } catch (e) {
+        console.warn(
+          "[customerPush] auto-ready notify failed",
+          e?.message || e
+        );
+      }
+    }
   } else {
     order = decorateOrderFulfillment(found);
   }

@@ -3,6 +3,7 @@ import {
   clearActiveOrderResume,
   isOpenFulfillmentStatus,
 } from "@/utils/activeOrderResume";
+import { bindCustomerOrderPush } from "@/utils/bindCustomerOrderPush";
 import {
   formatCountdown,
   fulfillmentStatusLabelKey,
@@ -59,6 +60,11 @@ export default function OrderFulfillmentCustomer({
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (!on) return;
+    void bindCustomerOrderPush(on);
+  }, [on]);
 
   useEffect(() => {
     if (!on) return;

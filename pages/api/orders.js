@@ -8,6 +8,7 @@ import {
   updateOrderFulfillmentById,
 } from "@/lib/ordersStore";
 import { broadcastNewOrderToAdmins } from "@/lib/adminPushNotify";
+import { notifyCustomerOrderFulfillmentPush } from "@/lib/customerPushNotify";
 import {
   deductPattyStockForOrder,
   getInventoryPayload,
@@ -320,6 +321,19 @@ export default async function handler(req, res) {
         return res.status(404).json({ ok: false, error: "not_found" });
       }
       return res.status(400).json({ ok: false, error: result.error });
+    }
+    if (result.notifyEvent && result.order) {
+      try {
+        await notifyCustomerOrderFulfillmentPush({
+          order: result.order,
+          event: result.notifyEvent,
+        });
+      } catch (e) {
+        console.warn(
+          "[customerPush] fulfillment notify failed",
+          e?.message || e
+        );
+      }
     }
     return res.status(200).json({
       ok: true,

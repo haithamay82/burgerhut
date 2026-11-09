@@ -32,6 +32,8 @@ import {
 } from "@/utils/ratingClient";
 import { saveLastOrderForReorder } from "@/utils/lastOrderReorder";
 import { saveActiveOrderResume } from "@/utils/activeOrderResume";
+import { bindCustomerOrderPush } from "@/utils/bindCustomerOrderPush";
+import { syncPwaCustomerPushIfGranted } from "@/utils/customerPushClient";
 import OrderFulfillmentCustomer from "@/components/OrderFulfillmentCustomer";
 import Link from "next/link";
 
@@ -879,6 +881,14 @@ export default function SuccessPage() {
       orderNumber: orderNumberForRating,
       method: method || "cash",
     });
+    void (async () => {
+      try {
+        await syncPwaCustomerPushIfGranted();
+      } catch {
+        /* ignore */
+      }
+      await bindCustomerOrderPush(orderNumberForRating);
+    })();
   }, [router.isReady, orderNumberForRating, method]);
 
   const showResumeStatusScreen =
