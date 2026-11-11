@@ -1,3 +1,4 @@
+import { broadcastCustomerCancelledOrderToAdmins } from "@/lib/adminPushNotify";
 import { cancelOrderByCustomer } from "@/lib/ordersStore";
 
 /**
@@ -26,6 +27,17 @@ export default async function handler(req, res) {
     };
     const status = map[result.error] || 400;
     return res.status(status).json({ ok: false, error: result.error });
+  }
+
+  try {
+    await broadcastCustomerCancelledOrderToAdmins({
+      orderNumber: result.order?.orderNumber,
+    });
+  } catch (e) {
+    console.warn(
+      "[adminPush] customer cancel notify failed",
+      e?.message || e
+    );
   }
 
   return res.status(200).json({

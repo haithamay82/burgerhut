@@ -26,9 +26,11 @@ const ADMIN_PUSH_MAX_AGE_MS = 15 * 60 * 1000;
 const CUSTOMER_PUSH_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 function isCustomerPushPayload(data) {
+  const tag = String(data.tag || "");
   return (
     data.audience === "customer" ||
-    String(data.tag || "").startsWith("bh-customer")
+    tag.startsWith("bh-customer") ||
+    tag.startsWith("bh-order-status-")
   );
 }
 
@@ -73,7 +75,8 @@ self.addEventListener("push", (event) => {
       badge: "/logo-burger-hut.png",
       tag: String(data.tag || (customer ? "bh-customer" : "bh-order")),
       data: { url: openUrl },
-      renotify: false,
+      // עדכוני סטטוס הזמנה ללקוח — להציג גם אם כבר הייתה התראה קודמת
+      renotify: customer,
     })
   );
 });

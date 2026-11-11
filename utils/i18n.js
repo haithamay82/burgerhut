@@ -372,7 +372,7 @@ const HE = {
   "ui.mealValidateFries": "לא בחרת מטוגנים למנה. (חובה לבחור)",
   "ui.mealValidateAddAnyway": "אני יודע הוסף לסל",
   "ui.mealValidateGoBack": "חזור לבחירה",
-  "ui.outOfStock": "היום אין יותר ממנה זאת",
+  "ui.outOfStock": "אזל מהמלאי",
   "ui.soldOutShort": "אזל",
   "ui.openCustomize": "בחירת סלטים, תוספות, רטבים, מטוגנים",
   "ui.editComponents": "ערוך את המרכיבים",
@@ -656,10 +656,13 @@ const HE = {
   "orderStatus.cancelling": "מבטל…",
   "orderStatus.cancelFailed": "לא ניתן לבטל את ההזמנה כרגע.",
   "orderStatus.pushEnableHint":
-    "כדי לקבל התראה כשההזמנה מתקבלת, נדחית או מוכנה — אשרו התראות בטלפון.",
+    "כדי לקבל התראה כשההזמנה מתקבלת, בהכנה, מוכנה או נמסרה — לחצו כאן ואשרו התראות.",
   "orderStatus.pushEnableBtn": "אפשר התראות להזמנה",
   "orderStatus.pushEnabling": "מפעיל…",
   "orderStatus.pushEnabledOk": "התראות הופעלו להזמנה זו.",
+  "orderStatus.pushActive": "התראות פעילות להזמנה זו.",
+  "orderStatus.pushIosInstallHint":
+    "באייפון/אייפד: לחצו «שתף» ← «הוסף למסך הבית», פתחו את Burger Hut מהאייקון, ואז לחצו «אפשר התראות להזמנה». בלי זה לא ניתן לקבל התראות סטטוס.",
   "orderStatus.pushPermissionDenied":
     "התראות חסומות בהגדרות הטלפון/הדפדפן. אפשר לאפשר בהגדרות האתר ואז לחזור לכאן.",
   "orderStatus.pushUnavailable": "התראות עדיין לא זמינות בשרת.",
@@ -1035,6 +1038,8 @@ const HE = {
   "admin.deleteErr": "לא ניתן היה למחוק את ההזמנה.",
   "admin.doneErr": "לא ניתן היה לעדכן סטטוס להזמנה.",
   "orderStatus.pending": "ממתינה לאישור",
+  "orderStatus.pendingAcceptHint":
+    "זמן קבלת הזמנה עד 2 דקות, אם חרגנו מהזמן אפשר לפנות בווטסאפ.",
   "orderStatus.preparing": "בהכנה",
   "orderStatus.ready": "מוכנה",
   "orderStatus.delivered": "נמסרה",
@@ -1952,10 +1957,13 @@ const AR = {
   "orderStatus.cancelling": "جارٍ الإلغاء…",
   "orderStatus.cancelFailed": "تعذّر إلغاء الطلب الآن.",
   "orderStatus.pushEnableHint":
-    "لتلقي إشعار عند قبول الطلب أو رفضه أو جهوزيته — اسمحوا بالإشعارات على الهاتف.",
+    "لتلقي إشعار عند القبول أو التحضير أو الجهوزية أو التسليم — اضغطوا هنا واسمحوا بالإشعارات.",
   "orderStatus.pushEnableBtn": "تفعيل إشعارات الطلب",
   "orderStatus.pushEnabling": "جارٍ التفعيل…",
   "orderStatus.pushEnabledOk": "تم تفعيل الإشعارات لهذا الطلب.",
+  "orderStatus.pushActive": "الإشعارات مفعّلة لهذا الطلب.",
+  "orderStatus.pushIosInstallHint":
+    "على iPhone/iPad: اضغطوا «مشاركة» ← «إضافة إلى الشاشة الرئيسية»، افتحوا Burger Hut من الأيقونة، ثم «تفعيل إشعارات الطلب». بدون ذلك لن تصل إشعارات الحالة.",
   "orderStatus.pushPermissionDenied":
     "الإشعارات محظورة في إعدادات الهاتف/المتصفح. يمكن السماح من إعدادات الموقع ثم العودة هنا.",
   "orderStatus.pushUnavailable": "الإشعارات غير متاحة على الخادم بعد.",
@@ -2332,6 +2340,8 @@ const AR = {
   "admin.deleteErr": "تعذّر حذف الطلب.",
   "admin.doneErr": "تعذّر تحديث حالة الطلب.",
   "orderStatus.pending": "بانتظار التأكيد",
+  "orderStatus.pendingAcceptHint":
+    "وقت قبول الطلب حتى دقيقتين، إذا تجاوزنا الوقت يمكن التواصل عبر واتساب.",
   "orderStatus.preparing": "قيد التحضير",
   "orderStatus.ready": "جاهزة",
   "orderStatus.delivered": "تم التسليم",

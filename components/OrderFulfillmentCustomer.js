@@ -8,6 +8,7 @@ import {
   getCustomerLocalPushSubscribed,
   registerPwaCustomerPushOnUserAction,
 } from "@/utils/customerPushClient";
+import { customerPushRequiresInstalledPwa } from "@/utils/pwaDisplay";
 import {
   formatCountdown,
   fulfillmentStatusLabelKey,
@@ -39,6 +40,8 @@ export default function OrderFulfillmentCustomer({
   const [err, setErr] = useState("");
   const [gone, setGone] = useState(false);
   const [pushOffer, setPushOffer] = useState(false);
+  const [pushActive, setPushActive] = useState(false);
+  const [pushNeedsPwa, setPushNeedsPwa] = useState(false);
   const [pushBusy, setPushBusy] = useState(false);
   const [pushMsg, setPushMsg] = useState("");
   const [canCancel, setCanCancel] = useState(false);
@@ -59,20 +62,31 @@ export default function OrderFulfillmentCustomer({
 
   const refreshPushOffer = useCallback(async () => {
     if (typeof window === "undefined") return;
+    // אייפון בלי מסך הבית — אין Push API אמיתי; מציגים הנחיית התקנה
+    if (customerPushRequiresInstalledPwa()) {
+      setPushNeedsPwa(true);
+      setPushOffer(false);
+      setPushActive(false);
+      return;
+    }
+    setPushNeedsPwa(false);
     if (typeof Notification === "undefined") {
       setPushOffer(false);
+      setPushActive(false);
       return;
     }
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
       setPushOffer(false);
+      setPushActive(false);
       return;
     }
-    // מסתירים רק אם כבר רשום לקבלת התראות; אחרת תמיד מציגים «אפשר התראות»
     if (Notification.permission === "granted") {
       const subbed = await getCustomerLocalPushSubscribed();
+      setPushActive(subbed);
       setPushOffer(!subbed);
       return;
     }
+    setPushActive(false);
     setPushOffer(true);
   }, []);
 
@@ -164,16 +178,20 @@ export default function OrderFulfillmentCustomer({
     if (r.ok) {
       await bindCustomerOrderPush(on);
       setPushOffer(false);
+      setPushActive(true);
       setPushMsg(t("orderStatus.pushEnabledOk"));
       window.setTimeout(() => setPushMsg(""), 2500);
+    } else if (r.error === "ios_needs_pwa") {
+      setPushNeedsPwa(true);
+      setPushOffer(false);
+      setPushMsg("");
     } else if (r.error === "permission_denied") {
       setPushMsg(t("orderStatus.pushPermissionDenied"));
     } else if (
       r.error === "no_vapid" ||
-      r.error === "redis_not_configured"
+      r.error === "redis_not_configured" ||
+      r.error === "push_unavailable"
     ) {
-      setPushMsg(t("orderStatus.pushUnavailable"));
-    } else if (r.error === "push_unavailable") {
       setPushMsg(t("orderStatus.pushUnavailable"));
     } else {
       setPushMsg(t("orderStatus.pushSubscribeErr"));
@@ -299,6 +317,11 @@ export default function OrderFulfillmentCustomer({
           {cancelErr ? (
             <p className="mt-1 text-[11px] text-amber-200">{cancelErr}</p>
           ) : null}
+          {resolved.status === "pending" ? (
+            <p className="mt-2 text-[11px] leading-snug text-gray-400">
+              {t("orderStatus.pendingAcceptHint")}
+            </p>
+          ) : null}
           {resolved.status === "preparing" ? (
             <p className="mt-2 text-2xl font-black tabular-nums text-amber-200">
               {formatCountdown(remaining)}
@@ -317,7 +340,14 @@ export default function OrderFulfillmentCustomer({
         <p className="mt-2 text-xs text-gray-500">{t("orderStatus.loading")}</p>
       )}
 
-      {!gone && pushOffer ? (
+      {!gone && pushNeedsPwa ? (
+        <div className="mt-3 space-y-1 border-t border-slate-700/80 pt-3">
+          <p className="text-[11px] leading-snug text-amber-100/95">
+            {t("orderStatus.pushIosInstallHint")}
+          </p>
+        </div>
+      ) : null}
+      {!gone && !pushNeedsPwa && pushOffer ? (
         <div className="mt-3 space-y-2 border-t border-slate-700/80 pt-3">
           <p className="text-[11px] leading-snug text-gray-300">
             {t("orderStatus.pushEnableHint")}
@@ -337,7 +367,12 @@ export default function OrderFulfillmentCustomer({
           ) : null}
         </div>
       ) : null}
-      {!gone && !pushOffer && pushMsg ? (
+      {!gone && !pushNeedsPwa && !pushOffer && pushActive ? (
+        <p className="mt-2 text-[11px] text-emerald-300/90">
+          {pushMsg || t("orderStatus.pushActive")}
+        </p>
+      ) : null}
+      {!gone && !pushNeedsPwa && !pushOffer && !pushActive && pushMsg ? (
         <p className="mt-2 text-[11px] text-emerald-300/90">{pushMsg}</p>
       ) : null}
     </div>

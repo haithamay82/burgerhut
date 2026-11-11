@@ -5114,11 +5114,13 @@ export default function AdminOrdersPage() {
                             fulfillment.status === "delivered" ||
                             Boolean(o?.meta?.adminDone || o?.meta?.adminDoneAt);
                           const isRejected = fulfillment.status === "rejected";
+                          const isCancelled =
+                            fulfillment.status === "cancelled";
                           return (
                           <article
                             key={o.id}
                             className={`rounded-2xl border p-3 text-sm ${
-                              isRejected
+                              isRejected || isCancelled
                                 ? "border-red-800/60 bg-red-950/20"
                                 : isDoneOrder
                                   ? "border-emerald-700/60 bg-emerald-950/25"

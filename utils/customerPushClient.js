@@ -1,4 +1,7 @@
-import { isStandalonePwaDisplay } from "@/utils/pwaDisplay";
+import {
+  customerPushRequiresInstalledPwa,
+  isStandalonePwaDisplay,
+} from "@/utils/pwaDisplay";
 import {
   getOrCreateCustomerPushDeviceId,
   isValidPushClientId,
@@ -161,6 +164,10 @@ export async function syncPwaCustomerPushIfGranted() {
 export async function registerPwaCustomerPushOnUserAction() {
   if (typeof window === "undefined") {
     return { ok: false, error: "no_window" };
+  }
+  // iOS/iPadOS: בלי «הוסף למסך הבית» אין Web Push אמיתי
+  if (customerPushRequiresInstalledPwa()) {
+    return { ok: false, error: "ios_needs_pwa" };
   }
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
     return { ok: false, error: "push_unavailable" };

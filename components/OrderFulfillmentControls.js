@@ -50,8 +50,27 @@ export default function OrderFulfillmentControls({
     return () => window.clearInterval(id);
   }, [fulfillment.status, fulfillment.prepEndsAt]);
 
+  // ביטול לקוח / דחייה / שינוי סטטוס — סוגרים בחירת דקות כדי שלא יישארו קבל/דחה
+  useEffect(() => {
+    if (pickingMode === "accept" && fulfillment.status !== "pending") {
+      setPickingMode(null);
+      setCustomMins("");
+    } else if (
+      pickingMode === "extend" &&
+      fulfillment.status !== "preparing"
+    ) {
+      setPickingMode(null);
+      setCustomMins("");
+    }
+  }, [fulfillment.status, pickingMode]);
+
   const remaining = prepRemainingMs(fulfillment, Date.now());
   const busy = busyId === order.id;
+  const showAcceptPicker =
+    pickingMode === "accept" && fulfillment.status === "pending";
+  const showExtendPicker =
+    pickingMode === "extend" && fulfillment.status === "preparing";
+  const showMinutesPicker = showAcceptPicker || showExtendPicker;
 
   const patch = async (body) => {
     const s = String(secret || "").trim();
@@ -142,10 +161,10 @@ export default function OrderFulfillmentControls({
         </div>
       ) : null}
 
-      {pickingMode ? (
+      {showMinutesPicker ? (
         <div className="space-y-2 rounded-xl border border-slate-700 bg-slate-950/60 p-2">
           <p className="text-[11px] font-semibold text-gray-300">
-            {pickingMode === "extend"
+            {showExtendPicker
               ? t("orderStatus.pickExtendMinutes")
               : t("orderStatus.pickPrepMinutes")}
           </p>
@@ -183,7 +202,7 @@ export default function OrderFulfillmentControls({
               onClick={() => submitMinutes(customMins)}
               className="rounded-lg border border-emerald-700/60 bg-emerald-900/30 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-200 disabled:opacity-50"
             >
-              {pickingMode === "extend"
+              {showExtendPicker
                 ? t("orderStatus.confirmExtend")
                 : t("orderStatus.confirmPrep")}
             </button>
@@ -202,7 +221,7 @@ export default function OrderFulfillmentControls({
         </div>
       ) : null}
 
-      {fulfillment.status === "preparing" && !pickingMode ? (
+      {fulfillment.status === "preparing" && !showMinutesPicker ? (
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
