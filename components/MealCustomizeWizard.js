@@ -255,8 +255,9 @@ export default function MealCustomizeWizard({
         label: menuItemName(row, t, locale),
         price: Number(row.basePrice) || 0,
         image: row.image,
+        unavailable: isUnavailable(row.id),
       })),
-    [menuItems, t, locale]
+    [menuItems, t, locale, isUnavailable]
   );
   const mealFriesRows = useMemo(
     () =>
@@ -468,6 +469,9 @@ export default function MealCustomizeWizard({
       }
       return next;
     });
+    setRequestedDrinkId((prev) =>
+      prev && isUnavailable(prev) ? "" : prev
+    );
   }, [open, unavailableIds, isUnavailable]);
 
   const toggleToppingChoice = (id) => {
@@ -1324,21 +1328,36 @@ export default function MealCustomizeWizard({
                   <button
                     key={opt.id}
                     type="button"
+                    disabled={opt.unavailable}
                     onClick={() => {
+                      if (opt.unavailable) return;
                       setRequestedDrinkId(opt.id);
                       setDrinkMenuOpen(false);
                     }}
-                    className={`flex w-full items-center justify-between px-3 py-2 text-xs hover:bg-slate-900 ${
-                      requestedDrinkId === opt.id
+                    className={`flex w-full items-center justify-between px-3 py-2 text-xs ${
+                      opt.unavailable
+                        ? "cursor-not-allowed text-gray-500 opacity-60"
+                        : "hover:bg-slate-900"
+                    } ${
+                      !opt.unavailable && requestedDrinkId === opt.id
                         ? "bg-primary/10 text-primary"
-                        : "text-gray-100"
+                        : opt.unavailable
+                          ? ""
+                          : "text-gray-100"
                     }`}
                   >
-                    <span className="text-[11px] text-gray-300">
-                      +₪{formatIls(opt.price)}
+                    <span className="shrink-0 text-[11px] text-gray-300">
+                      {opt.unavailable ? "" : `+₪${formatIls(opt.price)}`}
                     </span>
                     <span className="flex min-w-0 items-center gap-2">
-                      <span className="truncate">{opt.label}</span>
+                      <span className="min-w-0 truncate text-end">
+                        <span className="block truncate">{opt.label}</span>
+                        {opt.unavailable ? (
+                          <span className="block text-[10px] font-semibold text-amber-400/90">
+                            {t("ui.outOfStock")}
+                          </span>
+                        ) : null}
+                      </span>
                       <img
                         src={opt.image}
                         alt=""

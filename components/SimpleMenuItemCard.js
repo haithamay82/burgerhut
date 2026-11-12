@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { formatIls } from "@/utils/cartMoney";
 import { useCart } from "@/hooks/useCart";
 import {
@@ -52,9 +52,16 @@ export default function SimpleMenuItemCard({ item }) {
         label: menuItemName(row, t, locale),
         price: Number(row.basePrice) || 0,
         image: row.image,
+        unavailable: isUnavailable(row.id),
       })),
-    [menuItems, t, locale]
+    [menuItems, t, locale, isUnavailable]
   );
+
+  useEffect(() => {
+    if (requestedDrinkId && isUnavailable(requestedDrinkId)) {
+      setRequestedDrinkId("");
+    }
+  }, [requestedDrinkId, isUnavailable]);
   const mealFriesRows = useMemo(
     () =>
       MEAL_FRIES_OPTIONS.map((o) => ({
@@ -287,21 +294,36 @@ export default function SimpleMenuItemCard({ item }) {
                   <button
                     key={opt.id}
                     type="button"
+                    disabled={opt.unavailable}
                     onClick={() => {
+                      if (opt.unavailable) return;
                       setRequestedDrinkId(opt.id);
                       setDrinkMenuOpen(false);
                     }}
-                    className={`flex w-full items-center justify-between px-2 py-1.5 text-[11px] hover:bg-bh-card ${
-                      requestedDrinkId === opt.id
+                    className={`flex w-full items-center justify-between px-2 py-1.5 text-[11px] ${
+                      opt.unavailable
+                        ? "cursor-not-allowed text-bh-faint opacity-60"
+                        : "hover:bg-bh-card"
+                    } ${
+                      !opt.unavailable && requestedDrinkId === opt.id
                         ? "bg-primary/10 text-primary"
-                        : "text-bh-text"
+                        : opt.unavailable
+                          ? ""
+                          : "text-bh-text"
                     }`}
                   >
-                    <span className="text-[10px] text-bh-muted">
-                      +₪{formatIls(opt.price)}
+                    <span className="shrink-0 text-[10px] text-bh-muted">
+                      {opt.unavailable ? "" : `+₪${formatIls(opt.price)}`}
                     </span>
                     <span className="flex min-w-0 items-center gap-2">
-                      <span className="truncate">{opt.label}</span>
+                      <span className="min-w-0 truncate text-end">
+                        <span className="block truncate">{opt.label}</span>
+                        {opt.unavailable ? (
+                          <span className="block text-[9px] font-semibold text-amber-400/90">
+                            {t("ui.outOfStock")}
+                          </span>
+                        ) : null}
+                      </span>
                       <img
                         src={opt.image}
                         alt=""
