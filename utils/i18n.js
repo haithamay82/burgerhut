@@ -470,8 +470,16 @@ const HE = {
   "checkout.payment": "תשלום",
   "checkout.restaurantClosedNow": "המסעדה סגורה כעת.",
   "checkout.restaurantClosedHoursHint": "ראה זמני עבודה בדף הראשי",
-  "checkout.submit": "המשך",
+  "checkout.submit": "שלח את ההזמנה",
   "checkout.submitting": "מעבדים…",
+  "checkout.readyWhenTitle": "מתי ההזמנה תהיה מוכנה?",
+  "checkout.readyWhenImmediate": "מיידי",
+  "checkout.readyWhenLater": "בזמן מאוחר יותר (לפחות בעוד שעה)",
+  "checkout.readyWhenTimeLabel": "שעה ודקה רצויה",
+  "checkout.readyWhenLaterHint":
+    "בחרו זמן עתידי — לפחות שעה מהרגע. אם השעה כבר עברה היום, תתוזמן למחר.",
+  "err.readyWhenTooSoon":
+    "יש לבחור זמן מוכנות לפחות שעה מהרגע, או לבחור «מיידי».",
   "checkout.cardHypNotConfigured":
     "תשלום אשראי אינו מוגדר בשרת. פנו לחנות או בחרו מזומן/ביט. (בעלי האתר: יש להשלים משתני Hyp בקובץ .env.local או ב-Vercel.)",
   "checkout.cardHypMissingLine": "חסרים בשרת",
@@ -704,6 +712,7 @@ const HE = {
   "bit.copyAmount": "העתק סכום",
   "bit.openApp": "פתיחת אפליקציית ביט",
   "bit.paidCheckbox": "שילמתי בביט",
+  "bit.continueAfterPaid": "המשך",
   "bit.errNotifyAdmin": "לא ניתן לשלוח את ההזמנה לניהול. נסו שוב.",
   "bit.waOpening": "פותח…",
   "bit.errNoSession": "אין נתוני הזמנה. חזרו לעגלה והשלימו שוב.",
@@ -1045,6 +1054,10 @@ const HE = {
   "orderStatus.delivered": "נמסרה",
   "orderStatus.rejected": "נדחתה",
   "orderStatus.accept": "קבל",
+  "orderStatus.deferredBadge": "הזמנה דחויה",
+  "orderStatus.deferredReadyAt": "הלקוח ביקש מוכנות ב־{time}",
+  "orderStatus.deferredSuggestedMins": "זמן הכנה לפי בקשת הלקוח: {n} דק׳",
+  "orderStatus.acceptAtCustomerTime": "אשר לפי זמן הלקוח ({n} דק׳)",
   "orderStatus.reject": "דחה",
   "orderStatus.pickPrepMinutes": "זמן הכנה (דקות)",
   "orderStatus.pickExtendMinutes": "הוספת זמן הכנה (דקות)",
@@ -1770,8 +1783,16 @@ const AR = {
   "checkout.restaurantClosedNow": "المطعم مغلق حالياً.",
   "checkout.restaurantClosedHoursHint":
     "اطّلع على ساعات العمل في الصفحة الرئيسية",
-  "checkout.submit": "متابعة",
+  "checkout.submit": "أرسل الطلب",
   "checkout.submitting": "جارٍ معالجة الطلب...",
+  "checkout.readyWhenTitle": "متى يكون الطلب جاهزاً؟",
+  "checkout.readyWhenImmediate": "فوري",
+  "checkout.readyWhenLater": "في وقت لاحق (بعد ساعة على الأقل)",
+  "checkout.readyWhenTimeLabel": "الساعة والدقيقة المطلوبة",
+  "checkout.readyWhenLaterHint":
+    "اختاروا وقتاً مستقبلياً — بعد ساعة على الأقل من الآن. إذا مرّ الوقت اليوم فسيُجدول لغداً.",
+  "err.readyWhenTooSoon":
+    "يلزم اختيار وقت جاهزية بعد ساعة على الأقل، أو اختيار «فوري».",
   "checkout.cardHypNotConfigured":
     "الدفع بالبطاقة غير مهيأ على الخادم. تواصلوا مع المتجر أو اختاروا كاش أو Bit. (لمالك الموقع: أكملوا متغيرات Hyp في .env.local أو Vercel.)",
   "checkout.cardHypMissingLine": "ناقص على الخادم",
@@ -2005,6 +2026,7 @@ const AR = {
   "bit.copyAmount": "نسخ المبلغ",
   "bit.openApp": "فتح تطبيق Bit الآن",
   "bit.paidCheckbox": "دفعت عبر Bit",
+  "bit.continueAfterPaid": "متابعة",
   "bit.errNotifyAdmin": "تعذر إرسال الطلب للإدارة. أعيدوا المحاولة.",
   "bit.waOpening": "جارٍ الفتح…",
   "bit.errNoSession":
@@ -2347,6 +2369,10 @@ const AR = {
   "orderStatus.delivered": "تم التسليم",
   "orderStatus.rejected": "مرفوضة",
   "orderStatus.accept": "قبول",
+  "orderStatus.deferredBadge": "طلب مؤجّل",
+  "orderStatus.deferredReadyAt": "العميل طلب الجاهزية في {time}",
+  "orderStatus.deferredSuggestedMins": "وقت التحضير حسب طلب العميل: {n} د",
+  "orderStatus.acceptAtCustomerTime": "قبول حسب وقت العميل ({n} د)",
   "orderStatus.reject": "رفض",
   "orderStatus.pickPrepMinutes": "وقت التحضير (دقائق)",
   "orderStatus.pickExtendMinutes": "إضافة وقت تحضير (دقائق)",

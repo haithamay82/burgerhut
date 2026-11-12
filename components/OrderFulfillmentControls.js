@@ -7,6 +7,8 @@ import {
   fulfillmentStatusLabelKey,
   fulfillmentStatusToneClass,
   normalizePrepMinutes,
+  parseScheduledReadyAtMs,
+  prepMinutesFromScheduledReadyAt,
   prepRemainingMs,
   resolveFulfillment,
 } from "@/utils/orderFulfillment";
@@ -21,6 +23,7 @@ import {
  *   onIdle: () => void,
  *   onUpdated: (order: object) => void,
  *   onError: (msg: string) => void,
+ *   locale?: string,
  * }} props
  */
 export default function OrderFulfillmentControls({
@@ -32,6 +35,7 @@ export default function OrderFulfillmentControls({
   onIdle,
   onUpdated,
   onError,
+  locale = "he",
 }) {
   const [tick, setTick] = useState(0);
   /** @type {"accept" | "extend" | null} */
@@ -43,6 +47,27 @@ export default function OrderFulfillmentControls({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- tick forces refresh
     [order, tick]
   );
+
+  const scheduledReadyAt = order?.scheduledReadyAt || null;
+  const scheduledMs = parseScheduledReadyAtMs(scheduledReadyAt);
+  const suggestedPrepMins = useMemo(
+    () => prepMinutesFromScheduledReadyAt(scheduledReadyAt),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- tick refreshes suggestion
+    [scheduledReadyAt, tick, fulfillment.status]
+  );
+
+  const scheduledReadyLabel = useMemo(() => {
+    if (scheduledMs == null) return "";
+    try {
+      return new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "he-IL", {
+        weekday: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(new Date(scheduledMs));
+    } catch {
+      return new Date(scheduledMs).toLocaleString();
+    }
+  }, [scheduledMs, locale]);
 
   useEffect(() => {
     if (fulfillment.status !== "preparing" || !fulfillment.prepEndsAt) return;
@@ -71,6 +96,17 @@ export default function OrderFulfillmentControls({
   const showExtendPicker =
     pickingMode === "extend" && fulfillment.status === "preparing";
   const showMinutesPicker = showAcceptPicker || showExtendPicker;
+  const isDeferredPending =
+    fulfillment.status === "pending" && suggestedPrepMins != null;
+
+  const openAcceptPicker = () => {
+    if (suggestedPrepMins != null) {
+      setCustomMins(String(suggestedPrepMins));
+    } else {
+      setCustomMins("");
+    }
+    setPickingMode("accept");
+  };
 
   const patch = async (body) => {
     const s = String(secret || "").trim();
@@ -131,6 +167,26 @@ export default function OrderFulfillmentControls({
         {t(fulfillmentStatusLabelKey(fulfillment.status))}
       </div>
 
+      {isDeferredPending ? (
+        <div className="space-y-1 rounded-lg border border-violet-700/50 bg-violet-950/30 px-2.5 py-2 text-[11px] text-violet-100">
+          <p className="font-extrabold">{t("orderStatus.deferredBadge")}</p>
+          {scheduledReadyLabel ? (
+            <p>
+              {t("orderStatus.deferredReadyAt").replace(
+                "{time}",
+                scheduledReadyLabel
+              )}
+            </p>
+          ) : null}
+          <p>
+            {t("orderStatus.deferredSuggestedMins").replace(
+              "{n}",
+              String(suggestedPrepMins)
+            )}
+          </p>
+        </div>
+      ) : null}
+
       {fulfillment.status === "preparing" ? (
         <p className="text-sm font-extrabold tabular-nums text-amber-200">
           {t("orderStatus.countdownLabel")}: {formatCountdown(remaining)}
@@ -142,10 +198,30 @@ export default function OrderFulfillmentControls({
 
       {fulfillment.status === "pending" && !pickingMode ? (
         <div className="flex flex-wrap items-center gap-5">
+          {isDeferredPending ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() =>
+                void patch({
+                  action: "accept",
+                  prepMinutes: suggestedPrepMins,
+                })
+              }
+              className="rounded-lg border border-violet-600/60 bg-violet-900/40 px-3 py-2 text-[11px] font-semibold text-violet-100 hover:bg-violet-900/60 disabled:opacity-50"
+            >
+              {busy
+                ? t("orderStatus.saving")
+                : t("orderStatus.acceptAtCustomerTime").replace(
+                    "{n}",
+                    String(suggestedPrepMins)
+                  )}
+            </button>
+          ) : null}
           <button
             type="button"
             disabled={busy}
-            onClick={() => setPickingMode("accept")}
+            onClick={openAcceptPicker}
             className="rounded-lg border border-emerald-700/60 bg-emerald-900/30 px-3 py-2 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-900/50 disabled:opacity-50"
           >
             {busy ? t("orderStatus.saving") : t("orderStatus.accept")}

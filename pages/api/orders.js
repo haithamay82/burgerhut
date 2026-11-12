@@ -24,9 +24,10 @@ import { getCatalogEditor } from "@/lib/catalogStore";
 import { INVENTORY_MANAGED_SALAD_IDS } from "@/utils/menuData";
 import {
   allBurgerToppingIdsFromEditor,
-  mainMealProductIdsFromEditor,
+  managedMenuProductIdsFromEditor,
 } from "@/utils/mergeMenuCatalog";
 import { isOrderingAllowedAt } from "@/utils/orderingHours";
+import { isValidScheduledReadyAt } from "@/utils/orderFulfillment";
 import { getBusinessHours } from "@/lib/businessHoursStore";
 import { isManualStoreClosedNow } from "@/lib/storeCloseStore";
 import { redis, isRedisConfigured } from "@/lib/redis";
@@ -96,6 +97,7 @@ export default async function handler(req, res) {
       couponCode,
       deferCouponConsume,
       deferAdminPush,
+      scheduledReadyAt: scheduledReadyAtRaw,
     } = req.body || {};
 
     if (!customer || typeof customer !== "object") {
@@ -114,13 +116,26 @@ export default async function handler(req, res) {
       return res.status(403).json({ ok: false, error: "ordering_closed" });
     }
 
+    let scheduledReadyAt = null;
+    if (
+      scheduledReadyAtRaw != null &&
+      String(scheduledReadyAtRaw).trim() !== ""
+    ) {
+      const iso = String(scheduledReadyAtRaw).trim();
+      if (!isValidScheduledReadyAt(iso, now.getTime())) {
+        return res.status(400).json({ ok: false, error: "invalid_scheduled_ready" });
+      }
+      scheduledReadyAt = iso;
+    }
+
     const unavailable = new Set(await getUnavailableIds());
     const editor = await getCatalogEditor();
-    const mainMealIds = mainMealProductIdsFromEditor(editor);
+    const managedProductIds = managedMenuProductIdsFromEditor(editor);
     const burgerToppingIds = allBurgerToppingIdsFromEditor(editor);
     for (const line of items) {
       const pid = lineProductId(line);
-      if (mainMealIds.has(pid) && unavailable.has(pid)) {
+      // מנות / שתייה / צדדיים וכו׳ שסומנו כלא זמינים במלאי
+      if (pid && managedProductIds.has(pid) && unavailable.has(pid)) {
         return res.status(400).json({ ok: false, error: "item_unavailable" });
       }
       const tops = line.toppings;
@@ -232,6 +247,7 @@ export default async function handler(req, res) {
       total: Number.isFinite(clientTotal) ? clientTotal : computed,
       channel: channel || "checkout",
       meta: orderMeta,
+      scheduledReadyAt,
     });
 
     if (pattyPrepForDeduction) {

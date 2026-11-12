@@ -15,7 +15,42 @@ export const ORDER_PREP_MINUTE_PRESETS = [
 ];
 
 export const ORDER_PREP_MINUTES_MIN = 1;
-export const ORDER_PREP_MINUTES_MAX = 180;
+/** כולל הזמנות דחויות (עד 12 שעות) */
+export const ORDER_PREP_MINUTES_MAX = 720;
+
+/** מינימום השהיה לבחירת «מוכן מאוחר יותר» */
+export const SCHEDULED_READY_MIN_LEAD_MS = 60 * 60 * 1000;
+
+/**
+ * @param {unknown} raw
+ * @returns {number | null} epoch ms
+ */
+export function parseScheduledReadyAtMs(raw) {
+  const t = Date.parse(String(raw || ""));
+  return Number.isFinite(t) ? t : null;
+}
+
+/**
+ * @param {unknown} iso
+ * @param {number} [nowMs]
+ */
+export function isValidScheduledReadyAt(iso, nowMs = Date.now()) {
+  const t = parseScheduledReadyAtMs(iso);
+  if (t == null) return false;
+  return t >= nowMs + SCHEDULED_READY_MIN_LEAD_MS;
+}
+
+/**
+ * דקות הכנה מ־עכשיו עד זמן המוכנות שבחר הלקוח.
+ * @param {unknown} iso
+ * @param {number} [nowMs]
+ */
+export function prepMinutesFromScheduledReadyAt(iso, nowMs = Date.now()) {
+  const t = parseScheduledReadyAtMs(iso);
+  if (t == null) return null;
+  const mins = Math.ceil((t - nowMs) / 60000);
+  return normalizePrepMinutes(mins);
+}
 
 const EMPTY = Object.freeze({
   status: "pending",
@@ -36,6 +71,55 @@ export function normalizePrepMinutes(raw) {
   if (!Number.isFinite(n)) return null;
   if (n < ORDER_PREP_MINUTES_MIN || n > ORDER_PREP_MINUTES_MAX) return null;
   return n;
+}
+
+/**
+ * בונה ISO לזמן מוכנות מקומי (HH:MM). אם עבר / קרוב מדי — למחרת.
+ * @param {string} hhmm
+ * @param {number} [nowMs]
+ * @returns {string | null}
+ */
+export function scheduledReadyIsoFromLocalTime(hhmm, nowMs = Date.now()) {
+  const m = String(hhmm || "").trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return null;
+  const h = Number(m[1]);
+  const min = Number(m[2]);
+  if (
+    !Number.isFinite(h) ||
+    !Number.isFinite(min) ||
+    h < 0 ||
+    h > 23 ||
+    min < 0 ||
+    min > 59
+  ) {
+    return null;
+  }
+  const d = new Date(nowMs);
+  d.setSeconds(0, 0);
+  d.setHours(h, min, 0, 0);
+  if (d.getTime() < nowMs + SCHEDULED_READY_MIN_LEAD_MS) {
+    d.setDate(d.getDate() + 1);
+  }
+  if (!isValidScheduledReadyAt(d.toISOString(), nowMs)) return null;
+  return d.toISOString();
+}
+
+/**
+ * ברירת מחדל לבורר זמן: בעוד שעה, מעוגל ל־5 דקות.
+ * @param {number} [nowMs]
+ */
+export function defaultLaterReadyTimeLocal(nowMs = Date.now()) {
+  const d = new Date(nowMs + SCHEDULED_READY_MIN_LEAD_MS);
+  const mins = d.getMinutes();
+  const rounded = Math.ceil(mins / 5) * 5;
+  if (rounded >= 60) {
+    d.setHours(d.getHours() + 1, 0, 0, 0);
+  } else {
+    d.setMinutes(rounded, 0, 0);
+  }
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${hh}:${mm}`;
 }
 
 /**

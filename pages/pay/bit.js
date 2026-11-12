@@ -276,7 +276,9 @@ export default function BitPayPage() {
               disabled={!bitPaidConfirmed || isSendingWa}
               className="btn-primary inline-flex w-full items-center justify-center whitespace-pre-line px-4 py-3 text-center leading-snug disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isSendingWa ? t("checkout.submitting") : t("checkout.submit")}
+              {isSendingWa
+                ? t("checkout.submitting")
+                : t("bit.continueAfterPaid")}
             </button>
           </div>
         ) : null}

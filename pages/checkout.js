@@ -35,6 +35,10 @@ import {
 } from "@/utils/pattyStockClient";
 import { sortSaladsForDisplay } from "@/utils/saladDisplayOrder";
 import { specialBurgerMenuDescription } from "@/utils/specialBurgerMealDescription";
+import {
+  defaultLaterReadyTimeLocal,
+  scheduledReadyIsoFromLocalTime,
+} from "@/utils/orderFulfillment";
 
 const DeliveryMapPicker = dynamic(
   () => import("@/components/DeliveryMapPicker"),
@@ -59,7 +63,7 @@ function emptyGeo(overrides = {}) {
   };
 }
 
-function buildCheckoutDraftSnapshot(form, geo, deliveryMapPoint) {
+function buildCheckoutDraftSnapshot(form, geo, deliveryMapPoint, readyWhen, readyTimeLocal) {
   return {
     form: {
       firstName: form.firstName,
@@ -72,6 +76,8 @@ function buildCheckoutDraftSnapshot(form, geo, deliveryMapPoint) {
       addressDetail: form.addressDetail,
       deliveryPayTo: form.deliveryPayTo,
     },
+    readyWhen: readyWhen === "later" ? "later" : "immediate",
+    readyTimeLocal: String(readyTimeLocal || ""),
     geo: {
       status: geo.status,
       km: geo.km,
@@ -113,6 +119,11 @@ export default function CheckoutPage() {
     addressDetail: "",
     deliveryPayTo: "",
   });
+  /** immediate = עכשיו; later = מוכן בשעה שנבחרה (≥ שעה מעכשיו) */
+  const [readyWhen, setReadyWhen] = useState("immediate");
+  const [readyTimeLocal, setReadyTimeLocal] = useState(() =>
+    defaultLaterReadyTimeLocal()
+  );
 
   const [geo, setGeo] = useState(emptyGeo());
   const [outOfVillageOpen, setOutOfVillageOpen] = useState(false);
@@ -223,6 +234,12 @@ export default function CheckoutPage() {
       }
       if (Object.prototype.hasOwnProperty.call(d, "deliveryMapPoint")) {
         setDeliveryMapPoint(d.deliveryMapPoint || null);
+      }
+      if (d.readyWhen === "later" || d.readyWhen === "immediate") {
+        setReadyWhen(d.readyWhen);
+      }
+      if (d.readyTimeLocal != null && String(d.readyTimeLocal).trim() !== "") {
+        setReadyTimeLocal(String(d.readyTimeLocal).trim());
       }
     } catch {
       /* ignore */
@@ -648,6 +665,13 @@ export default function CheckoutPage() {
       }
     }
 
+    if (readyWhen === "later") {
+      const iso = scheduledReadyIsoFromLocalTime(readyTimeLocal);
+      if (!iso) {
+        newErrors.readyWhen = t("err.readyWhenTooSoon");
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -741,6 +765,11 @@ export default function CheckoutPage() {
       discountedFoodTotal - appliedCouponToFoodNis
     );
 
+    const scheduledReadyAt =
+      readyWhen === "later"
+        ? scheduledReadyIsoFromLocalTime(readyTimeLocal)
+        : null;
+
     const persistOrder = async (channel) => {
       try {
         const response = await fetch("/api/orders", {
@@ -755,6 +784,7 @@ export default function CheckoutPage() {
             couponCode: appliedCoupon?.code || undefined,
             deferCouponConsume:
               channel === "checkout_bit" || channel === "checkout_card",
+            scheduledReadyAt: scheduledReadyAt || undefined,
             /** אשראי: אחרי Hyp; ביט: אחרי אישור לקוח — לא לשדר לניהול לפני כן */
             ...(channel === "checkout_card" || channel === "checkout_bit"
               ? { deferAdminPush: true }
@@ -814,6 +844,13 @@ export default function CheckoutPage() {
           setErrors((prev) => ({
             ...prev,
             orderingClosed: t("err.orderingClosed"),
+          }));
+          return;
+        }
+        if (poErr === "invalid_scheduled_ready") {
+          setErrors((prev) => ({
+            ...prev,
+            readyWhen: t("err.readyWhenTooSoon"),
           }));
           return;
         }
@@ -894,6 +931,13 @@ export default function CheckoutPage() {
           }));
           return;
         }
+        if (poErr === "invalid_scheduled_ready") {
+          setErrors((prev) => ({
+            ...prev,
+            readyWhen: t("err.readyWhenTooSoon"),
+          }));
+          return;
+        }
         if (
           poErr === "coupon_invalid" ||
           poErr === "coupon_expired" ||
@@ -927,7 +971,9 @@ export default function CheckoutPage() {
                 checkoutDraft: buildCheckoutDraftSnapshot(
                   form,
                   geo,
-                  deliveryMapPoint
+                  deliveryMapPoint,
+                  readyWhen,
+                  readyTimeLocal
                 ),
               })
             );
@@ -977,6 +1023,13 @@ export default function CheckoutPage() {
         }));
         return;
       }
+      if (cardPoErr === "invalid_scheduled_ready") {
+        setErrors((prev) => ({
+          ...prev,
+          readyWhen: t("err.readyWhenTooSoon"),
+        }));
+        return;
+      }
       if (
         cardPoErr === "coupon_invalid" ||
         cardPoErr === "coupon_expired" ||
@@ -1012,7 +1065,9 @@ export default function CheckoutPage() {
               checkoutDraft: buildCheckoutDraftSnapshot(
                 form,
                 geo,
-                deliveryMapPoint
+                deliveryMapPoint,
+                readyWhen,
+                readyTimeLocal
               ),
             })
           );
@@ -1560,6 +1615,56 @@ export default function CheckoutPage() {
               </button>
             ))}
           </div>
+        </div>
+
+        <div className="mt-3 space-y-2 rounded-xl border border-slate-700/80 bg-slate-900/40 p-3">
+          <h3 className="text-sm font-semibold text-gray-100">
+            {t("checkout.readyWhenTitle")}
+          </h3>
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => setReadyWhen("immediate")}
+              className={`rounded-xl border px-3 py-2 text-right text-[11px] leading-snug ${
+                readyWhen === "immediate"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-slate-700 text-gray-300"
+              }`}
+            >
+              {t("checkout.readyWhenImmediate")}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setReadyWhen("later");
+                setReadyTimeLocal((prev) => prev || defaultLaterReadyTimeLocal());
+              }}
+              className={`rounded-xl border px-3 py-2 text-right text-[11px] leading-snug ${
+                readyWhen === "later"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-slate-700 text-gray-300"
+              }`}
+            >
+              {t("checkout.readyWhenLater")}
+            </button>
+          </div>
+          {readyWhen === "later" ? (
+            <label className="mt-1 block text-[11px] text-gray-400">
+              {t("checkout.readyWhenTimeLabel")}
+              <input
+                type="time"
+                value={readyTimeLocal}
+                onChange={(e) => setReadyTimeLocal(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm text-gray-100 outline-none focus:border-primary"
+              />
+              <span className="mt-1 block text-[10px] text-gray-500">
+                {t("checkout.readyWhenLaterHint")}
+              </span>
+            </label>
+          ) : null}
+          {errors.readyWhen ? (
+            <p className="text-[11px] text-red-400">{errors.readyWhen}</p>
+          ) : null}
         </div>
 
         {form.orderType === "delivery" && geo.agreedWithRestaurant ? (

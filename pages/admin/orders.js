@@ -75,7 +75,7 @@ import AdminMenuExportSheet from "@/components/AdminMenuExportSheet";
 import OrderFulfillmentControls from "@/components/OrderFulfillmentControls";
 import { resolveFulfillment } from "@/utils/orderFulfillment";
 
-const INVENTORY_CATEGORIES = ["burgers", "specials", "crispy"];
+const INVENTORY_CATEGORIES = ["burgers", "specials", "crispy", "drinks"];
 const CATALOG_CATEGORIES = ["burgers", "specials", "crispy", "sides", "drinks"];
 const CATALOG_ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -551,7 +551,8 @@ export default function AdminOrdersPage() {
         (row) =>
           row.category === "burgers" ||
           row.category === "specials" ||
-          row.category === "crispy"
+          row.category === "crispy" ||
+          row.category === "drinks"
       ),
     [mergedCatalogItems]
   );
@@ -5116,6 +5117,10 @@ export default function AdminOrdersPage() {
                           const isRejected = fulfillment.status === "rejected";
                           const isCancelled =
                             fulfillment.status === "cancelled";
+                          const isDeferredPending =
+                            fulfillment.status === "pending" &&
+                            o?.scheduledReadyAt != null &&
+                            String(o.scheduledReadyAt).trim() !== "";
                           return (
                           <article
                             key={o.id}
@@ -5128,7 +5133,9 @@ export default function AdminOrdersPage() {
                                     ? "border-emerald-600/50 bg-emerald-950/15"
                                     : fulfillment.status === "preparing"
                                       ? "border-amber-700/50 bg-amber-950/15"
-                                      : "border-slate-800 bg-slate-900/70"
+                                      : isDeferredPending
+                                        ? "border-violet-700/50 bg-violet-950/20"
+                                        : "border-slate-800 bg-slate-900/70"
                             }`}
                           >
                             <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
@@ -5143,6 +5150,7 @@ export default function AdminOrdersPage() {
                                   order={o}
                                   secret={secret}
                                   t={t}
+                                  locale={locale}
                                   busyId={completingId || ""}
                                   onBusy={(id) => setCompletingId(id)}
                                   onIdle={() => setCompletingId(null)}
