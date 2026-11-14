@@ -812,6 +812,9 @@ const HE = {
   "admin.pendingAcceptRemindTitle": "תזכורת — הזמנה ממתינה לאישור",
   "admin.pendingAcceptRemindBodyOne":
     "הזמנה מס׳ #{n} ממתינה יותר מ־2 דקות — יש לאשר או לדחות.",
+  "admin.pendingAcceptRemindBodyMany":
+    "{c} הזמנות ממתינות יותר מ־2 דקות: {list}. יש לאשר או לדחות.",
+  "admin.pendingAcceptRemindBodyExtra": " ועוד {c}",
   "admin.pendingAcceptRemindBodyNoNum":
     "יש הזמנה שממתינה יותר מ־2 דקות — יש לאשר או לדחות.",
   "admin.pendingAcceptRemindLocalBody":
@@ -2136,6 +2139,9 @@ const AR = {
   "admin.pendingAcceptRemindTitle": "تذكير — طلب بانتظار الموافقة",
   "admin.pendingAcceptRemindBodyOne":
     "الطلب رقم #{n} بانتظار الموافقة أكثر من دقيقتين — يرجى القبول أو الرفض.",
+  "admin.pendingAcceptRemindBodyMany":
+    "{c} طلبات بانتظار الموافقة أكثر من دقيقتين: {list}. يرجى القبول أو الرفض.",
+  "admin.pendingAcceptRemindBodyExtra": " و{c} إضافية",
   "admin.pendingAcceptRemindBodyNoNum":
     "هناك طلب بانتظار الموافقة أكثر من دقيقتين — يرجى القبول أو الرفض.",
   "admin.pendingAcceptRemindLocalBody":

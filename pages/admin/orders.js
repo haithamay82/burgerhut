@@ -498,6 +498,8 @@ export default function AdminOrdersPage() {
   const adminOrdersNotifySinceRef = useRef(0);
   /** תזכורת מקומית להזמנות ממתינות (id → lastBeepMs) */
   const pendingAcceptLocalRemindedRef = useRef(new Map());
+  /** מניעת קריאות API כפולות ממכשירים/פולינג */
+  const pendingAcceptApiCooldownRef = useRef(0);
   const [notifyPermissionNonce, setNotifyPermissionNonce] = useState(0);
   /** null = לא רלוונטי או בודקים, true/false = יש מנוי מקומי ב-SW */
   const [adminLocalPushSubscribed, setAdminLocalPushSubscribed] =
@@ -1985,13 +1987,7 @@ export default function AdminOrdersPage() {
         for (const o of list) {
           const id = String(o?.id || "");
           if (!id || !orderNeedsPendingAcceptReminder(o, nowMs)) continue;
-          const lastLocal = Number(localMap.get(id) || 0);
-          if (
-            lastLocal &&
-            nowMs - lastLocal < PENDING_ACCEPT_REMINDER_AFTER_MS
-          ) {
-            continue;
-          }
+          if (localMap.has(id)) continue;
           localMap.set(id, nowMs);
           pendingRemindLocal += 1;
         }
@@ -2017,16 +2013,20 @@ export default function AdminOrdersPage() {
                   String(pendingRemindLocal)
                 ),
                 icon: "/logo-burger-hut.png",
-                tag: `bh-pending-remind-local-${Date.now()}`,
+                tag: "bh-pending-remind-local",
               });
             } catch {
               /* ignore */
             }
           }
-          void fetch("/api/cron/pending-accept-reminders", {
-            method: "POST",
-            headers: { "x-admin-secret": s },
-          }).catch(() => {});
+          const lastApi = Number(pendingAcceptApiCooldownRef.current || 0);
+          if (nowMs - lastApi >= PENDING_ACCEPT_REMINDER_AFTER_MS) {
+            pendingAcceptApiCooldownRef.current = nowMs;
+            void fetch("/api/cron/pending-accept-reminders", {
+              method: "POST",
+              headers: { "x-admin-secret": s },
+            }).catch(() => {});
+          }
         }
 
         syncAdminOrdersKnownIdsRef(ordersKnownIdsRef, list);
