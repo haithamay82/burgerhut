@@ -7,6 +7,7 @@ import {
   formatHoursMinutes,
   isEndTimeInTheFuture,
   isJerusalemMonday,
+  isOvernightEndPastLimit,
 } from "@/utils/employeeHours";
 import {
   clearEmployeeHoursSecret,
@@ -237,6 +238,10 @@ export default function EmployeeWorkHoursPage() {
       setError(t("workHours.errMonday"));
       return;
     }
+    if (isOvernightEndPastLimit(start, end)) {
+      setError(t("workHours.errOvernightEnd"));
+      return;
+    }
     if (isEndTimeInTheFuture(start, end)) {
       setError(t("workHours.errFutureEnd"));
       return;
@@ -265,6 +270,7 @@ export default function EmployeeWorkHoursPage() {
           invalid_range: "workHours.errRange",
           invalid_day: "workHours.errDay",
           future_end: "workHours.errFutureEnd",
+          overnight_end_limit: "workHours.errOvernightEnd",
           monday_closed: "workHours.errMonday",
         };
         setError(t(map[d.error] || "workHours.errSave"));
@@ -283,6 +289,7 @@ export default function EmployeeWorkHoursPage() {
   const canSubmit =
     Boolean(todayKey && start && end) &&
     !mondayClosed &&
+    !isOvernightEndPastLimit(start, end) &&
     !isEndTimeInTheFuture(start, end);
 
   const exportPdf = async () => {

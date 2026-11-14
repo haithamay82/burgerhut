@@ -128,12 +128,15 @@ export default async function handler(req, res) {
       return res.status(400).json({ ok: false, error: "missing_employee" });
     }
 
-    const result = await updateEmployeeHoursEntry({
-      employeeId,
-      dayKey: req.body?.dayKey,
-      start: req.body?.start,
-      end: req.body?.end,
-    });
+    const result = await updateEmployeeHoursEntry(
+      {
+        employeeId,
+        dayKey: req.body?.dayKey,
+        start: req.body?.start,
+        end: req.body?.end,
+      },
+      { asAdmin: auth.role === "admin" }
+    );
     if (!result.ok) {
       const status = result.error === "not_found" ? 404 : 400;
       return res.status(status).json({ ok: false, error: result.error });

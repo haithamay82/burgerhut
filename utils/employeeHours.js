@@ -1,5 +1,8 @@
 const HHMM_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
+/** Work day stays on the previous calendar date through 01:00 (inclusive). */
+export const EMPLOYEE_HOURS_DAY_END_MINUTES = 60;
+
 /** @param {unknown} raw */
 export function parseHHmm(raw) {
   const s = String(raw || "").trim();
@@ -36,9 +39,51 @@ function jerusalemNowMinutes(date = new Date()) {
   return n("hour") * 60 + n("minute");
 }
 
+function jerusalemCalendarDayKey(date = new Date()) {
+  return date.toLocaleDateString("en-CA", { timeZone: "Asia/Jerusalem" });
+}
+
+function shiftDayKey(dayKey, deltaDays) {
+  const [y, m, d] = String(dayKey)
+    .split("-")
+    .map((x) => Number(x));
+  if (!y || !m || !d) return dayKey;
+  const utc = new Date(Date.UTC(y, m - 1, d + Number(deltaDays || 0)));
+  return utc.toISOString().slice(0, 10);
+}
+
 /**
- * True when end time is still ahead of "now" (Asia/Jerusalem).
- * Overnight shifts (end <= start): end is treated as next morning.
+ * Employee reporting day: after midnight until 01:00 still counts as yesterday.
+ * @param {Date} [date]
+ */
+export function jerusalemEmployeeWorkDayKey(date = new Date()) {
+  const cal = jerusalemCalendarDayKey(date);
+  if (jerusalemNowMinutes(date) <= EMPLOYEE_HOURS_DAY_END_MINUTES) {
+    return shiftDayKey(cal, -1);
+  }
+  return cal;
+}
+
+/**
+ * Overnight end (end <= start) may not be after 01:00.
+ * @param {string} start
+ * @param {string} end
+ */
+export function isOvernightEndPastLimit(start, end) {
+  const a = parseHHmm(start);
+  const b = parseHHmm(end);
+  if (!a || !b) return false;
+  const [sh, sm] = a.split(":").map(Number);
+  const [eh, em] = b.split(":").map(Number);
+  const startM = sh * 60 + sm;
+  const endM = eh * 60 + em;
+  if (endM > startM) return false;
+  return endM > EMPLOYEE_HOURS_DAY_END_MINUTES;
+}
+
+/**
+ * True when end time is still ahead of "now" (Asia/Jerusalem),
+ * relative to the employee work day (rolls at 01:00).
  * @param {string} start
  * @param {string} end
  * @param {Date} [date]
@@ -51,21 +96,25 @@ export function isEndTimeInTheFuture(start, end, date = new Date()) {
   const [eh, em] = b.split(":").map(Number);
   const startM = sh * 60 + sm;
   const endM = eh * 60 + em;
-  const nowM = jerusalemNowMinutes(date);
   const overnight = endM <= startM;
-  if (overnight) {
-    const endAbs = endM + 24 * 60;
-    const nowAbs = nowM < startM ? nowM + 24 * 60 : nowM;
-    return endAbs > nowAbs;
-  }
-  return endM > nowM;
+  const endAbsFromWorkDay = overnight ? endM + 24 * 60 : endM;
+  const workDay = jerusalemEmployeeWorkDayKey(date);
+  const calendarDay = jerusalemCalendarDayKey(date);
+  const nowM = jerusalemNowMinutes(date);
+  const nowAbsFromWorkDay =
+    calendarDay === workDay ? nowM : nowM + 24 * 60;
+  return endAbsFromWorkDay > nowAbsFromWorkDay;
 }
 
-/** Monday = closed for employee hour reporting (Asia/Jerusalem). */
+/** Monday = closed for employee hour reporting (employee work day). */
 export function isJerusalemMonday(date = new Date()) {
-  const short = date.toLocaleDateString("en-US", {
-    timeZone: "Asia/Jerusalem",
+  const workDay = jerusalemEmployeeWorkDayKey(date);
+  const [y, m, d] = workDay.split("-").map(Number);
+  if (!y || !m || !d) return false;
+  const utc = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+  const short = utc.toLocaleDateString("en-US", {
     weekday: "short",
+    timeZone: "UTC",
   });
   return short === "Mon";
 }

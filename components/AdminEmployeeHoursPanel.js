@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   formatHoursMinutes,
-  isEndTimeInTheFuture,
-  isJerusalemMonday,
+  isOvernightEndPastLimit,
   minutesBetweenHHmm,
 } from "@/utils/employeeHours";
+
+function editDraftKey(employeeId, dayKey) {
+  return `${employeeId}:${dayKey}`;
+}
 import {
   downloadEmployeeHoursPdf,
   employeeHoursPdfLabels,
@@ -45,7 +48,6 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
   const [loading, setLoading] = useState(false);
   const [busyId, setBusyId] = useState("");
   const [msg, setMsg] = useState("");
-  const [todayKey, setTodayKey] = useState("");
   const [monthKey, setMonthKey] = useState("");
   const [monthMinutes, setMonthMinutes] = useState(0);
   const [monthCostIls, setMonthCostIls] = useState(0);
@@ -60,8 +62,6 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
   const applyPayload = useCallback((d) => {
     const list = Array.isArray(d.entries) ? d.entries : [];
     const emps = Array.isArray(d.employees) ? d.employees : [];
-    const today = String(d.todayKey || "");
-    setTodayKey(today);
     setMonthKey(String(d.monthKey || ""));
     setMonthMinutes(Number(d.monthMinutes) || 0);
     setMonthCostIls(Number(d.monthCostIls) || 0);
@@ -69,8 +69,8 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
     setEmployees(emps);
     const drafts = {};
     for (const row of list) {
-      if (row.dayKey === today && row.employeeId) {
-        drafts[row.employeeId] = {
+      if (row.employeeId && row.dayKey) {
+        drafts[editDraftKey(row.employeeId, row.dayKey)] = {
           start: String(row.start || ""),
           end: String(row.end || ""),
         };
@@ -169,19 +169,16 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
     }
   };
 
-  const saveTodayEdit = async (employeeId) => {
+  const saveHoursEdit = async (employeeId, dayKey) => {
     const s = String(secret || "").trim();
-    const draft = editDrafts[employeeId];
-    if (!s || !draft || !todayKey) return;
-    if (isJerusalemMonday()) {
-      setMsg(t("workHours.errMonday"));
+    const key = editDraftKey(employeeId, dayKey);
+    const draft = editDrafts[key];
+    if (!s || !draft || !dayKey) return;
+    if (isOvernightEndPastLimit(draft.start, draft.end)) {
+      setMsg(t("workHours.errOvernightEnd"));
       return;
     }
-    if (isEndTimeInTheFuture(draft.start, draft.end)) {
-      setMsg(t("workHours.errFutureEnd"));
-      return;
-    }
-    setBusyId(employeeId);
+    setBusyId(key);
     setMsg("");
     try {
       const r = await fetch("/api/employee-hours", {
@@ -192,7 +189,7 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
         },
         body: JSON.stringify({
           employeeId,
-          dayKey: todayKey,
+          dayKey,
           start: draft.start,
           end: draft.end,
         }),
@@ -200,11 +197,13 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
       const d = await r.json().catch(() => ({}));
       if (!r.ok) {
         setMsg(
-          d.error === "future_end"
-            ? t("workHours.errFutureEnd")
-            : d.error === "monday_closed"
-              ? t("workHours.errMonday")
-              : t("workHours.errSave")
+          d.error === "overnight_end_limit"
+            ? t("workHours.errOvernightEnd")
+            : d.error === "invalid_range" || d.error === "invalid_time"
+              ? t("workHours.errRange")
+              : d.error === "not_found"
+                ? t("workHours.errNotFound")
+                : t("workHours.errSave")
         );
         return;
       }
@@ -221,7 +220,6 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
   const selectedEntries = selected
     ? entries.filter((e) => e.employeeId === selected.id)
     : entries;
-  const mondayClosed = isJerusalemMonday();
 
   const exportPdf = async (mode) => {
     if (exportBusy) return;
@@ -314,11 +312,6 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
         </div>
       </div>
 
-          {mondayClosed ? (
-        <p className="mb-3 text-xs font-medium text-amber-200/90">
-          {t("workHours.errMonday")}
-        </p>
-      ) : null}
       {msg ? (
         <p className="mb-3 text-xs font-medium text-amber-200/90">{msg}</p>
       ) : null}
@@ -525,67 +518,57 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
                 </thead>
                 <tbody>
                   {selectedEntries.map((row) => {
-                    const isToday =
-                      Boolean(todayKey) &&
-                      row.dayKey === todayKey &&
-                      Boolean(row.employeeId);
-                    const draft = isToday
-                      ? editDrafts[row.employeeId] || {
-                          start: row.start,
-                          end: row.end,
-                        }
-                      : null;
-                    const previewMinutes = isToday
-                      ? minutesBetweenHHmm(draft.start, draft.end) ??
-                        row.minutes
-                      : row.minutes;
+                    const rowKey = editDraftKey(row.employeeId, row.dayKey);
+                    const draft = editDrafts[rowKey] || {
+                      start: String(row.start || ""),
+                      end: String(row.end || ""),
+                    };
+                    const previewMinutes =
+                      minutesBetweenHHmm(draft.start, draft.end) ??
+                      row.minutes;
+                    const overnightBlocked = isOvernightEndPastLimit(
+                      draft.start,
+                      draft.end
+                    );
                     return (
                       <tr
-                        key={`${row.employeeId}-${row.dayKey}`}
+                        key={rowKey}
                         className="border-b border-slate-800/80"
                       >
                         <td className="px-2 py-2">
                           {formatDayLabel(row.dayKey, locale)}
                         </td>
                         <td className="px-2 py-2">
-                          {isToday ? (
-                            <input
-                              type="time"
-                              value={draft.start}
-                              onChange={(e) =>
-                                setEditDrafts((prev) => ({
-                                  ...prev,
-                                  [row.employeeId]: {
-                                    start: e.target.value,
-                                    end: draft.end,
-                                  },
-                                }))
-                              }
-                              className="w-[7.5rem] rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm tabular-nums outline-none focus:border-primary"
-                            />
-                          ) : (
-                            <span className="tabular-nums">{row.start}</span>
-                          )}
+                          <input
+                            type="time"
+                            value={draft.start}
+                            onChange={(e) =>
+                              setEditDrafts((prev) => ({
+                                ...prev,
+                                [rowKey]: {
+                                  start: e.target.value,
+                                  end: draft.end,
+                                },
+                              }))
+                            }
+                            className="w-[7.5rem] rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm tabular-nums outline-none focus:border-primary"
+                          />
                         </td>
                         <td className="px-2 py-2">
-                          {isToday ? (
-                            <input
-                              type="time"
-                              value={draft.end}
-                              onChange={(e) =>
-                                setEditDrafts((prev) => ({
-                                  ...prev,
-                                  [row.employeeId]: {
-                                    start: draft.start,
-                                    end: e.target.value,
-                                  },
-                                }))
-                              }
-                              className="w-[7.5rem] rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm tabular-nums outline-none focus:border-primary"
-                            />
-                          ) : (
-                            <span className="tabular-nums">{row.end}</span>
-                          )}
+                          <input
+                            type="time"
+                            value={draft.end}
+                            onChange={(e) =>
+                              setEditDrafts((prev) => ({
+                                ...prev,
+                                [rowKey]: {
+                                  start: draft.start,
+                                  end: e.target.value,
+                                },
+                              }))
+                            }
+                            className="w-[7.5rem] rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm tabular-nums outline-none focus:border-primary"
+                          />
                         </td>
                         <td className="px-2 py-2 font-semibold text-primary">
                           {formatDuration(previewMinutes, t)}
@@ -598,28 +581,27 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
                         </td>
                         <td className="px-2 py-2">
                           <div className="flex flex-wrap items-center gap-1.5">
-                            {isToday ? (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  void saveTodayEdit(row.employeeId)
-                                }
-                                disabled={
-                                  mondayClosed ||
-                                  busyId ===
-                                    `${row.employeeId}:${row.dayKey}` ||
-                                  busyId === row.employeeId ||
-                                  !draft.start ||
-                                  !draft.end ||
-                                  isEndTimeInTheFuture(draft.start, draft.end)
-                                }
-                                className="rounded-lg border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary disabled:opacity-50"
-                              >
-                                {busyId === row.employeeId
-                                  ? t("workHours.saving")
-                                  : t("workHours.update")}
-                              </button>
-                            ) : null}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                void saveHoursEdit(
+                                  row.employeeId,
+                                  row.dayKey
+                                )
+                              }
+                              disabled={
+                                busyId === rowKey ||
+                                busyId === row.employeeId ||
+                                !draft.start ||
+                                !draft.end ||
+                                overnightBlocked
+                              }
+                              className="rounded-lg border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary disabled:opacity-50"
+                            >
+                              {busyId === rowKey
+                                ? t("workHours.saving")
+                                : t("workHours.update")}
+                            </button>
                             <button
                               type="button"
                               onClick={() => {
@@ -640,16 +622,15 @@ export default function AdminEmployeeHoursPanel({ secret, locale, t }) {
                                     employeeId: row.employeeId,
                                     dayKey: row.dayKey,
                                   },
-                                  `${row.employeeId}:${row.dayKey}`
+                                  rowKey
                                 );
                               }}
                               disabled={
-                                busyId === `${row.employeeId}:${row.dayKey}` ||
-                                busyId === row.employeeId
+                                busyId === rowKey || busyId === row.employeeId
                               }
                               className="rounded-lg border border-red-900/60 bg-red-950/30 px-2.5 py-1 text-xs font-semibold text-red-300 hover:bg-red-950/50 disabled:opacity-50"
                             >
-                              {busyId === `${row.employeeId}:${row.dayKey}`
+                              {busyId === rowKey
                                 ? t("workHours.saving")
                                 : t("workHours.deleteDay")}
                             </button>
