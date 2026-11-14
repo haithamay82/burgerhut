@@ -74,6 +74,10 @@ import html2canvas from "html2canvas";
 import AdminMenuExportSheet from "@/components/AdminMenuExportSheet";
 import OrderFulfillmentControls from "@/components/OrderFulfillmentControls";
 import { resolveFulfillment } from "@/utils/orderFulfillment";
+import {
+  orderNeedsPendingAcceptReminder,
+  PENDING_ACCEPT_REMINDER_AFTER_MS,
+} from "@/utils/pendingAcceptReminder";
 
 const INVENTORY_CATEGORIES = ["burgers", "specials", "crispy", "drinks"];
 const CATALOG_CATEGORIES = ["burgers", "specials", "crispy", "sides", "drinks"];
@@ -123,24 +127,28 @@ function isOrderCreatedAfterAdminSession(order, sessionStartedMs, graceMs = 5000
   return createdMs >= sessionStartedMs - graceMs;
 }
 
-function playAdminNewOrderBeep() {
+function playAdminToneBeeps(freqs, gapMs = 140) {
   if (typeof window === "undefined") return;
   try {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     const ctx = new AC();
+    const tones = Array.isArray(freqs) ? freqs : [880];
     const run = () => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.type = "sine";
-      osc.frequency.value = 880;
-      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.23);
+      tones.forEach((hz, i) => {
+        const t0 = ctx.currentTime + (i * gapMs) / 1000;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = "sine";
+        osc.frequency.value = Number(hz) || 880;
+        gain.gain.setValueAtTime(0.0001, t0);
+        gain.gain.exponentialRampToValueAtTime(0.1, t0 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.22);
+        osc.start(t0);
+        osc.stop(t0 + 0.23);
+      });
     };
     if (ctx.state === "suspended") {
       void ctx.resume().then(run).catch(() => {});
@@ -149,16 +157,34 @@ function playAdminNewOrderBeep() {
     }
     window.setTimeout(() => {
       ctx.close().catch(() => {});
-    }, 400);
+    }, 400 + tones.length * gapMs);
   } catch {
     /* ignore */
   }
+}
+
+function playAdminNewOrderBeep() {
+  playAdminToneBeeps([880]);
+}
+
+function playAdminPendingAcceptReminderBeep() {
+  playAdminToneBeeps([988, 784, 988], 160);
 }
 
 function vibrateAdminNewOrder() {
   try {
     if (typeof navigator !== "undefined" && navigator.vibrate) {
       navigator.vibrate([90, 60, 90]);
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
+function vibrateAdminPendingAcceptReminder() {
+  try {
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate([120, 80, 120, 80, 180]);
     }
   } catch {
     /* ignore */
@@ -470,6 +496,8 @@ export default function AdminOrdersPage() {
   const ordersKnownIdsRef = useRef(new Set());
   /** זמן כניסה לניהול — התראות polling רק להזמנות שנוצרו אחריו */
   const adminOrdersNotifySinceRef = useRef(0);
+  /** תזכורת מקומית להזמנות ממתינות (id → lastBeepMs) */
+  const pendingAcceptLocalRemindedRef = useRef(new Map());
   const [notifyPermissionNonce, setNotifyPermissionNonce] = useState(0);
   /** null = לא רלוונטי או בודקים, true/false = יש מנוי מקומי ב-SW */
   const [adminLocalPushSubscribed, setAdminLocalPushSubscribed] =
@@ -1950,6 +1978,57 @@ export default function AdminOrdersPage() {
             }
           }
         }
+
+        const nowMs = Date.now();
+        const localMap = pendingAcceptLocalRemindedRef.current;
+        let pendingRemindLocal = 0;
+        for (const o of list) {
+          const id = String(o?.id || "");
+          if (!id || !orderNeedsPendingAcceptReminder(o, nowMs)) continue;
+          const lastLocal = Number(localMap.get(id) || 0);
+          if (
+            lastLocal &&
+            nowMs - lastLocal < PENDING_ACCEPT_REMINDER_AFTER_MS
+          ) {
+            continue;
+          }
+          localMap.set(id, nowMs);
+          pendingRemindLocal += 1;
+        }
+        for (const id of [...localMap.keys()]) {
+          const still = list.find(
+            (o) =>
+              String(o?.id || "") === id &&
+              resolveFulfillment(o).status === "pending"
+          );
+          if (!still) localMap.delete(id);
+        }
+        if (pendingRemindLocal > 0) {
+          playAdminPendingAcceptReminderBeep();
+          vibrateAdminPendingAcceptReminder();
+          if (
+            typeof Notification !== "undefined" &&
+            Notification.permission === "granted"
+          ) {
+            try {
+              new Notification(t("admin.pendingAcceptRemindTitle"), {
+                body: t("admin.pendingAcceptRemindLocalBody").replace(
+                  "{c}",
+                  String(pendingRemindLocal)
+                ),
+                icon: "/logo-burger-hut.png",
+                tag: `bh-pending-remind-local-${Date.now()}`,
+              });
+            } catch {
+              /* ignore */
+            }
+          }
+          void fetch("/api/cron/pending-accept-reminders", {
+            method: "POST",
+            headers: { "x-admin-secret": s },
+          }).catch(() => {});
+        }
+
         syncAdminOrdersKnownIdsRef(ordersKnownIdsRef, list);
         setOrders(list);
         if (adminRole !== "employee") {

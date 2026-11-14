@@ -809,6 +809,13 @@ const HE = {
   "admin.newOrderNotifyCouponDiscount": " הנחת קופון: {amount} ש״ח.",
   "admin.newOrderNotifyCouponCode": " קוד קופון: {code}.",
   "admin.newOrderNotifyBodyMany": "התקבלו {c} הזמנות חדשות.",
+  "admin.pendingAcceptRemindTitle": "תזכורת — הזמנה ממתינה לאישור",
+  "admin.pendingAcceptRemindBodyOne":
+    "הזמנה מס׳ #{n} ממתינה יותר מ־2 דקות — יש לאשר או לדחות.",
+  "admin.pendingAcceptRemindBodyNoNum":
+    "יש הזמנה שממתינה יותר מ־2 דקות — יש לאשר או לדחות.",
+  "admin.pendingAcceptRemindLocalBody":
+    "{c} הזמנות ממתינות לאישור יותר מ־2 דקות.",
   "admin.pushSubscribeOk":
     "התראות Push הופעלו — תקבלו התראה גם כשהאפליקציה סגורה (אם המכשיר והדפדפן מאפשרים).",
   "admin.pushSubscribeSkip":
@@ -2126,6 +2133,13 @@ const AR = {
   "admin.newOrderNotifyCouponDiscount": " خصم الكوبون: {amount} ₪.",
   "admin.newOrderNotifyCouponCode": " رمز الكوبون: {code}.",
   "admin.newOrderNotifyBodyMany": "وصلت {c} طلبات جديدة.",
+  "admin.pendingAcceptRemindTitle": "تذكير — طلب بانتظار الموافقة",
+  "admin.pendingAcceptRemindBodyOne":
+    "الطلب رقم #{n} بانتظار الموافقة أكثر من دقيقتين — يرجى القبول أو الرفض.",
+  "admin.pendingAcceptRemindBodyNoNum":
+    "هناك طلب بانتظار الموافقة أكثر من دقيقتين — يرجى القبول أو الرفض.",
+  "admin.pendingAcceptRemindLocalBody":
+    "{c} طلبات بانتظار الموافقة أكثر من دقيقتين.",
   "admin.pushSubscribeOk":
     "تم تفعيل إشعارات Push — ستصلكم إشعار حتى عند إغلاق التطبيق (إن سمح الجهاز والمتصفح).",
   "admin.pushSubscribeSkip":

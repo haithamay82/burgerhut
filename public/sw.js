@@ -68,15 +68,20 @@ self.addEventListener("push", (event) => {
     typeof data.url === "string" && data.url.startsWith("/") && !data.url.startsWith("//")
       ? data.url
       : defaultUrl;
+  const tag = String(data.tag || (customer ? "bh-customer" : "bh-order"));
+  const pendingRemind =
+    data.kind === "pending_accept_reminder" ||
+    tag.startsWith("bh-order-pending-reminder");
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
       icon: "/logo-burger-hut.png",
       badge: "/logo-burger-hut.png",
-      tag: String(data.tag || (customer ? "bh-customer" : "bh-order")),
+      tag,
       data: { url: openUrl },
-      // עדכוני סטטוס הזמנה ללקוח — להציג גם אם כבר הייתה התראה קודמת
-      renotify: customer,
+      // לקוח / תזכורת ממתינה — להשמיע שוב גם אם התג זהה
+      renotify: customer || pendingRemind || Boolean(data.renotify),
+      requireInteraction: pendingRemind,
     })
   );
 });
