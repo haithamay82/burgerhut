@@ -77,6 +77,7 @@ import { resolveFulfillment } from "@/utils/orderFulfillment";
 import {
   orderNeedsPendingAcceptReminder,
   PENDING_ACCEPT_REMINDER_AFTER_MS,
+  PENDING_ACCEPT_REMINDER_MAX_AGE_MS,
 } from "@/utils/pendingAcceptReminder";
 
 const INVENTORY_CATEGORIES = ["burgers", "specials", "crispy", "drinks"];
@@ -1986,8 +1987,24 @@ export default function AdminOrdersPage() {
         let pendingRemindLocal = 0;
         for (const o of list) {
           const id = String(o?.id || "");
-          if (!id || !orderNeedsPendingAcceptReminder(o, nowMs)) continue;
-          if (localMap.has(id)) continue;
+          if (!id || resolveFulfillment(o).status !== "pending") continue;
+          const createdMs = new Date(String(o.createdAt || "")).getTime();
+          if (!Number.isFinite(createdMs)) continue;
+          const age = nowMs - createdMs;
+          if (
+            age < PENDING_ACCEPT_REMINDER_AFTER_MS ||
+            age > PENDING_ACCEPT_REMINDER_MAX_AGE_MS
+          ) {
+            continue;
+          }
+          const lastLocal = Number(localMap.get(id) || 0);
+          if (
+            lastLocal &&
+            nowMs - lastLocal < PENDING_ACCEPT_REMINDER_AFTER_MS
+          ) {
+            continue;
+          }
+          // Local sound/vibrate even if server meta already marked (page open).
           localMap.set(id, nowMs);
           pendingRemindLocal += 1;
         }
@@ -2019,14 +2036,21 @@ export default function AdminOrdersPage() {
               /* ignore */
             }
           }
-          const lastApi = Number(pendingAcceptApiCooldownRef.current || 0);
-          if (nowMs - lastApi >= PENDING_ACCEPT_REMINDER_AFTER_MS) {
-            pendingAcceptApiCooldownRef.current = nowMs;
-            void fetch("/api/cron/pending-accept-reminders", {
-              method: "POST",
-              headers: { "x-admin-secret": s },
-            }).catch(() => {});
-          }
+        }
+        // Push path: always ask server (deduped by meta + lock); not only on local beep.
+        const dueForPush = list.some((o) =>
+          orderNeedsPendingAcceptReminder(o, nowMs)
+        );
+        const lastApi = Number(pendingAcceptApiCooldownRef.current || 0);
+        if (
+          dueForPush &&
+          nowMs - lastApi >= Math.floor(PENDING_ACCEPT_REMINDER_AFTER_MS / 2)
+        ) {
+          pendingAcceptApiCooldownRef.current = nowMs;
+          void fetch("/api/cron/pending-accept-reminders", {
+            method: "POST",
+            headers: { "x-admin-secret": s },
+          }).catch(() => {});
         }
 
         syncAdminOrdersKnownIdsRef(ordersKnownIdsRef, list);
@@ -2050,6 +2074,7 @@ export default function AdminOrdersPage() {
       }
     };
 
+    void poll();
     const id = window.setInterval(poll, ADMIN_ORDERS_POLL_MS);
     return () => {
       cancelled = true;

@@ -1,12 +1,12 @@
 import { resolveFulfillment } from "@/utils/orderFulfillment";
 
-/** First (and only) reminder after this age while still pending. */
+/** Reminder cadence while still pending. */
 export const PENDING_ACCEPT_REMINDER_AFTER_MS = 2 * 60 * 1000;
 
 /**
- * Do not remind for stuck/old pending rows (avoids a flood of historical orders).
+ * Ignore stuck/old pending rows so historical orders cannot flood devices.
  */
-export const PENDING_ACCEPT_REMINDER_MAX_AGE_MS = 30 * 60 * 1000;
+export const PENDING_ACCEPT_REMINDER_MAX_AGE_MS = 45 * 60 * 1000;
 
 function toMs(ts) {
   const x = new Date(String(ts || "")).getTime();
@@ -14,7 +14,7 @@ function toMs(ts) {
 }
 
 /**
- * True when a pending order is due for a one-shot accept/reject reminder.
+ * Pending order due for accept/reject reminder (age 2–45 min, cadence 2 min).
  * @param {object} order
  * @param {number} [now]
  */
@@ -31,7 +31,7 @@ export function orderNeedsPendingAcceptReminder(order, now = Date.now()) {
     order.meta && typeof order.meta === "object" && !Array.isArray(order.meta)
       ? order.meta
       : {};
-  // One reminder only — never re-spam the same order.
-  if (meta.pendingAcceptReminderSentAt) return false;
+  const last = toMs(meta.pendingAcceptReminderSentAt);
+  if (last && now - last < PENDING_ACCEPT_REMINDER_AFTER_MS) return false;
   return true;
 }

@@ -4,7 +4,7 @@ import { isRedisConfigured, redis } from "@/lib/redis";
 import { claimPendingAcceptReminders } from "@/lib/ordersStore";
 
 const LOCK_KEY = "burgerhut:lock:pending-accept-reminders";
-const LOCK_TTL_SEC = 45;
+const LOCK_TTL_SEC = 20;
 
 function authorizeCronOrStaff(req) {
   const cronSecret = String(process.env.CRON_SECRET || "").trim();
@@ -24,9 +24,19 @@ async function tryAcquireLock() {
       nx: true,
       ex: LOCK_TTL_SEC,
     });
-    return got === "OK" || got === true;
+    // @upstash/redis: "OK" | null
+    return got === "OK" || got === true || got === 1;
   } catch {
     return true;
+  }
+}
+
+async function releaseLock() {
+  if (!isRedisConfigured() || !redis) return;
+  try {
+    await redis.del(LOCK_KEY);
+  } catch {
+    /* ignore */
   }
 }
 
@@ -52,35 +62,43 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, reminded: 0, skipped: "locked" });
   }
 
-  let claimed = [];
   try {
-    claimed = await claimPendingAcceptReminders();
-  } catch (e) {
-    console.warn("[pendingAcceptReminder] claim failed", e?.message || e);
-    return res.status(500).json({ ok: false, error: "claim_failed" });
-  }
+    let claimed = [];
+    try {
+      claimed = await claimPendingAcceptReminders();
+    } catch (e) {
+      console.warn("[pendingAcceptReminder] claim failed", e?.message || e);
+      return res.status(500).json({ ok: false, error: "claim_failed" });
+    }
 
-  if (!claimed.length) {
-    return res.status(200).json({ ok: true, reminded: 0, results: [] });
-  }
+    if (!claimed.length) {
+      return res.status(200).json({ ok: true, reminded: 0, results: [] });
+    }
 
-  const orderNumbers = claimed.map((o) => o?.orderNumber).filter((n) => n != null);
+    const orderNumbers = claimed
+      .map((o) => o?.orderNumber)
+      .filter((n) => n != null);
 
-  try {
-    const push = await broadcastPendingAcceptReminderToAdmins({ orderNumbers });
-    return res.status(200).json({
-      ok: true,
-      reminded: claimed.length,
-      pushOk: Boolean(push?.ok),
-      orderNumbers,
-    });
-  } catch (e) {
-    console.warn("[pendingAcceptReminder] push failed", e?.message || e);
-    return res.status(200).json({
-      ok: true,
-      reminded: claimed.length,
-      pushOk: false,
-      orderNumbers,
-    });
+    try {
+      const push = await broadcastPendingAcceptReminderToAdmins({
+        orderNumbers,
+      });
+      return res.status(200).json({
+        ok: true,
+        reminded: claimed.length,
+        pushOk: Boolean(push?.ok),
+        orderNumbers,
+      });
+    } catch (e) {
+      console.warn("[pendingAcceptReminder] push failed", e?.message || e);
+      return res.status(200).json({
+        ok: true,
+        reminded: claimed.length,
+        pushOk: false,
+        orderNumbers,
+      });
+    }
+  } finally {
+    await releaseLock();
   }
 }
