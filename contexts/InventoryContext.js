@@ -17,16 +17,18 @@ export function InventoryProvider({ children }) {
     try {
       const r = await fetch("/api/inventory");
       const d = await r.json().catch(() => ({}));
-      if (!r.ok) return;
-      const ids = d.unavailableIds;
-      setUnavailableIds(Array.isArray(ids) ? ids : []);
+      if (!r.ok) return null;
+      const ids = Array.isArray(d.unavailableIds) ? d.unavailableIds : [];
+      setUnavailableIds(ids);
       if (d.pattyStock != null && typeof d.pattyStock === "object") {
         setPattyStock(d.pattyStock);
       } else {
         setPattyStock(null);
       }
+      return ids;
     } catch {
       /* keep previous */
+      return null;
     }
   }, []);
 

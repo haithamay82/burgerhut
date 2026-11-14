@@ -66,6 +66,8 @@ const HE = {
   "home.reorderNew": "צור הזמנה חדשה",
   "home.reorderBusy": "טוען…",
   "home.reorderTotal": "סה״כ קודם: {total}",
+  "home.reorderOutOfStock":
+    "חלק מההזמנה שלך חסר במלאי. עדיף ליצור הזמנה חדשה מהתפריט.",
   "home.categoryBannerAria": "בחירת קטגוריית תפריט",
   "home.promoSkip": "דלג",
   "home.promoTapForSound": "לחץ להפעלת קול",
@@ -1389,6 +1391,8 @@ const AR = {
   "home.reorderNew": "إنشاء طلب جديد",
   "home.reorderBusy": "جارٍ التحميل…",
   "home.reorderTotal": "الإجمالي السابق: {total}",
+  "home.reorderOutOfStock":
+    "جزء من طلبك غير متوفر في المخزون. يُفضّل إنشاء طلب جديد من القائمة.",
   "home.categoryBannerAria": "اختيار فئة القائمة",
   "home.promoSkip": "تخطي",
   "home.promoTapForSound": "اضغط لتشغيل الصوت",

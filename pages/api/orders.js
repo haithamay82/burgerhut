@@ -138,6 +138,14 @@ export default async function handler(req, res) {
       if (pid && managedProductIds.has(pid) && unavailable.has(pid)) {
         return res.status(400).json({ ok: false, error: "item_unavailable" });
       }
+      const drinkId = String(line?.requestedDrinkId || "").trim();
+      if (
+        drinkId &&
+        managedProductIds.has(drinkId) &&
+        unavailable.has(drinkId)
+      ) {
+        return res.status(400).json({ ok: false, error: "item_unavailable" });
+      }
       const tops = line.toppings;
       if (Array.isArray(tops)) {
         for (const top of tops) {

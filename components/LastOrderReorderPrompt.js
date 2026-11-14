@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { useCart } from "@/hooks/useCart";
+import { lineHasUnavailableInventory, useCart } from "@/hooks/useCart";
+import { useInventory } from "@/contexts/InventoryContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import { formatIls } from "@/utils/cartMoney";
 import {
@@ -13,12 +14,15 @@ export default function LastOrderReorderPrompt() {
   const { t } = useLocale();
   const router = useRouter();
   const { items, replaceCart } = useCart();
+  const { isUnavailable, unavailableIds, refresh } = useInventory();
   const [order, setOrder] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [stockMsg, setStockMsg] = useState("");
 
   useEffect(() => {
     if (items.length > 0) {
       setOrder(null);
+      setStockMsg("");
       return;
     }
     if (isLastOrderReorderPromptDismissed()) {
@@ -30,10 +34,29 @@ export default function LastOrderReorderPrompt() {
 
   if (!order?.items?.length) return null;
 
-  const onReorder = () => {
+  const onReorder = async () => {
     if (busy) return;
     setBusy(true);
+    setStockMsg("");
     try {
+      const freshIds = await refresh();
+      const ids = Array.isArray(freshIds) ? freshIds : unavailableIds;
+      const blockedSet = new Set(
+        (Array.isArray(ids) ? ids : []).map((id) => String(id))
+      );
+      const checkUnavailable = (productId) => {
+        if (!productId || typeof productId !== "string") return false;
+        if (blockedSet.size) return blockedSet.has(productId);
+        return isUnavailable(productId);
+      };
+      const blocked = (Array.isArray(order.items) ? order.items : []).some(
+        (line) => lineHasUnavailableInventory(line, checkUnavailable)
+      );
+      if (blocked) {
+        setStockMsg(t("home.reorderOutOfStock"));
+        setBusy(false);
+        return;
+      }
       replaceCart(order.items);
       dismissLastOrderReorderPrompt();
       void router.push("/checkout");
@@ -44,6 +67,7 @@ export default function LastOrderReorderPrompt() {
 
   const onNewOrder = () => {
     dismissLastOrderReorderPrompt();
+    setStockMsg("");
     setOrder(null);
   };
 
@@ -75,10 +99,15 @@ export default function LastOrderReorderPrompt() {
           )}
         </p>
       ) : null}
+      {stockMsg ? (
+        <p className="mt-3 rounded-lg border border-amber-500/40 bg-amber-950/40 px-3 py-2 text-xs font-medium text-amber-100">
+          {stockMsg}
+        </p>
+      ) : null}
       <div className="mt-4 grid gap-2 sm:grid-cols-2">
         <button
           type="button"
-          onClick={onReorder}
+          onClick={() => void onReorder()}
           disabled={busy}
           className="btn-primary w-full px-4 py-2.5 text-sm disabled:opacity-50"
         >

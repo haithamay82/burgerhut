@@ -16,10 +16,12 @@ export function cartLineProductId(item) {
   );
 }
 
-/** מנה עיקרית או תוספת בורגר שסומנה כלא זמינה במלאי */
+/** מנה עיקרית, שתיה מצורפת, תוספת בורגר או סלט שסומנו כלא זמינים במלאי */
 export function lineHasUnavailableInventory(line, isUnavailable) {
   const pid = cartLineProductId(line);
   if (pid && isUnavailable(pid)) return true;
+  const drinkId = String(line?.requestedDrinkId || "").trim();
+  if (drinkId && isUnavailable(drinkId)) return true;
   const tops = line.toppings;
   if (Array.isArray(tops)) {
     const badTop = tops.some(
