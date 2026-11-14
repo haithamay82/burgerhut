@@ -811,14 +811,14 @@ const HE = {
   "admin.newOrderNotifyBodyMany": "התקבלו {c} הזמנות חדשות.",
   "admin.pendingAcceptRemindTitle": "תזכורת — הזמנה ממתינה לאישור",
   "admin.pendingAcceptRemindBodyOne":
-    "הזמנה מס׳ #{n} ממתינה יותר מ־2 דקות — יש לאשר או לדחות.",
+    "הזמנה מס׳ #{n} ממתינה יותר מדקה — יש לאשר או לדחות.",
   "admin.pendingAcceptRemindBodyMany":
-    "{c} הזמנות ממתינות יותר מ־2 דקות: {list}. יש לאשר או לדחות.",
+    "{c} הזמנות ממתינות יותר מדקה: {list}. יש לאשר או לדחות.",
   "admin.pendingAcceptRemindBodyExtra": " ועוד {c}",
   "admin.pendingAcceptRemindBodyNoNum":
-    "יש הזמנה שממתינה יותר מ־2 דקות — יש לאשר או לדחות.",
+    "יש הזמנה שממתינה יותר מדקה — יש לאשר או לדחות.",
   "admin.pendingAcceptRemindLocalBody":
-    "{c} הזמנות ממתינות לאישור יותר מ־2 דקות.",
+    "{c} הזמנות ממתינות לאישור יותר מדקה.",
   "admin.pushSubscribeOk":
     "התראות Push הופעלו — תקבלו התראה גם כשהאפליקציה סגורה (אם המכשיר והדפדפן מאפשרים).",
   "admin.pushSubscribeSkip":
@@ -1059,7 +1059,7 @@ const HE = {
   "admin.doneErr": "לא ניתן היה לעדכן סטטוס להזמנה.",
   "orderStatus.pending": "ממתינה לאישור",
   "orderStatus.pendingAcceptHint":
-    "זמן קבלת הזמנה עד 2 דקות, אם חרגנו מהזמן אפשר לפנות בווטסאפ.",
+    "זמן קבלת הזמנה עד דקה, אם חרגנו מהזמן אפשר לפנות בווטסאפ.",
   "orderStatus.preparing": "בהכנה",
   "orderStatus.ready": "מוכנה",
   "orderStatus.delivered": "נמסרה",
@@ -2138,14 +2138,14 @@ const AR = {
   "admin.newOrderNotifyBodyMany": "وصلت {c} طلبات جديدة.",
   "admin.pendingAcceptRemindTitle": "تذكير — طلب بانتظار الموافقة",
   "admin.pendingAcceptRemindBodyOne":
-    "الطلب رقم #{n} بانتظار الموافقة أكثر من دقيقتين — يرجى القبول أو الرفض.",
+    "الطلب رقم #{n} بانتظار الموافقة أكثر من دقيقة — يرجى القبول أو الرفض.",
   "admin.pendingAcceptRemindBodyMany":
-    "{c} طلبات بانتظار الموافقة أكثر من دقيقتين: {list}. يرجى القبول أو الرفض.",
+    "{c} طلبات بانتظار الموافقة أكثر من دقيقة: {list}. يرجى القبول أو الرفض.",
   "admin.pendingAcceptRemindBodyExtra": " و{c} إضافية",
   "admin.pendingAcceptRemindBodyNoNum":
-    "هناك طلب بانتظار الموافقة أكثر من دقيقتين — يرجى القبول أو الرفض.",
+    "هناك طلب بانتظار الموافقة أكثر من دقيقة — يرجى القبول أو الرفض.",
   "admin.pendingAcceptRemindLocalBody":
-    "{c} طلبات بانتظار الموافقة أكثر من دقيقتين.",
+    "{c} طلبات بانتظار الموافقة أكثر من دقيقة.",
   "admin.pushSubscribeOk":
     "تم تفعيل إشعارات Push — ستصلكم إشعار حتى عند إغلاق التطبيق (إن سمح الجهاز والمتصفح).",
   "admin.pushSubscribeSkip":
@@ -2385,7 +2385,7 @@ const AR = {
   "admin.doneErr": "تعذّر تحديث حالة الطلب.",
   "orderStatus.pending": "بانتظار التأكيد",
   "orderStatus.pendingAcceptHint":
-    "وقت قبول الطلب حتى دقيقتين، إذا تجاوزنا الوقت يمكن التواصل عبر واتساب.",
+    "وقت قبول الطلب حتى دقيقة، إذا تجاوزنا الوقت يمكن التواصل عبر واتساب.",
   "orderStatus.preparing": "قيد التحضير",
   "orderStatus.ready": "جاهزة",
   "orderStatus.delivered": "تم التسليم",

@@ -41,7 +41,7 @@ async function releaseLock() {
 }
 
 /**
- * Scan pending orders (2–30 min old, not yet reminded) and send one batched push.
+ * Scan pending orders (1–45 min old) and send one batched push.
  */
 export default async function handler(req, res) {
   if (req.method !== "GET" && req.method !== "POST") {

@@ -1,7 +1,7 @@
 import { resolveFulfillment } from "@/utils/orderFulfillment";
 
 /** Reminder cadence while still pending. */
-export const PENDING_ACCEPT_REMINDER_AFTER_MS = 2 * 60 * 1000;
+export const PENDING_ACCEPT_REMINDER_AFTER_MS = 1 * 60 * 1000;
 
 /**
  * Ignore stuck/old pending rows so historical orders cannot flood devices.
@@ -14,7 +14,7 @@ function toMs(ts) {
 }
 
 /**
- * Pending order due for accept/reject reminder (age 2–45 min, cadence 2 min).
+ * Pending order due for accept/reject reminder (age 1–45 min, cadence 1 min).
  * @param {object} order
  * @param {number} [now]
  */
