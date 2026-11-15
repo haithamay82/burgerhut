@@ -1060,6 +1060,7 @@ const HE = {
   "admin.deleteErr": "לא ניתן היה למחוק את ההזמנה.",
   "admin.doneErr": "לא ניתן היה לעדכן סטטוס להזמנה.",
   "orderStatus.pending": "ממתינה לאישור",
+  "orderStatus.pendingWaiting": "· {time}",
   "orderStatus.pendingAcceptHint":
     "זמן קבלת הזמנה עד דקה, אם חרגנו מהזמן אפשר לפנות בווטסאפ.",
   "orderStatus.preparing": "בהכנה",
@@ -2388,6 +2389,7 @@ const AR = {
   "admin.deleteErr": "تعذّر حذف الطلب.",
   "admin.doneErr": "تعذّر تحديث حالة الطلب.",
   "orderStatus.pending": "بانتظار التأكيد",
+  "orderStatus.pendingWaiting": "· {time}",
   "orderStatus.pendingAcceptHint":
     "وقت قبول الطلب حتى دقيقة، إذا تجاوزنا الوقت يمكن التواصل عبر واتساب.",
   "orderStatus.preparing": "قيد التحضير",

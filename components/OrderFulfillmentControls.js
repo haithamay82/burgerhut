@@ -70,10 +70,21 @@ export default function OrderFulfillmentControls({
   }, [scheduledMs, locale]);
 
   useEffect(() => {
-    if (fulfillment.status !== "preparing" || !fulfillment.prepEndsAt) return;
+    const needsTick =
+      fulfillment.status === "pending" ||
+      (fulfillment.status === "preparing" && Boolean(fulfillment.prepEndsAt));
+    if (!needsTick) return;
     const id = window.setInterval(() => setTick((n) => n + 1), 1000);
     return () => window.clearInterval(id);
   }, [fulfillment.status, fulfillment.prepEndsAt]);
+
+  const pendingWaitingMs = useMemo(() => {
+    if (fulfillment.status !== "pending") return null;
+    const created = new Date(String(order?.createdAt || "")).getTime();
+    if (!Number.isFinite(created) || created <= 0) return null;
+    return Math.max(0, Date.now() - created);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- tick refreshes elapsed
+  }, [fulfillment.status, order?.createdAt, tick]);
 
   // ביטול לקוח / דחייה / שינוי סטטוס — סוגרים בחירת דקות כדי שלא יישארו קבל/דחה
   useEffect(() => {
@@ -160,11 +171,19 @@ export default function OrderFulfillmentControls({
   return (
     <div className="mt-2 space-y-3">
       <div
-        className={`inline-flex items-center rounded-lg border px-2.5 py-1 text-[11px] font-bold ${fulfillmentStatusToneClass(
+        className={`inline-flex items-center gap-2 rounded-lg border px-2.5 py-1 text-[11px] font-bold ${fulfillmentStatusToneClass(
           fulfillment.status
         )}`}
       >
-        {t(fulfillmentStatusLabelKey(fulfillment.status))}
+        <span>{t(fulfillmentStatusLabelKey(fulfillment.status))}</span>
+        {fulfillment.status === "pending" && pendingWaitingMs != null ? (
+          <span className="tabular-nums text-amber-200/95">
+            {t("orderStatus.pendingWaiting").replace(
+              "{time}",
+              formatCountdown(pendingWaitingMs)
+            )}
+          </span>
+        ) : null}
       </div>
 
       {isDeferredPending ? (
