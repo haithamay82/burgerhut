@@ -110,7 +110,8 @@ function burgerToppingsSliceFromEditor(editor) {
 }
 
 /** ריענון הזמנות בדף ניהול — לזיהוי הזמנות חדשות */
-const ADMIN_ORDERS_POLL_MS = 15000;
+const ADMIN_ORDERS_POLL_MS = 8000;
+const ADMIN_ORDERS_POLL_HIDDEN_MS = 20000;
 
 function syncAdminOrdersKnownIdsRef(idsRef, ordersList) {
   idsRef.current = new Set(
@@ -118,14 +119,6 @@ function syncAdminOrdersKnownIdsRef(idsRef, ordersList) {
       .map((o) => String(o?.id || ""))
       .filter(Boolean)
   );
-}
-
-/** הזמנה שנוצרה לפני פתיחת הסשן — לא מציגים עליה התראה «חדשה» (רק polling). */
-function isOrderCreatedAfterAdminSession(order, sessionStartedMs, graceMs = 5000) {
-  if (!order || sessionStartedMs <= 0) return false;
-  const createdMs = new Date(String(order.createdAt || "")).getTime();
-  if (!Number.isFinite(createdMs)) return false;
-  return createdMs >= sessionStartedMs - graceMs;
 }
 
 function playAdminToneBeeps(freqs, gapMs = 140) {
@@ -1948,13 +1941,12 @@ export default function AdminOrdersPage() {
         if (!r.ok || !data.ok) return;
         const list = Array.isArray(data.orders) ? data.orders : [];
         const known = ordersKnownIdsRef.current;
-        const notifySince = adminOrdersNotifySinceRef.current;
-        const newRows = list.filter(
-          (o) =>
-            o?.id &&
-            !known.has(String(o.id)) &&
-            isOrderCreatedAfterAdminSession(o, notifySince)
-        );
+        // First appearance in this session (incl. deferred Bit/card release) → alert.
+        // Skip the very first empty→full sync by requiring known to already be seeded at login.
+        const newRows =
+          known.size > 0
+            ? list.filter((o) => o?.id && !known.has(String(o.id)))
+            : [];
         if (newRows.length > 0) {
           playAdminNewOrderBeep();
           vibrateAdminNewOrder();
@@ -2075,10 +2067,26 @@ export default function AdminOrdersPage() {
     };
 
     void poll();
-    const id = window.setInterval(poll, ADMIN_ORDERS_POLL_MS);
+    let id = window.setInterval(poll, ADMIN_ORDERS_POLL_MS);
+    const onVis = () => {
+      if (typeof document === "undefined") return;
+      window.clearInterval(id);
+      const ms =
+        document.visibilityState === "visible"
+          ? ADMIN_ORDERS_POLL_MS
+          : ADMIN_ORDERS_POLL_HIDDEN_MS;
+      id = window.setInterval(poll, ms);
+      if (document.visibilityState === "visible") void poll();
+    };
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", onVis);
+    }
     return () => {
       cancelled = true;
       window.clearInterval(id);
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", onVis);
+      }
     };
   }, [loaded, secret, t, locale, adminRole]);
 

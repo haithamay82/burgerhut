@@ -198,16 +198,25 @@ export default function SuccessPage() {
       return;
     }
 
-    fireDeferredAdminPushNotify({
-      orderRowId,
-      orderNumber,
-      adminPushConfirmSecret,
-    });
-    try {
-      window.sessionStorage.setItem(firedKey, "1");
-    } catch {
-      /* ignore */
-    }
+    let cancelled = false;
+    void (async () => {
+      const result = await fireDeferredAdminPushNotify({
+        orderRowId,
+        orderNumber,
+        adminPushConfirmSecret,
+      });
+      if (cancelled) return;
+      if (result?.ok && (result.already || result.pushOk)) {
+        try {
+          window.sessionStorage.setItem(firedKey, "1");
+        } catch {
+          /* ignore */
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [router.isReady, router.asPath, payDoneMarker]);
 
   useEffect(() => {

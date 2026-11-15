@@ -22,7 +22,8 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-const ADMIN_PUSH_MAX_AGE_MS = 15 * 60 * 1000;
+/** Align with web-push TTL (1h) so delayed delivery still shows */
+const ADMIN_PUSH_MAX_AGE_MS = 60 * 60 * 1000;
 const CUSTOMER_PUSH_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 function isCustomerPushPayload(data) {
