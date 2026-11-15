@@ -165,6 +165,53 @@ function playAdminPendingAcceptReminderBeep() {
   playAdminToneBeeps([988, 784, 988], 160);
 }
 
+/**
+ * System notification sound (same channel as Web Push) — not the in-app Web Audio peep.
+ * @returns {Promise<boolean>} true if a system notification was shown
+ */
+async function showAdminSystemAlert({
+  title,
+  body,
+  tag,
+  renotify = false,
+  requireInteraction = false,
+}) {
+  if (
+    typeof Notification === "undefined" ||
+    Notification.permission !== "granted"
+  ) {
+    return false;
+  }
+  const opts = {
+    body: String(body || ""),
+    icon: "/logo-burger-hut.png",
+    badge: "/logo-burger-hut.png",
+    tag: String(tag || `bh-admin-${Date.now()}`),
+    data: { url: "/admin/orders" },
+    silent: false,
+    renotify: Boolean(renotify),
+    requireInteraction: Boolean(requireInteraction),
+  };
+  try {
+    if (typeof navigator !== "undefined" && navigator.serviceWorker?.ready) {
+      const reg = await navigator.serviceWorker.ready;
+      if (reg?.showNotification) {
+        await reg.showNotification(String(title || "Burger Hut"), opts);
+        return true;
+      }
+    }
+  } catch {
+    /* fall through */
+  }
+  try {
+    // eslint-disable-next-line no-new
+    new Notification(String(title || "Burger Hut"), opts);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function vibrateAdminNewOrder() {
   try {
     if (typeof navigator !== "undefined" && navigator.vibrate) {
@@ -1948,7 +1995,6 @@ export default function AdminOrdersPage() {
             ? list.filter((o) => o?.id && !known.has(String(o.id)))
             : [];
         if (newRows.length > 0) {
-          playAdminNewOrderBeep();
           vibrateAdminNewOrder();
           const title = t("admin.newOrderNotifyTitle");
           const body =
@@ -1958,20 +2004,18 @@ export default function AdminOrdersPage() {
                   "{c}",
                   String(newRows.length)
                 );
-          if (
-            typeof Notification !== "undefined" &&
-            Notification.permission === "granted"
-          ) {
-            try {
-              new Notification(title, {
-                body,
-                icon: "/logo-burger-hut.png",
-                tag: `bh-ord-${Date.now()}`,
-              });
-            } catch {
-              /* ignore */
-            }
-          }
+          const num =
+            newRows.length === 1
+              ? String(newRows[0]?.orderNumber ?? "").trim()
+              : "";
+          const shown = await showAdminSystemAlert({
+            title,
+            body,
+            tag: num ? `bh-order-${num}` : `bh-order-${Date.now()}`,
+            renotify: true,
+          });
+          // Fallback only when system notifications are blocked.
+          if (!shown) playAdminNewOrderBeep();
         }
 
         const nowMs = Date.now();
@@ -2009,25 +2053,18 @@ export default function AdminOrdersPage() {
           if (!still) localMap.delete(id);
         }
         if (pendingRemindLocal > 0) {
-          playAdminPendingAcceptReminderBeep();
           vibrateAdminPendingAcceptReminder();
-          if (
-            typeof Notification !== "undefined" &&
-            Notification.permission === "granted"
-          ) {
-            try {
-              new Notification(t("admin.pendingAcceptRemindTitle"), {
-                body: t("admin.pendingAcceptRemindLocalBody").replace(
-                  "{c}",
-                  String(pendingRemindLocal)
-                ),
-                icon: "/logo-burger-hut.png",
-                tag: "bh-pending-remind-local",
-              });
-            } catch {
-              /* ignore */
-            }
-          }
+          const shownRemind = await showAdminSystemAlert({
+            title: t("admin.pendingAcceptRemindTitle"),
+            body: t("admin.pendingAcceptRemindLocalBody").replace(
+              "{c}",
+              String(pendingRemindLocal)
+            ),
+            tag: "bh-order-pending-reminder",
+            renotify: true,
+            requireInteraction: true,
+          });
+          if (!shownRemind) playAdminPendingAcceptReminderBeep();
         }
         // Push path: always ask server (deduped by meta + lock); not only on local beep.
         const dueForPush = list.some((o) =>

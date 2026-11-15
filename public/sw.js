@@ -80,6 +80,7 @@ self.addEventListener("push", (event) => {
       badge: "/logo-burger-hut.png",
       tag,
       data: { url: openUrl },
+      silent: false,
       // לקוח / תזכורת ממתינה — להשמיע שוב גם אם התג זהה
       renotify: customer || pendingRemind || Boolean(data.renotify),
       requireInteraction: pendingRemind,
