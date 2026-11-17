@@ -548,6 +548,13 @@ export default function AdminOrdersPage() {
   const pendingAcceptLocalRemindedRef = useRef(new Map());
   /** מניעת קריאות API כפולות ממכשירים/פולינג */
   const pendingAcceptApiCooldownRef = useRef(0);
+  /**
+   * צלצול מתמשך רק להזמנות שזוהו כחדשות בסשן / מפתיחת Push —
+   * לא להזמנות ממתינות ישנות בכניסה למסך.
+   */
+  const kitchenRingOrderIdsRef = useRef(new Set());
+  /** אחרי לחיצה על התראה — לחמש צלצול להזמנות טריות כשהרשימה תיטען */
+  const kitchenRingFromPushRef = useRef(false);
   const [notifyPermissionNonce, setNotifyPermissionNonce] = useState(0);
   /** null = לא רלוונטי או בודקים, true/false = יש מנוי מקומי ב-SW */
   const [adminLocalPushSubscribed, setAdminLocalPushSubscribed] =
@@ -1462,6 +1469,8 @@ export default function AdminOrdersPage() {
     adminSessionHydratedRef.current = false;
     ordersKnownIdsRef.current = new Set();
     adminOrdersNotifySinceRef.current = 0;
+    kitchenRingOrderIdsRef.current.clear();
+    kitchenRingFromPushRef.current = false;
     stopAdminPendingRing();
     setAdminRole("admin");
     setSecret("");
@@ -1903,29 +1912,87 @@ export default function AdminOrdersPage() {
     ordersRef.current = orders;
   }, [orders]);
 
-  const listHasPendingAccept = useCallback((list) => {
-    return (Array.isArray(list) ? list : []).some(
-      (o) => resolveFulfillment(o).status === "pending"
-    );
+  /** הזמנות ממתינות «טריות» בלבד (לא היסטוריה ישנה במסך) */
+  const KITCHEN_RING_MAX_AGE_MS = 20 * 60 * 1000;
+
+  const collectFreshPendingIds = useCallback((list, nowMs = Date.now()) => {
+    const ids = [];
+    for (const o of Array.isArray(list) ? list : []) {
+      const id = String(o?.id || "");
+      if (!id || resolveFulfillment(o).status !== "pending") continue;
+      const createdMs = new Date(String(o.createdAt || "")).getTime();
+      if (!Number.isFinite(createdMs)) continue;
+      if (nowMs - createdMs > KITCHEN_RING_MAX_AGE_MS) continue;
+      ids.push(id);
+    }
+    return ids;
   }, []);
 
-  /** צלצול מתמשך כל עוד יש הזמנה ממתינה */
+  const pruneAndSyncKitchenRing = useCallback((list) => {
+    const pendingIds = new Set(
+      (Array.isArray(list) ? list : [])
+        .filter((o) => resolveFulfillment(o).status === "pending")
+        .map((o) => String(o?.id || ""))
+        .filter(Boolean)
+    );
+    for (const id of [...kitchenRingOrderIdsRef.current]) {
+      if (!pendingIds.has(id)) kitchenRingOrderIdsRef.current.delete(id);
+    }
+    syncAdminPendingRing(kitchenRingOrderIdsRef.current.size > 0);
+  }, []);
+
+  const armKitchenRingForOrderIds = useCallback(
+    (ids) => {
+      let added = 0;
+      for (const raw of ids || []) {
+        const id = String(raw || "");
+        if (!id) continue;
+        if (!kitchenRingOrderIdsRef.current.has(id)) {
+          kitchenRingOrderIdsRef.current.add(id);
+          added += 1;
+        }
+      }
+      if (kitchenRingOrderIdsRef.current.size > 0) {
+        void unlockAdminPendingRing().then(() => startAdminPendingRing());
+      }
+      return added;
+    },
+    []
+  );
+
+  /** רק מסנכרן/עוצר לפי מזהים שחומשו — לא מצלצל על כל ממתינה ישנה */
   useEffect(() => {
     if (!loaded || typeof window === "undefined") {
+      kitchenRingOrderIdsRef.current.clear();
+      kitchenRingFromPushRef.current = false;
       stopAdminPendingRing();
       return;
     }
-    syncAdminPendingRing(listHasPendingAccept(orders));
-  }, [loaded, orders, listHasPendingAccept]);
+    if (kitchenRingFromPushRef.current) {
+      kitchenRingFromPushRef.current = false;
+      armKitchenRingForOrderIds(collectFreshPendingIds(orders));
+    }
+    pruneAndSyncKitchenRing(orders);
+  }, [
+    loaded,
+    orders,
+    armKitchenRingForOrderIds,
+    collectFreshPendingIds,
+    pruneAndSyncKitchenRing,
+  ]);
 
-  /** פתיחה מהתראה (אפליקציה הייתה סגורה) — התחלת צלצול מיד */
+  /** פתיחה מהתראה — רק הזמנות טריות, לא כל ההיסטוריה */
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
     const q = router.query?.kitchenRing;
     const want =
       q === "1" || q === "true" || (Array.isArray(q) && q[0] === "1");
     if (!want) return;
-    void unlockAdminPendingRing().then(() => startAdminPendingRing());
+    kitchenRingFromPushRef.current = true;
+    armKitchenRingForOrderIds(collectFreshPendingIds(ordersRef.current));
+    void unlockAdminPendingRing().then(() => {
+      if (kitchenRingOrderIdsRef.current.size > 0) startAdminPendingRing();
+    });
     const nextQuery = { ...router.query };
     delete nextQuery.kitchenRing;
     void router.replace(
@@ -1933,7 +2000,14 @@ export default function AdminOrdersPage() {
       undefined,
       { shallow: true }
     );
-  }, [router.isReady, router.query, router.pathname, router]);
+  }, [
+    router.isReady,
+    router.query,
+    router.pathname,
+    router,
+    armKitchenRingForOrderIds,
+    collectFreshPendingIds,
+  ]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
@@ -1943,15 +2017,14 @@ export default function AdminOrdersPage() {
       const type = event?.data?.type;
       if (type === "bh-admin-pending-ring") {
         const force = Boolean(event?.data?.force);
-        const hasPending = listHasPendingAccept(ordersRef.current);
-        if (force || hasPending) {
-          void unlockAdminPendingRing().then(() => {
-            if (force || listHasPendingAccept(ordersRef.current)) {
-              startAdminPendingRing();
-            }
-          });
+        if (force) kitchenRingFromPushRef.current = true;
+        const fresh = collectFreshPendingIds(ordersRef.current);
+        if (fresh.length) {
+          armKitchenRingForOrderIds(fresh);
+        } else if (force) {
+          // Orders not loaded yet — arm on next orders effect.
+          kitchenRingFromPushRef.current = true;
         }
-        // After orders refresh, effect will stop ring if nothing pending.
       }
       if (type === "bh-admin-push-resubscribe") {
         const s = secret.trim();
@@ -1969,7 +2042,12 @@ export default function AdminOrdersPage() {
     return () => {
       navigator.serviceWorker.removeEventListener("message", onMsg);
     };
-  }, [secret, refreshAdminPushServerStatus, listHasPendingAccept]);
+  }, [
+    secret,
+    refreshAdminPushServerStatus,
+    armKitchenRingForOrderIds,
+    collectFreshPendingIds,
+  ]);
 
   const runAdminPushTest = async () => {
     const s = secret.trim();
@@ -2085,7 +2163,11 @@ export default function AdminOrdersPage() {
             : [];
         if (newRows.length > 0) {
           vibrateAdminNewOrder();
-          void unlockAdminPendingRing().then(() => startAdminPendingRing());
+          armKitchenRingForOrderIds(
+            newRows
+              .filter((o) => resolveFulfillment(o).status === "pending")
+              .map((o) => o.id)
+          );
           const title = t("admin.newOrderNotifyTitle");
           const body =
             newRows.length === 1
@@ -2107,7 +2189,6 @@ export default function AdminOrdersPage() {
           });
           // Fallback only when system notifications are blocked.
           if (!shown) playAdminNewOrderBeep();
-          syncAdminPendingRing(listHasPendingAccept(list));
         }
 
         const nowMs = Date.now();
@@ -2146,7 +2227,10 @@ export default function AdminOrdersPage() {
         }
         if (pendingRemindLocal > 0) {
           vibrateAdminPendingAcceptReminder();
-          void unlockAdminPendingRing().then(() => startAdminPendingRing());
+          // תזכורת מערכת — בלי להפעיל צלצול מתמשך על הזמנות ישנות שלא חומשו כחדשות
+          if (kitchenRingOrderIdsRef.current.size > 0) {
+            void unlockAdminPendingRing().then(() => startAdminPendingRing());
+          }
           const shownRemind = await showAdminSystemAlert({
             title: t("admin.pendingAcceptRemindTitle"),
             body: t("admin.pendingAcceptRemindLocalBody").replace(
@@ -2157,8 +2241,11 @@ export default function AdminOrdersPage() {
             renotify: true,
             requireInteraction: true,
           });
-          if (!shownRemind) playAdminPendingAcceptReminderBeep();
+          if (!shownRemind && kitchenRingOrderIdsRef.current.size > 0) {
+            playAdminPendingAcceptReminderBeep();
+          }
         }
+        pruneAndSyncKitchenRing(list);
         // Push path: always ask server (deduped by meta + lock); not only on local beep.
         const dueForPush = list.some((o) =>
           orderNeedsPendingAcceptReminder(o, nowMs)
@@ -5430,11 +5517,8 @@ export default function AdminOrdersPage() {
                                             }
                                           : row
                                       );
-                                      // Stop ring immediately on accept/reject/cancel.
                                       queueMicrotask(() => {
-                                        syncAdminPendingRing(
-                                          listHasPendingAccept(next)
-                                        );
+                                        pruneAndSyncKitchenRing(next);
                                       });
                                       return next;
                                     });
