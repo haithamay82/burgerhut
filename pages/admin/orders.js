@@ -354,6 +354,18 @@ function payCourierDeliverySplitLabel(t, payment) {
   return `${t("checkout.payCourierDeliveryFoodPrefix")}${mid}${t("checkout.payCourierDeliveryFoodSuffix")}`;
 }
 
+/** אשראי/ביט + משלוח ששולם למסעדה — התשלום שהתקבל כולל דמי משלוח */
+function orderPaidInclDelivery(o) {
+  const pay = String(o?.payment || "");
+  if (pay !== "card" && pay !== "bit") return false;
+  const c = o?.customer;
+  if (!c || c.orderType !== "delivery") return false;
+  if (c.deliveryPayTo !== "restaurant_all") return false;
+  if (c.deliveryFeeAgreed) return true;
+  const fee = Number(c.deliveryFeeNis);
+  return Number.isFinite(fee) && fee > 0;
+}
+
 function formatDayHeading(dayStr, locale) {
   const parts = dayStr.split("-").map((x) => parseInt(x, 10));
   const [y, m, d] = parts;
@@ -5536,6 +5548,11 @@ export default function AdminOrdersPage() {
                                   {t("admin.payment")}:{" "}
                                   {t(`payment.${o.payment}`) || o.payment}
                                 </p>
+                                {orderPaidInclDelivery(o) ? (
+                                  <p className="mt-0.5 text-[11px] font-bold text-emerald-300">
+                                    {t("admin.paidInclDelivery")}
+                                  </p>
+                                ) : null}
                                 <div className="text-left sm:text-right">
                                   <p className="font-bold text-amber-400">
                                     <span className="text-[10px] font-normal text-gray-500">
@@ -5598,7 +5615,9 @@ export default function AdminOrdersPage() {
                                       ).toFixed(1)} km`
                                     : ""}
                                 {o.customer.deliveryPayTo === "restaurant_all"
-                                  ? ` · ${t("checkout.payRestaurantAll")}`
+                                  ? orderPaidInclDelivery(o)
+                                    ? ` · ${t("admin.paidInclDelivery")}`
+                                    : ` · ${t("checkout.payRestaurantAll")}`
                                   : o.customer.deliveryPayTo ===
                                       "courier_delivery"
                                     ? ` · ${payCourierDeliverySplitLabel(

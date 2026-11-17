@@ -1021,6 +1021,7 @@ const HE = {
   "workHours.exportPdfBusy": "מייצא PDF…",
   "workHours.errExportPdf": "ייצוא ה־PDF נכשל. נסו שוב.",
   "admin.payment": "תשלום",
+  "admin.paidInclDelivery": "שולם כולל משלוח",
   "admin.pattyPrepTitle": "סיכום קציצות להכנה (בורגרים)",
   "admin.pattyPrepLine": "{n}× קציצת {g} גר׳",
   "admin.pattyPrep600Note":
@@ -2357,6 +2358,7 @@ const AR = {
   "workHours.exportPdfBusy": "جارٍ تصدير PDF…",
   "workHours.errExportPdf": "فشل تصدير PDF. أعيدوا المحاولة.",
   "admin.payment": "الدفع",
+  "admin.paidInclDelivery": "مدفوع شامل التوصيل",
   "admin.pattyPrepTitle": "ملخص الأقراص للتحضير (برجر)",
   "admin.pattyPrepLine": "{n}× قطعة {g} غ",
   "admin.pattyPrep600Note":
