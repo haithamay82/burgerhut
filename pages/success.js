@@ -93,6 +93,15 @@ function couponCreateAmountFromCardOrder(cardOrder) {
   return Number(cardOrder.amount) || 0;
 }
 
+/** שם פרטי לברכת «היי» במסך הצלחה */
+function greetingNameFromCustomer(customer) {
+  const fn = String(customer?.firstName || "").trim();
+  if (fn) return fn;
+  const full = String(customer?.name || "").trim();
+  if (!full) return "";
+  return full.split(/\s+/)[0] || "";
+}
+
 export default function SuccessPage() {
   const router = useRouter();
   const { t, locale } = useLocale();
@@ -155,6 +164,7 @@ export default function SuccessPage() {
   const [customerCancelSecret, setCustomerCancelSecret] = useState(null);
   const [cancelOrderId, setCancelOrderId] = useState(null);
   const [fulfillmentStatus, setFulfillmentStatus] = useState(null);
+  const [customerGreetingName, setCustomerGreetingName] = useState("");
 
   /** אשראי: שחרור הזמנה לניהול פעם אחת רק אחרי Hyp CCode=0 */
   useEffect(() => {
@@ -295,6 +305,10 @@ export default function SuccessPage() {
               String(restored.customerCancelSecret).trim()
             );
           }
+          {
+            const greet = String(restored.customerFirstName || "").trim();
+            if (greet) setCustomerGreetingName(greet);
+          }
           if (
             restored.cardOrder?.orderId != null &&
             String(restored.cardOrder.orderId).trim() !== ""
@@ -428,6 +442,10 @@ export default function SuccessPage() {
       }
       setCardWaUrl(url);
       setCardOrder(nextCardOrder);
+      {
+        const greet = greetingNameFromCustomer(snap.customer);
+        if (greet) setCustomerGreetingName(greet);
+      }
       if (snap.orderRowId && snap.adminPushConfirmSecret) {
         const onum =
           snapOrderNum != null && String(snapOrderNum).trim() !== ""
@@ -462,6 +480,7 @@ export default function SuccessPage() {
         const deferredCouponCode = String(snap.customer?.couponCode || "")
           .trim()
           .toUpperCase();
+        const greetName = greetingNameFromCustomer(snap.customer);
         writeSuccessWaRestore({
           matchKey: buildMatchKey(),
           waUrl: url,
@@ -477,6 +496,7 @@ export default function SuccessPage() {
           adminPushOrderNumber: snapOrderNum ?? undefined,
           adminPushConfirmSecret: snap.adminPushConfirmSecret,
           customerCancelSecret: snapCancelSecret || undefined,
+          customerFirstName: greetName || undefined,
         });
         if (methodStr === "cash" || methodStr === "bit") {
           try {
@@ -1014,6 +1034,14 @@ export default function SuccessPage() {
           <div className="mb-4 flex w-full max-w-md flex-col items-center gap-4 px-3 text-center">
             {showCardWaHeadlineCopy ? (
               <div className="w-full space-y-2">
+                {customerGreetingName ? (
+                  <p className="text-lg font-bold text-primary sm:text-xl">
+                    {t("success.hiName").replace(
+                      "{name}",
+                      customerGreetingName
+                    )}
+                  </p>
+                ) : null}
                 <h2 className="text-xl font-extrabold leading-snug text-white sm:text-2xl">
                   {t("success.waCardHeadline")}
                 </h2>
@@ -1023,6 +1051,14 @@ export default function SuccessPage() {
               </div>
             ) : showCashWaHeadlineCopy ? (
               <div className="w-full space-y-2">
+                {customerGreetingName ? (
+                  <p className="text-lg font-bold text-primary sm:text-xl">
+                    {t("success.hiName").replace(
+                      "{name}",
+                      customerGreetingName
+                    )}
+                  </p>
+                ) : null}
                 <h2 className="text-xl font-extrabold leading-snug text-white sm:text-2xl">
                   {t("success.waCashHeadline")}
                 </h2>
