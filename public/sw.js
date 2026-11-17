@@ -136,10 +136,13 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const raw = event.notification.data && event.notification.data.url;
-  const path =
+  let path =
     typeof raw === "string" && raw.startsWith("/") && !raw.startsWith("//")
       ? raw
-      : "/";
+      : "/admin/orders?kitchenRing=1";
+  if (path.startsWith("/admin/orders") && !path.includes("kitchenRing=")) {
+    path += path.includes("?") ? "&kitchenRing=1" : "?kitchenRing=1";
+  }
   const targetUrl = new URL(path, self.location.origin).href;
   event.waitUntil(
     (async () => {
@@ -152,15 +155,16 @@ self.addEventListener("notificationclick", (event) => {
           const href = String(client.url || "");
           if (href.startsWith(self.location.origin)) {
             if (client.focus) await client.focus();
-            if (client.navigate && !href.includes("/admin/orders")) {
-              try {
-                await client.navigate(targetUrl);
-              } catch {
-                /* ignore */
-              }
+            try {
+              if (client.navigate) await client.navigate(targetUrl);
+            } catch {
+              /* ignore */
             }
             try {
-              client.postMessage({ type: "bh-admin-pending-ring" });
+              client.postMessage({
+                type: "bh-admin-pending-ring",
+                force: true,
+              });
             } catch {
               /* ignore */
             }

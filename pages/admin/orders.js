@@ -194,7 +194,7 @@ async function showAdminSystemAlert({
     icon: "/logo-burger-hut.png",
     badge: "/logo-burger-hut.png",
     tag: String(tag || `bh-admin-${Date.now()}`),
-    data: { url: "/admin/orders" },
+    data: { url: "/admin/orders?kitchenRing=1" },
     silent: false,
     renotify: Boolean(renotify),
     requireInteraction: Boolean(requireInteraction),
@@ -1898,23 +1898,42 @@ export default function AdminOrdersPage() {
     };
   }, [loaded, adminClientReady, secret, notifyPermissionNonce, refreshAdminPushServerStatus]);
 
-  /** צלצול מתמשך כל עוד יש הזמנה ממתינה + הודעות מה־SW */
+  const ordersRef = useRef(orders);
   useEffect(() => {
-    if (!loaded || typeof window === "undefined") return;
-    const hasPending = (Array.isArray(orders) ? orders : []).some(
+    ordersRef.current = orders;
+  }, [orders]);
+
+  const listHasPendingAccept = useCallback((list) => {
+    return (Array.isArray(list) ? list : []).some(
       (o) => resolveFulfillment(o).status === "pending"
     );
-    syncAdminPendingRing(hasPending);
-    return () => {
-      /* keep ringing across re-renders; stop only when no pending or logout */
-    };
-  }, [loaded, orders]);
+  }, []);
 
+  /** צלצול מתמשך כל עוד יש הזמנה ממתינה */
   useEffect(() => {
-    if (!loaded) {
+    if (!loaded || typeof window === "undefined") {
       stopAdminPendingRing();
+      return;
     }
-  }, [loaded]);
+    syncAdminPendingRing(listHasPendingAccept(orders));
+  }, [loaded, orders, listHasPendingAccept]);
+
+  /** פתיחה מהתראה (אפליקציה הייתה סגורה) — התחלת צלצול מיד */
+  useEffect(() => {
+    if (!router.isReady || typeof window === "undefined") return;
+    const q = router.query?.kitchenRing;
+    const want =
+      q === "1" || q === "true" || (Array.isArray(q) && q[0] === "1");
+    if (!want) return;
+    void unlockAdminPendingRing().then(() => startAdminPendingRing());
+    const nextQuery = { ...router.query };
+    delete nextQuery.kitchenRing;
+    void router.replace(
+      { pathname: router.pathname, query: nextQuery },
+      undefined,
+      { shallow: true }
+    );
+  }, [router.isReady, router.query, router.pathname, router]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
@@ -1923,7 +1942,16 @@ export default function AdminOrdersPage() {
     const onMsg = (event) => {
       const type = event?.data?.type;
       if (type === "bh-admin-pending-ring") {
-        void unlockAdminPendingRing().then(() => startAdminPendingRing());
+        const force = Boolean(event?.data?.force);
+        const hasPending = listHasPendingAccept(ordersRef.current);
+        if (force || hasPending) {
+          void unlockAdminPendingRing().then(() => {
+            if (force || listHasPendingAccept(ordersRef.current)) {
+              startAdminPendingRing();
+            }
+          });
+        }
+        // After orders refresh, effect will stop ring if nothing pending.
       }
       if (type === "bh-admin-push-resubscribe") {
         const s = secret.trim();
@@ -1941,7 +1969,7 @@ export default function AdminOrdersPage() {
     return () => {
       navigator.serviceWorker.removeEventListener("message", onMsg);
     };
-  }, [secret, refreshAdminPushServerStatus]);
+  }, [secret, refreshAdminPushServerStatus, listHasPendingAccept]);
 
   const runAdminPushTest = async () => {
     const s = secret.trim();
@@ -2079,6 +2107,7 @@ export default function AdminOrdersPage() {
           });
           // Fallback only when system notifications are blocked.
           if (!shown) playAdminNewOrderBeep();
+          syncAdminPendingRing(listHasPendingAccept(list));
         }
 
         const nowMs = Date.now();
@@ -5380,21 +5409,35 @@ export default function AdminOrdersPage() {
                                   onIdle={() => setCompletingId(null)}
                                   onError={setError}
                                   onUpdated={(nextOrder) => {
-                                    setOrders((prev) =>
-                                      prev.map((row) =>
+                                    setOrders((prev) => {
+                                      const next = prev.map((row) =>
                                         row.id === nextOrder.id
                                           ? {
                                               ...row,
                                               ...nextOrder,
                                               meta:
-                                                nextOrder.meta || row.meta || {},
+                                                nextOrder.meta &&
+                                                typeof nextOrder.meta ===
+                                                  "object"
+                                                  ? nextOrder.meta
+                                                  : row.meta || {},
                                               fulfillment:
-                                                nextOrder.fulfillment ||
-                                                row.fulfillment,
+                                                nextOrder.fulfillment &&
+                                                typeof nextOrder.fulfillment ===
+                                                  "object"
+                                                  ? nextOrder.fulfillment
+                                                  : row.fulfillment,
                                             }
                                           : row
-                                      )
-                                    );
+                                      );
+                                      // Stop ring immediately on accept/reject/cancel.
+                                      queueMicrotask(() => {
+                                        syncAdminPendingRing(
+                                          listHasPendingAccept(next)
+                                        );
+                                      });
+                                      return next;
+                                    });
                                   }}
                                 />
                               </div>

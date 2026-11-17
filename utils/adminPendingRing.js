@@ -1,12 +1,15 @@
 /**
  * Continuous phone-like ring while kitchen has pending accept/reject.
- * Works only while the PWA/page can play audio (not when fully killed).
+ * Audio can only play while the PWA/page is allowed to use sound
+ * (open app, or right after the user opens a notification).
  */
 
 let audioCtx = null;
 let ringing = false;
 let burstTimer = null;
 let activeNodes = [];
+/** Bumps on every start/stop to invalidate in-flight resume/timeouts. */
+let ringGeneration = 0;
 
 function getCtx() {
   if (typeof window === "undefined") return null;
@@ -36,7 +39,6 @@ function stopNodes() {
 
 function playRingBurst(ctx) {
   const now = ctx.currentTime;
-  // Classic dual-tone ring: ~2s on
   const freqs = [440, 480];
   const duration = 2.0;
   for (const hz of freqs) {
@@ -56,16 +58,17 @@ function playRingBurst(ctx) {
   }
 }
 
-function scheduleNextBurst() {
-  if (!ringing) return;
+function scheduleNextBurst(generation) {
+  if (!ringing || generation !== ringGeneration) return;
   const ctx = getCtx();
   if (!ctx) return;
   const run = () => {
-    if (!ringing) return;
+    if (!ringing || generation !== ringGeneration) return;
     stopNodes();
     playRingBurst(ctx);
-    // ~2s ring + ~2s silence = urgent kitchen cadence
-    burstTimer = window.setTimeout(scheduleNextBurst, 4000);
+    burstTimer = window.setTimeout(() => {
+      scheduleNextBurst(generation);
+    }, 4000);
   };
   if (ctx.state === "suspended") {
     void ctx.resume().then(run).catch(() => {});
@@ -74,7 +77,7 @@ function scheduleNextBurst() {
   }
 }
 
-/** Unlock audio on a user gesture (Enable notifications / first tap). */
+/** Unlock audio on a user gesture (notification tap / Enable notifications). */
 export async function unlockAdminPendingRing() {
   const ctx = getCtx();
   if (!ctx) return false;
@@ -94,7 +97,8 @@ export function startAdminPendingRing() {
   if (typeof window === "undefined") return;
   if (ringing) return;
   ringing = true;
-  scheduleNextBurst();
+  const generation = ++ringGeneration;
+  scheduleNextBurst(generation);
   try {
     if (navigator.vibrate) {
       navigator.vibrate([400, 200, 400, 200, 400]);
@@ -106,6 +110,7 @@ export function startAdminPendingRing() {
 
 export function stopAdminPendingRing() {
   ringing = false;
+  ringGeneration += 1;
   if (burstTimer) {
     window.clearTimeout(burstTimer);
     burstTimer = null;
