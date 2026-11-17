@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
+import OrderItemsDetailList from "@/components/OrderItemsDetailList";
+import { useLocale } from "@/contexts/LocaleContext";
 import {
   clearActiveOrderResume,
   isOpenFulfillmentStatus,
@@ -53,6 +55,9 @@ export default function OrderFulfillmentCustomer({
   );
   const [cancelBusy, setCancelBusy] = useState(false);
   const [cancelErr, setCancelErr] = useState("");
+  const [orderItems, setOrderItems] = useState([]);
+  const [orderTotal, setOrderTotal] = useState(null);
+  const { locale } = useLocale();
 
   const on = String(orderNumber ?? "").trim();
   const secret =
@@ -102,6 +107,8 @@ export default function OrderFulfillmentCustomer({
         clearActiveOrderResume();
         setGone(true);
         setFulfillment(null);
+        setOrderItems([]);
+        setOrderTotal(null);
         setCanCancel(false);
         setCancelEndsAtMs(null);
         setErr("");
@@ -116,6 +123,11 @@ export default function OrderFulfillmentCustomer({
       setErr("");
       const f = d.fulfillment || null;
       setFulfillment(f);
+      setOrderItems(Array.isArray(d.items) ? d.items : []);
+      {
+        const tot = Number(d.total);
+        setOrderTotal(Number.isFinite(tot) ? tot : null);
+      }
       setCanCancel(Boolean(d.canCancel));
       const ends = d.cancelEndsAt ? Date.parse(String(d.cancelEndsAt)) : NaN;
       setCancelEndsAtMs(Number.isFinite(ends) ? ends : null);
@@ -264,9 +276,12 @@ export default function OrderFulfillmentCustomer({
     canCancel &&
     cancelRemainMs > 0;
 
+  const showOrderDetails =
+    !gone && Array.isArray(orderItems) && orderItems.length > 0;
+
   return (
     <div
-      className={`w-full max-w-xs rounded-2xl border border-slate-700 bg-slate-900/70 p-3 text-center ${className}`}
+      className={`w-full max-w-sm rounded-2xl border border-slate-700 bg-slate-900/70 p-3 text-center ${className}`}
       dir="rtl"
     >
       <p className="text-[11px] font-semibold text-gray-400">
@@ -334,6 +349,26 @@ export default function OrderFulfillmentCustomer({
                 String(resolved.prepMinutes)
               )}
             </p>
+          ) : null}
+          {showOrderDetails ? (
+            <div className="mt-3 space-y-2 border-t border-slate-700/80 pt-3 text-right">
+              <p className="text-[11px] font-semibold text-gray-400">
+                {t("orderStatus.orderDetailsTitle")}
+              </p>
+              <OrderItemsDetailList
+                items={orderItems}
+                t={t}
+                locale={locale}
+              />
+              {orderTotal != null ? (
+                <p className="text-[12px] font-bold text-amber-200/95">
+                  {t("orderStatus.orderTotal").replace(
+                    "{total}",
+                    Number(orderTotal).toFixed(2)
+                  )}
+                </p>
+              ) : null}
+            </div>
           ) : null}
         </>
       ) : (

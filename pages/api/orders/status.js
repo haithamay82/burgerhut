@@ -64,6 +64,8 @@ export default async function handler(req, res) {
 
   const fulfillment = resolveFulfillment(order);
   const cancelEndsAtMs = getCustomerCancelEndsAtMs(order);
+  const items = Array.isArray(order.items) ? order.items : [];
+  const totalRaw = Number(order.total);
   return res.status(200).json({
     ok: true,
     orderNumber: order.orderNumber,
@@ -73,6 +75,8 @@ export default async function handler(req, res) {
     canCancel: canCustomerCancelOrder(order),
     cancelEndsAt:
       cancelEndsAtMs != null ? new Date(cancelEndsAtMs).toISOString() : null,
+    items,
+    total: Number.isFinite(totalRaw) ? totalRaw : null,
     fulfillment: {
       status: fulfillment.status,
       prepMinutes: fulfillment.prepMinutes,

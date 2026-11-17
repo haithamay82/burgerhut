@@ -1067,6 +1067,8 @@ const HE = {
   "orderStatus.pendingWaiting": "· {time}",
   "orderStatus.pendingAcceptHint":
     "זמן קבלת הזמנה עד דקה, אם חרגנו מהזמן אפשר לפנות בווטסאפ.",
+  "orderStatus.orderDetailsTitle": "פרטי ההזמנה",
+  "orderStatus.orderTotal": "סה״כ: ₪{total}",
   "orderStatus.preparing": "בהכנה",
   "orderStatus.ready": "מוכנה",
   "orderStatus.delivered": "נמסרה",
@@ -2400,6 +2402,8 @@ const AR = {
   "orderStatus.pendingWaiting": "· {time}",
   "orderStatus.pendingAcceptHint":
     "وقت قبول الطلب حتى دقيقة، إذا تجاوزنا الوقت يمكن التواصل عبر واتساب.",
+  "orderStatus.orderDetailsTitle": "تفاصيل الطلب",
+  "orderStatus.orderTotal": "المجموع: ₪{total}",
   "orderStatus.preparing": "قيد التحضير",
   "orderStatus.ready": "جاهزة",
   "orderStatus.delivered": "تم التسليم",
