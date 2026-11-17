@@ -35,6 +35,17 @@ function isCustomerPushPayload(data) {
   );
 }
 
+function isAdminNewOrderPayload(data, tag) {
+  if (data.kind === "new_order") return true;
+  if (data.kind === "pending_accept_reminder") return false;
+  return (
+    tag.startsWith("bh-order-") &&
+    !tag.startsWith("bh-order-pending-reminder") &&
+    !tag.startsWith("bh-order-cancel-") &&
+    !tag.startsWith("bh-emp-hours-")
+  );
+}
+
 self.addEventListener("push", (event) => {
   let data = {
     title: "הזמנה חדשה — Burger Hut",
@@ -66,25 +77,59 @@ self.addEventListener("push", (event) => {
   }
   const defaultUrl = customer ? "/" : "/admin/orders";
   const openUrl =
-    typeof data.url === "string" && data.url.startsWith("/") && !data.url.startsWith("//")
+    typeof data.url === "string" &&
+    data.url.startsWith("/") &&
+    !data.url.startsWith("//")
       ? data.url
       : defaultUrl;
   const tag = String(data.tag || (customer ? "bh-customer" : "bh-order"));
   const pendingRemind =
     data.kind === "pending_accept_reminder" ||
     tag.startsWith("bh-order-pending-reminder");
+  const adminNewOrder = !customer && isAdminNewOrderPayload(data, tag);
+  const vibrate =
+    Array.isArray(data.vibrate) && data.vibrate.length
+      ? data.vibrate
+      : adminNewOrder || pendingRemind
+        ? [300, 120, 300, 120, 500]
+        : undefined;
+
   event.waitUntil(
-    self.registration.showNotification(data.title, {
-      body: data.body,
-      icon: "/logo-burger-hut.png",
-      badge: "/logo-burger-hut.png",
-      tag,
-      data: { url: openUrl },
-      silent: false,
-      // לקוח / תזכורת ממתינה — להשמיע שוב גם אם התג זהה
-      renotify: customer || pendingRemind || Boolean(data.renotify),
-      requireInteraction: pendingRemind,
-    })
+    (async () => {
+      await self.registration.showNotification(data.title, {
+        body: data.body,
+        icon: "/logo-burger-hut.png",
+        badge: "/logo-burger-hut.png",
+        tag,
+        data: { url: openUrl, kind: data.kind || "" },
+        silent: false,
+        renotify:
+          customer ||
+          pendingRemind ||
+          adminNewOrder ||
+          Boolean(data.renotify),
+        requireInteraction:
+          pendingRemind || adminNewOrder || Boolean(data.requireInteraction),
+        ...(vibrate ? { vibrate } : {}),
+      });
+      if (adminNewOrder || pendingRemind) {
+        const list = await self.clients.matchAll({
+          type: "window",
+          includeUncontrolled: true,
+        });
+        for (const client of list) {
+          try {
+            client.postMessage({
+              type: "bh-admin-pending-ring",
+              kind: pendingRemind ? "reminder" : "new_order",
+              url: openUrl,
+            });
+          } catch {
+            /* ignore */
+          }
+        }
+      }
+    })()
   );
 });
 
@@ -98,8 +143,53 @@ self.addEventListener("notificationclick", (event) => {
   const targetUrl = new URL(path, self.location.origin).href;
   event.waitUntil(
     (async () => {
+      const list = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+      for (const client of list) {
+        try {
+          const href = String(client.url || "");
+          if (href.startsWith(self.location.origin)) {
+            if (client.focus) await client.focus();
+            if (client.navigate && !href.includes("/admin/orders")) {
+              try {
+                await client.navigate(targetUrl);
+              } catch {
+                /* ignore */
+              }
+            }
+            try {
+              client.postMessage({ type: "bh-admin-pending-ring" });
+            } catch {
+              /* ignore */
+            }
+            return;
+          }
+        } catch {
+          /* ignore */
+        }
+      }
       if (self.clients.openWindow) {
         await self.clients.openWindow(targetUrl);
+      }
+    })()
+  );
+});
+
+self.addEventListener("pushsubscriptionchange", (event) => {
+  event.waitUntil(
+    (async () => {
+      const list = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+      for (const client of list) {
+        try {
+          client.postMessage({ type: "bh-admin-push-resubscribe" });
+        } catch {
+          /* ignore */
+        }
       }
     })()
   );

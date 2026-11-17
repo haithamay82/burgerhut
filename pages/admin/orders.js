@@ -70,6 +70,13 @@ import {
   syncAdminWebPushToServer,
   unsubscribeAdminWebPush,
 } from "@/utils/adminPushClient";
+import {
+  startAdminPendingRing,
+  stopAdminPendingRing,
+  syncAdminPendingRing,
+  unlockAdminPendingRing,
+} from "@/utils/adminPendingRing";
+import { customerPushRequiresInstalledPwa } from "@/utils/pwaDisplay";
 import html2canvas from "html2canvas";
 import AdminMenuExportSheet from "@/components/AdminMenuExportSheet";
 import OrderFulfillmentControls from "@/components/OrderFulfillmentControls";
@@ -1455,6 +1462,7 @@ export default function AdminOrdersPage() {
     adminSessionHydratedRef.current = false;
     ordersKnownIdsRef.current = new Set();
     adminOrdersNotifySinceRef.current = 0;
+    stopAdminPendingRing();
     setAdminRole("admin");
     setSecret("");
     setError("");
@@ -1864,7 +1872,7 @@ export default function AdminOrdersPage() {
     };
   }, [loaded, adminClientReady, notifyPermissionNonce]);
 
-  /** סנכרון מנוי Push מקומי לשרת בכל טעינת ניהול — מונע «ירוק» מקומי בלי מנוי בשרת */
+  /** סנכרון / רישום Push אוטומטי — חובה להתראות כשהאפליקציה סגורה */
   useEffect(() => {
     if (!loaded || !adminClientReady || typeof window === "undefined") return;
     if (Notification.permission !== "granted") return;
@@ -1873,7 +1881,15 @@ export default function AdminOrdersPage() {
     let cancelled = false;
     void (async () => {
       const local = await getAdminLocalPushSubscribed();
-      if (!local || cancelled) return;
+      if (cancelled) return;
+      if (!local) {
+        const sub = await subscribeAdminWebPush(s);
+        if (!cancelled && sub.ok) {
+          setAdminLocalPushSubscribed(true);
+          void refreshAdminPushServerStatus();
+        }
+        return;
+      }
       const r = await syncAdminWebPushToServer(s);
       if (!cancelled && r.ok) void refreshAdminPushServerStatus();
     })();
@@ -1881,6 +1897,51 @@ export default function AdminOrdersPage() {
       cancelled = true;
     };
   }, [loaded, adminClientReady, secret, notifyPermissionNonce, refreshAdminPushServerStatus]);
+
+  /** צלצול מתמשך כל עוד יש הזמנה ממתינה + הודעות מה־SW */
+  useEffect(() => {
+    if (!loaded || typeof window === "undefined") return;
+    const hasPending = (Array.isArray(orders) ? orders : []).some(
+      (o) => resolveFulfillment(o).status === "pending"
+    );
+    syncAdminPendingRing(hasPending);
+    return () => {
+      /* keep ringing across re-renders; stop only when no pending or logout */
+    };
+  }, [loaded, orders]);
+
+  useEffect(() => {
+    if (!loaded) {
+      stopAdminPendingRing();
+    }
+  }, [loaded]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
+      return;
+    }
+    const onMsg = (event) => {
+      const type = event?.data?.type;
+      if (type === "bh-admin-pending-ring") {
+        void unlockAdminPendingRing().then(() => startAdminPendingRing());
+      }
+      if (type === "bh-admin-push-resubscribe") {
+        const s = secret.trim();
+        if (s && Notification.permission === "granted") {
+          void subscribeAdminWebPush(s).then((r) => {
+            if (r.ok) {
+              setAdminLocalPushSubscribed(true);
+              void refreshAdminPushServerStatus();
+            }
+          });
+        }
+      }
+    };
+    navigator.serviceWorker.addEventListener("message", onMsg);
+    return () => {
+      navigator.serviceWorker.removeEventListener("message", onMsg);
+    };
+  }, [secret, refreshAdminPushServerStatus]);
 
   const runAdminPushTest = async () => {
     const s = secret.trim();
@@ -1996,6 +2057,7 @@ export default function AdminOrdersPage() {
             : [];
         if (newRows.length > 0) {
           vibrateAdminNewOrder();
+          void unlockAdminPendingRing().then(() => startAdminPendingRing());
           const title = t("admin.newOrderNotifyTitle");
           const body =
             newRows.length === 1
@@ -2013,6 +2075,7 @@ export default function AdminOrdersPage() {
             body,
             tag: num ? `bh-order-${num}` : `bh-order-${Date.now()}`,
             renotify: true,
+            requireInteraction: true,
           });
           // Fallback only when system notifications are blocked.
           if (!shown) playAdminNewOrderBeep();
@@ -2054,6 +2117,7 @@ export default function AdminOrdersPage() {
         }
         if (pendingRemindLocal > 0) {
           vibrateAdminPendingAcceptReminder();
+          void unlockAdminPendingRing().then(() => startAdminPendingRing());
           const shownRemind = await showAdminSystemAlert({
             title: t("admin.pendingAcceptRemindTitle"),
             body: t("admin.pendingAcceptRemindLocalBody").replace(
@@ -3180,6 +3244,13 @@ export default function AdminOrdersPage() {
                   ? t("admin.employeeAutoRefreshHint")
                   : t("admin.newOrderAutoRefreshHint")}
               </p>
+              {adminClientReady &&
+              typeof Notification !== "undefined" &&
+              customerPushRequiresInstalledPwa() ? (
+                <div className="mb-4 rounded-xl border border-amber-700/45 bg-amber-950/35 px-3 py-2.5 text-xs text-amber-100">
+                  <p className="leading-snug">{t("admin.pushIosPwaRequired")}</p>
+                </div>
+              ) : null}
               {adminClientReady && typeof Notification !== "undefined" ? (
                 <>
                   {Notification.permission === "default" ? (
@@ -3192,6 +3263,7 @@ export default function AdminOrdersPage() {
                         className="rounded-lg border border-amber-500/60 bg-amber-900/40 px-3 py-1.5 text-[11px] font-semibold text-amber-50 hover:bg-amber-900/55"
                         onClick={async () => {
                           setAdminPushMsg("");
+                          void unlockAdminPendingRing();
                           try {
                             await Notification.requestPermission();
                           } catch {
@@ -3269,6 +3341,9 @@ export default function AdminOrdersPage() {
                       </button>
                       <p className="mt-2 leading-snug text-emerald-100/75">
                         {t("admin.pushPerDeviceHint")}
+                      </p>
+                      <p className="mt-1.5 leading-snug text-emerald-100/70">
+                        {t("admin.pendingRingHint")}
                       </p>
                       {adminLocalPushSubscribed === true &&
                       adminPushServerStatus &&

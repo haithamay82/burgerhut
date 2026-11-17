@@ -102,18 +102,13 @@ export async function subscribeAdminWebPush(adminSecret) {
 
   try {
     const reg = await navigator.serviceWorker.ready;
-    const existing = await reg.pushManager.getSubscription();
-    if (existing) {
-      try {
-        await existing.unsubscribe();
-      } catch {
-        /* ignore */
-      }
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(String(rj.publicKey)),
+      });
     }
-    const sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(String(rj.publicKey)),
-    });
     const pushClientId = getOrCreateAdminPushDeviceId();
     if (!isValidPushClientId(pushClientId)) {
       return { ok: false, error: "no_push_client_id" };
@@ -131,6 +126,32 @@ export async function subscribeAdminWebPush(adminSecret) {
     });
     const d = await r.json().catch(() => ({}));
     if (!r.ok || !d.ok) {
+      // If key rotated, resubscribe once with a fresh subscription.
+      if (existingNeedsResubscribe(d.error)) {
+        try {
+          await sub.unsubscribe();
+        } catch {
+          /* ignore */
+        }
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(String(rj.publicKey)),
+        });
+        const r2 = await fetch("/api/admin/push/subscribe", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-secret": secret,
+          },
+          body: JSON.stringify({
+            subscription: sub.toJSON(),
+            pushClientId,
+          }),
+        });
+        const d2 = await r2.json().catch(() => ({}));
+        if (r2.ok && d2.ok) return { ok: true };
+        return { ok: false, error: d2.error || "subscribe_failed" };
+      }
       if (d.error === "redis_not_configured") {
         return { ok: false, error: "redis_not_configured" };
       }
@@ -139,10 +160,24 @@ export async function subscribeAdminWebPush(adminSecret) {
       }
       return { ok: false, error: d.error || "subscribe_failed" };
     }
+    try {
+      window.localStorage.setItem("bh_admin_vapid_pub", String(rj.publicKey));
+    } catch {
+      /* ignore */
+    }
     return { ok: true };
   } catch {
     return { ok: false, error: "subscribe_failed" };
   }
+}
+
+function existingNeedsResubscribe(error) {
+  const e = String(error || "");
+  return (
+    e === "invalid_subscription" ||
+    e === "vapid_mismatch" ||
+    e === "subscribe_failed"
+  );
 }
 
 /**
