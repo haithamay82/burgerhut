@@ -39,7 +39,6 @@ export default function BitPayPage() {
   const [isSendingWa, setIsSendingWa] = useState(false);
   /** יש הזמנה ממתינה עם פריטים — בלוק המשך למסך הצלחה */
   const [waPendingOk, setWaPendingOk] = useState(false);
-  const [bitOrderNumber, setBitOrderNumber] = useState(null);
   const [bitPaidConfirmed, setBitPaidConfirmed] = useState(false);
 
   useEffect(() => {
@@ -47,30 +46,23 @@ export default function BitPayPage() {
     const raw = window.sessionStorage.getItem(PENDING_ORDER_KEY);
     if (!raw) {
       setWaPendingOk(false);
-      setBitOrderNumber(null);
       return;
     }
     try {
       const p = JSON.parse(raw);
       if (!Array.isArray(p?.items) || !p.items.length) {
         setWaPendingOk(false);
-        setBitOrderNumber(null);
         return;
       }
-      const on = p.orderNumber;
       setWaPendingOk(true);
-      setBitOrderNumber(
-        on != null && on !== "" ? String(on).trim() : null
-      );
     } catch {
       setWaPendingOk(false);
-      setBitOrderNumber(null);
     }
   }, [router.isReady]);
 
   useEffect(() => {
     setBitPaidConfirmed(false);
-  }, [bitOrderNumber]);
+  }, [waPendingOk]);
 
   const phone = useMemo(() => normalizeIsraeliPhone(to || "0504847599"), [to]);
   const total = useMemo(() => String(amount || ""), [amount]);
@@ -226,14 +218,6 @@ export default function BitPayPage() {
 
       <section className="card space-y-3 p-3">
         <div className="space-y-3 rounded-xl border border-bh-border bg-bh-card p-3">
-          {bitOrderNumber ? (
-            <p className="text-sm font-semibold text-primary">
-              {t("bit.payForOrderLine").replace(
-                "{orderNumber}",
-                bitOrderNumber
-              )}
-            </p>
-          ) : null}
           <p className="whitespace-pre-line text-sm leading-relaxed text-bh-text">
             {t("bit.payIntro").replace(/\{amount\}/g, total || "—")}
           </p>

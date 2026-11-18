@@ -87,7 +87,7 @@ export default function FoodRatingReminder() {
           onSkip={later}
         />
         <p className="mt-2 text-center text-[10px] text-gray-500">
-          {t("rating.reminderHint").replace("{order}", orderNumber)}
+          {t("rating.reminderHint")}
         </p>
       </div>
     </div>,

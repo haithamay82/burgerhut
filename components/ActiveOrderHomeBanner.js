@@ -69,7 +69,7 @@ export default function ActiveOrderHomeBanner() {
         {t("success.resumeBannerTitle")}
       </p>
       <p className="mt-1 text-xs text-gray-400">
-        {t("success.resumeBannerHint").replace("{order}", `#${active.orderNumber}`)}
+        {t("success.resumeBannerHint")}
       </p>
       {status ? (
         <div

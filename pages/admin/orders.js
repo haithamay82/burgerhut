@@ -239,12 +239,9 @@ function vibrateAdminPendingAcceptReminder() {
   }
 }
 
-/** התאמה ל־Web Push: מס׳ הזמנה, קופון, ורשימת פריטים 1,2,… כמו בווטסאפ */
+/** התאמה ל־Web Push: קופון ורשימת פריטים 1,2,… כמו בווטסאפ (בלי מס׳ הזמנה בתצוגה) */
 function buildAdminDesktopNewOrderBody(t, order, locale = "he") {
-  const n = String(order?.orderNumber ?? "").trim();
-  let body = n
-    ? t("admin.newOrderNotifyBodyOne").replace("{n}", n)
-    : t("admin.newOrderNotifyBodyNoNum");
+  let body = t("admin.newOrderNotifyBodyNoNum");
   const disc = Number(order?.customer?.couponDiscountNis);
   const code = String(order?.customer?.couponCode || "").trim().toUpperCase();
   if (Number.isFinite(disc) && disc > 0) {
@@ -311,19 +308,6 @@ function couponDisplayStatus(c, nowTs) {
   if (expired) return "expired";
   if (Boolean(c.used)) return "used";
   return "unused";
-}
-
-/** מספר הזמנה שעליו חושב הקופון — לתצוגת מנהל בלבד */
-function couponRewardSourceOrderDisplay(c) {
-  const explicit = String(c.sourceOrderNumber || "").trim();
-  if (explicit) return explicit;
-  const oid = String(c.orderId || "").trim();
-  if (/^\d+$/.test(oid)) return oid;
-  return "";
-}
-
-function couponRedemptionOrderDisplay(c) {
-  return String(c.usedByOrderNumber ?? "").trim();
 }
 
 function orderDeliveryFeeNis(o) {
@@ -4770,7 +4754,6 @@ export default function AdminOrdersPage() {
                             Number(c.expiresAt) > 0 &&
                             Number(c.expiresAt) < nowTs;
                           const used = Boolean(c.used);
-                          const redemptionOrder = couponRedemptionOrderDisplay(c);
                           const badge = expired
                             ? {
                                 label: t("admin.couponExpired"),
@@ -4817,15 +4800,6 @@ export default function AdminOrdersPage() {
                                     {t("admin.couponExpiresAt")}:{" "}
                                     {formatCouponDateTime(c.expiresAt, locale)}
                                   </p>
-                                  {couponRewardSourceOrderDisplay(c) ? (
-                                    <p className="text-[11px] text-slate-400">
-                                      {t("admin.couponRewardFromOrder")}{" "}
-                                      <span className="font-semibold text-gray-300">
-                                        #
-                                        {couponRewardSourceOrderDisplay(c)}
-                                      </span>
-                                    </p>
-                                  ) : null}
                                   {used ? (
                                     <div className="space-y-1 border-t border-slate-800/80 pt-1.5 text-[11px] text-amber-200/90">
                                       <p className="font-semibold text-amber-100/95">
@@ -4844,14 +4818,6 @@ export default function AdminOrdersPage() {
                                           {t("admin.couponUsedAtUnknown")}
                                         </p>
                                       )}
-                                      <p>
-                                        {t("admin.couponRedeemedOrderNumber")}:{" "}
-                                        <span className="font-semibold text-amber-100">
-                                          {redemptionOrder
-                                            ? `#${redemptionOrder}`
-                                            : `— (${t("admin.couponRedeemedOrderUnknown")})`}
-                                        </span>
-                                      </p>
                                     </div>
                                   ) : null}
                                 </div>
@@ -5105,11 +5071,6 @@ export default function AdminOrdersPage() {
                                       ? t("admin.ratingsTypeOrder")
                                       : t("admin.ratingsTypeGuest")}
                                   </span>
-                                  {row.orderNumber ? (
-                                    <span className="text-[11px] text-gray-500">
-                                      #{row.orderNumber}
-                                    </span>
-                                  ) : null}
                                 </div>
                                 <p className="text-sm text-amber-300">
                                   {"★".repeat(Math.max(0, Number(row.stars) || 0))}
@@ -5538,9 +5499,6 @@ export default function AdminOrdersPage() {
                                 />
                               </div>
                               <div className="text-right">
-                                <p className="text-xs font-semibold text-primary">
-                                  #{o.orderNumber ?? "—"}
-                                </p>
                                 <p className="text-xs text-gray-500">
                                   {formatTime(o.createdAt, locale)}
                                 </p>

@@ -145,7 +145,7 @@ const HE = {
   "rating.siteSendBtn": "שלח",
   "rating.siteAfterTasteBtn": "אחרי שאטעם",
   "rating.siteNeverBtn": "אל תציג שוב",
-  "rating.reminderHint": "הזמנה #{order}",
+  "rating.reminderHint": "נשמח לשמוע איך הייתה ההזמנה",
   "pwa.confirmTitle": "להוסיף את Burger Hut למסך הבית?",
   "pwa.confirmBody":
     "בלחיצה אחת תקבלו אייקון בטלפון — הזמנה מהירה יותר בלי לחפש שוב את האתר.",
@@ -660,7 +660,7 @@ const HE = {
   "success.resumeBackHome": "חזרה לתפריט",
   "success.resumeLoading": "טוען את הזמנתך…",
   "success.resumeBannerTitle": "יש לך הזמנה בתהליך",
-  "success.resumeBannerHint": "הזמנה {order} — אפשר לפתוח מעקב או להמשיך לגלוש בתפריט",
+  "success.resumeBannerHint": "אפשר לפתוח מעקב או להמשיך לגלוש בתפריט",
   "success.resumeBannerOpen": "צפה בסטטוס ההזמנה",
   "orderStatus.cancelled": "בוטלה",
   "orderStatus.cancelOrder": "בטל הזמנה",
@@ -680,7 +680,7 @@ const HE = {
   "orderStatus.pushSubscribeErr": "לא ניתן להפעיל התראות כרגע. נסו שוב.",
   "success.waCardHeadline": "מעולה! יש לנו הזמנה",
   "success.waCardNowLine": "עכשיו:",
-  "success.waOrderRecordedWithId": "הזמנתך #{order} מוכנה לשליחה",
+  "success.waOrderRecordedWithId": "הזמנתך מוכנה לשליחה",
   "success.waOrderRecordedNoId": "הזמנתך מוכנה לשליחה",
   "success.loadingProgressAria": "טוען, נא להמתין",
   "success.couponTitle": "🎁 קיבלת קופון!",
@@ -710,7 +710,7 @@ const HE = {
   "bit.subtitle": "שלמו באפליקציית ביט בטלפון (האפליקציה חייבת להיות מותקנת).",
   "bit.payIntro":
     "זה המספר שלנו לקבלת ביט: 0504847599\nשמרו אותו בטלפון שלכם בורגר האט\nוהעבירו את הסכום — עלות ההזמנה: ₪{amount}",
-  "bit.payForOrderLine": "תשלום עבור הזמנה מספר: {orderNumber}",
+  "bit.payForOrderLine": "תשלום עבור ההזמנה",
   "bit.copyNumber": "העתק מספר",
   "bit.copyAmount": "העתק סכום",
   "bit.openApp": "פתיחת אפליקציית ביט",
@@ -807,16 +807,16 @@ const HE = {
   "admin.newOrderNotifyDeniedHelp":
     "Chrome / Edge (מחשב): סמל המנעול או «ⓘ» ליד הכתובת → «הגדרות לאתר הזה» / Site settings → התראות → «אפשר». לאחר מכן רעננו את הדף. אנדרואיד (כרום): ⋮ → הגדרות → הגדרות אתר → התראות; או הגדרות המכשיר → אפליקציות → כרום → התראות. אייפון (אתר או PWA מהמסך הראשי): הגדרות → התראות → בחרו את האפליקציה או את Safari/דפדפן הרלוונטי → אפשרו; ל־PWA מותקן לפעמים תחת שם האתר או «התראות אפליקציות» (נדרש iOS 16.4+ ל־Web Push).",
   "admin.newOrderNotifyTitle": "הזמנה חדשה — Burger Hut",
-  "admin.newOrderNotifyBodyOne": "התקבלה הזמנה מס׳ #{n}.",
+  "admin.newOrderNotifyBodyOne": "התקבלה הזמנה חדשה.",
   "admin.newOrderNotifyBodyNoNum": "התקבלה הזמנה חדשה.",
   "admin.newOrderNotifyCouponDiscount": " הנחת קופון: {amount} ש״ח.",
   "admin.newOrderNotifyCouponCode": " קוד קופון: {code}.",
   "admin.newOrderNotifyBodyMany": "התקבלו {c} הזמנות חדשות.",
   "admin.pendingAcceptRemindTitle": "תזכורת — הזמנה ממתינה לאישור",
   "admin.pendingAcceptRemindBodyOne":
-    "הזמנה מס׳ #{n} ממתינה יותר מדקה — יש לאשר או לדחות.",
+    "יש הזמנה שממתינה יותר מדקה — יש לאשר או לדחות.",
   "admin.pendingAcceptRemindBodyMany":
-    "{c} הזמנות ממתינות יותר מדקה: {list}. יש לאשר או לדחות.",
+    "{c} הזמנות ממתינות יותר מדקה — יש לאשר או לדחות.",
   "admin.pendingAcceptRemindBodyExtra": " ועוד {c}",
   "admin.pendingAcceptRemindBodyNoNum":
     "יש הזמנה שממתינה יותר מדקה — יש לאשר או לדחות.",
@@ -1479,7 +1479,7 @@ const AR = {
   "rating.siteSendBtn": "إرسال",
   "rating.siteAfterTasteBtn": "بعد أن أتذوق",
   "rating.siteNeverBtn": "لا تعرض مرة أخرى",
-  "rating.reminderHint": "طلب #{order}",
+  "rating.reminderHint": "يسعدنا سماع رأيكم عن الطلب",
   "pwa.confirmTitle": "إضافة Burger Hut إلى الشاشة الرئيسية؟",
   "pwa.confirmBody":
     "بضغطة واحدة يظهر أيقونة على هاتفك — طلب أسرع دون البحث عن الموقع من جديد.",
@@ -1996,7 +1996,7 @@ const AR = {
   "success.resumeBackHome": "العودة للقائمة",
   "success.resumeLoading": "جارٍ تحميل طلبك…",
   "success.resumeBannerTitle": "لديك طلب قيد المعالجة",
-  "success.resumeBannerHint": "طلب {order} — يمكن فتح المتابعة أو متابعة التصفح في القائمة",
+  "success.resumeBannerHint": "يمكن فتح المتابعة أو متابعة التصفح في القائمة",
   "success.resumeBannerOpen": "عرض حالة الطلب",
   "orderStatus.cancelled": "ملغى",
   "orderStatus.cancelOrder": "إلغاء الطلب",
@@ -2016,7 +2016,7 @@ const AR = {
   "orderStatus.pushSubscribeErr": "تعذّر تفعيل الإشعارات الآن. حاولوا مجدداً.",
   "success.waCardHeadline": "رائع! لدينا طلبيتك",
   "success.waCardNowLine": "الآن:",
-  "success.waOrderRecordedWithId": "طلبك #{order} جاهز للإرسال",
+  "success.waOrderRecordedWithId": "طلبك جاهز للإرسال",
   "success.waOrderRecordedNoId": "طلبك جاهز للإرسال",
   "success.loadingProgressAria": "جارٍ التحميل، يرجى الانتظار",
   "success.couponTitle": "🎁 حصلت على كوبون!",
@@ -2046,7 +2046,7 @@ const AR = {
   "bit.subtitle": "ادفع من هاتف الزبون عبر تطبيق Bit (يجب أن يكون مثبتاً).",
   "bit.payIntro":
     "هذا رقمنا لاستلام Bit: 0504847599\nاحفظوه في هاتفكم — Burger Hut\nستوا المبلغ — تكلفة الطلب: ₪{amount}",
-  "bit.payForOrderLine": "الدفع عن الطلب رقم: {orderNumber}",
+  "bit.payForOrderLine": "الدفع عن الطلب",
   "bit.copyNumber": "نسخ الرقم",
   "bit.copyAmount": "نسخ المبلغ",
   "bit.openApp": "فتح تطبيق Bit الآن",
@@ -2145,16 +2145,16 @@ const AR = {
   "admin.newOrderNotifyDeniedHelp":
     "Chrome / Edge (كمبيوتر): أيقونة القفل أو «i» بجانب العنوان → «إعدادات الموقع» / Site settings → الإشعارات → «السماح». ثم حدّثوا الصفحة. أندرويد (Chrome): ⋮ → الإعدادات → إعدادات الموقع → الإشعارات؛ أو إعدادات الجهاز → التطبيقات → Chrome → الإشعارات. آيفون (موقع أو PWA من الشاشة الرئيسية): الإعدادات → الإشعارات → اختيار التطبيق أو Safari/المتصفح → السماح؛ قد يظهر اسم الموقع كتطبيق مثبّت (iOS 16.4+ لـ Web Push في PWA).",
   "admin.newOrderNotifyTitle": "طلب جديد — Burger Hut",
-  "admin.newOrderNotifyBodyOne": "وصل الطلب رقم #{n}.",
+  "admin.newOrderNotifyBodyOne": "وصل طلب جديد.",
   "admin.newOrderNotifyBodyNoNum": "وصل طلب جديد.",
   "admin.newOrderNotifyCouponDiscount": " خصم الكوبون: {amount} ₪.",
   "admin.newOrderNotifyCouponCode": " رمز الكوبون: {code}.",
   "admin.newOrderNotifyBodyMany": "وصلت {c} طلبات جديدة.",
   "admin.pendingAcceptRemindTitle": "تذكير — طلب بانتظار الموافقة",
   "admin.pendingAcceptRemindBodyOne":
-    "الطلب رقم #{n} بانتظار الموافقة أكثر من دقيقة — يرجى القبول أو الرفض.",
+    "هناك طلب بانتظار الموافقة أكثر من دقيقة — يرجى القبول أو الرفض.",
   "admin.pendingAcceptRemindBodyMany":
-    "{c} طلبات بانتظار الموافقة أكثر من دقيقة: {list}. يرجى القبول أو الرفض.",
+    "{c} طلبات بانتظار الموافقة أكثر من دقيقة — يرجى القبول أو الرفض.",
   "admin.pendingAcceptRemindBodyExtra": " و{c} إضافية",
   "admin.pendingAcceptRemindBodyNoNum":
     "هناك طلب بانتظار الموافقة أكثر من دقيقة — يرجى القبول أو الرفض.",

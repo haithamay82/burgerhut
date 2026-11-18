@@ -946,7 +946,6 @@ export default function SuccessPage() {
                 ? t("success.resumeGoneSubline")
                 : t("success.resumeSubline")}
             </p>
-            <p className="text-xs text-gray-500">#{orderNumberForRating}</p>
             <OrderFulfillmentCustomer
               orderNumber={orderNumberForRating}
               t={t}
