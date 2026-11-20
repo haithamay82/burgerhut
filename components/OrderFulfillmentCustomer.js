@@ -214,6 +214,12 @@ export default function OrderFulfillmentCustomer({
 
   const cancelOrder = async () => {
     if (cancelBusy || !orderId || !secret) return;
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(t("orderStatus.cancelConfirm"))
+    ) {
+      return;
+    }
     setCancelBusy(true);
     setCancelErr("");
     try {

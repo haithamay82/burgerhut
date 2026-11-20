@@ -664,6 +664,7 @@ const HE = {
   "success.resumeBannerOpen": "צפה בסטטוס ההזמנה",
   "orderStatus.cancelled": "בוטלה",
   "orderStatus.cancelOrder": "בטל הזמנה",
+  "orderStatus.cancelConfirm": "האם אתה בטוח שברצונך לבטל את ההזמנה?",
   "orderStatus.cancelling": "מבטל…",
   "orderStatus.cancelFailed": "לא ניתן לבטל את ההזמנה כרגע.",
   "orderStatus.pushEnableHint":
@@ -2001,6 +2002,7 @@ const AR = {
   "success.resumeBannerOpen": "عرض حالة الطلب",
   "orderStatus.cancelled": "ملغى",
   "orderStatus.cancelOrder": "إلغاء الطلب",
+  "orderStatus.cancelConfirm": "هل أنت متأكد أنك تريد إلغاء الطلب؟",
   "orderStatus.cancelling": "جارٍ الإلغاء…",
   "orderStatus.cancelFailed": "تعذّر إلغاء الطلب الآن.",
   "orderStatus.pushEnableHint":
