@@ -39,6 +39,7 @@ import {
 import { bindCustomerOrderPush } from "@/utils/bindCustomerOrderPush";
 import { syncPwaCustomerPushIfGranted } from "@/utils/customerPushClient";
 import OrderFulfillmentCustomer from "@/components/OrderFulfillmentCustomer";
+import BurgerSnakeGame from "@/components/BurgerSnakeGame";
 import Link from "next/link";
 
 function deferredCouponClaimStorageKey(orderNumber, code) {
@@ -928,6 +929,8 @@ export default function SuccessPage() {
     !ratingHiddenForNow &&
     !ratingAlreadyDone;
 
+  const showWaitingSnakeGame = Boolean(orderNumberForRating);
+
   const waSendClasses =
     "flex w-full justify-center rounded-full bg-[#25D366] px-4 py-3 text-center text-base font-extrabold text-white shadow-lg shadow-[#25D366]/40 transition-colors hover:bg-[#20BD5A] ring-2 ring-[#25D366]/80";
 
@@ -953,6 +956,7 @@ export default function SuccessPage() {
               orderId={cancelOrderId || cardOrder?.orderId || null}
               onStatus={handleFulfillmentStatus}
             />
+            {showWaitingSnakeGame ? <BurgerSnakeGame /> : null}
             <Link
               href="/"
               onClick={() => enableActiveOrderBrowseMode()}
@@ -1072,6 +1076,7 @@ export default function SuccessPage() {
                 onStatus={handleFulfillmentStatus}
               />
             ) : null}
+            {showWaitingSnakeGame ? <BurgerSnakeGame /> : null}
             {showFoodRatingBlock ? (
               <div className="flex w-full justify-center">
                 <FoodRatingCard
