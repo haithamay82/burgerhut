@@ -2964,17 +2964,8 @@ export default function AdminOrdersPage() {
     const utc = new Date(Date.UTC(y, m - 1, d - 1));
     return utc.toISOString().slice(0, 10);
   })();
-  const dayBeforeYesterdayKey = (() => {
-    const { y, m, d } = parseDayKey(todayKey);
-    const utc = new Date(Date.UTC(y, m - 1, d - 2));
-    return utc.toISOString().slice(0, 10);
-  })();
   const displayDayKey =
-    selectedDayKey === dayBeforeYesterdayKey
-      ? dayBeforeYesterdayKey
-      : selectedDayKey === yesterdayKey
-        ? yesterdayKey
-        : todayKey;
+    selectedDayKey === yesterdayKey ? yesterdayKey : todayKey;
   const selectedDayOrders = ordersByDay.get(displayDayKey) ?? [];
   const nowTs = Date.now();
 
@@ -5160,7 +5151,7 @@ export default function AdminOrdersPage() {
                       ? t("admin.employeeOrdersTitle")
                       : t("admin.salesCalendarTitle")}
                   </h2>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex gap-2">
                     <button
                       type="button"
                       onClick={() => setSelectedDayKey(todayKey)}
@@ -5184,18 +5175,6 @@ export default function AdminOrdersPage() {
                       }`}
                     >
                       {t("admin.employeeYesterdayBtn")}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedDayKey(dayBeforeYesterdayKey)}
-                      aria-pressed={displayDayKey === dayBeforeYesterdayKey}
-                      className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
-                        displayDayKey === dayBeforeYesterdayKey
-                          ? "border-primary bg-primary/20 text-primary"
-                          : "border-slate-600 bg-slate-800/80 text-gray-200 hover:border-primary/50"
-                      }`}
-                    >
-                      {t("admin.employeeDayBeforeYesterdayBtn")}
                     </button>
                   </div>
                 </div>
