@@ -4,7 +4,7 @@ import {
   setBusinessHours,
 } from "@/lib/businessHoursStore";
 import { isManualStoreClosedNow } from "@/lib/storeCloseStore";
-import { authorizeAdminOrEmployee } from "@/lib/adminAuth";
+import { authorizeAdminOnly } from "@/lib/adminAuth";
 import { isRestaurantOpenAt } from "@/utils/orderingHours";
 
 export default async function handler(req, res) {
@@ -22,7 +22,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === "PUT") {
-    const auth = authorizeAdminOrEmployee(req);
+    const auth = authorizeAdminOnly(req);
     if (!auth.ok) {
       if (auth.reason === "not_configured") {
         return res.status(503).json({

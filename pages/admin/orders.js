@@ -1182,7 +1182,7 @@ export default function AdminOrdersPage() {
       setLoaded(true);
       if (role === "employee") {
         setInventoryOpen(true);
-        setHoursPanelOpen(true);
+        setHoursPanelOpen(false);
       }
       setHoursMsg("");
       setDiscountMsg("");
@@ -4199,7 +4199,7 @@ export default function AdminOrdersPage() {
               </>
               ) : null}
 
-              {hoursDraft ? (
+              {!isEmployee && hoursDraft ? (
                 <>
                   <button
                     type="button"
