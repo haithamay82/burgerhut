@@ -1036,8 +1036,9 @@ const HE = {
   "admin.dayDeliveryFeesTotal": "סה״כ דמי משלוח באותו יום",
   "admin.orderFoodAmountLabel": "מזון:",
   "admin.orderDeliveryAmountLabel": "משלוח:",
-  "admin.salesCalendarTitle": "מכירות לפי יום",
-  "admin.salesCalendarHint": "לפי תאריך בישראל (Asia/Jerusalem). לחצו על יום כדי לראות הזמנות.",
+  "admin.salesCalendarTitle": "הזמנות — היום ואתמול",
+  "admin.salesCalendarHint":
+    "נשמרות רק הזמנות מהיום ואתמול (שעון ישראל). הזמנות ישנות יותר נמחקות אוטומטית.",
   "admin.siteVisitsTitle": "ביקורים יומיים — אתר ואפליקציה",
   "admin.siteVisitsHint":
     "ספירה של ביקור אחד ליום לכל מכשיר (כניסה ראשונה ביום מ־burgerhut.co.il או מהאפליקציה שהותקנה למסך הבית). לפי יום בישראל (ירושלים).",
@@ -2373,8 +2374,9 @@ const AR = {
   "admin.dayDeliveryFeesTotal": "إجمالي أجور التوصيل في ذلك اليوم",
   "admin.orderFoodAmountLabel": "طعام:",
   "admin.orderDeliveryAmountLabel": "توصيل:",
-  "admin.salesCalendarTitle": "المبيعات حسب اليوم",
-  "admin.salesCalendarHint": "حسب التاريخ في إسرائيل (Asia/Jerusalem). انقر يوماً لعرض الطلبات.",
+  "admin.salesCalendarTitle": "الطلبات — اليوم وأمس",
+  "admin.salesCalendarHint":
+    "تُحفظ فقط طلبات اليوم وأمس (توقيت إسرائيل). الطلبات الأقدم تُحذف تلقائياً.",
   "admin.siteVisitsTitle": "زيارات يومية — الموقع والتطبيق",
   "admin.siteVisitsHint":
     "يُحتسب زيارة واحدة يومياً لكل جهاز (أول دخول في اليوم من الموقع أو من التطبيق المثبّت على الشاشة الرئيسية). حسب اليوم في إسرائيل (القدس).",

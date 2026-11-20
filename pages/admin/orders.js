@@ -376,40 +376,6 @@ function parseDayKey(key) {
   return { y, m, d };
 }
 
-function dayKeyFromParts(y, m, d) {
-  return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-}
-
-/** מספר ימים בחודש גרגוריאני (y, m בשביל 1–12) */
-function daysInMonth(y, m) {
-  return new Date(Date.UTC(y, m, 0)).getUTCDate();
-}
-
-/** 0 = ראשון … 6 = שבת — לפי תאריך אזרחי אחיד */
-function weekdaySun0(y, m, d) {
-  return new Date(Date.UTC(y, m - 1, d, 12, 0, 0)).getUTCDay();
-}
-
-function weekdayShortLabels(locale) {
-  const loc = locale === "ar" ? "ar" : "he-IL";
-  const fmt = new Intl.DateTimeFormat(loc, { weekday: "short" });
-  const labels = [];
-  for (let i = 0; i < 7; i += 1) {
-    const d = new Date(Date.UTC(2024, 0, 7 + i, 12, 0, 0));
-    labels.push(fmt.format(d));
-  }
-  return labels;
-}
-
-function formatMonthYearTitle(y, m, locale) {
-  const loc = locale === "ar" ? "ar" : "he-IL";
-  return new Date(Date.UTC(y, m - 1, 1, 12, 0, 0)).toLocaleDateString(loc, {
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-}
-
 export default function AdminOrdersPage() {
   const { locale, t } = useLocale();
   const router = useRouter();
@@ -582,7 +548,6 @@ export default function AdminOrdersPage() {
   const [sliderUploading, setSliderUploading] = useState(false);
 
   const [selectedDayKey, setSelectedDayKey] = useState(null);
-  const [calView, setCalView] = useState({ y: 2026, m: 1 });
 
   const ordersByDay = useMemo(() => {
     const map = new Map();
@@ -599,27 +564,6 @@ export default function AdminOrdersPage() {
     }
     return map;
   }, [orders]);
-
-  /** סה״כ מכירות מזון ודמי משלוח לחודש הנצפה בלוח (Asia/Jerusalem) */
-  const calendarMonthSalesTotals = useMemo(() => {
-    const { y: yy, m: mm } = calView;
-    const dim = daysInMonth(yy, mm);
-    let food = 0;
-    let delivery = 0;
-    for (let d = 1; d <= dim; d += 1) {
-      const key = dayKeyFromParts(yy, mm, d);
-      const arr = ordersByDay.get(key);
-      if (!arr?.length) continue;
-      food += dayFoodSalesTotal(arr);
-      delivery += dayDeliveryFeesTotal(arr);
-    }
-    return { food, delivery };
-  }, [ordersByDay, calView]);
-
-  const weekdayLabels = useMemo(
-    () => weekdayShortLabels(locale),
-    [locale]
-  );
 
   const mergedCatalogItems = useMemo(
     () => mergeMenuItemsFromEditor(catalogEditor),
@@ -1243,10 +1187,7 @@ export default function AdminOrdersPage() {
       setHoursMsg("");
       setDiscountMsg("");
       setCouponMsg("");
-      const todayK = jerusalemDayKey();
-      const { y: ty, m: tm } = parseDayKey(todayK);
-      setSelectedDayKey(todayK);
-      setCalView({ y: ty, m: tm });
+      setSelectedDayKey(jerusalemDayKey());
       try {
         const invR = await fetch("/api/inventory", {
           headers: { "x-admin-secret": effectiveSecret },
@@ -3011,29 +2952,6 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const shiftCalMonth = (delta) => {
-    setCalView(({ y, m }) => {
-      let nm = m + delta;
-      let ny = y;
-      while (nm > 12) {
-        nm -= 12;
-        ny += 1;
-      }
-      while (nm < 1) {
-        nm += 12;
-        ny -= 1;
-      }
-      return { y: ny, m: nm };
-    });
-  };
-
-  const goToToday = () => {
-    const k = jerusalemDayKey();
-    const { y, m } = parseDayKey(k);
-    setSelectedDayKey(k);
-    setCalView({ y, m });
-  };
-
   const isEmployee = adminRole === "employee";
   const inBusinessHours = Boolean(
     hoursClockTick >= 0 &&
@@ -3046,21 +2964,9 @@ export default function AdminOrdersPage() {
     const utc = new Date(Date.UTC(y, m - 1, d - 1));
     return utc.toISOString().slice(0, 10);
   })();
-  const { y: vy, m: vm } = calView;
-  const dim = daysInMonth(vy, vm);
-  const lead = weekdaySun0(vy, vm, 1);
-  const calendarCells = [];
-  for (let i = 0; i < lead; i += 1) calendarCells.push(null);
-  for (let d = 1; d <= dim; d += 1) {
-    calendarCells.push(dayKeyFromParts(vy, vm, d));
-  }
-  const displayDayKey = isEmployee
-    ? selectedDayKey === yesterdayKey
-      ? yesterdayKey
-      : todayKey
-    : selectedDayKey;
-  const selectedDayOrders =
-    displayDayKey != null ? ordersByDay.get(displayDayKey) ?? [] : [];
+  const displayDayKey =
+    selectedDayKey === yesterdayKey ? yesterdayKey : todayKey;
+  const selectedDayOrders = ordersByDay.get(displayDayKey) ?? [];
   const nowTs = Date.now();
 
   const exportMenuSheetPng = async () => {
@@ -5245,15 +5151,6 @@ export default function AdminOrdersPage() {
                       ? t("admin.employeeOrdersTitle")
                       : t("admin.salesCalendarTitle")}
                   </h2>
-                  {!isEmployee ? (
-                  <button
-                    type="button"
-                    onClick={goToToday}
-                    className="rounded-lg border border-slate-600 bg-slate-800/80 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:border-primary/50 hover:bg-slate-800"
-                  >
-                    {t("admin.calendarTodayBtn")}
-                  </button>
-                  ) : (
                   <div className="flex gap-2">
                     <button
                       type="button"
@@ -5280,111 +5177,12 @@ export default function AdminOrdersPage() {
                       {t("admin.employeeYesterdayBtn")}
                     </button>
                   </div>
-                  )}
                 </div>
-                {!isEmployee ? (
                 <p className="mb-4 text-[11px] leading-relaxed text-gray-500">
                   {t("admin.salesCalendarHint")}
                 </p>
-                ) : null}
                 {orders.length === 0 ? (
                   <p className="mb-4 text-sm text-gray-500">{t("admin.empty")}</p>
-                ) : null}
-
-                {!isEmployee ? (
-                <>
-                <div
-                  className="mb-6 flex items-center justify-between gap-2"
-                  dir="ltr"
-                >
-                  <button
-                    type="button"
-                    onClick={() => shiftCalMonth(-1)}
-                    aria-label={t("admin.calendarPrevMonth")}
-                    className="rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 text-lg leading-none text-gray-200 transition-colors hover:border-primary/40 hover:bg-slate-800"
-                  >
-                    ‹
-                  </button>
-                  <span className="min-w-0 flex-1 text-center text-sm font-semibold text-gray-200">
-                    {formatMonthYearTitle(vy, vm, locale)}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => shiftCalMonth(1)}
-                    aria-label={t("admin.calendarNextMonth")}
-                    className="rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 text-lg leading-none text-gray-200 transition-colors hover:border-primary/40 hover:bg-slate-800"
-                  >
-                    ›
-                  </button>
-                </div>
-
-                <div className="mb-4 rounded-lg border border-slate-700/60 bg-slate-950/40 px-3 py-2.5 text-sm">
-                  <p className="text-gray-400">
-                    {t("admin.monthSalesTotal")}{" "}
-                    <span className="font-bold tabular-nums text-amber-400">
-                      ₪{calendarMonthSalesTotals.food.toFixed(2)}
-                    </span>
-                  </p>
-                  {calendarMonthSalesTotals.delivery > 0 ? (
-                    <p className="mt-1 text-xs text-gray-500">
-                      {t("admin.monthDeliveryFeesTotal")}{" "}
-                      <span className="font-semibold tabular-nums text-gray-300">
-                        ₪{calendarMonthSalesTotals.delivery.toFixed(2)}
-                      </span>
-                    </p>
-                  ) : null}
-                </div>
-
-                <div className="mb-6" dir="ltr">
-                  <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-gray-500 sm:text-xs">
-                    {weekdayLabels.map((label, i) => (
-                      <div key={i} className="py-1">
-                        {label}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-7 gap-1">
-                    {calendarCells.map((cellKey, idx) =>
-                      cellKey == null ? (
-                        <div key={`empty-${idx}`} className="aspect-square min-h-[2.25rem]" />
-                      ) : (
-                        (() => {
-                          const isToday = cellKey === todayKey;
-                          const isSel = selectedDayKey === cellKey;
-                          const hasOrders = ordersByDay.has(cellKey);
-                          const dayNum = parseDayKey(cellKey).d;
-                          return (
-                            <button
-                              key={cellKey}
-                              type="button"
-                              onClick={() => setSelectedDayKey(cellKey)}
-                              aria-pressed={isSel}
-                              aria-label={cellKey}
-                              className={`relative flex min-h-[2.25rem] aspect-square items-center justify-center rounded-lg border text-sm font-semibold transition-colors sm:min-h-[2.5rem] ${
-                                isSel
-                                  ? "border-primary bg-primary/20 text-primary"
-                                  : "border-slate-700 bg-slate-950/50 text-gray-200 hover:border-slate-500 hover:bg-slate-800/60"
-                              } ${
-                                isToday
-                                  ? "ring-1 ring-amber-500/60 ring-offset-1 ring-offset-slate-900/80"
-                                  : ""
-                              }`}
-                            >
-                              <span>{dayNum}</span>
-                              {hasOrders ? (
-                                <span
-                                  className="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-amber-400"
-                                  aria-hidden
-                                />
-                              ) : null}
-                            </button>
-                          );
-                        })()
-                      )
-                    )}
-                  </div>
-                </div>
-                </>
                 ) : null}
 
                 {displayDayKey ? (
