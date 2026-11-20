@@ -785,6 +785,7 @@ const HE = {
   "admin.employeeOrdersTitle": "הזמנות ומכירות",
   "admin.employeeTodayBtn": "היום",
   "admin.employeeYesterdayBtn": "אתמול",
+  "admin.employeeDayBeforeYesterdayBtn": "שלשום",
   "admin.employeeAutoRefreshHint":
     "ההזמנות להיום ולאתמול מתעדכנות אוטומטית כל כ־15 שניות כשהדף פתוח.",
   "admin.secretStorageHint":
@@ -1036,9 +1037,9 @@ const HE = {
   "admin.dayDeliveryFeesTotal": "סה״כ דמי משלוח באותו יום",
   "admin.orderFoodAmountLabel": "מזון:",
   "admin.orderDeliveryAmountLabel": "משלוח:",
-  "admin.salesCalendarTitle": "הזמנות — היום ואתמול",
+  "admin.salesCalendarTitle": "הזמנות — היום, אתמול ושלשום",
   "admin.salesCalendarHint":
-    "נשמרות רק הזמנות מהיום ואתמול (שעון ישראל). הזמנות ישנות יותר נמחקות אוטומטית.",
+    "נשמרות רק הזמנות מהיום, אתמול ושלשום (שעון ישראל). הזמנות ישנות יותר נמחקות אוטומטית.",
   "admin.siteVisitsTitle": "ביקורים יומיים — אתר ואפליקציה",
   "admin.siteVisitsHint":
     "ספירה של ביקור אחד ליום לכל מכשיר (כניסה ראשונה ביום מ־burgerhut.co.il או מהאפליקציה שהותקנה למסך הבית). לפי יום בישראל (ירושלים).",
@@ -2124,6 +2125,7 @@ const AR = {
   "admin.employeeOrdersTitle": "الطلبات والمبيعات",
   "admin.employeeTodayBtn": "اليوم",
   "admin.employeeYesterdayBtn": "أمس",
+  "admin.employeeDayBeforeYesterdayBtn": "أول أمس",
   "admin.employeeAutoRefreshHint":
     "تُحدَّث طلبات اليوم وأمس تلقائياً كل نحو 15 ثانية عندما تبقى الصفحة مفتوحة.",
   "admin.secretStorageHint":
@@ -2374,9 +2376,9 @@ const AR = {
   "admin.dayDeliveryFeesTotal": "إجمالي أجور التوصيل في ذلك اليوم",
   "admin.orderFoodAmountLabel": "طعام:",
   "admin.orderDeliveryAmountLabel": "توصيل:",
-  "admin.salesCalendarTitle": "الطلبات — اليوم وأمس",
+  "admin.salesCalendarTitle": "الطلبات — اليوم وأمس وأول أمس",
   "admin.salesCalendarHint":
-    "تُحفظ فقط طلبات اليوم وأمس (توقيت إسرائيل). الطلبات الأقدم تُحذف تلقائياً.",
+    "تُحفظ فقط طلبات اليوم وأمس وأول أمس (توقيت إسرائيل). الطلبات الأقدم تُحذف تلقائياً.",
   "admin.siteVisitsTitle": "زيارات يومية — الموقع والتطبيق",
   "admin.siteVisitsHint":
     "يُحتسب زيارة واحدة يومياً لكل جهاز (أول دخول في اليوم من الموقع أو من التطبيق المثبّت على الشاشة الرئيسية). حسب اليوم في إسرائيل (القدس).",
