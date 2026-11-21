@@ -259,8 +259,14 @@ export default function BurgerSnakeGame({ className = "" }) {
       let body = s.snake;
       if (hitSelf) {
         playShrinkSound();
-        const shrinkTo = Math.max(MIN_LEN, Math.ceil(body.length / 2));
+        const prevLen = body.length;
+        const shrinkTo = Math.max(MIN_LEN, Math.ceil(prevLen / 2));
+        const lost = Math.max(0, prevLen - shrinkTo);
         s.snake = [nextHead, ...body.slice(0, shrinkTo - 1)];
+        if (lost > 0) {
+          s.score = Math.max(0, s.score - lost);
+          setScore(s.score);
+        }
         bump();
         return;
       }
@@ -328,103 +334,98 @@ export default function BurgerSnakeGame({ className = "" }) {
         </p>
       </div>
 
-      <div className="relative mx-auto mt-3 w-full max-w-[280px]">
-        <div
-          ref={boardRef}
-          dir="ltr"
-          className="aspect-square w-full touch-none select-none overflow-hidden rounded-xl border border-slate-700 bg-slate-950"
-          style={{
-            display: "grid",
-            gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))`,
-            gridTemplateRows: `repeat(${ROWS}, minmax(0, 1fr))`,
-          }}
-        >
-          {Array.from({ length: ROWS * COLS }, (_, i) => {
-            const x = i % COLS;
-            const y = Math.floor(i / COLS);
-            const k = `${x},${y}`;
-            const isHead = k === headKey;
-            const isBody = snakeSet.has(k);
-            const isFood = food.x === x && food.y === y;
-            return (
-              <div
-                key={k}
-                className={`relative flex items-center justify-center overflow-visible leading-none ${
-                  isHead
-                    ? "bg-primary text-black"
-                    : isBody
-                      ? "bg-amber-500/80"
-                      : "bg-transparent"
-                }`}
-              >
-                {isFood ? (
-                  <span
-                    className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 text-[22px] sm:text-[26px]"
-                    aria-hidden
-                  >
-                    🍔
-                  </span>
-                ) : isHead ? (
-                  "●"
-                ) : (
-                  ""
-                )}
-              </div>
-            );
-          })}
-        </div>
-        {showWin ? (
-          <div
-            className="absolute inset-0 z-20 flex items-center justify-center rounded-xl bg-slate-950/90 p-3"
-            role="status"
-          >
-            <div className="space-y-2 text-center">
-              <p className="text-sm font-extrabold text-primary">
-                {t("snake.winTitle")}
-              </p>
-              <p className="text-[12px] font-semibold leading-snug text-amber-100">
-                {t("snake.winBody")}
-              </p>
-              <a
-                href={winWaUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex w-full items-center justify-center rounded-full bg-[#25D366] px-3 py-2.5 text-xs font-extrabold text-white shadow-md shadow-[#25D366]/30"
-              >
-                {t("snake.winWaBtn")}
-              </a>
-            </div>
-          </div>
-        ) : null}
-      </div>
-
-      <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-        {!running && score === 0 ? (
+      <div
+        className="mx-auto mt-3 flex w-full max-w-[340px] items-stretch justify-center gap-2"
+        dir="ltr"
+      >
+        <div className="flex w-14 shrink-0 flex-col justify-center">
           <button
             type="button"
             onClick={start}
-            className="rounded-lg border border-primary/50 bg-primary/15 px-4 py-2 text-xs font-semibold text-primary hover:bg-primary/25"
+            className="rounded-lg border border-primary/50 bg-primary/15 px-1.5 py-3 text-[10px] font-semibold leading-tight text-primary hover:bg-primary/25"
           >
-            {t("snake.play")}
+            {!running && score === 0 ? t("snake.play") : t("snake.restart")}
           </button>
-        ) : (
-          <>
-            <button
-              type="button"
-              onClick={pauseToggle}
-              className="rounded-lg border border-slate-600 bg-slate-800/80 px-3 py-2 text-xs font-semibold text-gray-100 hover:border-slate-500"
+        </div>
+        <div className="relative min-w-0 flex-1 max-w-[280px]">
+          <div
+            ref={boardRef}
+            dir="ltr"
+            className="aspect-square w-full touch-none select-none overflow-hidden rounded-xl border border-slate-700 bg-slate-950"
+            style={{
+              display: "grid",
+              gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))`,
+              gridTemplateRows: `repeat(${ROWS}, minmax(0, 1fr))`,
+            }}
+          >
+            {Array.from({ length: ROWS * COLS }, (_, i) => {
+              const x = i % COLS;
+              const y = Math.floor(i / COLS);
+              const k = `${x},${y}`;
+              const isHead = k === headKey;
+              const isBody = snakeSet.has(k);
+              const isFood = food.x === x && food.y === y;
+              return (
+                <div
+                  key={k}
+                  className={`relative flex items-center justify-center overflow-visible leading-none ${
+                    isHead
+                      ? "bg-primary text-black"
+                      : isBody
+                        ? "bg-amber-500/80"
+                        : "bg-transparent"
+                  }`}
+                >
+                  {isFood ? (
+                    <span
+                      className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 text-[22px] sm:text-[26px]"
+                      aria-hidden
+                    >
+                      🍔
+                    </span>
+                  ) : isHead ? (
+                    "●"
+                  ) : (
+                    ""
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {showWin ? (
+            <div
+              className="absolute inset-0 z-20 flex items-center justify-center rounded-xl bg-slate-950/90 p-3"
+              role="status"
             >
-              {running ? t("snake.pause") : t("snake.resume")}
-            </button>
-            <button
-              type="button"
-              onClick={start}
-              className="rounded-lg border border-primary/50 bg-primary/15 px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/25"
-            >
-              {t("snake.restart")}
-            </button>
-          </>
-        )}
+              <div className="space-y-2 text-center">
+                <p className="text-sm font-extrabold text-primary">
+                  {t("snake.winTitle")}
+                </p>
+                <p className="text-[12px] font-semibold leading-snug text-amber-100">
+                  {t("snake.winBody")}
+                </p>
+                <a
+                  href={winWaUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex w-full items-center justify-center rounded-full bg-[#25D366] px-3 py-2.5 text-xs font-extrabold text-white shadow-md shadow-[#25D366]/30"
+                >
+                  {t("snake.winWaBtn")}
+                </a>
+              </div>
+            </div>
+          ) : null}
+        </div>
+        <div className="flex w-14 shrink-0 flex-col justify-center">
+          <button
+            type="button"
+            onClick={pauseToggle}
+            disabled={!running && score === 0}
+            className="rounded-lg border border-slate-600 bg-slate-800/80 px-1.5 py-3 text-[10px] font-semibold leading-tight text-gray-100 hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {running ? t("snake.pause") : t("snake.resume")}
+          </button>
+        </div>
       </div>
 
       <div className="mt-3 grid grid-cols-3 gap-1.5 justify-items-center" dir="ltr">
