@@ -334,98 +334,95 @@ export default function BurgerSnakeGame({ className = "" }) {
         </p>
       </div>
 
+      <div className="relative mx-auto mt-3 w-full max-w-[280px]">
+        <div
+          ref={boardRef}
+          dir="ltr"
+          className="aspect-square w-full touch-none select-none overflow-hidden rounded-xl border border-slate-700 bg-slate-950"
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))`,
+            gridTemplateRows: `repeat(${ROWS}, minmax(0, 1fr))`,
+          }}
+        >
+          {Array.from({ length: ROWS * COLS }, (_, i) => {
+            const x = i % COLS;
+            const y = Math.floor(i / COLS);
+            const k = `${x},${y}`;
+            const isHead = k === headKey;
+            const isBody = snakeSet.has(k);
+            const isFood = food.x === x && food.y === y;
+            return (
+              <div
+                key={k}
+                className={`relative flex items-center justify-center overflow-visible leading-none ${
+                  isHead
+                    ? "bg-primary text-black"
+                    : isBody
+                      ? "bg-amber-500/80"
+                      : "bg-transparent"
+                }`}
+              >
+                {isFood ? (
+                  <span
+                    className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 text-[22px] sm:text-[26px]"
+                    aria-hidden
+                  >
+                    🍔
+                  </span>
+                ) : isHead ? (
+                  "●"
+                ) : (
+                  ""
+                )}
+              </div>
+            );
+          })}
+        </div>
+        {showWin ? (
+          <div
+            className="absolute inset-0 z-20 flex items-center justify-center rounded-xl bg-slate-950/90 p-3"
+            role="status"
+          >
+            <div className="space-y-2 text-center">
+              <p className="text-sm font-extrabold text-primary">
+                {t("snake.winTitle")}
+              </p>
+              <p className="text-[12px] font-semibold leading-snug text-amber-100">
+                {t("snake.winBody")}
+              </p>
+              <a
+                href={winWaUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex w-full items-center justify-center rounded-full bg-[#25D366] px-3 py-2.5 text-xs font-extrabold text-white shadow-md shadow-[#25D366]/30"
+              >
+                {t("snake.winWaBtn")}
+              </a>
+            </div>
+          </div>
+        ) : null}
+      </div>
+
       <div
-        className="mx-auto mt-3 flex w-full max-w-[340px] items-stretch justify-center gap-2"
+        className="mx-auto mt-3 flex w-full max-w-[280px] items-center justify-between gap-3"
         dir="ltr"
       >
-        <div className="flex w-14 shrink-0 flex-col justify-center">
-          <button
-            type="button"
-            onClick={start}
-            className="rounded-lg border border-primary/50 bg-primary/15 px-1.5 py-3 text-[10px] font-semibold leading-tight text-primary hover:bg-primary/25"
-          >
-            {!running && score === 0 ? t("snake.play") : t("snake.restart")}
-          </button>
-        </div>
-        <div className="relative min-w-0 flex-1 max-w-[280px]">
-          <div
-            ref={boardRef}
-            dir="ltr"
-            className="aspect-square w-full touch-none select-none overflow-hidden rounded-xl border border-slate-700 bg-slate-950"
-            style={{
-              display: "grid",
-              gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))`,
-              gridTemplateRows: `repeat(${ROWS}, minmax(0, 1fr))`,
-            }}
-          >
-            {Array.from({ length: ROWS * COLS }, (_, i) => {
-              const x = i % COLS;
-              const y = Math.floor(i / COLS);
-              const k = `${x},${y}`;
-              const isHead = k === headKey;
-              const isBody = snakeSet.has(k);
-              const isFood = food.x === x && food.y === y;
-              return (
-                <div
-                  key={k}
-                  className={`relative flex items-center justify-center overflow-visible leading-none ${
-                    isHead
-                      ? "bg-primary text-black"
-                      : isBody
-                        ? "bg-amber-500/80"
-                        : "bg-transparent"
-                  }`}
-                >
-                  {isFood ? (
-                    <span
-                      className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 text-[22px] sm:text-[26px]"
-                      aria-hidden
-                    >
-                      🍔
-                    </span>
-                  ) : isHead ? (
-                    "●"
-                  ) : (
-                    ""
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          {showWin ? (
-            <div
-              className="absolute inset-0 z-20 flex items-center justify-center rounded-xl bg-slate-950/90 p-3"
-              role="status"
-            >
-              <div className="space-y-2 text-center">
-                <p className="text-sm font-extrabold text-primary">
-                  {t("snake.winTitle")}
-                </p>
-                <p className="text-[12px] font-semibold leading-snug text-amber-100">
-                  {t("snake.winBody")}
-                </p>
-                <a
-                  href={winWaUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex w-full items-center justify-center rounded-full bg-[#25D366] px-3 py-2.5 text-xs font-extrabold text-white shadow-md shadow-[#25D366]/30"
-                >
-                  {t("snake.winWaBtn")}
-                </a>
-              </div>
-            </div>
-          ) : null}
-        </div>
-        <div className="flex w-14 shrink-0 flex-col justify-center">
-          <button
-            type="button"
-            onClick={pauseToggle}
-            disabled={!running && score === 0}
-            className="rounded-lg border border-slate-600 bg-slate-800/80 px-1.5 py-3 text-[10px] font-semibold leading-tight text-gray-100 hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {running ? t("snake.pause") : t("snake.resume")}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={start}
+          className="rounded-lg border border-primary/50 bg-primary/15 px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/25"
+        >
+          {!running && score === 0 ? t("snake.play") : t("snake.restart")}
+        </button>
+        <button
+          type="button"
+          onClick={pauseToggle}
+          disabled={!running && score === 0}
+          className="rounded-lg border border-slate-600 bg-slate-800/80 px-3 py-2 text-xs font-semibold text-gray-100 hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {running ? t("snake.pause") : t("snake.resume")}
+        </button>
       </div>
 
       <div className="mt-3 grid grid-cols-3 gap-1.5 justify-items-center" dir="ltr">
@@ -440,7 +437,7 @@ export default function BurgerSnakeGame({ className = "" }) {
             }
             setDir({ x: 0, y: -1 });
           }}
-          className="h-10 w-12 rounded-lg border border-slate-600 bg-slate-800 text-lg text-gray-100 active:bg-slate-700"
+          className="h-[2.75rem] w-[3.3rem] rounded-lg border border-slate-600 bg-slate-800 text-xl text-gray-100 active:bg-slate-700"
         >
           ▲
         </button>
@@ -455,7 +452,7 @@ export default function BurgerSnakeGame({ className = "" }) {
             }
             setDir({ x: -1, y: 0 });
           }}
-          className="h-10 w-12 rounded-lg border border-slate-600 bg-slate-800 text-lg text-gray-100 active:bg-slate-700"
+          className="h-[2.75rem] w-[3.3rem] rounded-lg border border-slate-600 bg-slate-800 text-xl text-gray-100 active:bg-slate-700"
         >
           ◀
         </button>
@@ -469,7 +466,7 @@ export default function BurgerSnakeGame({ className = "" }) {
             }
             setDir({ x: 0, y: 1 });
           }}
-          className="h-10 w-12 rounded-lg border border-slate-600 bg-slate-800 text-lg text-gray-100 active:bg-slate-700"
+          className="h-[2.75rem] w-[3.3rem] rounded-lg border border-slate-600 bg-slate-800 text-xl text-gray-100 active:bg-slate-700"
         >
           ▼
         </button>
@@ -483,7 +480,7 @@ export default function BurgerSnakeGame({ className = "" }) {
             }
             setDir({ x: 1, y: 0 });
           }}
-          className="h-10 w-12 rounded-lg border border-slate-600 bg-slate-800 text-lg text-gray-100 active:bg-slate-700"
+          className="h-[2.75rem] w-[3.3rem] rounded-lg border border-slate-600 bg-slate-800 text-xl text-gray-100 active:bg-slate-700"
         >
           ▶
         </button>
