@@ -6,6 +6,8 @@ const ROWS = 14;
 const TICK_MS = 160;
 /** אורך מינימלי: ראש + 3 חלקים */
 const MIN_LEN = 4;
+const CHALLENGE_SCORE = 50;
+const WIN_LOCAL_KEY = "bh_snake_challenge_won";
 
 const DIRS = {
   ArrowUp: { x: 0, y: -1 },
@@ -17,6 +19,68 @@ const DIRS = {
   a: { x: -1, y: 0 },
   d: { x: 1, y: 0 },
 };
+
+let snakeAudioCtx = null;
+
+function getSnakeAudioCtx() {
+  if (typeof window === "undefined") return null;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return null;
+  if (!snakeAudioCtx || snakeAudioCtx.state === "closed") {
+    snakeAudioCtx = new AC();
+  }
+  return snakeAudioCtx;
+}
+
+function playSnakeTone({ freq, duration = 0.12, type = "sine", gain = 0.08 }) {
+  const ctx = getSnakeAudioCtx();
+  if (!ctx) return;
+  const run = () => {
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(gain, now + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    osc.connect(g);
+    g.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + duration + 0.02);
+  };
+  if (ctx.state === "suspended") {
+    void ctx.resume().then(run).catch(() => {});
+  } else {
+    run();
+  }
+}
+
+function playEatSound() {
+  playSnakeTone({ freq: 660, duration: 0.09, type: "square", gain: 0.07 });
+  window.setTimeout(() => {
+    playSnakeTone({ freq: 880, duration: 0.1, type: "square", gain: 0.06 });
+  }, 70);
+}
+
+function playShrinkSound() {
+  playSnakeTone({ freq: 320, duration: 0.14, type: "sawtooth", gain: 0.06 });
+  window.setTimeout(() => {
+    playSnakeTone({ freq: 180, duration: 0.18, type: "triangle", gain: 0.05 });
+  }, 90);
+}
+
+function playWinSound() {
+  playSnakeTone({ freq: 523, duration: 0.12, type: "sine", gain: 0.08 });
+  window.setTimeout(
+    () => playSnakeTone({ freq: 659, duration: 0.12, type: "sine", gain: 0.08 }),
+    100
+  );
+  window.setTimeout(
+    () => playSnakeTone({ freq: 784, duration: 0.18, type: "sine", gain: 0.09 }),
+    200
+  );
+}
 
 function keyOf(cell) {
   return `${cell.x},${cell.y}`;
@@ -53,6 +117,7 @@ function initialState() {
     score: 0,
     best: 0,
     running: false,
+    challengeReported: false,
   };
 }
 
@@ -66,6 +131,7 @@ export default function BurgerSnakeGame({ className = "" }) {
   const [best, setBest] = useState(0);
   const [running, setRunning] = useState(false);
   const [frame, setFrame] = useState(0);
+  const [winners, setWinners] = useState(null);
   const boardRef = useRef(null);
 
   const bump = useCallback(() => setFrame((n) => n + 1), []);
@@ -76,10 +142,51 @@ export default function BurgerSnakeGame({ className = "" }) {
     stateRef.current.pendingDir = next;
   }, []);
 
+  const reportChallengeWin = useCallback(async () => {
+    if (typeof window === "undefined") return;
+    try {
+      if (window.localStorage.getItem(WIN_LOCAL_KEY) === "1") {
+        const r = await fetch("/api/snake-challenge", { cache: "no-store" });
+        const d = await r.json().catch(() => ({}));
+        if (r.ok && Number.isFinite(Number(d.winners))) {
+          setWinners(Number(d.winners));
+        }
+        return;
+      }
+    } catch {
+      /* continue to report */
+    }
+    try {
+      const r = await fetch("/api/snake-challenge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ score: CHALLENGE_SCORE }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && Number.isFinite(Number(d.winners))) {
+        setWinners(Number(d.winners));
+        try {
+          window.localStorage.setItem(WIN_LOCAL_KEY, "1");
+        } catch {
+          /* ignore */
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   const start = useCallback(() => {
     const next = initialState();
     next.best = stateRef.current.best;
     next.running = true;
+    try {
+      next.challengeReported =
+        typeof window !== "undefined" &&
+        window.localStorage.getItem(WIN_LOCAL_KEY) === "1";
+    } catch {
+      next.challengeReported = false;
+    }
     stateRef.current = next;
     setScore(0);
     setBest(next.best);
@@ -92,6 +199,24 @@ export default function BurgerSnakeGame({ className = "" }) {
     if (!s.snake.length) return;
     s.running = !s.running;
     setRunning(s.running);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const r = await fetch("/api/snake-challenge", { cache: "no-store" });
+        const d = await r.json().catch(() => ({}));
+        if (!cancelled && r.ok && Number.isFinite(Number(d.winners))) {
+          setWinners(Number(d.winners));
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -126,8 +251,8 @@ export default function BurgerSnakeGame({ className = "" }) {
 
       let body = s.snake;
       if (hitSelf) {
+        playShrinkSound();
         const shrinkTo = Math.max(MIN_LEN, Math.ceil(body.length / 2));
-        body = body.slice(0, shrinkTo);
         s.snake = [nextHead, ...body.slice(0, shrinkTo - 1)];
         bump();
         return;
@@ -135,19 +260,25 @@ export default function BurgerSnakeGame({ className = "" }) {
 
       const ate = nextHead.x === s.food.x && nextHead.y === s.food.y;
       if (ate) {
+        playEatSound();
         s.snake = [nextHead, ...body];
         s.score += 1;
         if (s.score > s.best) s.best = s.score;
         s.food = randomEmptyCell(s.snake);
         setScore(s.score);
         setBest(s.best);
+        if (s.score >= CHALLENGE_SCORE && !s.challengeReported) {
+          s.challengeReported = true;
+          playWinSound();
+          void reportChallengeWin();
+        }
       } else {
         s.snake = [nextHead, ...body.slice(0, body.length - 1)];
       }
       bump();
     }, TICK_MS);
     return () => window.clearInterval(id);
-  }, [bump]);
+  }, [bump, reportChallengeWin]);
 
   void frame;
   const { snake, food } = stateRef.current;
@@ -164,17 +295,29 @@ export default function BurgerSnakeGame({ className = "" }) {
       <p className="mt-1 text-[11px] leading-snug text-gray-500">
         {t("snake.hint")}
       </p>
-      <div className="mt-2 flex items-center justify-center gap-4 text-sm">
-        <p className="font-bold text-amber-200">
-          {t("snake.score").replace("{n}", String(score))}
-        </p>
-        <p className="text-xs text-gray-400">
-          {t("snake.best").replace("{n}", String(best))}
+      <p className="mt-2 rounded-lg border border-amber-700/40 bg-amber-950/30 px-2.5 py-2 text-[12px] font-semibold leading-snug text-amber-100">
+        {t("snake.challenge")}
+      </p>
+      <div className="mt-2 flex flex-col items-center gap-1 text-sm">
+        <div className="flex items-center justify-center gap-4">
+          <p className="font-bold text-amber-200">
+            {t("snake.score").replace("{n}", String(score))}
+          </p>
+          <p className="text-xs text-gray-400">
+            {t("snake.best").replace("{n}", String(best))}
+          </p>
+        </div>
+        <p className="text-[11px] text-emerald-300/90">
+          {t("snake.winners").replace(
+            "{n}",
+            winners == null ? "…" : String(winners)
+          )}
         </p>
       </div>
 
       <div
         ref={boardRef}
+        dir="ltr"
         className="mx-auto mt-3 aspect-square w-full max-w-[280px] touch-none select-none overflow-hidden rounded-xl border border-slate-700 bg-slate-950"
         style={{
           display: "grid",
@@ -192,7 +335,7 @@ export default function BurgerSnakeGame({ className = "" }) {
           return (
             <div
               key={k}
-              className={`flex items-center justify-center text-[10px] leading-none ${
+              className={`relative flex items-center justify-center overflow-visible leading-none ${
                 isHead
                   ? "bg-primary text-black"
                   : isBody
@@ -200,7 +343,18 @@ export default function BurgerSnakeGame({ className = "" }) {
                     : "bg-transparent"
               }`}
             >
-              {isFood ? "🍔" : isHead ? "●" : ""}
+              {isFood ? (
+                <span
+                  className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 text-[22px] sm:text-[26px]"
+                  aria-hidden
+                >
+                  🍔
+                </span>
+              ) : isHead ? (
+                "●"
+              ) : (
+                ""
+              )}
             </div>
           );
         })}
