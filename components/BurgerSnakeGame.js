@@ -6,7 +6,7 @@ const ROWS = 14;
 const TICK_MS = 160;
 /** אורך מינימלי: ראש + 3 חלקים */
 const MIN_LEN = 4;
-const CHALLENGE_SCORE = 10;
+const CHALLENGE_SCORE = 40;
 const WIN_LOCAL_KEY = "bh_snake_challenge_won";
 
 const DIRS = {
