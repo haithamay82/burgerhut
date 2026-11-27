@@ -4,8 +4,8 @@ import {
 } from "@/lib/snakeChallengeStore";
 
 /**
- * GET  — מספר מי שצלחו את אתגר ה־50
- * POST — דיווח על הצלחה (ניקוד 50) — מגדיל את המונה ב־1
+ * GET  — מספר מי שצלחו את אתגר ה־10
+ * POST — דיווח על הצלחה (ניקוד 10) — מגדיל את המונה ב־1
  */
 export default async function handler(req, res) {
   res.setHeader(
@@ -20,7 +20,7 @@ export default async function handler(req, res) {
 
   if (req.method === "POST") {
     const score = Number(req.body?.score);
-    if (!Number.isFinite(score) || score < 50) {
+    if (!Number.isFinite(score) || score < 10) {
       return res.status(400).json({ ok: false, error: "invalid_score" });
     }
     const winners = await incrementSnakeChallengeWinners();
